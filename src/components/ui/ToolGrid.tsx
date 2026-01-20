@@ -3,28 +3,10 @@
 import React, { useState, useMemo } from 'react';
 import ToolCard from './ToolCard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ToolCardProps } from '@/interface/toolSearch.interface';
-
+import { ToolCardProps } from '@/types/tool-search';
+import { appIcons } from '@/config/icons';
 const tools: ToolCardProps[] = [
-    { title: "PDF Pro", toolFolderName: "pdf-pro", icon: "picture_as_pdf", gradientFrom: "#ff5e57", gradientTo: "#ff2d55" },
-    { title: "Optimizely", toolFolderName: "optimizely", icon: "compress", gradientFrom: "#34c759", gradientTo: "#24b04b" },
-    { title: "JSON Editor", toolFolderName: "json-editor", icon: "code", gradientFrom: "#ffcc00", gradientTo: "#ff9500" },
-    { title: "Data Flow", toolFolderName: "data-flow", icon: "data_table", gradientFrom: "#5856d6", gradientTo: "#af52de" },
-    { title: "QuickScan", toolFolderName: "quickscan", icon: "qr_code_2", gradientFrom: "#4a4a4e", gradientTo: "#1c1c1e" },
-    { title: "WritePad", toolFolderName: "writepad", icon: "edit_note", gradientFrom: "#00c7be", gradientTo: "#30b0c7" },
-    { title: "Codec", toolFolderName: "codec", icon: "enhanced_encryption", gradientFrom: "#ff3b30", gradientTo: "#ff9500" },
-    { title: "Units", toolFolderName: "units", icon: "straighten", gradientFrom: "#007aff", gradientTo: "#0040dd" },
-    { title: "Colors", toolFolderName: "colors", icon: "palette", gradientFrom: "#ff2d55", gradientTo: "#ff375f" },
-    { title: "Regex", toolFolderName: "regex", icon: "regular_expression", gradientFrom: "#5e5ce6", gradientTo: "#5856d6" },
-    { title: "SQL Lab", toolFolderName: "sql-lab", icon: "database", gradientFrom: "#147efb", gradientTo: "#5fc9f8" },
-    { title: "Security", toolFolderName: "security", icon: "fingerprint", gradientFrom: "#ff9f0a", gradientTo: "#ff3b30" },
-    { title: "Redact Secrets", toolFolderName: "redact-secrets", icon: "fingerprint", gradientFrom: "#ff9f0a", gradientTo: "#ff3b30" },
-    { title: "Terminal", toolFolderName: "terminal", icon: "terminal", gradientFrom: "#64d2ff", gradientTo: "#007aff" },
-    { title: "Magic Refactor", toolFolderName: "magic-refactor", icon: "auto_awesome", gradientFrom: "#bf5af2", gradientTo: "#af52de" },
-    { title: "Key Store", toolFolderName: "key-store", icon: "key", gradientFrom: "#ffd60a", gradientTo: "#ff9f0a" },
-    { title: "Insights", toolFolderName: "insights", icon: "analytics", gradientFrom: "#30d158", gradientTo: "#24b04b" },
-    { title: "DevTimer", toolFolderName: "devtimer", icon: "timer", gradientFrom: "#ff453a", gradientTo: "#ff3b30" },
-    { title: "Add-ons", toolFolderName: "addons", icon: "extension", gradientFrom: "#8e8e93", gradientTo: "#636366" },
+    { title: "Redact Secrets", toolFolderName: "redact-secrets", icon: appIcons.redactSecretsIcon, gradientFrom: "#ff9f0a", gradientTo: "#ff3b30" },
 ];
 
 interface ToolGridProps {
@@ -32,17 +14,20 @@ interface ToolGridProps {
 }
 
 const itemVariants: any = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, scale: 0.8, y: 30 },
     visible: (i: number) => ({
         opacity: 1,
+        scale: 1,
         y: 0,
         transition: {
-            duration: 0.8,
-            ease: [0.23, 1, 0.32, 1],
-            delay: i * 0.05
+            type: "spring",
+            stiffness: 260,
+            damping: 20,
+            delay: i * 0.04
         }
     })
 };
+
 
 const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery }) => {
     const [isExpanded, setIsExpanded] = useState(false);

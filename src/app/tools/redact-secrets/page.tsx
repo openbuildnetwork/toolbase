@@ -20,13 +20,15 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Textarea } from "@/components/ui/Textarea";
 import { Switch } from "@/components/ui/Switch";
-import { HintManager } from "./interface/HintManager";
+import { Label } from "@/components/ui/Label";
+import { HintManager } from "@/components/ui/HintManager";
 import {
     RedactRequest,
     RedactResponse,
     ContentType,
     MaskingStyle
-} from "./types/redact";
+} from "@/types/redact";
+import { Tabs } from "@/components/ui/Tabs";
 
 export default function RedactSecretsPage() {
     const [content, setContent] = useState("");
@@ -133,7 +135,6 @@ export default function RedactSecretsPage() {
                         >
                             {isLoading ? "Redacting..." : (
                                 <>
-                                    <Lock className="w-4 h-4 mr-2" />
                                     Redact Now
                                 </>
                             )}
@@ -145,41 +146,29 @@ export default function RedactSecretsPage() {
                     {/* Left Column: Editor */}
                     <div className="lg:col-span-8 space-y-6">
                         <Card className="overflow-hidden border-none shadow-xl bg-white/70 backdrop-blur-2xl ring-1 ring-black/5">
+
+
                             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white/50">
-                                <div className="flex items-center gap-4">
-                                    <div className="flex bg-gray-100 p-1 rounded-xl">
-                                        <button
-                                            onClick={() => setContentType("text")}
-                                            className={cn(
-                                                "flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
-                                                contentType === "text" ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-gray-700"
-                                            )}
-                                        >
-                                            <FileText className="w-3.5 h-3.5" />
-                                            Text
-                                        </button>
-                                        <button
-                                            onClick={() => setContentType("code")}
-                                            className={cn(
-                                                "flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
-                                                contentType === "code" ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-gray-700"
-                                            )}
-                                        >
-                                            <Code2 className="w-3.5 h-3.5" />
-                                            Code
-                                        </button>
-                                        <button
-                                            onClick={() => setContentType("log")}
-                                            className={cn(
-                                                "flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
-                                                contentType === "log" ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-gray-700"
-                                            )}
-                                        >
-                                            <Activity className="w-3.5 h-3.5" />
-                                            Log
-                                        </button>
-                                    </div>
-                                </div>
+                                <Tabs
+                                    value={contentType}
+                                    onChange={setContentType}
+                                    radius="rounded-[100px]"
+                                    orientation="horizontal"
+                                    size="sm"
+                                    colors={{
+                                        container: "bg-gray-100",
+                                        indicator: "bg-blue-600",
+                                        activeBackground: "bg-white",
+                                        label: {
+                                            active: "text-blue-600",
+                                        },
+                                    }}
+                                    tabs={[
+                                        { id: "text", icon: <FileText className="w-3.5 h-3.5" />, label: "Text" },
+                                        { id: "code", icon: <Code2 className="w-3.5 h-3.5" />, label: "Code" },
+                                        { id: "log", icon: <Activity className="w-3.5 h-3.5" />, label: "Logs" },
+                                    ]}
+                                />
                                 <div className="text-[10px] uppercase tracking-widest font-bold text-gray-400">
                                     Input Content
                                 </div>
@@ -218,7 +207,7 @@ export default function RedactSecretsPage() {
                                                 </span>
                                             </Button>
                                         </div>
-                                        <div className="p-6 bg-gray-900/[0.02] min-h-[300px]">
+                                        <div className="p-6 bg-gray-900/2 min-h-[300px]">
                                             <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 leading-relaxed selection:bg-primary/20">
                                                 {response.maskedContent}
                                             </pre>
@@ -252,31 +241,37 @@ export default function RedactSecretsPage() {
                             <div className="p-6 space-y-8">
                                 {/* Masking Style */}
                                 <div className="space-y-3">
-                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                                        Redaction Style
-                                    </label>
-                                    <div className="grid grid-cols-3 gap-2 p-1 bg-gray-100 rounded-xl">
-                                        {(['partial', 'full', 'hash'] as MaskingStyle[]).map((style) => (
-                                            <button
-                                                key={style}
-                                                onClick={() => setMaskingStyle(style)}
-                                                className={cn(
-                                                    "px-2 py-2 text-xs font-semibold capitalize rounded-lg transition-all",
-                                                    maskingStyle === style ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-gray-700"
-                                                )}
-                                            >
-                                                {style}
-                                            </button>
-                                        ))}
+                                    <div className="flex-col space-y-2">
+                                        <div>
+                                            <Label>Redaction Style</Label>
+                                        </div>
+                                        <Tabs
+                                            value={maskingStyle}
+                                            onChange={setMaskingStyle}
+                                            radius="rounded-[100px]"
+                                            orientation="horizontal"
+                                            size="sm"
+                                            colors={{
+                                                container: "bg-gray-100",
+                                                indicator: "bg-blue-600",
+                                                activeBackground: "bg-white",
+                                                label: {
+                                                    active: "text-blue-600",
+                                                },
+                                            }}
+                                            tabs={[
+                                                { id: "partial", label: "Partial" },
+                                                { id: "full", label: "Full" },
+                                                { id: "hash", label: "Hash" },
+                                            ]}
+                                        />
                                     </div>
                                 </div>
 
                                 {/* Log Options */}
                                 {contentType === 'log' && (
                                     <div className="space-y-4 pt-4 border-t border-gray-100">
-                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block">
-                                            Log Specific Options
-                                        </label>
+                                        <Label>Log Specific Options</Label>
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm text-gray-600 font-medium">Mask Path Structures</span>

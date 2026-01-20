@@ -6,14 +6,15 @@ interface SwitchProps extends React.InputHTMLAttributes<HTMLInputElement> { }
 export const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
     ({ className, ...props }, ref) => {
         return (
-            <label className="relative inline-flex items-center cursor-pointer">
+            <label className="relative inline-flex items-center cursor-pointer haptic-click">
                 <input type="checkbox" ref={ref} className="sr-only peer" {...props} />
                 <div className={cn(
-                    "w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary",
+                    "w-12 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:duration-300 after:shadow-md peer-checked:bg-[#34c759] transition-colors duration-300",
                     className
                 )}></div>
             </label>
         );
+
     }
 );
 Switch.displayName = "Switch";
