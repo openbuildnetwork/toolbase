@@ -3,26 +3,28 @@
 import React, { useState, useMemo } from 'react';
 import ToolCard from './ToolCard';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ToolCardProps } from '@/interface/toolSearch.interface';
 
-const tools = [
-    { title: "PDF Pro", icon: "picture_as_pdf", from: "#ff5e57", to: "#ff2d55" },
-    { title: "Optimizely", icon: "compress", from: "#34c759", to: "#24b04b" },
-    { title: "JSON Editor", icon: "code", from: "#ffcc00", to: "#ff9500" },
-    { title: "Data Flow", icon: "data_table", from: "#5856d6", to: "#af52de" },
-    { title: "QuickScan", icon: "qr_code_2", from: "#4a4a4e", to: "#1c1c1e" },
-    { title: "WritePad", icon: "edit_note", from: "#00c7be", to: "#30b0c7" },
-    { title: "Codec", icon: "enhanced_encryption", from: "#ff3b30", to: "#ff9500" },
-    { title: "Units", icon: "straighten", from: "#007aff", to: "#0040dd" },
-    { title: "Colors", icon: "palette", from: "#ff2d55", to: "#ff375f" },
-    { title: "Regex", icon: "regular_expression", from: "#5e5ce6", to: "#5856d6" },
-    { title: "SQL Lab", icon: "database", from: "#147efb", to: "#5fc9f8" },
-    { title: "Security", icon: "fingerprint", from: "#ff9f0a", to: "#ff3b30" },
-    { title: "Terminal", icon: "terminal", from: "#64d2ff", to: "#007aff" },
-    { title: "Magic Refactor", icon: "auto_awesome", from: "#bf5af2", to: "#af52de" },
-    { title: "Key Store", icon: "key", from: "#ffd60a", to: "#ff9f0a" },
-    { title: "Insights", icon: "analytics", from: "#30d158", to: "#24b04b" },
-    { title: "DevTimer", icon: "timer", from: "#ff453a", to: "#ff3b30" },
-    { title: "Add-ons", icon: "extension", from: "#8e8e93", to: "#636366" },
+const tools: ToolCardProps[] = [
+    { title: "PDF Pro", toolFolderName: "pdf-pro", icon: "picture_as_pdf", gradientFrom: "#ff5e57", gradientTo: "#ff2d55" },
+    { title: "Optimizely", toolFolderName: "optimizely", icon: "compress", gradientFrom: "#34c759", gradientTo: "#24b04b" },
+    { title: "JSON Editor", toolFolderName: "json-editor", icon: "code", gradientFrom: "#ffcc00", gradientTo: "#ff9500" },
+    { title: "Data Flow", toolFolderName: "data-flow", icon: "data_table", gradientFrom: "#5856d6", gradientTo: "#af52de" },
+    { title: "QuickScan", toolFolderName: "quickscan", icon: "qr_code_2", gradientFrom: "#4a4a4e", gradientTo: "#1c1c1e" },
+    { title: "WritePad", toolFolderName: "writepad", icon: "edit_note", gradientFrom: "#00c7be", gradientTo: "#30b0c7" },
+    { title: "Codec", toolFolderName: "codec", icon: "enhanced_encryption", gradientFrom: "#ff3b30", gradientTo: "#ff9500" },
+    { title: "Units", toolFolderName: "units", icon: "straighten", gradientFrom: "#007aff", gradientTo: "#0040dd" },
+    { title: "Colors", toolFolderName: "colors", icon: "palette", gradientFrom: "#ff2d55", gradientTo: "#ff375f" },
+    { title: "Regex", toolFolderName: "regex", icon: "regular_expression", gradientFrom: "#5e5ce6", gradientTo: "#5856d6" },
+    { title: "SQL Lab", toolFolderName: "sql-lab", icon: "database", gradientFrom: "#147efb", gradientTo: "#5fc9f8" },
+    { title: "Security", toolFolderName: "security", icon: "fingerprint", gradientFrom: "#ff9f0a", gradientTo: "#ff3b30" },
+    { title: "Redact Secrets", toolFolderName: "redact-secrets", icon: "fingerprint", gradientFrom: "#ff9f0a", gradientTo: "#ff3b30" },
+    { title: "Terminal", toolFolderName: "terminal", icon: "terminal", gradientFrom: "#64d2ff", gradientTo: "#007aff" },
+    { title: "Magic Refactor", toolFolderName: "magic-refactor", icon: "auto_awesome", gradientFrom: "#bf5af2", gradientTo: "#af52de" },
+    { title: "Key Store", toolFolderName: "key-store", icon: "key", gradientFrom: "#ffd60a", gradientTo: "#ff9f0a" },
+    { title: "Insights", toolFolderName: "insights", icon: "analytics", gradientFrom: "#30d158", gradientTo: "#24b04b" },
+    { title: "DevTimer", toolFolderName: "devtimer", icon: "timer", gradientFrom: "#ff453a", gradientTo: "#ff3b30" },
+    { title: "Add-ons", toolFolderName: "addons", icon: "extension", gradientFrom: "#8e8e93", gradientTo: "#636366" },
 ];
 
 interface ToolGridProps {
@@ -70,9 +72,10 @@ const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery }) => {
                         >
                             <ToolCard
                                 title={tool.title}
-                                iconUrl={tool.icon}
-                                gradientFrom={tool.from}
-                                gradientTo={tool.to}
+                                toolFolderName={tool.toolFolderName}
+                                icon={tool.icon}
+                                gradientFrom={tool.gradientFrom}
+                                gradientTo={tool.gradientTo}
                             />
                         </motion.div>
                     ))}
