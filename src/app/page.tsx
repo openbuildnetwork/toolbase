@@ -1,6 +1,6 @@
 "use client";
-import SearchBar from "../../components/SearchBar";
-import ToolGrid from "../../components/ToolGrid";
+import SearchBar from "../components/ui/SearchBar";
+import ToolGrid from "../components/ui/ToolGrid";
 import { useState } from 'react';
 
 

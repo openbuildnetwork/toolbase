@@ -3,26 +3,10 @@
 import React, { useState, useMemo } from 'react';
 import ToolCard from './ToolCard';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const tools = [
-    { title: "PDF Pro", icon: "picture_as_pdf", from: "#ff5e57", to: "#ff2d55" },
-    { title: "Optimizely", icon: "compress", from: "#34c759", to: "#24b04b" },
-    { title: "JSON Editor", icon: "code", from: "#ffcc00", to: "#ff9500" },
-    { title: "Data Flow", icon: "data_table", from: "#5856d6", to: "#af52de" },
-    { title: "QuickScan", icon: "qr_code_2", from: "#4a4a4e", to: "#1c1c1e" },
-    { title: "WritePad", icon: "edit_note", from: "#00c7be", to: "#30b0c7" },
-    { title: "Codec", icon: "enhanced_encryption", from: "#ff3b30", to: "#ff9500" },
-    { title: "Units", icon: "straighten", from: "#007aff", to: "#0040dd" },
-    { title: "Colors", icon: "palette", from: "#ff2d55", to: "#ff375f" },
-    { title: "Regex", icon: "regular_expression", from: "#5e5ce6", to: "#5856d6" },
-    { title: "SQL Lab", icon: "database", from: "#147efb", to: "#5fc9f8" },
-    { title: "Security", icon: "fingerprint", from: "#ff9f0a", to: "#ff3b30" },
-    { title: "Terminal", icon: "terminal", from: "#64d2ff", to: "#007aff" },
-    { title: "Magic Refactor", icon: "auto_awesome", from: "#bf5af2", to: "#af52de" },
-    { title: "Key Store", icon: "key", from: "#ffd60a", to: "#ff9f0a" },
-    { title: "Insights", icon: "analytics", from: "#30d158", to: "#24b04b" },
-    { title: "DevTimer", icon: "timer", from: "#ff453a", to: "#ff3b30" },
-    { title: "Add-ons", icon: "extension", from: "#8e8e93", to: "#636366" },
+import { ToolCardProps } from '@/types/tool-search';
+import { appIcons } from '@/config/icons';
+const tools: ToolCardProps[] = [
+    { title: "Redact Secrets", toolFolderName: "redact-secrets", icon: appIcons.redactSecretsIcon, gradientFrom: "#ff9f0a", gradientTo: "#ff3b30" },
 ];
 
 interface ToolGridProps {
@@ -30,17 +14,20 @@ interface ToolGridProps {
 }
 
 const itemVariants: any = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, scale: 0.8, y: 30 },
     visible: (i: number) => ({
         opacity: 1,
+        scale: 1,
         y: 0,
         transition: {
-            duration: 0.8,
-            ease: [0.23, 1, 0.32, 1],
-            delay: i * 0.05
+            type: "spring",
+            stiffness: 260,
+            damping: 20,
+            delay: i * 0.04
         }
     })
 };
+
 
 const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery }) => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -70,9 +57,10 @@ const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery }) => {
                         >
                             <ToolCard
                                 title={tool.title}
-                                iconUrl={tool.icon}
-                                gradientFrom={tool.from}
-                                gradientTo={tool.to}
+                                toolFolderName={tool.toolFolderName}
+                                icon={tool.icon}
+                                gradientFrom={tool.gradientFrom}
+                                gradientTo={tool.gradientTo}
                             />
                         </motion.div>
                     ))}
