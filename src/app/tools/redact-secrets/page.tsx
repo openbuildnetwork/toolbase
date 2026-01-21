@@ -29,6 +29,7 @@ import {
     MaskingStyle
 } from "@/types/redact";
 import { Tabs } from "@/components/ui/Tabs";
+import { useRedactWorker } from "@/hooks/useRedactWorker";
 
 export default function RedactSecretsPage() {
     const [content, setContent] = useState("");
@@ -41,6 +42,8 @@ export default function RedactSecretsPage() {
     const [maskUUIDs, setMaskUUIDs] = useState(true);
     const [maskNumericIds, setMaskNumericIds] = useState(false);
 
+
+    const { redact, isLoading: isWasmLoading } = useRedactWorker();
     const [isLoading, setIsLoading] = useState(false);
     const [response, setResponse] = useState<RedactResponse | null>(null);
     const [copied, setCopied] = useState(false);
@@ -71,23 +74,10 @@ export default function RedactSecretsPage() {
         };
 
         try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-            const res = await fetch(`${baseUrl}/tools/redact/mask`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(requestBody),
-            });
-
-            if (!res.ok) {
-                throw new Error(`API Error: ${res.statusText}`);
-            }
-
-            const data: RedactResponse = await res.json();
+            const data = await redact(requestBody);
             setResponse(data);
         } catch (err: any) {
-            setError(err.message || "Something went wrong. Please check if the API is running.");
+            setError(err.message || "Something went wrong during local processing.");
             console.error(err);
         } finally {
             setIsLoading(false);
@@ -130,10 +120,10 @@ export default function RedactSecretsPage() {
                         </Button>
                         <Button
                             onClick={handleRedact}
-                            isLoading={isLoading}
+                            isLoading={isLoading || isWasmLoading}
                             className="macos-primary-button min-w-[140px]"
                         >
-                            {isLoading ? "Redacting..." : (
+                            {isLoading || isWasmLoading ? "Redacting..." : (
                                 <>
                                     Redact Now
                                 </>
@@ -141,6 +131,13 @@ export default function RedactSecretsPage() {
                         </Button>
                     </div>
                 </header>
+
+                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-full w-fit">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                        Running Locally (WASM) - No data leaves your machine
+                    </span>
+                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 font-display">
                     {/* Left Column: Editor */}
