@@ -8,18 +8,26 @@ export function useRedactWorker() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        console.log('Hook: Initializing worker...');
         // Initialize the worker
         const worker = new Worker(new URL('../workers/redact.worker.ts', import.meta.url));
         workerRef.current = worker;
 
         worker.onmessage = (event) => {
+            console.log('Hook: Message from worker:', event.data.type);
             const { type } = event.data;
             if (type === 'READY') {
                 setIsReady(true);
             }
         };
 
+        worker.onerror = (error) => {
+            console.error('Hook: Worker error:', error);
+            setError('Worker creation error');
+        };
+
         return () => {
+            console.log('Hook: Terminating worker');
             worker.terminate();
         };
     }, []);

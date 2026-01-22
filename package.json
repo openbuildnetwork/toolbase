@@ -1,11 +1,13 @@
 {
   "name": "tool-box",
+  "type": "module",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
     "start": "next start",
+    "build:python": "ts-node scripts/build-python-bundle.ts",
+    "build": "npm run build:python && next build",
+    "dev": "npm run build:python && next dev",
     "lint": "eslint"
   },
   "dependencies": {
@@ -20,12 +22,13 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.19.30",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.2",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

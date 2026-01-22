@@ -43,7 +43,7 @@ export default function RedactSecretsPage() {
     const [maskNumericIds, setMaskNumericIds] = useState(false);
 
 
-    const { redact, isLoading: isWasmLoading } = useRedactWorker();
+    const { redact, isLoading: isWasmLoading, isReady } = useRedactWorker();
     const [isLoading, setIsLoading] = useState(false);
     const [response, setResponse] = useState<RedactResponse | null>(null);
     const [copied, setCopied] = useState(false);
@@ -133,9 +133,12 @@ export default function RedactSecretsPage() {
                 </header>
 
                 <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-full w-fit">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <div className={cn(
+                        "w-2 h-2 rounded-full",
+                        isReady ? "bg-emerald-500 animate-pulse" : "bg-amber-500 animate-pulse"
+                    )} />
                     <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
-                        Running Locally (WASM) - No data leaves your machine
+                        {isReady ? "Running Locally (WASM) - No data leaves your machine" : "Initializing Python Engine... (WASM)"}
                     </span>
                 </div>
 
