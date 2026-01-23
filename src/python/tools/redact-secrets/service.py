@@ -60,16 +60,17 @@ class Redactor:
         # Re-initialize base scanners with the requested style if needed
         # Or just use the ones we have if they match.
         # Actually, let's just build them here for simplicity and to ensure style is correct.
+        hints = configs.get("userHints") or {}
+        keys = hints.get("keys", [])
+
+        # Re-initialize scanners with style and optional keys
         scanners = [
             EmailScanner(style=style),
-            GenericAPIKeyScanner(style=style),
+            GenericAPIKeyScanner(keys=keys, style=style),
             IPv4Scanner(style=style),
-            SmartEntropyScanner(style=style),
+            SmartEntropyScanner(keys=keys, style=style),
         ]
 
-        hints = configs.get("userHints") or {}
-
-        keys = hints.get("keys", [])
         literal_texts = hints.get("literalTexts", [])
         regex_patterns = hints.get("regexPatterns", [])
 

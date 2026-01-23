@@ -40,23 +40,47 @@ class EmailScanner(SecretScanner):
 
 
 class GenericAPIKeyScanner(SecretScanner):
-    def __init__(self, style="full"):
+    def __init__(self, keys: Optional[List[str]] = None, style="full"):
         self.style = style
+        self.base_keys = [
+            "api_key",
+            "secret",
+            "password",
+            "token",
+            "auth",
+            "aws_access",
+            "aws_secret",
+        ]
+        if keys:
+            # Filter out empty and escape for regex
+            self.extra_keys = [re.escape(k) for k in keys if k]
+        else:
+            self.extra_keys = []
+
+        all_keys = "|".join(self.base_keys + self.extra_keys)
+        # Regex to match key: value or key=value patterns
+        # Group 1: key, Group 2: literal value
+        self.pattern = (
+            rf'(?i)({all_keys})\s*[:=]\s*["\']?([a-zA-Z0-9_\-/+=]{{4,}})["\']?'
+        )
 
     @property
     def name(self):
         return "Generic API Key"
 
     def scan_and_redact(self, text: str) -> Tuple[str, int]:
-        pattern = r'(?i)(api_key|secret|password|token|auth|aws_access|aws_secret)\s*[:=]\s*["\']?([a-zA-Z0-9_\-/+=]{12,})["\']?'
-
         def repl(match):
-            # match.group(1) is the key name, group(2) is the value
-            # We want to keep the key name but mask the value
-            masked = mask_text(match.group(2), self.style)
-            return f'{match.group(1)}="{masked}"'
+            key_name = match.group(1)
+            value = match.group(2)
+            masked = mask_text(value, self.style)
+            # Find the original separators and quotes if possible, or just reconstruct
+            # To be safe and simple, we preserve the key and mask the value
+            # We can use the match object to find exactly where group 2 started
+            full_match = match.group(0)
+            start_g2 = match.start(2) - match.start(0)
+            return full_match[:start_g2] + masked
 
-        return re.subn(pattern, repl, text)
+        return re.subn(self.pattern, repl, text)
 
 
 class IPv4Scanner(SecretScanner):

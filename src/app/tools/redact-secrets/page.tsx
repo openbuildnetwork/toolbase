@@ -81,20 +81,40 @@ export default function RedactSecretsPage() {
         }
     };
 
+    const [isUploading, setIsUploading] = useState(false);
+
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        setIsUploading(true);
         setFileName(file.name);
         const reader = new FileReader();
+
+        reader.onloadstart = () => {
+            setIsUploading(true);
+        };
+
         reader.onload = (event) => {
             const result = event.target?.result;
             if (typeof result === "string") {
                 setContent(result);
             }
+            setIsUploading(false);
+            // Reset input value so the same file can be selected again
+            if (e.target) {
+                e.target.value = "";
+            }
         };
+
+        reader.onerror = () => {
+            setError("Failed to read file");
+            setIsUploading(false);
+        };
+
         reader.readAsText(file);
     };
+
 
     const copyToClipboard = () => {
         if (!response?.maskedContent) return;
@@ -213,15 +233,22 @@ export default function RedactSecretsPage() {
                                                     variant="outline"
                                                     className="bg-white border-gray-200 h-12 rounded-xl group"
                                                     onClick={() => fileInputRef.current?.click()}
+                                                    isLoading={isUploading}
                                                 >
                                                     <Upload className="w-4 h-4 mr-2 group-hover:translate-y-[-2px] transition-transform" />
-                                                    Select File
+                                                    {isUploading ? "Reading File..." : "Select File"}
                                                 </Button>
-                                                {content && (
+                                                {content && !isUploading && (
                                                     <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
                                                         File loaded successfully - Ready for redaction
                                                     </p>
                                                 )}
+                                                {isUploading && (
+                                                    <p className="text-[10px] font-bold text-blue-600 animate-pulse uppercase tracking-widest">
+                                                        Loading file content...
+                                                    </p>
+                                                )}
+
                                             </div>
                                         </div>
                                     </div>
