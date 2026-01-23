@@ -7,6 +7,7 @@ import { ToolCardProps } from '@/types/tool-search';
 import { appIcons } from '@/config/icons';
 const tools: ToolCardProps[] = [
     { title: "Redact Secrets", toolFolderName: "redact-secrets", icon: appIcons.redactSecretsIcon, gradientFrom: "#ff9f0a", gradientTo: "#ff3b30" },
+    { title: "JSON to Interface/Model", toolFolderName: "json-to-interface", icon: appIcons.jsonToInterfaceIcon, gradientFrom: "#ff9f0a", gradientTo: "#ff3b30" },
 ];
 
 interface ToolGridProps {
