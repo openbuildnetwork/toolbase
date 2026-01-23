@@ -1,25 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+
 import {
     Shield,
     Trash2,
     Copy,
     Check,
     Settings2,
-    Code2,
     FileText,
     Activity,
-    Lock,
     ShieldCheck,
-    AlertCircle
+    AlertCircle,
+    Upload
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Textarea } from "@/components/ui/Textarea";
-import { Switch } from "@/components/ui/Switch";
 import { Label } from "@/components/ui/Label";
 import { HintManager } from "@/components/ui/HintManager";
 import {
@@ -29,6 +28,7 @@ import {
     MaskingStyle
 } from "@/types/redact";
 import { Tabs } from "@/components/ui/Tabs";
+import { useRedactWorker } from "@/hooks/useRedactWorker";
 
 export default function RedactSecretsPage() {
     const [content, setContent] = useState("");
@@ -37,9 +37,12 @@ export default function RedactSecretsPage() {
     const [keys, setKeys] = useState<string[]>([]);
     const [literalTexts, setLiteralTexts] = useState<string[]>([]);
     const [regexPatterns, setRegexPatterns] = useState<string[]>([]);
-    const [maskPaths, setMaskPaths] = useState(true);
-    const [maskUUIDs, setMaskUUIDs] = useState(true);
-    const [maskNumericIds, setMaskNumericIds] = useState(false);
+    const [fileName, setFileName] = useState<string | null>(null);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+
+    const { redact, isLoading: isWasmLoading, isReady } = useRedactWorker();
 
     const [isLoading, setIsLoading] = useState(false);
     const [response, setResponse] = useState<RedactResponse | null>(null);
@@ -55,44 +58,61 @@ export default function RedactSecretsPage() {
         const requestBody: RedactRequest = {
             content,
             contentType,
-            masking: {
+            customConfigurations: {
                 style: maskingStyle,
                 userHints: {
                     keys,
                     literalTexts,
                     regexPatterns,
-                },
-                logOptions: {
-                    maskPaths,
-                    maskUUIDs,
-                    maskNumericIds,
-                },
+                }
             },
         };
 
         try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-            const res = await fetch(`${baseUrl}/tools/redact/mask`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(requestBody),
-            });
-
-            if (!res.ok) {
-                throw new Error(`API Error: ${res.statusText}`);
-            }
-
-            const data: RedactResponse = await res.json();
+            const data = await redact(requestBody);
             setResponse(data);
         } catch (err: any) {
-            setError(err.message || "Something went wrong. Please check if the API is running.");
+            setError(err.message || "Something went wrong during local processing.");
             console.error(err);
         } finally {
             setIsLoading(false);
         }
     };
+
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        setFileName(file.name);
+        const reader = new FileReader();
+
+        reader.onloadstart = () => {
+            setIsUploading(true);
+        };
+
+        reader.onload = (event) => {
+            const result = event.target?.result;
+            if (typeof result === "string") {
+                setContent(result);
+            }
+            setIsUploading(false);
+            // Reset input value so the same file can be selected again
+            if (e.target) {
+                e.target.value = "";
+            }
+        };
+
+        reader.onerror = () => {
+            setError("Failed to read file");
+            setIsUploading(false);
+        };
+
+        reader.readAsText(file);
+    };
+
 
     const copyToClipboard = () => {
         if (!response?.maskedContent) return;
@@ -105,10 +125,11 @@ export default function RedactSecretsPage() {
         setContent("");
         setResponse(null);
         setError(null);
+        setFileName(null);
     };
 
     return (
-        <div className="min-h-screen bg-background-light p-4 md:p-8">
+        <div className="min-h-screen bg-background-light p-4 md:p-8 font-display">
             <div className="max-w-7xl mx-auto space-y-8">
                 {/* Header */}
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -118,40 +139,44 @@ export default function RedactSecretsPage() {
                                 <Shield className="w-7 h-7" />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold tracking-tight text-gray-900 font-display">Secret Redactor</h1>
+                                <h1 className="text-2xl font-bold tracking-tight text-gray-900">Secret Redactor</h1>
                                 <p className="text-sm text-gray-500 font-medium">Protect sensitive information and PII automatically</p>
                             </div>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <Button variant="outline" onClick={clearAll} className="bg-white/50 backdrop-blur-md border-gray-200">
+                        <Button variant="outline" onClick={clearAll} className="bg-white/50 backdrop-blur-md border-gray-200 h-11 px-6 rounded-xl hover:bg-white hover:border-gray-300 transition-all">
                             <Trash2 className="w-4 h-4 mr-2" />
                             Clear
                         </Button>
                         <Button
                             onClick={handleRedact}
-                            isLoading={isLoading}
-                            className="macos-primary-button min-w-[140px]"
+                            isLoading={isLoading || isWasmLoading}
+                            className="macos-primary-button min-w-[140px] h-11 px-8"
                         >
-                            {isLoading ? "Redacting..." : (
-                                <>
-                                    Redact Now
-                                </>
-                            )}
+                            {isLoading || isWasmLoading ? "Redacting..." : "Redact Now"}
                         </Button>
                     </div>
                 </header>
+
+                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-full w-fit">
+                    <div className={cn(
+                        "w-2 h-2 rounded-full",
+                        isReady ? "bg-emerald-500 animate-pulse" : "bg-amber-500 animate-pulse"
+                    )} />
+                    <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                        {isReady ? "Running Locally (WASM) - No data leaves your machine" : "Initializing Python Engine... (WASM)"}
+                    </span>
+                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 font-display">
                     {/* Left Column: Editor */}
                     <div className="lg:col-span-8 space-y-6">
                         <Card className="overflow-hidden border-none shadow-xl bg-white/70 backdrop-blur-2xl ring-1 ring-black/5">
-
-
                             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white/50">
                                 <Tabs
                                     value={contentType}
-                                    onChange={setContentType}
+                                    onChange={(id) => setContentType(id as ContentType)}
                                     radius="rounded-[100px]"
                                     orientation="horizontal"
                                     size="sm"
@@ -165,21 +190,67 @@ export default function RedactSecretsPage() {
                                     }}
                                     tabs={[
                                         { id: "text", icon: <FileText className="w-3.5 h-3.5" />, label: "Text" },
-                                        { id: "code", icon: <Code2 className="w-3.5 h-3.5" />, label: "Code" },
-                                        { id: "log", icon: <Activity className="w-3.5 h-3.5" />, label: "Logs" },
+                                        { id: "file", icon: <Upload className="w-3.5 h-3.5" />, label: "File" },
                                     ]}
                                 />
                                 <div className="text-[10px] uppercase tracking-widest font-bold text-gray-400">
-                                    Input Content
+                                    {contentType === "text" ? "Input Content" : "Upload Document"}
                                 </div>
                             </div>
                             <div className="p-0">
-                                <Textarea
-                                    placeholder="Paste your code, logs, or text containing secrets here..."
-                                    className="min-h-[400px] border-none focus-visible:ring-0 text-gray-800 placeholder:text-gray-400 font-mono resize-none leading-relaxed p-6 bg-transparent"
-                                    value={content}
-                                    onChange={(e) => setContent(e.target.value)}
-                                />
+                                {contentType === "text" ? (
+                                    <Textarea
+                                        placeholder="Paste your code, logs, or text containing secrets here..."
+                                        className="min-h-[400px] border-none focus-visible:ring-0 text-gray-800 placeholder:text-gray-400 font-mono resize-none leading-relaxed p-6 bg-transparent"
+                                        value={content}
+                                        onChange={(e) => setContent(e.target.value)}
+                                    />
+                                ) : (
+                                    <div className="min-h-[400px] flex flex-col items-center justify-center p-12 text-center bg-gray-50/50">
+                                        <div className="w-20 h-20 rounded-3xl bg-white shadow-sm flex items-center justify-center text-gray-300 mb-6 group-hover:scale-110 transition-transform">
+                                            <Upload className="w-10 h-10" />
+                                        </div>
+                                        <div className="space-y-4 max-w-sm">
+                                            <div>
+                                                <h3 className="text-lg font-bold text-gray-900">
+                                                    {fileName ? fileName : "Upload your file"}
+                                                </h3>
+                                                <p className="text-sm text-gray-500 mt-1">
+                                                    Support for .txt, .log, .json, .csv and other text files
+                                                </p>
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <input
+                                                    type="file"
+                                                    ref={fileInputRef}
+                                                    className="hidden"
+                                                    onChange={handleFileUpload}
+                                                    accept=".txt,.log,.json,.csv,.py,.js,.ts,.tsx,.html,.css,.md"
+                                                />
+                                                <Button
+                                                    variant="outline"
+                                                    className="bg-white border-gray-200 h-12 rounded-xl group"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    isLoading={isUploading}
+                                                >
+                                                    <Upload className="w-4 h-4 mr-2 group-hover:translate-y-[-2px] transition-transform" />
+                                                    {isUploading ? "Reading File..." : "Select File"}
+                                                </Button>
+                                                {content && !isUploading && (
+                                                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
+                                                        File loaded successfully - Ready for redaction
+                                                    </p>
+                                                )}
+                                                {isUploading && (
+                                                    <p className="text-[10px] font-bold text-blue-600 animate-pulse uppercase tracking-widest">
+                                                        Loading file content...
+                                                    </p>
+                                                )}
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </Card>
 
@@ -243,11 +314,11 @@ export default function RedactSecretsPage() {
                                 <div className="space-y-3">
                                     <div className="flex-col space-y-2">
                                         <div>
-                                            <Label>Redaction Style</Label>
+                                            <Label className="text-gray-700 font-bold text-xs uppercase tracking-wider">Redaction Style</Label>
                                         </div>
                                         <Tabs
                                             value={maskingStyle}
-                                            onChange={setMaskingStyle}
+                                            onChange={(id) => setMaskingStyle(id as MaskingStyle)}
                                             radius="rounded-[100px]"
                                             orientation="horizontal"
                                             size="sm"
@@ -265,38 +336,16 @@ export default function RedactSecretsPage() {
                                                 { id: "hash", label: "Hash" },
                                             ]}
                                         />
+                                        <p className="text-[10px] text-gray-400 font-medium px-1">
+                                            {maskingStyle === 'partial' && "Shows start/end bits (e.g. pr...12)"}
+                                            {maskingStyle === 'full' && "Completely obscures secrets"}
+                                            {maskingStyle === 'hash' && "Replaces with cryptographic hash"}
+                                        </p>
                                     </div>
                                 </div>
 
-                                {/* Log Options */}
-                                {contentType === 'log' && (
-                                    <div className="space-y-4 pt-4 border-t border-gray-100">
-                                        <Label>Log Specific Options</Label>
-                                        <div className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm text-gray-600 font-medium">Mask Path Structures</span>
-                                                <Switch
-                                                    checked={maskPaths}
-                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMaskPaths(e.target.checked)}
-                                                />
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm text-gray-600 font-medium">Identify UUIDs</span>
-                                                <Switch
-                                                    checked={maskUUIDs}
-                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMaskUUIDs(e.target.checked)}
-                                                />
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm text-gray-600 font-medium">Redact Numeric IDs</span>
-                                                <Switch
-                                                    checked={maskNumericIds}
-                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMaskNumericIds(e.target.checked)}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
+
+
 
                                 {/* Hints */}
                                 <div className="space-y-6 pt-4 border-t border-gray-100">
