@@ -187,4 +187,6 @@
     @apply bg-white/50 backdrop-blur-md border border-black/5 rounded-xl transition-all duration-300;
     @apply focus:bg-white focus:border-primary/30 focus:ring-4 focus:ring-primary/10;
   }
+
 }
+

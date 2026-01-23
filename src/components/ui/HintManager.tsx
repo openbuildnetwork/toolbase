@@ -79,7 +79,7 @@ export const HintManager: React.FC<HintManagerProps> = ({
                             }
                         }}
                         placeholder={placeholder}
-                        className="w-full bg-transparent border-none focus:ring-0 text-sm font-medium p-0 ml-1 text-gray-700 placeholder:text-gray-300"
+                        className="w-full bg-transparent border-none outline-none focus:ring-0 text-sm font-medium p-0 ml-1 text-gray-700 placeholder:text-gray-300"
                     />
                     {inputValue && (
                         <button

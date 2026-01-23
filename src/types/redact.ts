@@ -1,4 +1,4 @@
-export type ContentType = 'text' | 'code' | 'log';
+export type ContentType = 'text' | 'file';
 export type MaskingStyle = 'partial' | 'full' | 'hash';
 
 export interface UserHints {
@@ -7,19 +7,12 @@ export interface UserHints {
   regexPatterns: string[];
 }
 
-export interface LogOptions {
-  maskPaths: boolean;
-  maskUUIDs: boolean;
-  maskNumericIds: boolean;
-}
-
 export interface RedactRequest {
   content: string;
   contentType: ContentType;
-  masking: {
+  customConfigurations: {
     style: MaskingStyle;
     userHints: UserHints;
-    logOptions: LogOptions;
   };
 }
 
