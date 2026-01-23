@@ -1,4 +1,4 @@
-export type ContentType = 'text' | 'code' | 'log';
+export type ContentType = 'text' | 'file';
 export type MaskingStyle = 'partial' | 'full' | 'hash';
 
 export interface UserHints {
@@ -10,7 +10,7 @@ export interface UserHints {
 export interface RedactRequest {
   content: string;
   contentType: ContentType;
-  customConfiguration: {
+  customConfigurations: {
     style: MaskingStyle;
     userHints: UserHints;
   };
