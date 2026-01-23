@@ -10,7 +10,6 @@ import {
     Settings2,
     FileText,
     Activity,
-    Lock,
     ShieldCheck,
     AlertCircle,
     Upload
@@ -20,7 +19,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Textarea } from "@/components/ui/Textarea";
-import { Switch } from "@/components/ui/Switch";
 import { Label } from "@/components/ui/Label";
 import { HintManager } from "@/components/ui/HintManager";
 import {
