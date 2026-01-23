@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "start": "next start",
-    "build:python": "ts-node scripts/build-python-bundle.ts",
+    "build:python": "ts-node scripts/build-python-bundler.ts",
     "build": "npm run build:python && next build",
     "dev": "npm run build:python && next dev",
     "lint": "eslint"

@@ -1,8 +1,8 @@
 import { loadPyodide, type PyodideInterface } from "pyodide";
-import { PYTHON_RUNTIME } from "@/python-runtime/bundle";
+import { PYTHON_FILES } from "@/python-runtime/redact-secrets.bundle";
+
 
 let pyodide: PyodideInterface | null = null;
-let redactFn: any;
 
 async function initPyodide() {
     if (pyodide) return pyodide;
@@ -12,13 +12,42 @@ async function initPyodide() {
         pyodide = await loadPyodide({
             indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.2/full/",
         });
-        console.log("Worker: Pyodide loaded, running runtime bundle...");
+        console.log("Worker: Pyodide loaded, setting up filesystem...");
 
-        await pyodide.runPythonAsync(PYTHON_RUNTIME);
-        console.log("Worker: Python runtime bundle executed.");
+        // Setup the virtual filesystem
+        for (const [filePath, content] of Object.entries(PYTHON_FILES)) {
+            const parts = filePath.split('/');
+            let currentPath = '';
 
-        redactFn = pyodide.globals.get("redact_content");
-        console.log("Worker: redact_content function retrieved.");
+            // Create directories
+            for (let i = 0; i < parts.length - 1; i++) {
+                currentPath += (currentPath ? '/' : '') + parts[i];
+                try {
+                    pyodide.FS.mkdir(currentPath);
+                } catch (e) {
+                    // Directory might already exist
+                }
+            }
+
+            // Write file
+            pyodide.FS.writeFile(filePath, content);
+        }
+
+        console.log("Worker: Python files written to virtual FS.");
+
+        // Import the main function
+        await pyodide.runPythonAsync(`
+import sys
+import os
+# Ensure the current directory is in path
+sys.path.append(os.getcwd())
+
+from tools.redact_secrets.main import redact
+        `);
+
+
+        // All files are written with underscores in their paths now
+
 
         self.postMessage({ type: "READY" });
         return pyodide;
@@ -34,17 +63,15 @@ self.onmessage = async (event: MessageEvent) => {
     if (type === "REDACT") {
         try {
             const py = await initPyodide();
-            const redactFn = py.globals.get("redact_content");
-            const result = redactFn(
-                data.content,
-                data.contentType,
-                data.masking.style,
-                py.toPy(data.masking.userHints),
-                py.toPy(data.masking.logOptions)
-            ).toJs({ dict_converter: Object.fromEntries });
+
+            // Get the function from Python
+            const redactFn = py.globals.get("redact");
+
+            const result = redactFn(py.toPy(data)).toJs({ dict_converter: Object.fromEntries });
 
             self.postMessage({ type: "REDACT_RESULT", data: result, id });
         } catch (error: any) {
+            console.error("Worker: Redaction error:", error);
             self.postMessage({ type: "REDACT_ERROR", error: error.message, id });
         }
     }
@@ -52,3 +79,4 @@ self.onmessage = async (event: MessageEvent) => {
 
 // Start initializing immediately
 initPyodide().catch(console.error);
+

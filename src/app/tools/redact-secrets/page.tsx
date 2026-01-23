@@ -58,18 +58,13 @@ export default function RedactSecretsPage() {
         const requestBody: RedactRequest = {
             content,
             contentType,
-            masking: {
+            customConfiguration: {
                 style: maskingStyle,
                 userHints: {
                     keys,
                     literalTexts,
                     regexPatterns,
-                },
-                logOptions: {
-                    maskPaths,
-                    maskUUIDs,
-                    maskNumericIds,
-                },
+                }
             },
         };
 

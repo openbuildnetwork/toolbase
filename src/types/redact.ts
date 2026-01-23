@@ -7,19 +7,12 @@ export interface UserHints {
   regexPatterns: string[];
 }
 
-export interface LogOptions {
-  maskPaths: boolean;
-  maskUUIDs: boolean;
-  maskNumericIds: boolean;
-}
-
 export interface RedactRequest {
   content: string;
   contentType: ContentType;
-  masking: {
+  customConfiguration: {
     style: MaskingStyle;
     userHints: UserHints;
-    logOptions: LogOptions;
   };
 }
 
