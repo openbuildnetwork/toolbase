@@ -1,4 +1,6 @@
 "use client";
+import { appIcons } from "@/config/icons";
+import { ToolCardProps } from "@/types/tool-search";
 import SearchBar from "../components/ui/SearchBar";
 import ToolGrid from "../components/ui/ToolGrid";
 import { useState } from 'react';
@@ -6,6 +8,11 @@ import { useState } from 'react';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
+  const tools: ToolCardProps[] = [
+    { title: "Redact Secrets", toolFolderName: "redact-secrets", icon: appIcons.redactSecretsIcon },
+    { title: "JSON to Interface/Model", toolFolderName: "json-to-interface", icon: appIcons.jsonToInterfaceIcon },
+    { title: "Magic PDF", toolFolderName: "magic-pdf", icon: appIcons.magicPdfIcon },
+  ];
 
   return (
     <div className="bg-background-light view font-display text-[#1c1c1e] min-h-screen flex flex-col selection:bg-primary/30 antialiased">
@@ -20,7 +27,7 @@ export default function Home() {
             <SearchBar value={searchQuery} onChange={setSearchQuery} />
           </div>
 
-          <ToolGrid searchQuery={searchQuery} />
+          <ToolGrid searchQuery={searchQuery} tools={tools} />
 
           <section className="sm:mt-[72px] animate-from-bottom mt-[42px] pt-[16px] border-t border-black/5 max-w-3xl mx-auto">
             <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-[#8e8e93] mb-6 text-center sm:text-left">About the Platform</h2>
