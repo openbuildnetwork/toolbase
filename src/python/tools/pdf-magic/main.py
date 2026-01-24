@@ -210,6 +210,149 @@ def protect_pdf(file_bytes, password, owner_password=None, permissions=None):
         return {"error": str(e)}
 
 
+def detect_pdf_elements(file_bytes, page_index):
+    """
+    Detect text blocks and images on a specific page.
+    Returns a list of elements with their coordinates and page dimensions.
+    """
+    try:
+        doc = fitz.open(stream=file_bytes, filetype="pdf")
+        page = doc[page_index]
+
+        elements = []
+        pW, pH = page.rect.width, page.rect.height
+
+        # Get text blocks
+        blocks = page.get_text("blocks")
+        for b in blocks:
+            # b = (x0, y0, x1, y1, text, block_no, block_type)
+            # block_type 0 is text, 1 is image
+            if b[6] == 0:
+                elements.append(
+                    {
+                        "id": f"orig-text-{b[5]}",
+                        "type": "text",
+                        "content": b[4],
+                        "rect": [b[0], b[1], b[2], b[3]],
+                        "existing": True,
+                    }
+                )
+
+        # Get image locations
+        image_list = page.get_image_info(xrefs=True)
+        for i, img in enumerate(image_list):
+            # img has bbox (x0, y0, x1, y1)
+            elements.append(
+                {
+                    "id": f"orig-img-{img['number']}",
+                    "type": "image",
+                    "rect": img["bbox"],
+                    "existing": True,
+                }
+            )
+
+        doc.close()
+        return {"elements": elements, "width": pW, "height": pH}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def apply_pdf_edits(file_bytes, edits):
+    """
+    Apply a list of edits (additions and redactions) to a PDF.
+    Expects percentages for x, y, width, height (0-100).
+    """
+    try:
+        doc = fitz.open(stream=file_bytes, filetype="pdf")
+
+        # Group edits by page
+        page_edits = {}
+        for edit in edits:
+            p_idx = edit.get("pageIndex", 0)
+            if p_idx not in page_edits:
+                page_edits[p_idx] = []
+            page_edits[p_idx].append(edit)
+
+        for p_idx, p_list in page_edits.items():
+            if p_idx >= len(doc):
+                continue
+            page = doc[p_idx]
+            pW, pH = page.rect.width, page.rect.height
+
+            # Helper to convert percentage to points
+            def to_pdf_rect(el):
+                w = (el["width"] / 100) * pW
+                h = (el["height"] / 100) * pH
+                x = (el["x"] / 100) * pW - w / 2
+                y = (el["y"] / 100) * pH - h / 2
+                return fitz.Rect(x, y, x + w, y + h)
+
+            def hex_to_rgb(hex_str):
+                if not hex_str:
+                    return (0, 0, 0)
+                hex_str = hex_str.lstrip("#")
+                return tuple(int(hex_str[i : i + 2], 16) / 255.0 for i in (0, 2, 4))
+
+            # 1. Handle Existing Content Removal (Redactions)
+            # If an existing element was moved or deleted, it should have redact=True or old coordinates
+            for edit in p_list:
+                if edit.get("existing") and (edit.get("redact") or edit.get("moved")):
+                    # Use originalRect if available
+                    orig = edit.get("originalRect")
+                    if orig:
+                        page.add_redact_annot(orig, fill=(1, 1, 1))
+                elif edit["type"] == "whiteout":
+                    page.add_redact_annot(to_pdf_rect(edit), fill=(1, 1, 1))
+
+            page.apply_redactions()
+
+            # 2. Handle New Additions or Repositioned Content
+            for edit in p_list:
+                if edit.get("redact"):
+                    continue  # Skip if only for redaction
+
+                # If existing but not moved, skip re-adding
+                if edit.get("existing") and not edit.get("moved"):
+                    continue
+
+                rect = to_pdf_rect(edit)
+                color = hex_to_rgb(edit.get("color", "#000000"))
+
+                if edit["type"] == "text":
+                    page.insert_textbox(
+                        rect,
+                        edit["content"],
+                        fontsize=edit.get("fontSize", 12),
+                        color=color,
+                    )
+                elif edit["type"] in ["image", "drawing"]:
+                    import base64
+
+                    try:
+                        img_data = edit["content"].split(",")[1]
+                        img_bytes = base64.b64decode(img_data)
+                        page.insert_image(rect, stream=img_bytes)
+                    except:
+                        pass
+                elif edit["type"] == "shape":
+                    if edit.get("shapeType") == "rectangle":
+                        page.draw_rect(
+                            rect, color=color, width=edit.get("strokeWidth", 1)
+                        )
+                    elif edit.get("shapeType") == "circle":
+                        page.draw_oval(
+                            rect, color=color, width=edit.get("strokeWidth", 1)
+                        )
+
+        output = io.BytesIO()
+        doc.save(output)
+        result = output.getvalue()
+        doc.close()
+        return list(result)
+    except Exception as e:
+        return {"error": str(e)}
+
+
 def handle_request(action, data):
     if action == "compress":
         file_bytes = data.get("file_bytes")
@@ -221,5 +364,13 @@ def handle_request(action, data):
         owner_password = data.get("owner_password")
         permissions = data.get("permissions")
         return protect_pdf(file_bytes, password, owner_password, permissions)
+    elif action == "detect":
+        file_bytes = data.get("file_bytes")
+        page_index = data.get("page_index", 0)
+        return detect_pdf_elements(file_bytes, page_index)
+    elif action == "apply_edits":
+        file_bytes = data.get("file_bytes")
+        edits = data.get("edits", [])
+        return apply_pdf_edits(file_bytes, edits)
 
     return {"error": f"Unknown action: {action}"}

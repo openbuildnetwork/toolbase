@@ -7,6 +7,7 @@ import CompressPdf from '@/components/features/magic-pdf/CompressPdf';
 import RearrangePdf from '@/components/features/magic-pdf/RearrangePdf';
 import ProtectPdf from '@/components/features/magic-pdf/ProtectPdf';
 import SignPdf from '@/components/features/magic-pdf/SignPdf';
+import EditPdf from '@/components/features/magic-pdf/EditPdf';
 import {
   Merge,
   Scissors,
@@ -16,6 +17,7 @@ import {
   ArrowUpDown,
   Lock,
   PenTool,
+  Edit3,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
@@ -33,6 +35,7 @@ const MagicPdf = () => {
     { id: 'rearrange', label: 'Rearrange Pages', icon: ArrowUpDown },
     { id: 'protect', label: 'Protect PDF', icon: Lock },
     { id: 'sign', label: 'Sign PDF', icon: PenTool },
+    { id: 'edit', label: 'Edit PDF', icon: Edit3 },
     { id: 'convert', label: 'PDF to Image', icon: Image, disabled: true },
     { id: 'ocr', label: 'OCR (Text)', icon: FileText, disabled: true },
   ];
@@ -145,7 +148,20 @@ const MagicPdf = () => {
                 </motion.div>
               )}
 
-              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'sign' && (
+              {activeTool === 'edit' && (
+                <motion.div
+                  key="edit"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full"
+                >
+                  <EditPdf />
+                </motion.div>
+              )}
+
+              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'sign' && activeTool !== 'edit' && (
                 <motion.div
                   key="placeholder"
                   initial={{ opacity: 0, scale: 0.95 }}
