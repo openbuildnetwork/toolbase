@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
-// import { Card } from './Card'; // Unused in this file actually, though imported.
 
 interface PdfPreviewProps {
-    file: File;
+    file?: File;
+    pdfDocument?: any; // pdfjs-dist document proxy
     className?: string;
     pageNumber?: number;
     scale?: number;
@@ -13,6 +13,7 @@ interface PdfPreviewProps {
 
 export const PdfPreview = ({
     file,
+    pdfDocument,
     className,
     pageNumber = 1,
     scale = 1,
@@ -28,15 +29,22 @@ export const PdfPreview = ({
         const renderPage = async () => {
             setLoading(true);
             try {
-                // Dynamically import pdfjs-dist to avoid SSR DOMMatrix error
-                const pdfjsLib = await import('pdfjs-dist');
+                let pdf = pdfDocument;
 
-                if (typeof window !== 'undefined' && 'Worker' in window) {
-                    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+                if (!pdf && file) {
+                    // Dynamically import pdfjs-dist for client-side loading
+                    const pdfjsLib = await import('pdfjs-dist');
+
+                    if (typeof window !== 'undefined' && 'Worker' in window) {
+                        // Use unpkg for worker to ensure version match
+                        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+                    }
+
+                    const arrayBuffer = await file.arrayBuffer();
+                    pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
                 }
 
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                if (!pdf) return;
 
                 if (!active) return;
 
@@ -74,7 +82,7 @@ export const PdfPreview = ({
         return () => {
             active = false;
         };
-    }, [file, pageNumber, scale, onLoadSuccess, onLoadError]);
+    }, [file, pdfDocument, pageNumber, scale, onLoadSuccess, onLoadError]);
 
     return (
         <div className={cn("relative flex items-center justify-center overflow-hidden bg-white/50", className)}>

@@ -15,7 +15,7 @@ export default function MergePdf() {
 
     const handleFilesSelected = (newFiles: File[]) => {
         setFiles((prev) => [...prev, ...newFiles]);
-        setMergedPdfUrl(null); // Reset previous merge
+        setMergedPdfUrl(null);
     };
 
     const removeFile = (index: number) => {
