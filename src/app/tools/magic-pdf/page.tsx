@@ -1,9 +1,109 @@
-import React from 'react'
+'use client';
+
+import React, { useState } from 'react';
+import MergePdf from '@/components/features/magic-pdf/MergePdf';
+import {
+  Merge,
+  Scissors,
+  Minimize2,
+  Image,
+  FileText,
+} from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { ToolSidebar, ToolSidebarItem } from '@/components/ui/ToolSidebar';
+import { cn } from '@/lib/utils';
 
 const MagicPdf = () => {
+  const [activeTool, setActiveTool] = useState('merge');
+
+  const tools: ToolSidebarItem[] = [
+    { id: 'merge', label: 'Merge PDFs', icon: Merge },
+    { id: 'split', label: 'Split PDF', icon: Scissors, disabled: true },
+    { id: 'compress', label: 'Compress PDF', icon: Minimize2, disabled: true },
+    { id: 'convert', label: 'PDF to Image', icon: Image, disabled: true },
+    { id: 'ocr', label: 'OCR (Text)', icon: FileText, disabled: true },
+  ];
+
+  const activeToolLabel = tools.find(t => t.id === activeTool)?.label || 'Tool';
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
+
   return (
-    <div>MagicPdf</div>
-  )
+    <div className="flex h-[calc(100vh-80px)] overflow-hidden bg-[#FDFDFD] relative">
+      <ToolSidebar
+        title="PDF Tools"
+        items={tools}
+        activeId={activeTool}
+        onSelect={setActiveTool}
+        isOpen={isSidebarOpen}
+        onToggle={setSidebarOpen}
+      />
+
+      {/* Main Editor Area */}
+      <main className="flex-1 overflow-hidden relative bg-gray-50/30 flex flex-col">
+        <header className="h-14 border-b border-gray-200/50 bg-white/50 backdrop-blur-md flex items-center justify-between px-6 transition-all duration-300">
+          <div className={cn("flex items-center gap-2 transition-all duration-300", !isSidebarOpen && "pl-12")}>
+            {/* Added padding-left for mobile/collapsed state spacing if needed, but the button is absolute */}
+            <div className="flex items-center text-sm text-gray-500">
+              <span className="font-semibold text-gray-800 mr-2">Magic PDF</span>
+              <span className="text-gray-300">/</span>
+              <span className="ml-2">{activeToolLabel}</span>
+            </div>
+          </div>
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+          <div className="max-w-6xl mx-auto h-full">
+            <AnimatePresence mode="wait">
+              {activeTool === 'merge' && (
+                <motion.div
+                  key="merge"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full"
+                >
+                  <div className="mb-6">
+                    <h1 className="text-2xl font-bold text-gray-900">Merge PDFs</h1>
+                    <p className="text-gray-500">Combine multiple files into a single document.</p>
+                  </div>
+                  <MergePdf />
+                </motion.div>
+              )}
+
+              {activeTool !== 'merge' && (
+                <motion.div
+                  key="placeholder"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="flex h-full items-center justify-center p-12 text-center text-gray-400"
+                >
+                  <Card className="p-12 max-w-md w-full flex flex-col items-center gap-6 border-dashed border-2 bg-transparent shadow-none">
+                    <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center">
+                      {(() => {
+                        const Icon = tools.find(t => t.id === activeTool)?.icon || FileText;
+                        return <Icon className="w-10 h-10 opacity-20" />
+                      })()}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Coming Soon</h3>
+                      <p>The <strong>{activeToolLabel}</strong> tool is currently under development.</p>
+                    </div>
+                    <Button variant="outline" onClick={() => setActiveTool('merge')}>
+                      Go to Merge Tool
+                    </Button>
+                  </Card>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
 }
 
-export default MagicPdf
+export default MagicPdf;
