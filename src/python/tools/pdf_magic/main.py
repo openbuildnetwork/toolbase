@@ -358,14 +358,7 @@ def apply_pdf_edits(file_bytes, edits):
 def pdf_to_word(file_bytes):
     """
     Convert PDF to Word document (.docx) using PyMuPDF and python-docx.
-    Implements a hybrid extraction strategy:
-    1. Text is extracted via blocks to preserve paragraph structure.
-    2. Images are detected via get_image_info() to capture XObjects and inline images.
-    3. Both are merged and sorted by vertical position to reconstruct the document flow.
 
-    Note: 'pdf2docx' cannot be used directly in this environment (WASM) because it depends
-    on OpenCV and C-extensions that are unavailable in the browser. This function
-    manually replicates the core logic of layout analysis.
     """
     try:
         # Open source PDF
