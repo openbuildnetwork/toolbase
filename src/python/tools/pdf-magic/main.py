@@ -1,144 +1,153 @@
 import io
 import sys
 from pypdf import PdfReader, PdfWriter
-from pypdf.generic import (
-    NameObject,
-    DecodedStreamObject,
-    EncodedStreamObject,
-    StreamObject,
-    DictionaryObject,
-)
 from PIL import Image
+import fitz  # PyMuPDF - available in Pyodide
 
 
-def compress_image_data(image_data, quality=50, max_width=1200):
+def render_page_to_image(pdf_bytes, page_num, dpi=150):
+    """
+    Render a PDF page to a PIL Image using PyMuPDF.
+    """
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    page = doc[page_num]
+
+    # Render page to pixmap at specified DPI
+    mat = fitz.Matrix(dpi / 72, dpi / 72)  # 72 is default DPI
+    pix = page.get_pixmap(matrix=mat)
+
+    # Convert pixmap to PIL Image
+    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+    doc.close()
+
+    return img
+
+
+def compress_pdf_to_images(file_bytes, level="recommended"):
+    """
+    Compress PDF by rendering pages to images and rebuilding.
+    This achieves the same result as the TypeScript implementation.
+    """
     try:
-        if not image_data:
-            return image_data, False
-        img_stream = io.BytesIO(image_data)
-        try:
-            img = Image.open(img_stream)
-        except:
-            return image_data, False
-
-        # Resize logic
-        if img.width > max_width:
-            ratio = max_width / float(img.width)
-            new_height = int(float(img.height) * ratio)
-            img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
-
-        if img.mode in ("RGBA", "P", "LA"):
-            img = img.convert("RGB")
-
-        out_stream = io.BytesIO()
-        img.save(out_stream, format="JPEG", quality=quality, optimize=True)
-        return out_stream.getvalue(), True
-    except:
-        return image_data, False
-
-
-def compress_pdf_content(file_bytes, level="recommended"):
-    try:
-        input_stream = io.BytesIO(bytes(file_bytes))
-        reader = PdfReader(input_stream)
-        writer = PdfWriter()
-
-        # Configuration based on research:
-        # 1. Page Compression (Content Streams)
-        # 2. Object Deduplication (compress_identical_objects)
-        # 3. Image Optimization (Our Custom Logic)
-
-        quality = 60
-        max_width = 1500
-
+        # Configuration based on level
         if level == "extreme":
             quality = 30
-            max_width = 800
-        elif level == "less":
+            dpi = 100  # Lower DPI for smaller file
+        elif level == "recommended":
+            quality = 60
+            dpi = 150  # Medium DPI
+        else:  # less
             quality = 85
-            max_width = 2000
+            dpi = 200  # Higher DPI for better quality
 
-        # 1. Copy pages to writer first to establish structure
-        for page in reader.pages:
-            writer.add_page(page)
+        # Load PDF
+        input_stream = io.BytesIO(bytes(file_bytes))
+        reader = PdfReader(input_stream)
+        num_pages = len(reader.pages)
 
-        # 2. Iterate pages in writer for image replacement
-        if level != "less":
-            for page in writer.pages:
-                try:
-                    if "/Resources" in page and "/XObject" in page["/Resources"]:
-                        xObject = page["/Resources"]["/XObject"].get_object()
-                        for obj_name in list(xObject.keys()):
-                            obj = xObject[obj_name]
-                            if obj["/Subtype"] == "/Image":
-                                try:
-                                    data = obj.get_data()
-                                    if not data:
-                                        continue
+        # Create new PDF writer
+        writer = PdfWriter()
 
-                                    new_data, is_jpeg = compress_image_data(
-                                        data, quality, max_width
-                                    )
+        # Process each page
+        for page_num in range(num_pages):
+            # Render page to image
+            img = render_page_to_image(file_bytes, page_num, dpi)
 
-                                    if len(new_data) < len(data):
-                                        obj._data = new_data
-                                        obj[NameObject("/Filter")] = NameObject(
-                                            "/DCTDecode"
-                                        )
-                                        if "/DecodeParms" in obj:
-                                            del obj["/DecodeParms"]
-                                        obj[NameObject("/Length")] = len(new_data)
-                                except:
-                                    pass
-                except:
-                    pass
+            # Compress image
+            img_bytes = io.BytesIO()
+            if img.mode in ("RGBA", "P", "LA"):
+                img = img.convert("RGB")
+            img.save(img_bytes, format="JPEG", quality=quality, optimize=True)
+            img_bytes.seek(0)
 
-        # 3. Apply Content Stream Compression (Lossless text/graphics)
-        for page in writer.pages:
-            page.compress_content_streams()  # This works on the page object
+            # Add image as new page to PDF
+            # We need to create a page with the image
+            # PyPDF doesn't have direct image-to-page, so we'll use a different approach
 
-        # 4. Remove Duplication (High impact feature)
-        # This removes identical objects referenced multiple times
-        try:
-            writer.compress_identical_objects(
-                remove_identicals=True, remove_orphans=True
-            )
-        except:
-            pass  # version compatibility or error safety
+            # Create a simple PDF page with the image using reportlab-like approach
+            # Actually, let's use a simpler method: create a minimal PDF structure
 
-        # Metadata
-        if level == "extreme":
-            writer.add_metadata({})
-        elif reader.metadata:
-            writer.add_metadata(reader.metadata)
+            # For now, let's use the img2pdf approach if available in Pyodide
+            # If not, we'll need to construct PDF manually
 
-        output_stream = io.BytesIO()
-        writer.write(output_stream)
-        writer.close()
+            # Since img2pdf might not be available, let's use PyMuPDF to create pages
+            pass
 
-        result = output_stream.getvalue()
+        # Alternative: Use PyMuPDF for the entire process
+        return compress_with_pymupdf(file_bytes, quality, dpi)
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def compress_with_pymupdf(file_bytes, quality=60, dpi=150):
+    """
+    Complete compression using PyMuPDF (fitz).
+    This is the most efficient approach in Python.
+    """
+    try:
+        # Open source PDF
+        src_doc = fitz.open(stream=file_bytes, filetype="pdf")
+
+        # Create new PDF
+        new_doc = fitz.open()
+
+        for page_num in range(len(src_doc)):
+            # Render page to pixmap
+            page = src_doc[page_num]
+            mat = fitz.Matrix(dpi / 72, dpi / 72)
+            pix = page.get_pixmap(matrix=mat)
+
+            # Convert to PIL Image for JPEG compression
+            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+
+            # Compress as JPEG
+            img_bytes = io.BytesIO()
+            if img.mode in ("RGBA", "P", "LA"):
+                img = img.convert("RGB")
+            img.save(img_bytes, format="JPEG", quality=quality, optimize=True)
+            img_bytes.seek(0)
+
+            # Create new page with compressed image
+            img_doc = fitz.open(stream=img_bytes.getvalue(), filetype="jpeg")
+            pdf_bytes = img_doc.convert_to_pdf()
+            img_pdf = fitz.open(stream=pdf_bytes, filetype="pdf")
+            new_doc.insert_pdf(img_pdf)
+
+            img_doc.close()
+            img_pdf.close()
+
+        # Save result
+        output = io.BytesIO()
+        new_doc.save(output)
+        result = output.getvalue()
+
+        src_doc.close()
+        new_doc.close()
+
         if len(result) == 0:
-            raise Exception("Empty result")
+            raise Exception("Compression resulted in empty file")
+
         return list(result)
 
     except Exception as e:
-        # Robust Fallback
-        try:
-            input_stream.seek(0)
-            r = PdfReader(input_stream)
-            w = PdfWriter()
-            for p in r.pages:
-                w.add_page(p)
-            w.compress_identical_objects(remove_identicals=True, remove_orphans=True)
-            for p in w.pages:
-                p.compress_content_streams()
+        return {"error": str(e)}
 
-            out = io.BytesIO()
-            w.write(out)
-            w.close()
-            return list(out.getvalue())
-        except Exception as re:
-            return {"error": str(re)}
+
+def compress_pdf_content(file_bytes, level="recommended"):
+    """
+    Main compression function.
+    Uses PyMuPDF for image-based compression.
+    """
+    try:
+        if level == "extreme":
+            return compress_with_pymupdf(file_bytes, quality=30, dpi=100)
+        elif level == "recommended":
+            return compress_with_pymupdf(file_bytes, quality=60, dpi=150)
+        else:  # less
+            return compress_with_pymupdf(file_bytes, quality=85, dpi=200)
+    except Exception as e:
+        return {"error": str(e)}
 
 
 def handle_request(action, data):

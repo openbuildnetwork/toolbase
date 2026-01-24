@@ -14,10 +14,10 @@ async function initPyodide() {
         });
 
         // Install dependencies
-        console.log("Worker: Installing pypdf and pillow...");
+        console.log("Worker: Installing pypdf, pillow, and PyMuPDF...");
         await pyodide.loadPackage("micropip");
         const micropip = pyodide.pyimport("micropip");
-        await micropip.install(["pypdf", "Pillow"]);
+        await micropip.install(["pypdf", "Pillow", "PyMuPDF"]);
 
         console.log("Worker: Pyodide loaded, setting up filesystem...");
 

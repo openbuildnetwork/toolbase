@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/Button';
 import { Minimize2, Download, RefreshCw, AlertCircle, CheckCircle, Flame, Leaf, Feather } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { useMagicPdfWorker } from '@/hooks/useMagicPdfWorker';
-import { compressPdfExtreme } from '@/lib/pdf-actions';
 import { cn } from '@/lib/utils';
 
 export default function CompressPdf() {
@@ -28,27 +27,16 @@ export default function CompressPdf() {
     };
 
     const handleCompress = async () => {
-        if (!file) return;
+        if (!file || !isReady) {
+            alert('Compression engine not ready yet. Please wait a moment.');
+            return;
+        }
+
         setIsCompressing(true);
 
         try {
-            let resultBytes: Uint8Array;
-
-            if (compressionLevel === 'extreme') {
-                // Maximum compression - 30% JPEG quality
-                resultBytes = await compressPdfExtreme(file, 0.3);
-            } else if (compressionLevel === 'recommended') {
-                // Balanced compression - 60% JPEG quality
-                resultBytes = await compressPdfExtreme(file, 0.6);
-            } else {
-                // Less compression - use Python for minimal optimization
-                if (!isReady) {
-                    alert('Compression engine not ready yet. Please wait a moment.');
-                    setIsCompressing(false);
-                    return;
-                }
-                resultBytes = await processPdf('compress', file, { level: compressionLevel });
-            }
+            // Use Python worker for all compression modes
+            const resultBytes = await processPdf('compress', file, { level: compressionLevel });
 
             const blob = new Blob([resultBytes], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
