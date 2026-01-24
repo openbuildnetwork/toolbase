@@ -197,3 +197,44 @@ export async function encryptPdf(file: File, options: EncryptionOptions): Promis
     const encryptedPdfBytes = await pdfDoc.save(encryptOptions);
     return encryptedPdfBytes;
 }
+
+export async function signPdf(
+    file: File,
+    signatureDataUrl: string,
+    pageIndex: number,
+    x: number,
+    y: number,
+    width: number,
+    height: number
+): Promise<Uint8Array> {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdfDoc = await PDFDocument.load(arrayBuffer);
+
+    // Embed the signature image
+    const signatureImageBytes = await fetch(signatureDataUrl).then(res => res.arrayBuffer());
+
+    let signatureImage;
+    if (signatureDataUrl.includes('image/png')) {
+        signatureImage = await pdfDoc.embedPng(signatureImageBytes);
+    } else {
+        signatureImage = await pdfDoc.embedJpg(signatureImageBytes);
+    }
+
+    const pages = pdfDoc.getPages();
+    const currPage = pages[pageIndex];
+
+    // pdf-lib's y starts from bottom. Web's y starts from top.
+    // Convert y coordinate
+    const { height: pageHeight } = currPage.getSize();
+    const pdfY = pageHeight - y - height;
+
+    // Draw the image on the page
+    currPage.drawImage(signatureImage, {
+        x,
+        y: pdfY,
+        width,
+        height,
+    });
+
+    return await pdfDoc.save();
+}

@@ -6,6 +6,7 @@ import SplitPdf from '@/components/features/magic-pdf/SplitPdf';
 import CompressPdf from '@/components/features/magic-pdf/CompressPdf';
 import RearrangePdf from '@/components/features/magic-pdf/RearrangePdf';
 import ProtectPdf from '@/components/features/magic-pdf/ProtectPdf';
+import SignPdf from '@/components/features/magic-pdf/SignPdf';
 import {
   Merge,
   Scissors,
@@ -14,6 +15,7 @@ import {
   FileText,
   ArrowUpDown,
   Lock,
+  PenTool,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
@@ -30,6 +32,7 @@ const MagicPdf = () => {
     { id: 'compress', label: 'Compress PDF', icon: Minimize2 },
     { id: 'rearrange', label: 'Rearrange Pages', icon: ArrowUpDown },
     { id: 'protect', label: 'Protect PDF', icon: Lock },
+    { id: 'sign', label: 'Sign PDF', icon: PenTool },
     { id: 'convert', label: 'PDF to Image', icon: Image, disabled: true },
     { id: 'ocr', label: 'OCR (Text)', icon: FileText, disabled: true },
   ];
@@ -129,7 +132,20 @@ const MagicPdf = () => {
                 </motion.div>
               )}
 
-              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && (
+              {activeTool === 'sign' && (
+                <motion.div
+                  key="sign"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full"
+                >
+                  <SignPdf />
+                </motion.div>
+              )}
+
+              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'sign' && (
                 <motion.div
                   key="placeholder"
                   initial={{ opacity: 0, scale: 0.95 }}
