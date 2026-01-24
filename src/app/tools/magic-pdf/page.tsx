@@ -4,12 +4,14 @@ import React, { useState } from 'react';
 import MergePdf from '@/components/features/magic-pdf/MergePdf';
 import SplitPdf from '@/components/features/magic-pdf/SplitPdf';
 import CompressPdf from '@/components/features/magic-pdf/CompressPdf';
+import RearrangePdf from '@/components/features/magic-pdf/RearrangePdf';
 import {
   Merge,
   Scissors,
   Minimize2,
   Image,
   FileText,
+  ArrowUpDown,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
@@ -24,6 +26,7 @@ const MagicPdf = () => {
     { id: 'merge', label: 'Merge PDFs', icon: Merge },
     { id: 'split', label: 'Split PDF', icon: Scissors },
     { id: 'compress', label: 'Compress PDF', icon: Minimize2 },
+    { id: 'rearrange', label: 'Rearrange Pages', icon: ArrowUpDown },
     { id: 'convert', label: 'PDF to Image', icon: Image, disabled: true },
     { id: 'ocr', label: 'OCR (Text)', icon: FileText, disabled: true },
   ];
@@ -67,10 +70,6 @@ const MagicPdf = () => {
                   transition={{ duration: 0.3 }}
                   className="h-full"
                 >
-                  <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Merge PDFs</h1>
-                    <p className="text-gray-500">Combine multiple files into a single document.</p>
-                  </div>
                   <MergePdf />
                 </motion.div>
               )}
@@ -84,10 +83,6 @@ const MagicPdf = () => {
                   transition={{ duration: 0.3 }}
                   className="h-full"
                 >
-                  <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Split PDF</h1>
-                    <p className="text-gray-500">Separate pages or split your document into multiple files.</p>
-                  </div>
                   <SplitPdf />
                 </motion.div>
               )}
@@ -101,15 +96,24 @@ const MagicPdf = () => {
                   transition={{ duration: 0.3 }}
                   className="h-full"
                 >
-                  <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Compress PDF</h1>
-                    <p className="text-gray-500">Reduce file size using our advanced Python engine.</p>
-                  </div>
                   <CompressPdf />
                 </motion.div>
               )}
 
-              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && (
+              {activeTool === 'rearrange' && (
+                <motion.div
+                  key="rearrange"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full"
+                >
+                  <RearrangePdf />
+                </motion.div>
+              )}
+
+              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && (
                 <motion.div
                   key="placeholder"
                   initial={{ opacity: 0, scale: 0.95 }}

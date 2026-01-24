@@ -80,3 +80,74 @@ export async function compressPdfExtreme(file: File, quality: number = 0.3): Pro
 
     return await newPdf.save();
 }
+
+export interface PageOperation {
+    pageIndex: number;
+    rotation?: number; // 0, 90, 180, 270
+    delete?: boolean;
+}
+
+export async function rearrangePdf(
+    file: File,
+    newOrder: number[],
+    operations?: PageOperation[]
+): Promise<Uint8Array> {
+    const arrayBuffer = await file.arrayBuffer();
+    const srcPdf = await PDFDocument.load(arrayBuffer);
+    const newPdf = await PDFDocument.create();
+
+    // Create a map of operations for quick lookup
+    const opsMap = new Map<number, PageOperation>();
+    operations?.forEach(op => opsMap.set(op.pageIndex, op));
+
+    // Copy pages in the new order
+    for (const pageIndex of newOrder) {
+        const op = opsMap.get(pageIndex);
+
+        // Skip if marked for deletion
+        if (op?.delete) continue;
+
+        const [copiedPage] = await newPdf.copyPages(srcPdf, [pageIndex]);
+
+        // Apply rotation if specified
+        if (op?.rotation) {
+            const currentRotation = copiedPage.getRotation().angle;
+            copiedPage.setRotation({ angle: (currentRotation + op.rotation) % 360 });
+        }
+
+        newPdf.addPage(copiedPage);
+    }
+
+    return await newPdf.save();
+}
+
+export async function getPdfPageCount(file: File): Promise<number> {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await PDFDocument.load(arrayBuffer);
+    return pdf.getPageCount();
+}
+
+export async function renderPdfPageToImage(file: File, pageIndex: number, scale: number = 1.5): Promise<string> {
+    const pdfjsLib = await import('pdfjs-dist');
+
+    if (typeof window !== 'undefined' && 'Worker' in window) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const page = await pdfDoc.getPage(pageIndex + 1); // pdf.js uses 1-based indexing
+    const viewport = page.getViewport({ scale });
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d')!;
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    await page.render({
+        canvasContext: context,
+        viewport: viewport,
+    } as any).promise;
+
+    return canvas.toDataURL('image/png');
+}

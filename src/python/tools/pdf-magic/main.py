@@ -2,8 +2,7 @@ import io
 import sys
 from pypdf import PdfReader, PdfWriter
 from PIL import Image
-import fitz  # PyMuPDF - available in Pyodide
-
+import fitz 
 
 def render_page_to_image(pdf_bytes, page_num, dpi=150):
     """
@@ -60,7 +59,7 @@ def compress_pdf_to_images(file_bytes, level="recommended"):
             img.save(img_bytes, format="JPEG", quality=quality, optimize=True)
             img_bytes.seek(0)
 
-            # Add image as new page to PDF
+            
             # We need to create a page with the image
             # PyPDF doesn't have direct image-to-page, so we'll use a different approach
 
