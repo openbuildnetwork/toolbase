@@ -11,7 +11,11 @@ import {
     Trash2,
     CheckCircle,
     Undo2,
-    ArrowUpDown
+    ArrowUpDown,
+    X,
+    ChevronLeft,
+    ChevronRight,
+    Eye
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
@@ -33,6 +37,7 @@ export default function RearrangePdf() {
     const [isProcessing, setIsProcessing] = useState(false);
     const [resultPdfUrl, setResultPdfUrl] = useState<string | null>(null);
     const [loadingThumbnails, setLoadingThumbnails] = useState(false);
+    const [previewPageIndex, setPreviewPageIndex] = useState<number | null>(null);
 
     const handleFileSelected = async (files: File[]) => {
         if (files.length > 0) {
@@ -63,7 +68,7 @@ export default function RearrangePdf() {
                 // Load thumbnails asynchronously
                 for (let i = 0; i < pageCount; i++) {
                     try {
-                        const thumbnail = await renderPdfPageToImage(selectedFile, i, 0.5);
+                        const thumbnail = await renderPdfPageToImage(selectedFile, i, 1.5);
                         setPages(prev => prev.map(p =>
                             p.originalIndex === i ? { ...p, thumbnail } : p
                         ));
@@ -287,6 +292,7 @@ export default function RearrangePdf() {
                                         onReorder={handleReorder}
                                         onRotate={handleRotatePage}
                                         onDelete={handleDeletePage}
+                                        onPreview={(index) => setPreviewPageIndex(index)}
                                     />
 
                                     {activePages.length === 0 && !loadingThumbnails && (
@@ -329,6 +335,24 @@ export default function RearrangePdf() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Preview Modal */}
+            <AnimatePresence>
+                {previewPageIndex !== null && (
+                    <PagePreviewModal
+                        page={activePages[previewPageIndex]}
+                        currentIndex={previewPageIndex}
+                        totalPages={activePages.length}
+                        onClose={() => setPreviewPageIndex(null)}
+                        onNext={() => setPreviewPageIndex(prev =>
+                            prev !== null && prev < activePages.length - 1 ? prev + 1 : prev
+                        )}
+                        onPrevious={() => setPreviewPageIndex(prev =>
+                            prev !== null && prev > 0 ? prev - 1 : prev
+                        )}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }
@@ -338,9 +362,10 @@ interface DraggableGridProps {
     onReorder: (fromIndex: number, toIndex: number) => void;
     onRotate: (pageId: string) => void;
     onDelete: (pageId: string) => void;
+    onPreview: (index: number) => void;
 }
 
-const DraggableGrid = ({ pages, onReorder, onRotate, onDelete }: DraggableGridProps) => {
+const DraggableGrid = ({ pages, onReorder, onRotate, onDelete, onPreview }: DraggableGridProps) => {
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [overIndex, setOverIndex] = useState<number | null>(null);
 
@@ -402,6 +427,7 @@ const DraggableGrid = ({ pages, onReorder, onRotate, onDelete }: DraggableGridPr
                         page={page}
                         onRotate={() => onRotate(page.id)}
                         onDelete={() => onDelete(page.id)}
+                        onPreview={() => onPreview(index)}
                         isDragging={draggedIndex === index}
                     />
                 </div>
@@ -414,11 +440,12 @@ interface PageCardProps {
     page: PageItem;
     onRotate: () => void;
     onDelete: () => void;
+    onPreview?: () => void;
     isDeleted?: boolean;
     isDragging?: boolean;
 }
 
-const PageCard = ({ page, onRotate, onDelete, isDeleted = false, isDragging = false }: PageCardProps) => {
+const PageCard = ({ page, onRotate, onDelete, onPreview, isDeleted = false, isDragging = false }: PageCardProps) => {
     return (
         <div
             className={cn(
@@ -456,8 +483,23 @@ const PageCard = ({ page, onRotate, onDelete, isDeleted = false, isDragging = fa
 
             {/* Action Buttons */}
             {!isDeleted && (
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
+                <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/80 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
                     <div className="flex gap-2 justify-center">
+                        {onPreview && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    onPreview();
+                                }}
+                                draggable={false}
+                                onDragStart={(e) => e.preventDefault()}
+                                className="p-2 bg-white/90 hover:bg-blue-50 rounded-lg transition-colors pointer-events-auto group/preview"
+                                title="Preview page"
+                            >
+                                <Eye className="w-4 h-4 text-gray-700 group-hover/preview:text-blue-600" />
+                            </button>
+                        )}
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -488,5 +530,219 @@ const PageCard = ({ page, onRotate, onDelete, isDeleted = false, isDragging = fa
                 </div>
             )}
         </div>
+    );
+};
+
+// Preview Modal Component
+interface PagePreviewModalProps {
+    page: PageItem;
+    currentIndex: number;
+    totalPages: number;
+    onClose: () => void;
+    onNext: () => void;
+    onPrevious: () => void;
+}
+
+const PagePreviewModal = ({ page, currentIndex, totalPages, onClose, onNext, onPrevious }: PagePreviewModalProps) => {
+    const [zoom, setZoom] = useState(1.5);
+    const MIN_ZOOM = 0.5;
+    const MAX_ZOOM = 3;
+    const ZOOM_STEP = 0.25;
+
+    // Keyboard navigation
+    React.useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+            if (e.key === 'ArrowRight' && currentIndex < totalPages - 1) onNext();
+            if (e.key === 'ArrowLeft' && currentIndex > 0) onPrevious();
+            // Zoom with + and - keys
+            if (e.key === '+' || e.key === '=') {
+                e.preventDefault();
+                setZoom(prev => Math.min(MAX_ZOOM, prev + ZOOM_STEP));
+            }
+            if (e.key === '-' || e.key === '_') {
+                e.preventDefault();
+                setZoom(prev => Math.max(MIN_ZOOM, prev - ZOOM_STEP));
+            }
+            // Reset zoom with 0
+            if (e.key === '0') {
+                e.preventDefault();
+                setZoom(1.5);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [currentIndex, totalPages, onClose, onNext, onPrevious]);
+
+    // Mouse wheel zoom
+    const handleWheel = (e: React.WheelEvent) => {
+        if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            const delta = -e.deltaY / 1000;
+            setZoom(prev => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev + delta)));
+        }
+    };
+
+    // Reset zoom when page changes
+    React.useEffect(() => {
+        setZoom(1.5);
+    }, [currentIndex]);
+
+    const handleZoomIn = () => {
+        setZoom(prev => Math.min(MAX_ZOOM, prev + ZOOM_STEP));
+    };
+
+    const handleZoomOut = () => {
+        setZoom(prev => Math.max(MIN_ZOOM, prev - ZOOM_STEP));
+    };
+
+    const handleResetZoom = () => {
+        setZoom(1.5);
+    };
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            {/* Close Button */}
+            <button
+                onClick={onClose}
+                className="absolute top-4 right-4 z-10 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                title="Close (Esc)"
+            >
+                <X className="w-6 h-6 text-white" />
+            </button>
+
+            {/* Page Info */}
+            <div className="absolute top-4 left-4 z-10 bg-black/50 text-white px-4 py-2 rounded-lg backdrop-blur-sm">
+                <p className="text-sm font-medium">
+                    Page {page.originalIndex + 1} of {totalPages}
+                </p>
+            </div>
+
+            {/* Zoom Controls */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-black/50 text-white px-4 py-2 rounded-lg backdrop-blur-sm">
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleZoomOut();
+                    }}
+                    disabled={zoom <= MIN_ZOOM}
+                    className="p-2 hover:bg-white/10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Zoom Out (-)"
+                >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+                    </svg>
+                </button>
+
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleResetZoom();
+                    }}
+                    className="px-3 py-1 hover:bg-white/10 rounded transition-colors text-sm font-medium min-w-[60px]"
+                    title="Reset Zoom (0)"
+                >
+                    {Math.round(zoom * 100)}%
+                </button>
+
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleZoomIn();
+                    }}
+                    disabled={zoom >= MAX_ZOOM}
+                    className="p-2 hover:bg-white/10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Zoom In (+)"
+                >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                    </svg>
+                </button>
+
+                <div className="ml-2 pl-2 border-l border-white/20 text-xs text-gray-300">
+                    Ctrl+Scroll to zoom
+                </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            {currentIndex > 0 && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onPrevious();
+                    }}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                    title="Previous (←)"
+                >
+                    <ChevronLeft className="w-6 h-6 text-white" />
+                </button>
+            )}
+
+            {currentIndex < totalPages - 1 && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onNext();
+                    }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                    title="Next (→)"
+                >
+                    <ChevronRight className="w-6 h-6 text-white" />
+                </button>
+            )}
+
+            {/* Preview Image Container with Scroll */}
+            <div
+                className="max-w-[90vw] max-h-[90vh] overflow-auto p-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
+                onClick={(e) => e.stopPropagation()}
+                onWheel={handleWheel}
+            >
+                <motion.div
+                    key={`${page.id}-${zoom}`}
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="inline-block"
+                >
+                    <div
+                        className="bg-white rounded-xl shadow-2xl overflow-hidden transition-transform duration-200"
+                        style={{ transform: `scale(${zoom})`, transformOrigin: 'center' }}
+                    >
+                        {page.thumbnail ? (
+                            <img
+                                src={page.thumbnail}
+                                alt={`Page ${page.originalIndex + 1}`}
+                                className="max-w-none"
+                                style={{
+                                    transform: `rotate(${page.rotation}deg)`,
+                                    maxHeight: '80vh',
+                                    width: 'auto'
+                                }}
+                            />
+                        ) : (
+                            <div className="flex items-center justify-center p-20">
+                                <div className="w-12 h-12 border-4 border-gray-300 border-t-transparent rounded-full animate-spin" />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Rotation indicator */}
+                    {page.rotation !== 0 && (
+                        <div className="mt-4 text-center">
+                            <span className="inline-block bg-white/10 text-white text-sm px-3 py-1 rounded-full backdrop-blur-sm">
+                                Rotated {page.rotation}°
+                            </span>
+                        </div>
+                    )}
+                </motion.div>
+            </div>
+        </motion.div>
     );
 };

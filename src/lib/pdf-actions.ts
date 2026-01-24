@@ -1,4 +1,4 @@
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, RotationTypes } from 'pdf-lib';
 
 export async function mergePdfs(files: File[]): Promise<Uint8Array> {
     const mergedPdf = await PDFDocument.create();
@@ -112,7 +112,10 @@ export async function rearrangePdf(
         // Apply rotation if specified
         if (op?.rotation) {
             const currentRotation = copiedPage.getRotation().angle;
-            copiedPage.setRotation({ angle: (currentRotation + op.rotation) % 360 });
+            copiedPage.setRotation({
+                angle: (currentRotation + op.rotation) % 360,
+                type: RotationTypes.Degrees
+            });
         }
 
         newPdf.addPage(copiedPage);
@@ -150,4 +153,47 @@ export async function renderPdfPageToImage(file: File, pageIndex: number, scale:
     } as any).promise;
 
     return canvas.toDataURL('image/png');
+}
+
+export interface EncryptionOptions {
+    userPassword: string;
+    ownerPassword?: string;
+    permissions?: {
+        printing?: 'highResolution' | 'lowResolution' | false;
+        modifying?: boolean;
+        copying?: boolean;
+        annotating?: boolean;
+        fillingForms?: boolean;
+        contentAccessibility?: boolean;
+        documentAssembly?: boolean;
+    };
+}
+
+export async function encryptPdf(file: File, options: EncryptionOptions): Promise<Uint8Array> {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdfDoc = await PDFDocument.load(arrayBuffer);
+
+    // Set passwords
+    const encryptOptions: any = {
+        userPassword: options.userPassword,
+        ownerPassword: options.ownerPassword || options.userPassword,
+    };
+
+    // Set permissions if provided
+    if (options.permissions) {
+        const perms = options.permissions;
+        encryptOptions.permissions = {
+            printing: perms.printing || 'highResolution',
+            modifying: perms.modifying !== false,
+            copying: perms.copying !== false,
+            annotating: perms.annotating !== false,
+            fillingForms: perms.fillingForms !== false,
+            contentAccessibility: perms.contentAccessibility !== false,
+            documentAssembly: perms.documentAssembly !== false,
+        };
+    }
+
+    // Save with encryption
+    const encryptedPdfBytes = await pdfDoc.save(encryptOptions);
+    return encryptedPdfBytes;
 }

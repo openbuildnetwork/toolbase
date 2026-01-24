@@ -2,8 +2,10 @@ import io
 import sys
 from pypdf import PdfReader, PdfWriter
 from PIL import Image
-import fitz 
+import fitz
 
+
+# Helper function to render page to image
 def render_page_to_image(pdf_bytes, page_num, dpi=150):
     """
     Render a PDF page to a PIL Image using PyMuPDF.
@@ -28,7 +30,7 @@ def compress_pdf_to_images(file_bytes, level="recommended"):
     This achieves the same result as the TypeScript implementation.
     """
     try:
-        # Configuration based on level
+        # Configuration based on levels
         if level == "extreme":
             quality = 30
             dpi = 100  # Lower DPI for smaller file
@@ -59,7 +61,6 @@ def compress_pdf_to_images(file_bytes, level="recommended"):
             img.save(img_bytes, format="JPEG", quality=quality, optimize=True)
             img_bytes.seek(0)
 
-            
             # We need to create a page with the image
             # PyPDF doesn't have direct image-to-page, so we'll use a different approach
 
@@ -149,9 +150,76 @@ def compress_pdf_content(file_bytes, level="recommended"):
         return {"error": str(e)}
 
 
+def protect_pdf(file_bytes, password, owner_password=None, permissions=None):
+    """
+    Encrypt PDF with a password using PyMuPDF.
+    """
+    try:
+        # Open source PDF
+        doc = fitz.open(stream=file_bytes, filetype="pdf")
+
+        # Default encryption options
+        encryption_method = fitz.PDF_ENCRYPT_AES_256
+
+        # Prepare permissions bitmask
+        # By default, we might want to restrict significantly if permissions are provided
+        # PDF Permissions Bitmask:
+        # bit 3: print
+        # bit 4: modify
+        # bit 5: copy
+        # bit 6: annotate
+        # bit 9: fill forms
+        # bit 10: accessibility
+        # bit 11: document assembly
+
+        perm_mask = 0
+        if permissions:
+            if permissions.get("printing"):
+                perm_mask |= fitz.PDF_PERM_PRINT
+            if permissions.get("modifying"):
+                perm_mask |= fitz.PDF_PERM_MODIFY
+            if permissions.get("copying"):
+                perm_mask |= fitz.PDF_PERM_COPY
+            if permissions.get("annotating"):
+                perm_mask |= fitz.PDF_PERM_ANNOTATE
+            if permissions.get("fillingForms"):
+                perm_mask |= fitz.PDF_PERM_FORM
+            # Always allow accessibility for compliance if not specified
+            if permissions.get("accessibility", True):
+                perm_mask |= 1 << 9
+        else:
+            # If no permissions object, allow everything
+            perm_mask = -1
+
+        # Save results to memory
+        output = io.BytesIO()
+
+        doc.save(
+            output,
+            encryption=encryption_method,
+            user_pw=password,
+            owner_pw=owner_password or password,
+            permissions=perm_mask,
+        )
+
+        result = output.getvalue()
+        doc.close()
+
+        return list(result)
+    except Exception as e:
+        return {"error": str(e)}
+
+
 def handle_request(action, data):
     if action == "compress":
         file_bytes = data.get("file_bytes")
         level = data.get("level", "recommended")
         return compress_pdf_content(file_bytes, level)
+    elif action == "protect":
+        file_bytes = data.get("file_bytes")
+        password = data.get("password")
+        owner_password = data.get("owner_password")
+        permissions = data.get("permissions")
+        return protect_pdf(file_bytes, password, owner_password, permissions)
+
     return {"error": f"Unknown action: {action}"}

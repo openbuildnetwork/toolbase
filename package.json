@@ -6,8 +6,9 @@
   "scripts": {
     "start": "next start",
     "build:python": "ts-node scripts/build-python-bundler.ts",
+    "watch:python": "nodemon --watch src/python -e py --exec \"npm run build:python\"",
     "build": "npm run build:python && next build",
-    "dev": "npm run build:python && next dev",
+    "dev": "concurrently \"npm run watch:python\" \"next dev\"",
     "lint": "eslint"
   },
   "dependencies": {
@@ -28,8 +29,10 @@
     "@types/pdfjs-dist": "^2.10.377",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.2",
+    "nodemon": "^3.1.11",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5"

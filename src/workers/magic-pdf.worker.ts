@@ -7,6 +7,7 @@ let pyodide: PyodideInterface | null = null;
 async function initPyodide() {
     if (pyodide) return pyodide;
 
+    // Initialize Pyodide and install necessary packages
     console.log("Worker: Initializing Pyodide...");
     try {
         pyodide = await loadPyodide({
