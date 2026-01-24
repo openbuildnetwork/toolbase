@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import MergePdf from '@/components/features/magic-pdf/MergePdf';
 import SplitPdf from '@/components/features/magic-pdf/SplitPdf';
+import CompressPdf from '@/components/features/magic-pdf/CompressPdf';
 import {
   Merge,
   Scissors,
@@ -22,7 +23,7 @@ const MagicPdf = () => {
   const tools: ToolSidebarItem[] = [
     { id: 'merge', label: 'Merge PDFs', icon: Merge },
     { id: 'split', label: 'Split PDF', icon: Scissors },
-    { id: 'compress', label: 'Compress PDF', icon: Minimize2, disabled: true },
+    { id: 'compress', label: 'Compress PDF', icon: Minimize2 },
     { id: 'convert', label: 'PDF to Image', icon: Image, disabled: true },
     { id: 'ocr', label: 'OCR (Text)', icon: FileText, disabled: true },
   ];
@@ -91,7 +92,24 @@ const MagicPdf = () => {
                 </motion.div>
               )}
 
-              {activeTool !== 'merge' && activeTool !== 'split' && (
+              {activeTool === 'compress' && (
+                <motion.div
+                  key="compress"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full"
+                >
+                  <div className="mb-6">
+                    <h1 className="text-2xl font-bold text-gray-900">Compress PDF</h1>
+                    <p className="text-gray-500">Reduce file size using our advanced Python engine.</p>
+                  </div>
+                  <CompressPdf />
+                </motion.div>
+              )}
+
+              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && (
                 <motion.div
                   key="placeholder"
                   initial={{ opacity: 0, scale: 0.95 }}
