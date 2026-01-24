@@ -8,6 +8,7 @@ import RearrangePdf from '@/components/features/magic-pdf/RearrangePdf';
 import ProtectPdf from '@/components/features/magic-pdf/ProtectPdf';
 import SignPdf from '@/components/features/magic-pdf/SignPdf';
 import EditPdf from '@/components/features/magic-pdf/EditPdf';
+import PdfToWord from '@/components/features/magic-pdf/PdfToWord';
 import {
   Merge,
   Scissors,
@@ -18,6 +19,7 @@ import {
   Lock,
   PenTool,
   Edit3,
+  FileCode,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
@@ -36,6 +38,7 @@ const MagicPdf = () => {
     { id: 'protect', label: 'Protect PDF', icon: Lock },
     { id: 'sign', label: 'Sign PDF', icon: PenTool },
     { id: 'edit', label: 'Edit PDF', icon: Edit3 },
+    { id: 'word', label: 'PDF to Word', icon: FileCode },
     { id: 'convert', label: 'PDF to Image', icon: Image, disabled: true },
     { id: 'ocr', label: 'OCR (Text)', icon: FileText, disabled: true },
   ];
@@ -161,7 +164,20 @@ const MagicPdf = () => {
                 </motion.div>
               )}
 
-              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'sign' && activeTool !== 'edit' && (
+              {activeTool === 'word' && (
+                <motion.div
+                  key="word"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full"
+                >
+                  <PdfToWord />
+                </motion.div>
+              )}
+
+              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'sign' && activeTool !== 'edit' && activeTool !== 'word' && (
                 <motion.div
                   key="placeholder"
                   initial={{ opacity: 0, scale: 0.95 }}

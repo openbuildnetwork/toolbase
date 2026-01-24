@@ -1,6 +1,6 @@
 import { loadPyodide, type PyodideInterface } from "pyodide";
 // @ts-ignore - The bundle file is auto-generated
-import { PYTHON_FILES } from "@/python-runtime/pdf-magic.bundle";
+import { PYTHON_FILES } from "@/python-runtime/pdf_magic.bundle";
 
 let pyodide: PyodideInterface | null = null;
 
@@ -16,9 +16,9 @@ async function initPyodide() {
 
         // Install dependencies
         console.log("Worker: Installing pypdf, pillow, and PyMuPDF...");
-        await pyodide.loadPackage("micropip");
+        await pyodide.loadPackage(["micropip", "lxml"]);
         const micropip = pyodide.pyimport("micropip");
-        await micropip.install(["pypdf", "Pillow", "PyMuPDF"]);
+        await micropip.install(["pypdf", "Pillow", "PyMuPDF", "python-docx"]);
 
         console.log("Worker: Pyodide loaded, setting up filesystem...");
 
@@ -66,6 +66,10 @@ self.onmessage = async (event: MessageEvent) => {
         try {
             const py = await initPyodide();
             const handleRequest = py.globals.get("handle_request");
+
+            if (typeof handleRequest !== 'function') {
+                throw new Error("Python function 'handle_request' not found in globals. Check initialization logic.");
+            }
 
             // data should be input bytes or similar
             // Convert JS Uint8Array to Python bytes

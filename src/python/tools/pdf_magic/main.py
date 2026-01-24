@@ -3,6 +3,8 @@ import sys
 from pypdf import PdfReader, PdfWriter
 from PIL import Image
 import fitz
+from docx import Document
+from docx.shared import Pt
 
 
 # Helper function to render page to image
@@ -353,6 +355,134 @@ def apply_pdf_edits(file_bytes, edits):
         return {"error": str(e)}
 
 
+def pdf_to_word(file_bytes):
+    """
+    Convert PDF to Word document (.docx) using PyMuPDF and python-docx.
+    Implements a hybrid extraction strategy:
+    1. Text is extracted via blocks to preserve paragraph structure.
+    2. Images are detected via get_image_info() to capture XObjects and inline images.
+    3. Both are merged and sorted by vertical position to reconstruct the document flow.
+
+    Note: 'pdf2docx' cannot be used directly in this environment (WASM) because it depends
+    on OpenCV and C-extensions that are unavailable in the browser. This function
+    manually replicates the core logic of layout analysis.
+    """
+    try:
+        # Open source PDF
+        pdf_data = bytes(file_bytes)
+        doc = fitz.open(stream=pdf_data, filetype="pdf")
+
+        # Create new Word document
+        word_doc = Document()
+
+        for page in doc:
+            elements = []
+
+            # 1. Extract Text Blocks
+            # Using get_text("blocks") is generally more robust for text extraction than get_text("dict")
+            # because it groups text into logical blocks, often corresponding to paragraphs,
+            # which is better for reconstructing document flow in a Word document.
+            # get_text("dict") provides more granular span-level details but can be harder
+            # to reassemble into coherent paragraphs without complex layout analysis.
+            text_blocks = page.get_text("blocks")
+            for b in text_blocks:
+                # b: (x0, y0, x1, y1, text, block_no, block_type)
+                if b[6] == 0:  # Text
+                    elements.append(
+                        {
+                            "type": "text",
+                            "content": b[4].strip(),
+                            "bbox": (b[0], b[1], b[2], b[3]),
+                            "y": b[1],  # Sort by top edge
+                            "x": b[0],
+                        }
+                    )
+
+            # 2. Extract Images
+            # get_image_info(xrefs=True) is more robust for images than get_text("dict")
+            # because it directly queries the PDF's image objects (XObjects) and inline images,
+            # providing reliable bounding boxes and xrefs to extract the raw image data.
+            # get_text("dict") might miss some images or provide less direct access to their data.
+            image_info = page.get_image_info(xrefs=True)
+            for img in image_info:
+                bbox = img["bbox"]
+                # Skip images with invalid bounding boxes or zero dimensions
+                if not bbox or bbox[2] - bbox[0] <= 0 or bbox[3] - bbox[1] <= 0:
+                    continue
+                elements.append(
+                    {
+                        "type": "image",
+                        "xref": img["xref"],
+                        "bbox": bbox,
+                        "y": bbox[1],
+                        "x": bbox[0],
+                        "width": bbox[2] - bbox[0],
+                        "height": bbox[3] - bbox[1],
+                    }
+                )
+
+            # 3. Sort Layout
+            # Primary: Vertical (y), Secondary: Horizontal (x)
+            elements.sort(key=lambda e: (e["y"], e["x"]))
+
+            # 4. Construct Document
+            for el in elements:
+                if el["type"] == "text":
+                    text = el["content"]
+                    if text:
+                        # Clean up text (handling hyphens etc could happen here)
+                        word_doc.add_paragraph(text)
+
+                elif el["type"] == "image":
+                    try:
+                        # Recover image binary
+                        xref = el["xref"]
+                        if xref == 0:
+                            # Inline image, get_image_info should provide the image data directly
+                            # if it's an inline image. If xref is 0, it means it's an inline image
+                            # and its data should be in img['image'] if available.
+                            # For simplicity, we'll skip if xref is 0 and no direct image data is easily accessible
+                            # via xref. PyMuPDF's get_image_info usually provides xrefs for all extractable images.
+                            continue
+
+                        pix = fitz.Pixmap(doc, xref)
+
+                        # Fix colorspace if CMYK or other non-RGB
+                        if pix.n - pix.alpha > 3:  # Check if it's not RGB or RGBA
+                            pix = fitz.Pixmap(fitz.csRGB, pix)  # Convert to RGB
+
+                        # Save to PNG format via buffer
+                        img_bytes = pix.tobytes("png")
+                        img_stream = io.BytesIO(img_bytes)
+
+                        # Scale to fit page (approximate 1pt = 1/72 inch)
+                        # An 80% scale usually looks better within margins
+                        w_inch = Inches(el["width"] / 72 * 0.9)
+
+                        word_doc.add_picture(img_stream, width=w_inch)
+                        pix = None  # Release pixmap resources
+
+                    except Exception as img_err:
+                        # Use a placeholder or skip if image fails
+                        # print(f"Image error: {img_err}")
+                        pass
+
+            # Add page break
+            if page.number < len(doc) - 1:
+                word_doc.add_page_break()
+
+        # Finalize
+        output = io.BytesIO()
+        word_doc.save(output)
+        result = output.getvalue()
+
+        doc.close()
+        return list(result)
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
 def handle_request(action, data):
     if action == "compress":
         file_bytes = data.get("file_bytes")
@@ -372,5 +502,8 @@ def handle_request(action, data):
         file_bytes = data.get("file_bytes")
         edits = data.get("edits", [])
         return apply_pdf_edits(file_bytes, edits)
+    elif action == "pdf_to_word":
+        file_bytes = data.get("file_bytes")
+        return pdf_to_word(file_bytes)
 
     return {"error": f"Unknown action: {action}"}
