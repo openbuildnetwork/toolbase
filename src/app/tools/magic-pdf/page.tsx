@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MergePdf from '@/components/features/magic-pdf/MergePdf';
 import SplitPdf from '@/components/features/magic-pdf/SplitPdf';
 import CompressPdf from '@/components/features/magic-pdf/CompressPdf';
@@ -51,6 +51,16 @@ const MagicPdf = () => {
 
   const activeToolLabel = tools.find(t => t.id === activeTool)?.label || 'Tool';
   const [isSidebarOpen, setSidebarOpen] = useState(true);
+
+  // Update page title when tool changes
+  useEffect(() => {
+    document.title = `${activeToolLabel} | OBN Toolkit`;
+
+    // Cleanup: reset to default when component unmounts
+    return () => {
+      document.title = 'OBN Toolkit';
+    };
+  }, [activeToolLabel]);
 
   return (
     <div className="flex h-[calc(100vh-80px)] overflow-hidden bg-[#FDFDFD] relative">
