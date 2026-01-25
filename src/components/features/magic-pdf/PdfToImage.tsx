@@ -39,7 +39,7 @@ export default function PdfToImage() {
 
             if (Array.isArray(results)) {
                 const imageUrls = results.map((imgBytes: number[]) => {
-                    const blob = new Blob([new Uint8Array(imgBytes)], { type: `image/${format.toLowerCase()}` });
+                    const blob = new Blob([new Uint8Array(imgBytes) as any], { type: `image/${format.toLowerCase()}` });
                     return URL.createObjectURL(blob);
                 });
                 setImages(imageUrls);

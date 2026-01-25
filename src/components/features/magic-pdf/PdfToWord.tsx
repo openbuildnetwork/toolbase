@@ -32,7 +32,7 @@ export default function PdfToWord() {
 
         try {
             const resultBytes = await processPdf('pdf_to_word', file);
-            const blob = new Blob([resultBytes as Uint8Array], {
+            const blob = new Blob([resultBytes as any], {
                 type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
             });
             const url = URL.createObjectURL(blob);

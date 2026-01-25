@@ -262,7 +262,7 @@ export default function SignPdf() {
             }
 
             const finalBytes = await pdfDoc.save();
-            const blob = new Blob([finalBytes], { type: 'application/pdf' });
+            const blob = new Blob([finalBytes as any], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             setResultPdfUrl(url);
 

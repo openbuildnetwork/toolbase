@@ -143,7 +143,7 @@ export default function RearrangePdf() {
             }));
 
             const resultBytes = await rearrangePdf(file, newOrder, operations);
-            const blob = new Blob([resultBytes], { type: 'application/pdf' });
+            const blob = new Blob([resultBytes as any], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
 
             setResultPdfUrl(url);

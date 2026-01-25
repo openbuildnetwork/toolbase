@@ -41,7 +41,7 @@ export default function MergePdf() {
         setIsMerging(true);
         try {
             const mergedBytes = await mergePdfs(files);
-            const blob = new Blob([mergedBytes], { type: 'application/pdf' });
+            const blob = new Blob([mergedBytes as any], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             setMergedPdfUrl(url);
         } catch (error) {
