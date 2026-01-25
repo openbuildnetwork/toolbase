@@ -10,6 +10,7 @@ import SignPdf from '@/components/features/magic-pdf/SignPdf';
 import EditPdf from '@/components/features/magic-pdf/EditPdf';
 import PdfToWord from '@/components/features/magic-pdf/PdfToWord';
 import PdfToImage from '@/components/features/magic-pdf/PdfToImage';
+import ImageToPdf from '@/components/features/magic-pdf/ImageToPdf';
 import {
   Merge,
   Scissors,
@@ -41,6 +42,7 @@ const MagicPdf = () => {
     { id: 'edit', label: 'Edit PDF', icon: Edit3, badge: 'Beta' },
     { id: 'word', label: 'PDF to Word', icon: FileCode, badge: 'Beta' },
     { id: 'convert', label: 'PDF to Image', icon: Image },
+    { id: 'img2pdf', label: 'Image to PDF', icon: Image, badge: 'Beta' },
     { id: 'ocr', label: 'OCR (Text)', icon: FileText, disabled: true },
   ];
 
@@ -191,7 +193,20 @@ const MagicPdf = () => {
                 </motion.div>
               )}
 
-              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'sign' && activeTool !== 'edit' && activeTool !== 'word' && activeTool !== 'convert' && (
+              {activeTool === 'img2pdf' && (
+                <motion.div
+                  key="img2pdf"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full"
+                >
+                  <ImageToPdf />
+                </motion.div>
+              )}
+
+              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'sign' && activeTool !== 'edit' && activeTool !== 'word' && activeTool !== 'convert' && activeTool !== 'img2pdf' && (
                 <motion.div
                   key="placeholder"
                   initial={{ opacity: 0, scale: 0.95 }}

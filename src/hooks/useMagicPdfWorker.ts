@@ -27,17 +27,19 @@ export function useMagicPdfWorker() {
         };
     }, []);
 
-    const processPdf = useCallback(async (action: string, file: File, options: Record<string, any> = {}): Promise<any> => {
+    const processPdf = useCallback(async (action: string, file: File | File[] | null, options: Record<string, any> = {}): Promise<any> => {
         return new Promise((resolve, reject) => {
             if (!workerRef.current) return reject(new Error('Worker not ready'));
 
             setIsProcessing(true);
             setError(null);
 
-            const fileReader = new FileReader();
-            fileReader.onload = (e) => {
-                const buffer = e.target?.result as ArrayBuffer;
-                const uint8Array = new Uint8Array(buffer);
+            const files = Array.isArray(file) ? file : (file ? [file] : []);
+
+            const readPromises = files.map(f => f.arrayBuffer());
+
+            Promise.all(readPromises).then(buffers => {
+                const uint8Arrays = buffers.map(b => new Uint8Array(b));
 
                 const handleMessage = (event: MessageEvent) => {
                     const { type, data, error: workerError } = event.data;
@@ -56,14 +58,10 @@ export function useMagicPdfWorker() {
                         const isNestedList = isList && data.length > 0 && (Array.isArray(data[0]) || ArrayBuffer.isView(data[0]));
 
                         if (isNestedList) {
-                            // It's a list of lists or list of typed arrays (e.g. multiple images), return as is
                             resolve(data as any);
                         } else if (typeof data === 'object' && !isList && data !== null) {
-                            // It's a results object (e.g. detection), return as is
                             resolve(data as any);
                         } else {
-                            // It's a flat array of bytes, return as Uint8Array
-                            // Use Uint8Array.from if it's not already a typed array
                             resolve(data instanceof Uint8Array ? data : new Uint8Array(data));
                         }
                     } else if (type === 'ERROR') {
@@ -76,22 +74,22 @@ export function useMagicPdfWorker() {
 
                 workerRef.current?.addEventListener('message', handleMessage);
 
-                // Construct payload matching Python's expectation
-                // The worker will need to be updated to handle this 'data' structure if it expects plain bytes?
-                // Actually, let's update the worker to accept { file_bytes, ...options }
-                // But typically binary transfer is best done with transfer control. 
-                // We'll trust the worker to repackage.
+                const payload = {
+                    file_bytes: uint8Arrays[0], // Keep legacy for single-file ops
+                    files_bytes: uint8Arrays,   // New for multi-file ops
+                    ...options
+                };
 
                 workerRef.current?.postMessage({
                     type: 'EXECUTE',
                     action,
-                    data: {
-                        file_bytes: uint8Array,
-                        ...options
-                    }
+                    data: payload
                 });
-            };
-            fileReader.readAsArrayBuffer(file);
+
+            }).catch(err => {
+                setIsProcessing(false);
+                reject(new Error('Failed to read files: ' + err.message));
+            });
         });
     }, []);
 

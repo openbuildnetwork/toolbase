@@ -504,64 +504,34 @@ def pdf_to_images(file_bytes, dpi=150, format="JPEG"):
         return {"error": str(e)}
 
 
-def images_to_pdf(images, paper_size="auto"):
+def images_to_pdf(files_bytes_list):
     """
-    Convert a list of images (bytes) into a single PDF document.
+    Convert a list of images to a single PDF.
     """
     try:
         doc = fitz.open()
 
-        # Define paper sizes in points (72 points = 1 inch)
-        paper_sizes = {"a4": (595, 842), "letter": (612, 792), "legal": (612, 1008)}
+        for img_bytes in files_bytes_list:
+            # Create a memory stream for the image
+            img_stream = io.BytesIO(bytes(img_bytes))
 
-        target_size = paper_sizes.get(paper_size.lower())
+            # Open image with fitz to get dimensions
+            try:
+                # We can open the image as a document
+                img_doc = fitz.open(stream=img_stream, filetype="img")
 
-        for img_bytes in images:
-            # Open image using PyMuPDF (supports various formats automatically)
-            img = fitz.open(stream=bytes(img_bytes))
+                # Convert to PDF
+                pdf_bytes = img_doc.convert_to_pdf()
+                img_pdf = fitz.open(stream=pdf_bytes, filetype="pdf")
 
-            # Determine page size
-            if target_size:
-                width, height = target_size
-            else:
-                # Auto: use image size
-                # Get image dimensions from the first page of the image (multi-page tiff/ico possibly, usually 0)
-                # But 'img' here is a document object essentially
-                # Let's verify if its a valid image
-                # Alternatively use PIL to get size if fitz is tricky for simple streams
-                # Fitz is good. rect is available if we load it as pixmap or page.
-                # Actually, fitz.open(stream=...) creates a document.
-                # If it's an image, it has 1 page.
-                page = img[0]
-                width, height = page.rect.width, page.rect.height
+                # Insert into main doc
+                doc.insert_pdf(img_pdf)
 
-            # Create a new page in the output document
-            new_page = doc.new_page(width=width, height=height)
-
-            # Calculate rect to center image if using fixed paper size
-            if target_size:
-                # Get image dimensions
-                img_page = img[0]
-                iw, ih = img_page.rect.width, img_page.rect.height
-
-                # Scale to fit
-                scale = min(width / iw, height / ih)
-                # Apply margin (e.g. 5%)
-                scale *= 0.95
-
-                nw, nh = iw * scale, ih * scale
-                x = (width - nw) / 2
-                y = (height - nh) / 2
-
-                rect = fitz.Rect(x, y, x + nw, y + nh)
-            else:
-                rect = fitz.Rect(0, 0, width, height)
-
-            # Insert image
-            # We can use the bytes directly
-            new_page.insert_image(rect, stream=bytes(img_bytes))
-
-            img.close()
+                img_doc.close()
+                img_pdf.close()
+            except Exception as e:
+                print(f"Error processing image: {e}")
+                continue
 
         output = io.BytesIO()
         doc.save(output)
@@ -602,8 +572,7 @@ def handle_request(action, data):
         img_format = data.get("format", "JPEG")
         return pdf_to_images(file_bytes, dpi, img_format)
     elif action == "images_to_pdf":
-        images = data.get("images", [])
-        paper_size = data.get("paper_size", "auto")
-        return images_to_pdf(images, paper_size)
+        files_bytes = data.get("files_bytes", [])
+        return images_to_pdf(files_bytes)
 
     return {"error": f"Unknown action: {action}"}
