@@ -11,6 +11,7 @@ import EditPdf from '@/components/features/magic-pdf/EditPdf';
 import PdfToWord from '@/components/features/magic-pdf/PdfToWord';
 import PdfToImage from '@/components/features/magic-pdf/PdfToImage';
 import ImageToPdf from '@/components/features/magic-pdf/ImageToPdf';
+import HtmlToPdf from '@/components/features/magic-pdf/HtmlToPdf';
 import {
   Merge,
   Scissors,
@@ -22,6 +23,8 @@ import {
   PenTool,
   Edit3,
   FileCode,
+  FileCode2,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
@@ -42,8 +45,8 @@ const MagicPdf = () => {
     { id: 'edit', label: 'Edit PDF', icon: Edit3, badge: 'Beta' },
     { id: 'word', label: 'PDF to Word', icon: FileCode, badge: 'Beta' },
     { id: 'convert', label: 'PDF to Image', icon: Image },
-    { id: 'img2pdf', label: 'Image to PDF', icon: Image, badge: 'Beta' },
-    { id: 'ocr', label: 'OCR (Text)', icon: FileText, disabled: true },
+    { id: 'img2pdf', label: 'Image to PDF', icon: Image },
+    { id: 'html2pdf', label: 'HTML to PDF', icon: FileCode2, badge: 'Beta' },
   ];
 
   const activeToolLabel = tools.find(t => t.id === activeTool)?.label || 'Tool';
@@ -206,7 +209,20 @@ const MagicPdf = () => {
                 </motion.div>
               )}
 
-              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'sign' && activeTool !== 'edit' && activeTool !== 'word' && activeTool !== 'convert' && activeTool !== 'img2pdf' && (
+              {activeTool === 'html2pdf' && (
+                <motion.div
+                  key="html2pdf"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full"
+                >
+                  <HtmlToPdf />
+                </motion.div>
+              )}
+
+              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'sign' && activeTool !== 'edit' && activeTool !== 'word' && activeTool !== 'convert' && activeTool !== 'img2pdf' && activeTool !== 'html2pdf' && (
                 <motion.div
                   key="placeholder"
                   initial={{ opacity: 0, scale: 0.95 }}

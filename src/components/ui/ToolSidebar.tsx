@@ -177,7 +177,7 @@ const SidebarItem = ({
         onClick={onClick}
         disabled={item.disabled}
         className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200 border-l-2",
+            "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200 border-l-2 cursor-pointer",
             isActive
                 ? "bg-primary/10 border-primary text-primary"
                 : "border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900",

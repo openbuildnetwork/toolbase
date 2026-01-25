@@ -544,6 +544,30 @@ def images_to_pdf(files_bytes_list):
         return {"error": str(e)}
 
 
+def html_to_pdf(html_bytes):
+    """
+    Convert HTML content to PDF using xhtml2pdf.
+    """
+    try:
+        from xhtml2pdf import pisa
+        
+        # decoding the bytes to string
+        html_content = html_bytes.decode('utf-8')
+        
+        output = io.BytesIO()
+        pisa_status = pisa.CreatePDF(
+            io.StringIO(html_content),
+            dest=output
+        )
+        
+        if pisa_status.err:
+            return {"error": "PDF generation failed"}
+            
+        return list(output.getvalue())
+    except Exception as e:
+        return {"error": str(e)}
+
+
 def handle_request(action, data):
     if action == "compress":
         file_bytes = data.get("file_bytes")
@@ -574,5 +598,8 @@ def handle_request(action, data):
     elif action == "images_to_pdf":
         files_bytes = data.get("files_bytes", [])
         return images_to_pdf(files_bytes)
+    elif action == "html_to_pdf":
+        file_bytes = data.get("file_bytes")
+        return html_to_pdf(file_bytes)
 
     return {"error": f"Unknown action: {action}"}
