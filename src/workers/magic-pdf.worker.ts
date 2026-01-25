@@ -47,8 +47,24 @@ async function initPyodide() {
         await pyodide.runPythonAsync(`
 import sys
 import os
-sys.path.append(os.getcwd())
-from tools.pdf_magic.main import handle_request
+print(f"Current CWD: {os.getcwd()}")
+try:
+    sys.path.append(os.getcwd())
+    if os.path.exists("tools"):
+        print(f"Tools content: {os.listdir('tools')}")
+        if os.path.exists("tools/pdf_magic"):
+             print(f"Magic content: {os.listdir('tools/pdf_magic')}")
+    
+    import tools.pdf_magic.main as pdf_main
+    handle_request = pdf_main.handle_request
+    print("Python: handle_request imported successfully")
+except Exception as e:
+    import tools.pdf_magic.main as pdf_main
+    handle_request = pdf_main.handle_request
+except Exception as e:
+    init_error = str(e)
+    import traceback
+    traceback.print_exc()
         `);
 
         self.postMessage({ type: "READY" });
@@ -65,6 +81,13 @@ self.onmessage = async (event: MessageEvent) => {
     if (type === "EXECUTE") {
         try {
             const py = await initPyodide();
+
+            // Check for initialization errors
+            const initError = py.globals.get("init_error");
+            if (initError) {
+                throw new Error(`Python Initialization Failed: ${initError}`);
+            }
+
             const handleRequest = py.globals.get("handle_request");
 
             if (typeof handleRequest !== 'function') {

@@ -137,7 +137,7 @@ export default function ImageToPdf() {
 
         try {
             const resultBytes = await processPdf('images_to_pdf', files);
-            const blob = new Blob([resultBytes as Uint8Array], { type: 'application/pdf' });
+            const blob = new Blob([resultBytes as any], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             setResultPdfUrl(url);
         } catch (error) {

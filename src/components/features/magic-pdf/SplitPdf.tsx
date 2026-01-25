@@ -92,7 +92,7 @@ export default function SplitPdf() {
             const pdfBytes = await splitPdf(file, groups);
 
             const results = pdfBytes.map((bytes, i) => {
-                const blob = new Blob([bytes], { type: 'application/pdf' });
+                const blob = new Blob([bytes as any], { type: 'application/pdf' });
                 return {
                     name: `${file.name.replace('.pdf', '')}_part_${i + 1}.pdf`,
                     url: URL.createObjectURL(blob)

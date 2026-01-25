@@ -74,7 +74,7 @@ export default function ProtectPdf() {
                 }
             });
 
-            const blob = new Blob([resultBytes], { type: 'application/pdf' });
+            const blob = new Blob([resultBytes as any], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
 
             setProtectedPdfUrl(url);

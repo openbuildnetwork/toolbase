@@ -38,7 +38,7 @@ export default function CompressPdf() {
             // Use Python worker for all compression modes
             const resultBytes = await processPdf('compress', file, { level: compressionLevel });
 
-            const blob = new Blob([resultBytes], { type: 'application/pdf' });
+            const blob = new Blob([resultBytes as any], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
 
             setCompressedPdfUrl(url);
