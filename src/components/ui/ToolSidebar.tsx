@@ -16,6 +16,7 @@ export interface ToolSidebarItem {
     icon: LucideIcon;
     disabled?: boolean;
     group?: string;
+    badge?: string;
 }
 
 interface ToolSidebarProps {
@@ -185,5 +186,10 @@ const SidebarItem = ({
     >
         <item.icon className={cn("w-4 h-4", isActive ? "text-primary" : "text-gray-500")} />
         <span>{item.label}</span>
+        {item.badge && (
+            <span className="ml-auto px-1.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-700 rounded-full uppercase tracking-wider">
+                {item.badge}
+            </span>
+        )}
     </button>
 );

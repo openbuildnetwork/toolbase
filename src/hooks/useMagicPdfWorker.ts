@@ -27,7 +27,7 @@ export function useMagicPdfWorker() {
         };
     }, []);
 
-    const processPdf = useCallback(async (action: string, file: File, options: Record<string, any> = {}): Promise<Uint8Array> => {
+    const processPdf = useCallback(async (action: string, file: File, options: Record<string, any> = {}): Promise<any> => {
         return new Promise((resolve, reject) => {
             if (!workerRef.current) return reject(new Error('Worker not ready'));
 
@@ -51,7 +51,21 @@ export function useMagicPdfWorker() {
                             return;
                         }
 
-                        resolve(new Uint8Array(data));
+                        // Intelligently resolve based on data type
+                        const isList = Array.isArray(data);
+                        const isNestedList = isList && data.length > 0 && (Array.isArray(data[0]) || ArrayBuffer.isView(data[0]));
+
+                        if (isNestedList) {
+                            // It's a list of lists or list of typed arrays (e.g. multiple images), return as is
+                            resolve(data as any);
+                        } else if (typeof data === 'object' && !isList && data !== null) {
+                            // It's a results object (e.g. detection), return as is
+                            resolve(data as any);
+                        } else {
+                            // It's a flat array of bytes, return as Uint8Array
+                            // Use Uint8Array.from if it's not already a typed array
+                            resolve(data instanceof Uint8Array ? data : new Uint8Array(data));
+                        }
                     } else if (type === 'ERROR') {
                         setIsProcessing(false);
                         workerRef.current?.removeEventListener('message', handleMessage);

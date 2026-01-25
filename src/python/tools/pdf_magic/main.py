@@ -476,6 +476,104 @@ def pdf_to_word(file_bytes):
         return {"error": str(e)}
 
 
+def pdf_to_images(file_bytes, dpi=150, format="JPEG"):
+    """
+    Convert all pages of a PDF to images.
+    Returns a list of image bytes.
+    """
+    try:
+        doc = fitz.open(stream=file_bytes, filetype="pdf")
+        images = []
+
+        for page_num in range(len(doc)):
+            page = doc[page_num]
+            mat = fitz.Matrix(dpi / 72, dpi / 72)
+            pix = page.get_pixmap(matrix=mat)
+
+            # Convert pixmap to PIL Image
+            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+
+            # Save to bytes
+            img_io = io.BytesIO()
+            img.save(img_io, format=format, quality=85)
+            images.append(img_io.getvalue())
+
+        doc.close()
+        return images
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def images_to_pdf(images, paper_size="auto"):
+    """
+    Convert a list of images (bytes) into a single PDF document.
+    """
+    try:
+        doc = fitz.open()
+
+        # Define paper sizes in points (72 points = 1 inch)
+        paper_sizes = {"a4": (595, 842), "letter": (612, 792), "legal": (612, 1008)}
+
+        target_size = paper_sizes.get(paper_size.lower())
+
+        for img_bytes in images:
+            # Open image using PyMuPDF (supports various formats automatically)
+            img = fitz.open(stream=bytes(img_bytes))
+
+            # Determine page size
+            if target_size:
+                width, height = target_size
+            else:
+                # Auto: use image size
+                # Get image dimensions from the first page of the image (multi-page tiff/ico possibly, usually 0)
+                # But 'img' here is a document object essentially
+                # Let's verify if its a valid image
+                # Alternatively use PIL to get size if fitz is tricky for simple streams
+                # Fitz is good. rect is available if we load it as pixmap or page.
+                # Actually, fitz.open(stream=...) creates a document.
+                # If it's an image, it has 1 page.
+                page = img[0]
+                width, height = page.rect.width, page.rect.height
+
+            # Create a new page in the output document
+            new_page = doc.new_page(width=width, height=height)
+
+            # Calculate rect to center image if using fixed paper size
+            if target_size:
+                # Get image dimensions
+                img_page = img[0]
+                iw, ih = img_page.rect.width, img_page.rect.height
+
+                # Scale to fit
+                scale = min(width / iw, height / ih)
+                # Apply margin (e.g. 5%)
+                scale *= 0.95
+
+                nw, nh = iw * scale, ih * scale
+                x = (width - nw) / 2
+                y = (height - nh) / 2
+
+                rect = fitz.Rect(x, y, x + nw, y + nh)
+            else:
+                rect = fitz.Rect(0, 0, width, height)
+
+            # Insert image
+            # We can use the bytes directly
+            new_page.insert_image(rect, stream=bytes(img_bytes))
+
+            img.close()
+
+        output = io.BytesIO()
+        doc.save(output)
+        result = output.getvalue()
+        doc.close()
+
+        return list(result)
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
 def handle_request(action, data):
     if action == "compress":
         file_bytes = data.get("file_bytes")
@@ -498,5 +596,14 @@ def handle_request(action, data):
     elif action == "pdf_to_word":
         file_bytes = data.get("file_bytes")
         return pdf_to_word(file_bytes)
+    elif action == "pdf_to_images":
+        file_bytes = data.get("file_bytes")
+        dpi = data.get("dpi", 150)
+        img_format = data.get("format", "JPEG")
+        return pdf_to_images(file_bytes, dpi, img_format)
+    elif action == "images_to_pdf":
+        images = data.get("images", [])
+        paper_size = data.get("paper_size", "auto")
+        return images_to_pdf(images, paper_size)
 
     return {"error": f"Unknown action: {action}"}
