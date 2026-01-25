@@ -5,13 +5,10 @@ import ToolCard from './ToolCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ToolCardProps } from '@/types/tool-search';
 import { appIcons } from '@/config/icons';
-const tools: ToolCardProps[] = [
-    { title: "Redact Secrets", toolFolderName: "redact-secrets", icon: appIcons.redactSecretsIcon, gradientFrom: "#ff9f0a", gradientTo: "#ff3b30" },
-    { title: "JSON to Interface/Model", toolFolderName: "json-to-interface", icon: appIcons.jsonToInterfaceIcon, gradientFrom: "#ff9f0a", gradientTo: "#ff3b30" },
-];
 
 interface ToolGridProps {
     searchQuery: string;
+    tools: ToolCardProps[];
 }
 
 const itemVariants: any = {
@@ -30,7 +27,7 @@ const itemVariants: any = {
 };
 
 
-const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery }) => {
+const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery, tools }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const filteredTools = useMemo(() => {
@@ -60,8 +57,6 @@ const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery }) => {
                                 title={tool.title}
                                 toolFolderName={tool.toolFolderName}
                                 icon={tool.icon}
-                                gradientFrom={tool.gradientFrom}
-                                gradientTo={tool.gradientTo}
                             />
                         </motion.div>
                     ))}

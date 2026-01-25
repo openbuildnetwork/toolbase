@@ -6,15 +6,22 @@
   "scripts": {
     "start": "next start",
     "build:python": "ts-node scripts/build-python-bundler.ts",
+    "watch:python": "nodemon --watch src/python -e py --exec \"npm run build:python\"",
     "build": "npm run build:python && next build",
-    "dev": "npm run build:python && next dev",
+    "dev": "concurrently \"npm run watch:python\" \"next dev\"",
     "lint": "eslint"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "clsx": "^2.1.1",
     "framer-motion": "^12.26.2",
+    "html2pdf.js": "^0.14.0",
     "lucide-react": "^0.562.0",
     "next": "16.1.2",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^5.4.530",
     "pyodide": "^0.29.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -23,10 +30,13 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.30",
+    "@types/pdfjs-dist": "^2.10.377",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.2",
+    "nodemon": "^3.1.11",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5"
