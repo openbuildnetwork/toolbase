@@ -12,6 +12,7 @@ export default function Home() {
     { title: "Redact Secrets", toolFolderName: "redact-secrets", icon: appIcons.redactSecretsIcon },
     { title: "JSON to Interface/Model", toolFolderName: "json-to-interface", icon: appIcons.jsonToInterfaceIcon },
     { title: "Magic PDF", toolFolderName: "magic-pdf", icon: appIcons.magicPdfIcon },
+    { title: "Base64 Encode/Decode", toolFolderName: "base64", icon: appIcons.base64Icon },
   ];
 
   return (
