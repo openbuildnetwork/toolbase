@@ -7,12 +7,12 @@ import { useState } from 'react';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
-
   const tools: ToolCardProps[] = [
-    { title: "Redact Secrets", toolFolderName: "redact-secrets", icon: appIcons.redactSecretsIcon },
-    { title: "JSON to Interface/Model", toolFolderName: "json-to-interface", icon: appIcons.jsonToInterfaceIcon },
-    { title: "Magic PDF", toolFolderName: "magic-pdf", icon: appIcons.magicPdfIcon },
-    { title: "Base64 Encode/Decode", toolFolderName: "base64", icon: appIcons.base64Icon },
+    { title: "Redact Secrets", toolFolderName: "redact-secrets", icon: appIcons['redact-secrets'] },
+    { title: "JSON to Interface/Model", toolFolderName: "json-to-interface", icon: appIcons['json-to-interface'] },
+    { title: "Magic PDF", toolFolderName: "magic-pdf", icon: appIcons['magic-pdf'] },
+    { title: "Base64 Encode/Decode", toolFolderName: "base64", icon: appIcons['base64'] },
+    { title: "DataLens", toolFolderName: "data-lens", icon: appIcons['base64'] },
   ];
 
   return (
