@@ -1,7 +1,7 @@
 
 import { loadPyodide, type PyodideInterface } from "pyodide";
 // @ts-ignore - The bundle file is auto-generated
-import { PYTHON_FILES } from "@/python-runtime/data_lens.bundle";
+import { PYTHON_FILES } from "../python-runtime/data_lens.bundle";
 
 let pyodideInitPromise: Promise<PyodideInterface> | null = null;
 

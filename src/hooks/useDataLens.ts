@@ -29,6 +29,10 @@ export interface UseDataLensResult extends EtlState {
     runSql: (query: string) => Promise<any>;
     runPython: (code: string) => Promise<any>;
     refreshSchemas: () => Promise<any>;
+    deleteTable: (tableName: string) => Promise<any>;
+    clearQueryResult: () => void;
+    getRawJson: (tableName: string) => Promise<any>;
+    queryJson: (tableName: string, query: string) => Promise<any>;
 }
 
 export function useDataLens(): UseDataLensResult {
@@ -120,7 +124,9 @@ export function useDataLens(): UseDataLensResult {
             if (res.success) {
                 // Refresh schemas
                 const schemaRes = await sendMessage('get_schemas', {});
-                setSchemas(schemaRes);
+                if (schemaRes.success) {
+                    setSchemas(schemaRes.schemas);
+                }
                 return res;
             } else {
                 throw new Error(res.error || "Failed to load file");
@@ -168,10 +174,61 @@ export function useDataLens(): UseDataLensResult {
     const refreshSchemas = useCallback(async () => {
         try {
             const res = await sendMessage('get_schemas', {});
-            setSchemas(res);
-            return res;
+            if (res.success) {
+                setSchemas(res.schemas);
+                return res.schemas;
+            } else {
+                throw new Error(res.error || "Failed to fetch schemas");
+            }
         } catch (err: any) {
             console.error(err);
+        }
+    }, [sendMessage]);
+
+    const deleteTable = useCallback(async (tableName: string) => {
+        try {
+            const res = await sendMessage('delete_table', { table_name: tableName });
+            if (res.success) {
+                // Refresh schemas after deletion
+                const schemaRes = await sendMessage('get_schemas', {});
+                if (schemaRes.success) {
+                    setSchemas(schemaRes.schemas);
+                }
+                return res;
+            } else {
+                throw new Error(res.error || "Failed to delete table");
+            }
+        } catch (err: any) {
+            setError(err.message);
+            throw err;
+        }
+    }, [sendMessage]);
+
+    const clearQueryResult = useCallback(() => {
+        setQueryResult(null);
+    }, []);
+
+    const getRawJson = useCallback(async (tableName: string) => {
+        try {
+            const res = await sendMessage('get_raw_json', { table_name: tableName });
+            return res;
+        } catch (err: any) {
+            setError(err.message);
+            throw err;
+        }
+    }, [sendMessage]);
+
+    const queryJson = useCallback(async (tableName: string, query: string) => {
+        try {
+            const res = await sendMessage('query_json', { table_name: tableName, query });
+            if (res.success && !res.is_json) {
+                // Regular table result
+                setQueryResult(res);
+            }
+            return res;
+        } catch (err: any) {
+            setError(err.message);
+            throw err;
         }
     }, [sendMessage]);
 
@@ -184,6 +241,10 @@ export function useDataLens(): UseDataLensResult {
         loadFile,
         runSql,
         runPython,
-        refreshSchemas
+        refreshSchemas,
+        deleteTable,
+        clearQueryResult,
+        getRawJson,
+        queryJson
     };
 }

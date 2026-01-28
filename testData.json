@@ -1,0 +1,224 @@
+{
+  "meta": {
+    "dataset": "ecommerce_orders",
+    "version": "1.0",
+    "generatedAt": "2026-01-28T10:15:00Z",
+    "totalRecords": 5,
+    "currency": "USD"
+  },
+  "orders": [
+    {
+      "orderId": "ORD-1001",
+      "createdAt": "2026-01-25T09:12:33Z",
+      "status": "SHIPPED",
+      "isPriority": true,
+      "customer": {
+        "customerId": "CUST-001",
+        "name": "John Doe",
+        "email": "john.doe@gmail.com",
+        "phone": "+1-202-555-0101",
+        "tags": ["vip", "newsletter"],
+        "address": {
+          "street": "221B Baker Street",
+          "city": "London",
+          "state": null,
+          "country": "UK",
+          "postalCode": "NW1"
+        }
+      },
+      "items": [
+        {
+          "sku": "LAP-100",
+          "name": "Laptop Pro 14",
+          "category": "electronics",
+          "price": 1299.99,
+          "quantity": 1,
+          "discount": 0.1,
+          "attributes": {
+            "color": "silver",
+            "warrantyYears": 2
+          }
+        },
+        {
+          "sku": "MOU-200",
+          "name": "Wireless Mouse",
+          "category": "accessories",
+          "price": 29.99,
+          "quantity": 2,
+          "discount": 0,
+          "attributes": {
+            "color": "black"
+          }
+        }
+      ],
+      "payment": {
+        "method": "CARD",
+        "transactionId": "TXN-88991",
+        "paid": true,
+        "amount": 1359.97
+      },
+      "shipment": {
+        "carrier": "DHL",
+        "trackingNumber": "TRK123456789",
+        "estimatedDelivery": "2026-01-29"
+      },
+      "notes": null
+    },
+    {
+      "orderId": "ORD-1002",
+      "createdAt": "2026-01-24T14:01:11Z",
+      "status": "PENDING",
+      "isPriority": false,
+      "customer": {
+        "customerId": "CUST-002",
+        "name": "Alice Smith",
+        "email": "alice@company.com",
+        "phone": null,
+        "tags": [],
+        "address": {
+          "street": "742 Evergreen Terrace",
+          "city": "Springfield",
+          "state": "IL",
+          "country": "USA",
+          "postalCode": "62701"
+        }
+      },
+      "items": [
+        {
+          "sku": "TAB-500",
+          "name": "Tablet X",
+          "category": "electronics",
+          "price": 499.5,
+          "quantity": 1,
+          "discount": 0.05
+        }
+      ],
+      "payment": {
+        "method": "PAYPAL",
+        "transactionId": "TXN-77882",
+        "paid": false,
+        "amount": 474.52
+      },
+      "shipment": null,
+      "notes": "Customer requested gift wrap"
+    },
+    {
+      "orderId": "ORD-1003",
+      "createdAt": "2026-01-23T19:45:55Z",
+      "status": "CANCELLED",
+      "isPriority": false,
+      "customer": {
+        "customerId": "CUST-003",
+        "name": "Bob Lee",
+        "email": "bob.lee@startup.io",
+        "phone": "+44-555-3333",
+        "tags": ["new"],
+        "address": {
+          "street": "MG Road",
+          "city": "Bangalore",
+          "state": "KA",
+          "country": "India",
+          "postalCode": "560001"
+        }
+      },
+      "items": [],
+      "payment": {
+        "method": "CARD",
+        "transactionId": "TXN-11122",
+        "paid": false,
+        "amount": 0
+      },
+      "shipment": null,
+      "notes": "Payment failed"
+    },
+    {
+      "orderId": "ORD-1004",
+      "createdAt": "2026-01-22T07:11:02Z",
+      "status": "DELIVERED",
+      "isPriority": true,
+      "customer": {
+        "customerId": "CUST-004",
+        "name": "Priya Kumar",
+        "email": "priya@gmail.com",
+        "phone": "+91-9000000000",
+        "tags": ["vip", "bulk"],
+        "address": {
+          "street": "12 Residency Road",
+          "city": "Chennai",
+          "state": "TN",
+          "country": "India",
+          "postalCode": "600025"
+        }
+      },
+      "items": [
+        {
+          "sku": "PHN-900",
+          "name": "Smartphone Z",
+          "category": "electronics",
+          "price": 899.99,
+          "quantity": 3,
+          "discount": 0.15,
+          "attributes": {
+            "color": "blue",
+            "storage": "256GB"
+          }
+        }
+      ],
+      "payment": {
+        "method": "UPI",
+        "transactionId": "TXN-99911",
+        "paid": true,
+        "amount": 2294.97
+      },
+      "shipment": {
+        "carrier": "FedEx",
+        "trackingNumber": "TRK555222",
+        "estimatedDelivery": "2026-01-23"
+      },
+      "notes": ""
+    },
+    {
+      "orderId": "ORD-1005",
+      "createdAt": "2026-01-21T11:30:44Z",
+      "status": "PROCESSING",
+      "isPriority": false,
+      "customer": {
+        "customerId": "CUST-005",
+        "name": "System Bot",
+        "email": "bot@internal",
+        "phone": "",
+        "tags": ["test", "internal"],
+        "address": null
+      },
+      "items": [
+        {
+          "sku": "SRV-001",
+          "name": "Subscription Plan",
+          "category": "service",
+          "price": 19.99,
+          "quantity": 12,
+          "discount": 0
+        }
+      ],
+      "payment": {
+        "method": "INVOICE",
+        "transactionId": null,
+        "paid": false,
+        "amount": 239.88
+      },
+      "shipment": {
+        "carrier": null,
+        "trackingNumber": null,
+        "estimatedDelivery": null
+      },
+      "metadata": {
+        "source": "internal-api",
+        "retryCount": 3,
+        "flags": {
+          "fraudCheck": false,
+          "manualReview": true
+        }
+      }
+    }
+  ]
+}
