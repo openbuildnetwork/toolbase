@@ -11,8 +11,8 @@ export default function Home() {
     { title: "Redact Secrets", toolFolderName: "redact-secrets", icon: appIcons['redact-secrets'] },
     { title: "JSON to Interface/Model", toolFolderName: "json-to-interface", icon: appIcons['json-to-interface'] },
     { title: "Magic PDF", toolFolderName: "magic-pdf", icon: appIcons['magic-pdf'] },
-    { title: "Base64 Encode/Decode", toolFolderName: "base64", icon: appIcons['base64'] },
-    { title: "DataLens", toolFolderName: "data-lens", icon: appIcons['base64'] },
+    { title: "Base64 Encode/Decode", toolFolderName: "base64", icon: appIcons['b64EnDc'] },
+    { title: "DataLens", toolFolderName: "data-lens", icon: appIcons['data-lens'] },
   ];
 
   return (

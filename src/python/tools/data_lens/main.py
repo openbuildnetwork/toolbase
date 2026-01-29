@@ -74,7 +74,7 @@ def load_file(data):
             # Store raw JSON for the JSON viewer
             JSON_STORE[base_table_name] = json_data
 
-            # Handle different JSON structures
+            # Handle different JSON structures - always create a single table
             if isinstance(json_data, list):
                 # Array of objects - flatten it
                 df = pd.json_normalize(json_data, sep="_")
@@ -93,62 +93,10 @@ def load_file(data):
                             main_array_data = value
 
                 if main_array_data and len(main_array_data) > 0:
-                    # Flatten the main array with nested objects
+                    # Flatten the main array with nested objects into a single table
                     df = pd.json_normalize(main_array_data, sep="_")
-                    table_name = (
-                        f"{base_table_name}_{main_array_key}"
-                        if main_array_key
-                        else base_table_name
-                    )
-                    DATA_STORE[table_name] = df
-                    tables_created.append(table_name)
-
-                    # Also extract nested arrays within items (e.g., order items)
-                    first_item = main_array_data[0]
-                    for nested_key, nested_value in first_item.items():
-                        if (
-                            isinstance(nested_value, list)
-                            and len(nested_value) > 0
-                            and isinstance(nested_value[0], dict)
-                        ):
-                            # Extract this nested array with parent reference
-                            try:
-                                # Find the parent ID field (first field with 'id' in name)
-                                parent_id_field = None
-                                for field in first_item.keys():
-                                    if "id" in field.lower():
-                                        parent_id_field = field
-                                        break
-
-                                # Flatten nested arrays with record_path
-                                nested_df = pd.json_normalize(
-                                    main_array_data,
-                                    record_path=[nested_key],
-                                    meta=[parent_id_field] if parent_id_field else [],
-                                    sep="_",
-                                    errors="ignore",
-                                )
-                                if len(nested_df) > 0:
-                                    nested_table_name = (
-                                        f"{base_table_name}_{nested_key}"
-                                    )
-                                    DATA_STORE[nested_table_name] = nested_df
-                                    tables_created.append(nested_table_name)
-                            except Exception:
-                                pass  # Skip if nested extraction fails
-
-                    # Also store metadata if present
-                    meta_keys = [
-                        k
-                        for k in json_data.keys()
-                        if k != main_array_key and isinstance(json_data[k], dict)
-                    ]
-                    for meta_key in meta_keys:
-                        meta_df = pd.json_normalize([json_data[meta_key]], sep="_")
-                        if len(meta_df) > 0:
-                            meta_table_name = f"{base_table_name}_{meta_key}"
-                            DATA_STORE[meta_table_name] = meta_df
-                            tables_created.append(meta_table_name)
+                    DATA_STORE[base_table_name] = df
+                    tables_created.append(base_table_name)
                 else:
                     # Single object - convert to single row dataframe
                     df = pd.json_normalize([json_data], sep="_")
@@ -224,33 +172,65 @@ def prepare_df_for_sql(df):
 
 
 def run_sql(data):
+    """
+    Execute SQL query on the data.
+
+    Supports SQLite JSON functions for querying JSON columns:
+    - json_extract(column, '$.path') - Extract value from JSON
+    - json_each(column) - Expand JSON array
+    - json_type(column) - Get JSON value type
+
+    Examples:
+    - SELECT json_extract(items, '$[0].name') as first_item FROM testdata
+    - SELECT * FROM testdata, json_each(items) as item WHERE json_extract(item.value, '$.price') > 100
+    """
     query = data.get("query")
     if not query:
         return {"success": False, "error": "No query provided"}
 
     try:
         conn = sqlite3.connect(":memory:")
+
+        # Track which columns contain JSON data for better error messages
+        json_columns = {}
+
         for name, df in DATA_STORE.items():
             # Prepare dataframe for SQL (convert lists/dicts to JSON strings)
             sql_df = prepare_df_for_sql(df)
             sql_df.to_sql(name, conn, index=False)
 
+            # Track JSON columns
+            for col in df.columns:
+                sample_values = df[col].dropna().head(5)
+                for val in sample_values:
+                    if isinstance(val, (list, dict)):
+                        if name not in json_columns:
+                            json_columns[name] = []
+                        json_columns[name].append(col)
+                        break
+
         result_df = pd.read_sql_query(query, conn)
         conn.close()
 
         # Convert result to dict format for JS
-        # orient='split' gives: {index, columns, data}
-        # But we usually want list of dicts or similar.
-        # Let's standardize on: { columns: [], data: [[row1], [row2]] }
-
         return {
             "success": True,
             "columns": list(result_df.columns),
-            "data": result_df.values.tolist(),  # list of lists
+            "data": result_df.values.tolist(),
             "rowCount": len(result_df),
+            "json_columns": json_columns,  # Include info about JSON columns
         }
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        error_msg = str(e)
+
+        # Provide helpful hints for common JSON query issues
+        hint = ""
+        if "no such function: json_extract" in error_msg.lower():
+            hint = "\n\nHint: SQLite JSON functions might not be available. Try accessing flattened columns directly (e.g., customer_name instead of json_extract)."
+        elif "json" in query.lower() and json_columns:
+            hint = f"\n\nHint: Available JSON columns: {json_columns}"
+
+        return {"success": False, "error": error_msg + hint}
 
 
 def run_python(data):

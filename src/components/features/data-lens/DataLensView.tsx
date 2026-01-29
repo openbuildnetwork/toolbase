@@ -4,6 +4,7 @@ import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useDataLens, TableSchema } from "@/hooks/useDataLens";
 import { FilterBuilder, FilterCondition } from "./FilterBuilder";
 import { JsonTreeViewer } from "./JsonTreeViewer";
+import { ChartBuilder } from "./ChartBuilder";
 import { Button } from "@/components/ui/Button";
 import { Editor } from "@monaco-editor/react";
 import {
@@ -12,12 +13,13 @@ import {
     Columns3, ArrowUpDown, FileSpreadsheet, Zap, BarChart3, Info,
     ChevronDown, Settings2, Maximize2, RefreshCw, Copy, Check,
     FileJson, FileText, PanelLeftClose, PanelLeft, Sparkles, AlertCircle,
-    SortAsc, SortDesc, Eye, EyeOff, Sigma, Hash, Type, Calendar, Trash2, Braces
+    SortAsc, SortDesc, Eye, EyeOff, Sigma, Hash, Type, Calendar, Trash2, Braces, ScanSearch
 } from "lucide-react";
 import {
     useReactTable, getCoreRowModel, getFilteredRowModel, getPaginationRowModel,
     getSortedRowModel, flexRender, SortingState, ColumnOrderState, VisibilityState
 } from "@tanstack/react-table";
+import Image from "next/image";
 
 // ============================================================================
 // PREMIUM DATA TABLE COMPONENT
@@ -299,7 +301,7 @@ function DataTable({ data, columns }: { data: any[], columns: string[] }) {
 
 export default function DataLensView() {
     const { isReady, isProcessing, error, schemas, queryResult, loadFile, runSql, runPython, deleteTable, clearQueryResult, getRawJson } = useDataLens();
-    const [activeTab, setActiveTab] = useState<"data" | "json" | "sql" | "python">("data");
+    const [activeTab, setActiveTab] = useState<"data" | "json" | "sql" | "python" | "charts">("data");
     const [sqlQuery, setSqlQuery] = useState("SELECT * FROM table_name LIMIT 100;");
     const [pythonCode, setPythonCode] = useState(`# Available: pd (pandas), np (numpy)
 # All loaded tables are available as variables
@@ -502,10 +504,9 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
             <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
                 <div className="text-center space-y-6">
                     <div className="relative">
-                        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center mx-auto shadow-xl shadow-indigo-500/30">
-                            <Sparkles className="w-10 h-10 text-white animate-pulse" />
+                        <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto shadow-xl shadow-indigo-500/30">
+                            <Image className="w-full h-full object-contain" src="/assets/thumbnails/data-lens.png" alt="DataLens" width={40} height={40} />
                         </div>
-                        <div className="absolute -inset-4 rounded-3xl bg-indigo-500/10 blur-2xl animate-pulse" />
                     </div>
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">Initializing DataLens</h2>
@@ -529,8 +530,9 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                     <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                         {!sidebarCollapsed && (
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                                    <Zap className="w-5 h-5 text-white" />
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-600 to-indigo-800 flex items-center justify-center shadow-lg shadow-indigo-500/20 ring-1 ring-white/20 relative overflow-hidden group">
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <ScanSearch className="w-5 h-5 text-white relative z-10" />
                                 </div>
                                 <div>
                                     <h1 className="font-bold text-lg text-gray-900">DataLens</h1>
@@ -619,6 +621,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                                 { id: 'json', icon: Braces, label: 'JSON' },
                                 { id: 'sql', icon: Code2, label: 'SQL Query' },
                                 { id: 'python', icon: Terminal, label: 'Python' },
+                                { id: 'charts', icon: BarChart3, label: 'Charts' },
                             ].map(tab => (
                                 <button
                                     key={tab.id}
@@ -871,6 +874,13 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        )}
+
+                        {/* CHARTS TAB */}
+                        {activeTab === 'charts' && (
+                            <div className="h-full">
+                                <ChartBuilder data={tableData} columns={currentColumns} />
                             </div>
                         )}
                     </div>
