@@ -1,8 +1,9 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: 'JSON to Interface/Model | OBN Toolkit',
-    description: 'Convert JSON data to TypeScript interfaces, Python models, and other type definitions instantly.',
+    title: "JSON to Interface | TypeScript, Go, Java, Python",
+    description: "Instantly convert JSON objects into type-safe interfaces and models for TypeScript, Go, Java, Python, and more. Runs locally in your browser.",
+    keywords: ["json to typescript", "json listener", "json to interface", "json to struct", "code generator", "developer productivity"],
 };
 
 export default function JsonToInterfaceLayout({
@@ -10,5 +11,5 @@ export default function JsonToInterfaceLayout({
 }: {
     children: React.ReactNode;
 }) {
-    return children;
+    return <>{children}</>;
 }

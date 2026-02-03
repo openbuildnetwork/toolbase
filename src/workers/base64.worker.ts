@@ -1,5 +1,5 @@
 import { loadPyodide, type PyodideInterface } from "pyodide";
-import { PYTHON_FILES } from "@/python-runtime/base64_tool.bundle";
+import { PYTHON_FILES } from "@/python/bundles/base64_tool.bundle";
 import type { Base64Request, Base64Response } from "@/types/base64";
 
 let pyodide: PyodideInterface | null = null;

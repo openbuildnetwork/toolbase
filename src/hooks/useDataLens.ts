@@ -35,8 +35,30 @@ export interface UseDataLensResult extends EtlState {
     queryJson: (tableName: string, query: string) => Promise<any>;
 }
 
+// Persistent Worker Singleton
+let workerInstance: Worker | null = null;
+let workerReadyPromise: Promise<boolean> | null = null;
+
+function getDataLensWorker() {
+    if (!workerInstance) {
+        console.log("Worker Manager: Initializing DataLens Worker (Singleton)...");
+        workerInstance = new Worker(new URL('../workers/data-lens.worker.ts', import.meta.url));
+
+        workerReadyPromise = new Promise((resolve) => {
+            const tempListener = (event: MessageEvent) => {
+                if (event.data.type === 'READY') {
+                    console.log("Worker Manager: DataLens Worker Ready");
+                    workerInstance?.removeEventListener('message', tempListener);
+                    resolve(true);
+                }
+            };
+            workerInstance?.addEventListener('message', tempListener);
+        });
+    }
+    return { worker: workerInstance, ready: workerReadyPromise };
+}
+
 export function useDataLens(): UseDataLensResult {
-    const workerRef = useRef<Worker | null>(null);
     const [isReady, setIsReady] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -45,33 +67,23 @@ export function useDataLens(): UseDataLensResult {
 
     // Initial load
     useEffect(() => {
-        console.log("Hook: Initializing DataLens worker...");
-        const worker = new Worker(new URL('../workers/data-lens.worker.ts', import.meta.url));
-        workerRef.current = worker;
-
-        worker.onmessage = (event) => {
-            const { type, data, error: workerError } = event.data;
-            if (type === 'READY') {
-                setIsReady(true);
-            } else if (type === 'ERROR') {
-                setError(workerError);
-                setIsProcessing(false);
-            }
-        };
-
-        worker.onerror = (err) => {
-            console.error("Worker error:", err);
+        const { ready } = getDataLensWorker();
+        ready?.then(() => {
+            setIsReady(true);
+            // On re-connect, we might want to fetch existing state from worker if we were advanced enough,
+            // but for now we just acknowledge readiness.
+            // If data persisted in worker memory, we can fetch schemas.
+            refreshSchemas();
+        }).catch(err => {
+            console.error("Worker initialization failed", err);
             setError("Worker initialization failed");
-        };
-
-        return () => {
-            worker.terminate();
-        };
+        });
     }, []);
 
     const sendMessage = useCallback((action: string, data: any): Promise<any> => {
         return new Promise((resolve, reject) => {
-            if (!workerRef.current) {
+            const { worker } = getDataLensWorker();
+            if (!worker) {
                 reject(new Error("Worker not initialized"));
                 return;
             }
@@ -82,24 +94,23 @@ export function useDataLens(): UseDataLensResult {
 
             const handleMessage = (event: MessageEvent) => {
                 const { type, id, data: resultData, error } = event.data;
-                console.log('Hook: Received message from worker:', { type, id, messageId, hasData: !!resultData });
+                // console.log('Hook: Received message from worker:', { type, id, messageId, hasData: !!resultData });
                 if (id === messageId) {
-                    console.log('Hook: Message ID matches, processing result');
-                    workerRef.current?.removeEventListener('message', handleMessage);
+                    worker.removeEventListener('message', handleMessage);
                     setIsProcessing(false);
                     if (type === 'ERROR') {
                         console.log('Hook: Error received:', error);
                         setError(error);
                         reject(new Error(error));
                     } else {
-                        console.log('Hook: Success! Result data:', resultData);
+                        // console.log('Hook: Success! Result data:', resultData);
                         resolve(resultData);
                     }
                 }
             };
 
-            workerRef.current.addEventListener('message', handleMessage);
-            workerRef.current.postMessage({ type: 'EXECUTE', action, data, id: messageId });
+            worker.addEventListener('message', handleMessage);
+            worker.postMessage({ type: 'EXECUTE', action, data, id: messageId });
         });
     }, []);
 
@@ -140,14 +151,10 @@ export function useDataLens(): UseDataLensResult {
 
     const runSql = useCallback(async (query: string) => {
         try {
-            console.log('Hook: runSql called with query:', query);
             const res = await sendMessage('run_sql', { query });
-            console.log('Hook: runSql response:', res);
             if (res && res.success) {
-                console.log('Hook: Setting queryResult with', res.data?.length, 'rows');
                 setQueryResult(res);
             } else {
-                console.log('Hook: runSql failed:', res?.error);
                 setError(res?.error || 'Unknown error');
             }
             return res;
@@ -178,7 +185,8 @@ export function useDataLens(): UseDataLensResult {
                 setSchemas(res.schemas);
                 return res.schemas;
             } else {
-                throw new Error(res.error || "Failed to fetch schemas");
+                // Allow failure if not ready yet
+                // throw new Error(res.error || "Failed to fetch schemas");
             }
         } catch (err: any) {
             console.error(err);

@@ -1,6 +1,6 @@
 import { loadPyodide, type PyodideInterface } from "pyodide";
 // @ts-ignore - The bundle file is auto-generated
-import { PYTHON_FILES } from "@/python-runtime/pdf_magic.bundle";
+import { PYTHON_FILES } from "@/python/bundles/pdf_magic.bundle";
 
 let pyodideInitPromise: Promise<PyodideInterface> | null = null;
 

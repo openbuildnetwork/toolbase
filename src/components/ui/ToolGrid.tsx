@@ -1,4 +1,5 @@
 "use client";
+import Image from 'next/image';
 
 import React, { useState, useMemo } from 'react';
 import ToolCard from './ToolCard';
@@ -72,12 +73,12 @@ const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery, tools }) => {
                         {!isExpanded ? (
                             <span className="flex items-center gap-2">
                                 <span>Show all tools</span>
-                                <img className='w-[18px] h-[18px] transform rotate-90' src="/assets/icons/forward.svg" alt="" />
+                                <Image width={18} height={18} className='w-[18px] h-[18px] transform rotate-90' src="/assets/icons/forward.svg" alt="" />
                             </span>
                         ) : (
                             <span className="flex items-center gap-2">
                                 <span>Show less</span>
-                                <img className='w-[18px] h-[18px] transform rotate-270' src="/assets/icons/forward.svg" alt="" />
+                                <Image width={18} height={18} className='w-[18px] h-[18px] transform rotate-270' src="/assets/icons/forward.svg" alt="" />
                             </span>
                         )}
                     </button>
