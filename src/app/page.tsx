@@ -1,4 +1,5 @@
 'use client';
+import NextImage from 'next/image';
 import { appIcons } from "@/config/icons";
 import { ToolCardProps } from "@/types/tool-search";
 import SearchBar from "../components/ui/SearchBar";
@@ -7,12 +8,12 @@ import { useState } from 'react';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
-
   const tools: ToolCardProps[] = [
-    { title: "Redact Secrets", toolFolderName: "redact-secrets", icon: appIcons.redactSecretsIcon },
-    { title: "JSON to Interface/Model", toolFolderName: "json-to-interface", icon: appIcons.jsonToInterfaceIcon },
-    { title: "Magic PDF", toolFolderName: "magic-pdf", icon: appIcons.magicPdfIcon },
-    { title: "Base64 Encode/Decode", toolFolderName: "base64", icon: appIcons.base64Icon },
+    { title: "Redact Secrets", toolFolderName: "redact-secrets", icon: appIcons['redact-secrets'] },
+    { title: "JSON to Interface/Model", toolFolderName: "json-to-interface", icon: appIcons['json-to-interface'] },
+    { title: "Magic PDF", toolFolderName: "magic-pdf", icon: appIcons['magic-pdf'] },
+    { title: "Base64 Encode/Decode", toolFolderName: "base64", icon: appIcons['b64EnDc'] },
+    { title: "DataLens", toolFolderName: "data-lens", icon: appIcons['data-lens'] },
   ];
 
   return (
@@ -49,7 +50,7 @@ export default function Home() {
                 <div className="icon-texture"></div>
                 <div className="premium-sheen"></div>
                 <div className="absolute inset-0 flex items-center justify-center z-10">
-                  <img className='w-16 h-16' src="/assets/icons/pdf.svg" alt="" />
+                  <NextImage width={64} height={64} className='w-16 h-16' src="/assets/icons/pdf.svg" alt="" />
                 </div>
               </div>
               <div className="max-w-xl">
@@ -59,7 +60,7 @@ export default function Home() {
                 </p>
                 <a className="macos-primary-button" href="#">
                   <span>Launch Tool</span>
-                  <img className='w-[18px] h-[18px]' src="/assets/icons/forward-white.svg" alt="" />
+                  <NextImage width={18} height={18} className='w-[18px] h-[18px]' src="/assets/icons/forward-white.svg" alt="" />
                 </a>
               </div>
             </div>
@@ -73,7 +74,7 @@ export default function Home() {
               </p>
               <div className="pt-4">
                 <a className="macos-button" href="#">
-                  <img className='w-6 h-6' src="/assets/icons/github.svg" alt="" />
+                  <NextImage width={24} height={24} className='w-6 h-6' src="/assets/icons/github.svg" alt="" />
                   <span>View Repository</span>
                 </a>
               </div>

@@ -3,7 +3,7 @@ import path from "path";
 
 const ROOT = process.cwd();
 const TOOLS_DIR = path.join(ROOT, "src/python/tools");
-const OUTPUT_DIR = path.join(ROOT, "src/python-runtime");
+const OUTPUT_DIR = path.join(ROOT, "src/python/bundles");
 
 function getAllPythonFiles(dir: string): string[] {
     let results: string[] = [];
