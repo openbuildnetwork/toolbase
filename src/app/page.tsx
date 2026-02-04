@@ -14,6 +14,8 @@ export default function Home() {
     { title: "Magic PDF", toolFolderName: "magic-pdf", icon: appIcons['magic-pdf'] },
     { title: "Base64 Encode/Decode", toolFolderName: "base64", icon: appIcons['b64EnDc'] },
     { title: "DataLens", toolFolderName: "data-lens", icon: appIcons['data-lens'] },
+    { title: "Ping Tester", toolFolderName: "ping-tester", icon: appIcons['ping-tester'] },
+
   ];
 
   return (
