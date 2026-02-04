@@ -1,5 +1,5 @@
 import { loadPyodide, type PyodideInterface } from "pyodide";
-import { PYTHON_FILES } from "@/python-runtime/redact-secrets.bundle";
+import { PYTHON_FILES } from "@/python/bundles/redact_secrets.bundle";
 
 
 let pyodide: PyodideInterface | null = null;

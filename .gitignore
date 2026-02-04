@@ -46,3 +46,7 @@ next-env.d.ts
 
 # agent
 .agent/
+
+# others
+*.csv
+*test.json

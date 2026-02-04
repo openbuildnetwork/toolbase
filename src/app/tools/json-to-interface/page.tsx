@@ -96,7 +96,7 @@ export default function JsonToInterfacePage() {
             <div className="max-w-7xl mx-auto space-y-8">
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-white/20 shadow-xl ring-1 ring-black/5">
                     <div className="flex items-center gap-4">
-                        <Image src={appIcons.jsonToInterfaceIcon} alt="JSON to Interface" width={48} height={48} className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20" />
+                        <Image src={appIcons['json-to-interface']} alt="JSON to Interface" width={48} height={48} className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20" />
                         <div>
                             <h1 className="text-2xl font-bold tracking-tight text-gray-900 leading-tight">JSON → Interface/Model</h1>
                             <p className="text-sm text-gray-500 font-medium">Generate typed models instantly</p>

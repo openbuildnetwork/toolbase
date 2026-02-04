@@ -1,10 +1,5 @@
-import redactSecretsIcon from "@/assets/icons/redactsecrets.png";
-import jsonToInterfaceIcon from "@/assets/icons/json-to-interface.png";
-import pingTesterIcon from "@/assets/icons/ping-tester.png";
-
-export const appIcons = {
-    redactSecretsIcon,
-    jsonToInterfaceIcon,
-    pingTesterIcon
-};
+// Dynamically generate icon paths based on usage
+export const appIcons = new Proxy({} as Record<string, string>, {
+    get: (_, prop: string) => `/assets/thumbnails/${prop}.png`,
+});
 

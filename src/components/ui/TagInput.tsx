@@ -5,7 +5,7 @@ import { X, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-interface HintManagerProps {
+interface TagInputProps {
     label: string;
     values: string[];
     onChange: (values: string[]) => void;
@@ -15,7 +15,7 @@ interface HintManagerProps {
 
 import { Label } from "@/components/ui/Label";
 
-export const HintManager: React.FC<HintManagerProps> = ({
+export const TagInput: React.FC<TagInputProps> = ({
     label,
     values,
     onChange,
