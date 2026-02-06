@@ -15,6 +15,7 @@ export default function Home() {
     { title: "Base64 Encode/Decode", toolFolderName: "base64", icon: appIcons['b64EnDc'] },
     { title: "DataLens", toolFolderName: "data-lens", icon: appIcons['data-lens'] },
     { title: "Ping Tester", toolFolderName: "ping-tester", icon: appIcons['ping-tester'] },
+    { title: "Internet Speed Test", toolFolderName: "speed-test", icon: appIcons['speed-test'] },
 
   ];
 
