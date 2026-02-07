@@ -25,6 +25,11 @@ export const NodeDataSchema = z.object({
     glass: z.boolean().optional(),
     sketch: z.boolean().optional(),
     gradient: z.boolean().optional(),
+    imageUrl: z.string().optional(),
+    imageMode: z.enum(['cover', 'contain', 'stretch']).optional(),
+    imageZoom: z.number().optional(),
+    imageX: z.number().optional(),
+    imageY: z.number().optional(),
 });
 
 export const PositionSchema = z.object({

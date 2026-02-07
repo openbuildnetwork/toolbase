@@ -175,36 +175,6 @@ export function ShapeLibrary({ onDragStart }: ShapeLibraryProps) {
                 ))}
             </div>
 
-            {/* Custom Import Footer */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#252525]">
-                <button
-                    onClick={() => {
-                        const input = prompt('Paste SVG string or XML Stencil definition:');
-                        if (input) {
-                            // Dispatch event or callback to handle import
-                            // Ideally this should be a proper modal, but for now we use a custom event or callback prop
-                            // Since we only have onDragStart, we need a way to add this to the library or canvas.
-                            // Let's assume we add it to a "Custom" category dynamically or just log it for now.
-                            // Actually, let's expose an onImport prop or handle it internally if we can update SHAPE_DEFINITIONS.
-                            // But SHAPE_DEFINITIONS is a const. We need to make it mutable or use a state-based library.
-                            // For this "Infinite" strategy, we should probably have a `useShapeLibrary` hook.
-                            // For now, let's emit a custom window event that the parent can listen to, or simpler:
-                            // We will add it to a temporary session-based storage or just alert not implemented fully yet
-                            // Wait, the user wants me to DO this. 
-
-                            // Real implementation:
-                            // 1. Parse string
-                            // 2. Add to a "Custom" category in state (we need to lift state up or use context)
-                            // 3. For this refactor, I'll emit a custom event 'open-draw-import-shape'
-                            const event = new CustomEvent('open-draw-import-shape', { detail: input });
-                            window.dispatchEvent(event);
-                        }
-                    }}
-                    className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                    <span className="text-lg leading-none">+</span> Import Custom Shape
-                </button>
-            </div>
         </div>
     );
 }

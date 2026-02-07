@@ -61,7 +61,7 @@ export function GenericShapeNode({ id, selected, data, type }: CustomNodeProps) 
                 }}
             >
                 {/* Conditional Render: Rectangle/Square vs Generic Path */}
-                {(specificType === 'rectangle' || specificType === 'square') ? (
+                {(specificType === 'rectangle' || specificType === 'square') && !(data as any).customDefinition ? (
                     // --------------------------------------------------------
                     // CASE 1: Rectangle/Square - Uses SVG <rect> for proper 'rx'
                     // --------------------------------------------------------
@@ -97,7 +97,7 @@ export function GenericShapeNode({ id, selected, data, type }: CustomNodeProps) 
                             height="100%"
                             rx={data.borderRadius}
                             ry={data.borderRadius}
-                            fill={fill}
+                            fill={data.imageUrl ? 'none' : fill}
                             stroke={style.borderColor}
                             strokeWidth={data.borderWidth}
                             strokeDasharray={strokeDasharray}
@@ -106,6 +106,25 @@ export function GenericShapeNode({ id, selected, data, type }: CustomNodeProps) 
                                 filter: data.sketch ? `url(#sketch-${id})` : undefined
                             }}
                         />
+
+                        {/* Image for Rect */}
+                        {data.imageUrl && (
+                            <image
+                                href={data.imageUrl}
+                                x="-50%" y="-50%" width="200%" height="200%"
+                                preserveAspectRatio={
+                                    data.imageMode === 'contain' ? 'xMidYMid meet' :
+                                        data.imageMode === 'stretch' ? 'none' :
+                                            'xMidYMid slice'
+                                }
+                                style={{
+                                    clipPath: data.borderRadius ? `inset(25% round ${data.borderRadius}px)` : 'inset(25%)',
+                                    transform: `translate(${data.imageX || 0}%, ${data.imageY || 0}%) scale(${data.imageZoom ? data.imageZoom / 100 : 1})`,
+                                    transformOrigin: 'center',
+                                    transformBox: 'fill-box'
+                                }}
+                            />
+                        )}
 
                         {/* Glass Overlay for Rect */}
                         {data.glass && (
@@ -147,9 +166,20 @@ export function GenericShapeNode({ id, selected, data, type }: CustomNodeProps) 
                                         <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
                                     </filter>
                                 )}
+                                {data.imageUrl && (
+                                    <clipPath id={`clip-${id}`}>
+                                        {def.path ? (
+                                            <path d={def.path} />
+                                        ) : (
+                                            def.paths?.map((p: any, i: number) => (
+                                                <path key={i} d={p.d} />
+                                            ))
+                                        )}
+                                    </clipPath>
+                                )}
                             </defs>
 
-                            {def.path && (
+                            {!data.imageUrl && def.path && (
                                 <path
                                     d={def.path}
                                     fill={fill}
@@ -165,7 +195,7 @@ export function GenericShapeNode({ id, selected, data, type }: CustomNodeProps) 
                                 />
                             )}
 
-                            {def.paths?.map((p: any, i: number) => (
+                            {!data.imageUrl && def.paths?.map((p: any, i: number) => (
                                 <path
                                     key={i}
                                     d={p.d}
@@ -181,6 +211,51 @@ export function GenericShapeNode({ id, selected, data, type }: CustomNodeProps) 
                                     }}
                                 />
                             ))}
+
+                            {/* Image for Path with ClipPath */}
+                            {data.imageUrl && (
+                                <image
+                                    href={data.imageUrl}
+                                    x="0" y="0" width="100%" height="100%"
+                                    preserveAspectRatio={
+                                        data.imageMode === 'contain' ? 'xMidYMid meet' :
+                                            data.imageMode === 'stretch' ? 'none' :
+                                                'xMidYMid slice'
+                                    }
+                                    clipPath={`url(#clip-${id})`}
+                                    style={{
+                                        transform: `translate(${data.imageX || 0}%, ${data.imageY || 0}%) scale(${data.imageZoom ? data.imageZoom / 100 : 1})`,
+                                        transformOrigin: 'center',
+                                        transformBox: 'fill-box'
+                                    }}
+                                />
+                            )}
+
+                            {/* Always draw stroke on top if image has border */}
+                            {data.imageUrl && (
+                                def.path ? (
+                                    <path
+                                        d={def.path}
+                                        fill="none"
+                                        stroke={style.borderColor}
+                                        strokeWidth={data.borderWidth}
+                                        strokeDasharray={strokeDasharray}
+                                        vectorEffect="non-scaling-stroke"
+                                    />
+                                ) : (
+                                    def.paths?.map((p: any, i: number) => (
+                                        <path
+                                            key={i}
+                                            d={p.d}
+                                            fill="none"
+                                            stroke={style.borderColor}
+                                            strokeWidth={data.borderWidth}
+                                            strokeDasharray={strokeDasharray}
+                                            vectorEffect="non-scaling-stroke"
+                                        />
+                                    ))
+                                )
+                            )}
                         </svg>
                         {/* Glass Overlay (if glass is on) */}
                         {data.glass && (

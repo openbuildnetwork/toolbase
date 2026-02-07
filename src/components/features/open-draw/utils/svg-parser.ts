@@ -8,8 +8,15 @@ import { ShapeDefinition } from '@/types/open-draw.types';
  */
 export function convertSvgToShapeDefinition(svgString: string, label: string = 'Imported Shape'): ShapeDefinition {
     const parser = new DOMParser();
-    const doc = parser.parseFromString(svgString, 'image/svg+xml');
-    const svg = doc.querySelector('svg');
+    // Use text/html as a fallback parser which is more lenient with junk around the SVG
+    let doc = parser.parseFromString(svgString, 'image/svg+xml');
+    let svg = doc.querySelector('svg');
+
+    if (!svg) {
+        // Fallback to text/html if image/svg+xml fails
+        doc = parser.parseFromString(svgString, 'text/html');
+        svg = doc.querySelector('svg');
+    }
 
     if (!svg) {
         throw new Error('Invalid SVG: No <svg> element found');
@@ -29,8 +36,6 @@ export function convertSvgToShapeDefinition(svgString: string, label: string = '
     const [minX, minY, width, height] = viewBox;
 
     // We will extract paths as individual objects.
-    // The GenericShapeNode uses the definition's viewBox, so scaling is automatic relative to the node dimensions.
-
     const paths: { d: string; fill?: string; stroke?: string }[] = [];
 
     // Helper to process elements recursively
@@ -38,7 +43,6 @@ export function convertSvgToShapeDefinition(svgString: string, label: string = '
         const tagName = el.tagName.toLowerCase();
 
         // Inherit or get explicit styling
-        // Note: For complex SVGs, styles cascade. Simplification: use attribute or 'currentColor'.
         const fill = el.getAttribute('fill') || 'currentColor';
         const stroke = el.getAttribute('stroke') || 'currentColor';
 
@@ -49,7 +53,6 @@ export function convertSvgToShapeDefinition(svgString: string, label: string = '
             const cx = parseFloat(el.getAttribute('cx') || '0');
             const cy = parseFloat(el.getAttribute('cy') || '0');
             const r = parseFloat(el.getAttribute('r') || '0');
-            // Convert to path: M cx-r, cy A r,r 0 1,0 cx+r,cy A r,r 0 1,0 cx-r,cy
             const d = `M ${cx - r},${cy} A ${r},${r} 0 1,0 ${cx + r},${cy} A ${r},${r} 0 1,0 ${cx - r},${cy}`;
             paths.push({ d, fill, stroke });
         } else if (tagName === 'rect') {
@@ -57,8 +60,31 @@ export function convertSvgToShapeDefinition(svgString: string, label: string = '
             const y = parseFloat(el.getAttribute('y') || '0');
             const w = parseFloat(el.getAttribute('width') || '0');
             const h = parseFloat(el.getAttribute('height') || '0');
-            // Simplified rect path
             const d = `M ${x},${y} L ${x + w},${y} L ${x + w},${y + h} L ${x},${y + h} Z`;
+            paths.push({ d, fill, stroke });
+        } else if (tagName === 'polygon' || tagName === 'polyline') {
+            const pointsAttr = el.getAttribute('points');
+            if (pointsAttr) {
+                const points = pointsAttr.trim()
+                    .replace(/,/g, ' ')
+                    .split(/\s+/)
+                    .filter(s => s !== '')
+                    .map(Number);
+                if (points.length >= 4) {
+                    let d = `M ${points[0]},${points[1]}`;
+                    for (let i = 2; i + 1 < points.length; i += 2) {
+                        d += ` L ${points[i]},${points[i + 1]}`;
+                    }
+                    if (tagName === 'polygon') d += ' Z';
+                    paths.push({ d, fill, stroke });
+                }
+            }
+        } else if (tagName === 'ellipse') {
+            const cx = parseFloat(el.getAttribute('cx') || '0');
+            const cy = parseFloat(el.getAttribute('cy') || '0');
+            const rx = parseFloat(el.getAttribute('rx') || '0');
+            const ry = parseFloat(el.getAttribute('ry') || '0');
+            const d = `M ${cx - rx},${cy} A ${rx},${ry} 0 1,0 ${cx + rx},${cy} A ${rx},${ry} 0 1,0 ${cx - rx},${cy}`;
             paths.push({ d, fill, stroke });
         } else if (tagName === 'g') {
             // Recurse into groups

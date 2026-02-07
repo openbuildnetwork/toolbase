@@ -27,6 +27,7 @@ import { SHAPE_DEFINITIONS } from '../nodes/shapes';
 import { CustomEdge } from '../edges/CustomEdge';
 import { useCallback, useRef, useEffect, useState, useMemo } from 'react';
 import { StyleManager } from '../utils/style-manager';
+import { ContextMenu } from './ContextMenu';
 
 // Define node types - we use GenericShapeNode for everything now!
 const nodeTypes: NodeTypes = {
@@ -65,6 +66,8 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
     const {
         nodes,
         edges,
+        selectedNodes,
+        selectedEdges,
         onNodesChange,
         onEdgesChange,
         onConnect,
@@ -86,6 +89,29 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
             let def: ShapeDefinition | null = null;
 
             try {
+                // Try Image data first
+                if (input.startsWith('IMAGE_DATA:')) {
+                    const base64 = input.replace('IMAGE_DATA:', '');
+                    const newNode: Node = {
+                        id: `image-${Date.now()}`,
+                        type: 'generic-shape',
+                        position: { x: window.innerWidth / 2 - 150, y: window.innerHeight / 2 - 100 },
+                        data: {
+                            label: '',
+                            imageUrl: base64,
+                            shapeType: 'rectangle', // Default to rectangle
+                            backgroundColor: 'transparent',
+                            borderColor: 'transparent',
+                            borderWidth: 0,
+                            ...StyleManager.getDefaultStyle(),
+                        },
+                        width: 300,
+                        height: 200,
+                    };
+                    addNodes(newNode);
+                    return;
+                }
+
                 // Try XML first (if it starts with <shape)
                 if (input.trim().startsWith('<shape')) {
                     const { parseXmlStencil } = await import('../utils/xml-stencil-parser');
@@ -104,10 +130,11 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
             if (def) {
                 const newNode: Node = {
                     id: `custom-${Date.now()}`,
-                    type: 'rectangle', // We use 'rectangle' as base but render custom shape
+                    type: 'generic-shape',
                     position: { x: window.innerWidth / 2 - 300 + (Math.random() * 50), y: window.innerHeight / 2 - 50 + (Math.random() * 50) }, // Approx center of canvas
                     data: {
                         label: def.label,
+                        shapeType: 'custom',
                         customDefinition: def, // Passed to GenericShapeNode
                         backgroundColor: '#1e1e1e', // Defaults for custom shape if not in style
                         borderColor: '#ffffff',
@@ -225,6 +252,236 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
         }
     }, [openDraw.setEdges]);
 
+    const [menu, setMenu] = useState<{ id: string; type: 'node' | 'edge'; top?: number; left?: number; right?: number; bottom?: number } | null>(null);
+
+    const onNodeContextMenu = useCallback(
+        (event: React.MouseEvent, node: Node) => {
+            event.preventDefault();
+
+            if (!reactFlowWrapper.current) return;
+            const pane = reactFlowWrapper.current.getBoundingClientRect();
+
+            // Precise offset calculation to keep menu within bounds
+            const menuWidth = 180;
+            const menuHeight = 350;
+
+            let left = event.clientX;
+            let top = event.clientY;
+
+            if (left + menuWidth > pane.right) left = pane.right - menuWidth - 10;
+            if (top + menuHeight > pane.bottom) top = pane.bottom - menuHeight - 10;
+
+            setMenu({
+                id: node.id,
+                type: 'node',
+                top,
+                left,
+            });
+        },
+        [setMenu]
+    );
+
+    const onEdgeContextMenu = useCallback(
+        (event: React.MouseEvent, edge: Edge) => {
+            event.preventDefault();
+
+            if (!reactFlowWrapper.current) return;
+            const pane = reactFlowWrapper.current.getBoundingClientRect();
+
+            const menuWidth = 180;
+            const menuHeight = 150; // Edges have smaller menu usually
+
+            let left = event.clientX;
+            let top = event.clientY;
+
+            if (left + menuWidth > pane.right) left = pane.right - menuWidth - 10;
+            if (top + menuHeight > pane.bottom) top = pane.bottom - menuHeight - 10;
+
+            setMenu({
+                id: edge.id,
+                type: 'edge',
+                top,
+                left,
+            });
+        },
+        [setMenu]
+    );
+
+    const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
+
+    const groupNodes = useCallback(() => {
+        if (!selectedNodes || selectedNodes.length < 2) return;
+
+        setNodes((currentNodes) => {
+            const selected = currentNodes.filter(n => selectedNodes.includes(n.id));
+            if (selected.length < 2) return currentNodes;
+
+            // Calculate Bounding Box
+            const minX = Math.min(...selected.map(n => n.position.x));
+            const minY = Math.min(...selected.map(n => n.position.y));
+            const maxX = Math.max(...selected.map(n => n.position.x + (n.measured?.width || 100)));
+            const maxY = Math.max(...selected.map(n => n.position.y + (n.measured?.height || 100)));
+
+            const padding = 24;
+            const groupId = `group-${Date.now()}`;
+
+            const groupNode: Node = {
+                id: groupId,
+                type: 'generic-shape',
+                position: { x: minX - padding, y: minY - padding },
+                zIndex: -1,
+                data: {
+                    label: 'Group',
+                    shapeType: 'rectangle',
+                    backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                    borderColor: '#3b82f6',
+                    borderStyle: 'dashed',
+                    borderWidth: 1,
+                    fontSize: 10,
+                    textColor: '#3b82f6'
+                },
+                style: {
+                    width: (maxX - minX) + padding * 2,
+                    height: (maxY - minY) + padding * 2
+                },
+            };
+
+            const updatedNodes = currentNodes.map(node => {
+                if (selectedNodes.includes(node.id)) {
+                    return {
+                        ...node,
+                        parentId: groupId,
+                        extent: 'parent' as const,
+                        position: {
+                            x: node.position.x - (minX - padding),
+                            y: node.position.y - (minY - padding)
+                        }
+                    };
+                }
+                return node;
+            });
+
+            return [...updatedNodes, groupNode];
+        });
+        setMenu(null);
+    }, [selectedNodes, setNodes]);
+
+    const ungroupNodes = useCallback((targetId?: string) => {
+        setNodes((currentNodes) => {
+            // Determine targets: either specific targetId or all selected nodes that are groups
+            const targets = targetId
+                ? [currentNodes.find(n => n.id === targetId)]
+                : currentNodes.filter(n => selectedNodes.includes(n.id) && n.data?.label === 'Group'); // Simple heuristic for now
+
+            const targetIds = targets.filter(Boolean).map(n => n!.id);
+            if (targetIds.length === 0) return currentNodes;
+
+            let newNodes = [...currentNodes];
+
+            targetIds.forEach(groupId => {
+                const groupNode = newNodes.find(n => n.id === groupId);
+                if (!groupNode) return;
+
+                newNodes = newNodes.map(node => {
+                    if (node.parentId === groupId) {
+                        return {
+                            ...node,
+                            parentId: undefined,
+                            extent: undefined,
+                            position: {
+                                x: node.position.x + groupNode.position.x,
+                                y: node.position.y + groupNode.position.y
+                            }
+                        };
+                    }
+                    return node;
+                }).filter(n => n.id !== groupId); // Remove the group node
+            });
+
+            return newNodes;
+        });
+        setMenu(null);
+    }, [selectedNodes, setNodes]);
+
+    // Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Only handle if we are not typing in an input
+            if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
+
+            // Copy
+            if (e.ctrlKey && e.key === 'c') {
+                const selected = nodes.find(n => selectedNodes.includes(n.id));
+                if (selected) {
+                    localStorage.setItem('open-draw-clipboard', JSON.stringify({ type: 'node', data: selected }));
+                }
+            }
+
+            // Paste
+            if (e.ctrlKey && e.key === 'v') {
+                const clipboard = localStorage.getItem('open-draw-clipboard');
+                if (clipboard) {
+                    const { type, data } = JSON.parse(clipboard);
+                    if (type === 'node') {
+                        const newNode: Node = {
+                            ...data,
+                            id: `${data.id}-paste-${Date.now()}`,
+                            position: {
+                                x: data.position.x + 40,
+                                y: data.position.y + 40,
+                            },
+                        };
+                        setNodes(nds => nds.concat(newNode));
+                    }
+                }
+            }
+
+            // Duplicate
+            if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                const selected = nodes.filter(n => selectedNodes.includes(n.id));
+                if (selected.length > 0) {
+                    const newNodes = selected.map(n => ({
+                        ...n,
+                        id: `${n.id}-dup-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+                        position: { x: n.position.x + 20, y: n.position.y + 20 },
+                        selected: true
+                    }));
+                    setNodes(nds => nds.map(n => ({ ...n, selected: false })).concat(newNodes));
+                }
+            }
+
+            // Group (Ctrl+G)
+            if (e.ctrlKey && e.key === 'g' && !e.shiftKey) {
+                e.preventDefault();
+                groupNodes();
+            }
+
+            // Ungroup (Ctrl+Shift+G)
+            if (e.ctrlKey && e.shiftKey && e.key === 'G') {
+                e.preventDefault();
+                ungroupNodes();
+            }
+
+            // Bring to Front/To Back (Ctrl+Shift+F/B)
+            if (e.ctrlKey && e.shiftKey) {
+                if (e.key === 'F') {
+                    e.preventDefault();
+                    const maxZ = Math.max(...nodes.map(n => n.zIndex || 0), 0);
+                    setNodes(nds => nds.map(n => selectedNodes.includes(n.id) ? { ...n, zIndex: maxZ + 1 } : n));
+                }
+                if (e.key === 'B') {
+                    e.preventDefault();
+                    const minZ = Math.min(...nodes.map(n => n.zIndex || 0), 0);
+                    setNodes(nds => nds.map(n => selectedNodes.includes(n.id) ? { ...n, zIndex: minZ - 1 } : n));
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [nodes, selectedNodes, setNodes, groupNodes, ungroupNodes]);
+
     return (
         <div className="w-full h-full bg-slate-50 dark:bg-[#0f0f0f]" ref={reactFlowWrapper}>
             {mounted && (
@@ -239,6 +496,9 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
                     onDrop={onDrop}
                     onDragOver={onDragOver}
                     onEdgeDoubleClick={onEdgeDoubleClick}
+                    onNodeContextMenu={onNodeContextMenu}
+                    onEdgeContextMenu={onEdgeContextMenu}
+                    onPaneClick={onPaneClick}
                     nodeTypes={nodeTypes}
                     edgeTypes={edgeTypes}
                     connectionMode={ConnectionMode.Loose}
@@ -271,6 +531,17 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
                         nodeColor={() => isDark ? '#333' : '#e2e8f0'}
                         maskColor={isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}
                     />
+                    {menu && (
+                        <ContextMenu
+                            {...menu}
+                            selectedNodes={selectedNodes}
+                            onClick={onPaneClick}
+                            onNodeChange={setNodes}
+                            onEdgeChange={openDraw.setEdges}
+                            onGroup={groupNodes}
+                            onUngroup={() => ungroupNodes(menu.id)}
+                        />
+                    )}
                 </ReactFlow>
             )}
         </div>
