@@ -195,6 +195,17 @@ export type Graph = z.infer<typeof GraphSchema>;
 export type WorkerCommand = z.infer<typeof WorkerCommandSchema>;
 export type WorkerResponse = z.infer<typeof WorkerResponseSchema>;
 
+export interface ShapeDefinition {
+    type: string;
+    label: string;
+    path?: string; // Single path
+    paths?: { d: string; fill?: string; stroke?: string }[]; // Multiple paths
+    viewBox?: string;
+    width?: number; // Default width
+    height?: number; // Default height
+    icon?: React.ElementType; // For the toolbar
+}
+
 // --- Helper to create unique message IDs ---
 export function createMessageId(): string {
     return `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;

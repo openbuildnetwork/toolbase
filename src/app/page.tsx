@@ -16,7 +16,7 @@ export default function Home() {
     { title: "DataLens", toolFolderName: "data-lens", icon: appIcons['data-lens'] },
     { title: "Ping Tester", toolFolderName: "ping-tester", icon: appIcons['ping-tester'] },
     { title: "Internet Speed Test", toolFolderName: "speed-test", icon: appIcons['speed-test'] },
-
+    { title: "OpenDraw", toolFolderName: "open-draw", icon: appIcons['open-draw'] },
   ];
 
   return (

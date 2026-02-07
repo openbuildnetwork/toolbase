@@ -9,7 +9,7 @@ interface CustomNodeProps extends NodeProps {
 }
 
 // --- Editable Label Helper ---
-function EditableLabel({ id, label, className = '', style = {} }: { id: string, label: string, className?: string, style?: React.CSSProperties }) {
+export function EditableLabel({ id, label, className = '', style = {} }: { id: string, label: string, className?: string, style?: React.CSSProperties }) {
     const { updateNodeData } = useReactFlow();
     const [text, setText] = useState(label);
 
