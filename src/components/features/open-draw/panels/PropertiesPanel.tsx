@@ -1,6 +1,7 @@
 import { Node, Edge, MarkerType } from '@xyflow/react';
 import { X, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Type, Palette, Layout, Layers, Spline, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
+import { StyleManager } from '../utils/style-manager';
 
 interface PropertiesPanelProps {
     selectedNodes: Node[];
@@ -210,10 +211,14 @@ export function PropertiesPanel({ selectedNodes, selectedEdges, onNodeChange, on
                             </div>
 
                             <div className="flex gap-2 ml-5">
-                                <select className="flex-1 text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-transparent dark:text-gray-200">
-                                    <option>Solid</option>
-                                    <option>Dashed</option>
-                                    <option>Dotted</option>
+                                <select
+                                    value={data.borderStyle || 'solid'}
+                                    onChange={(e) => updateStyle('borderStyle', e.target.value)}
+                                    className="flex-1 text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-transparent dark:text-gray-200"
+                                >
+                                    <option value="solid">Solid</option>
+                                    <option value="dashed">Dashed</option>
+                                    <option value="dotted">Dotted</option>
                                 </select>
                                 <input
                                     type="number"
@@ -300,12 +305,51 @@ export function PropertiesPanel({ selectedNodes, selectedEdges, onNodeChange, on
                             </div>
                         </div>
 
-                        {/* Placeholder Buttons */}
+                        {/* Style Actions */}
                         <div className="space-y-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                            <button className="w-full py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#252525]">
+                            <button
+                                onClick={() => {
+                                    if (firstNode?.data) {
+                                        if (StyleManager.copyStyle(firstNode.data)) {
+                                            alert('Style copied to clipboard!');
+                                        }
+                                    }
+                                }}
+                                className="w-full py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#252525]"
+                            >
                                 Copy Style
                             </button>
-                            <button className="w-full py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#252525]">
+                            <button
+                                onClick={() => {
+                                    if (firstNode) {
+                                        const style = StyleManager.getClipboardStyle();
+                                        if (style) {
+                                            // Apply style to all selected nodes
+                                            const keys = Object.keys(style) as Array<keyof typeof style>;
+                                            // We need to batch update or just iterate. updateNodes takes key/value.
+                                            // Ideally we should have updateNodes({ ...style }).
+                                            // The implementation of onNodeChange in PropertiesPanel expects { [key]: value }.
+                                            onNodeChange(style);
+                                            alert('Style pasted!');
+                                        } else {
+                                            alert('No style in clipboard.');
+                                        }
+                                    }
+                                }}
+                                className="w-full py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#252525]"
+                            >
+                                Paste Style
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (firstNode?.data) {
+                                        if (StyleManager.saveDefaultStyle(firstNode.data)) {
+                                            alert('Style saved as default for new shapes!');
+                                        }
+                                    }
+                                }}
+                                className="w-full py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#252525]"
+                            >
                                 Set as Default Style
                             </button>
                         </div>
@@ -334,6 +378,25 @@ export function PropertiesPanel({ selectedNodes, selectedEdges, onNodeChange, on
                                     className="w-16 text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-transparent dark:text-gray-200"
                                     placeholder="Px"
                                 />
+                            </div>
+
+                            {/* Edge Line Type (Solid/Dashed/Dotted) */}
+                            <div className="mb-2">
+                                <select
+                                    value={edgeStyle.strokeDasharray === '5,5' ? 'dashed' : (edgeStyle.strokeDasharray === '2,2' ? 'dotted' : 'solid')}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        let dash: string | undefined = undefined;
+                                        if (val === 'dashed') dash = '5,5';
+                                        if (val === 'dotted') dash = '2,2';
+                                        handleEdgeStyleChange('strokeDasharray', dash);
+                                    }}
+                                    className="w-full text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-transparent dark:text-gray-200"
+                                >
+                                    <option value="solid">Solid</option>
+                                    <option value="dashed">Dashed</option>
+                                    <option value="dotted">Dotted</option>
+                                </select>
                             </div>
                         </div>
 

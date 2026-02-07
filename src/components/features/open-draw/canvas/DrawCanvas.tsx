@@ -26,6 +26,7 @@ import { ShapeDefinition } from '@/types/open-draw.types';
 import { SHAPE_DEFINITIONS } from '../nodes/shapes';
 import { CustomEdge } from '../edges/CustomEdge';
 import { useCallback, useRef, useEffect, useState, useMemo } from 'react';
+import { StyleManager } from '../utils/style-manager';
 
 // Define node types - we use GenericShapeNode for everything now!
 const nodeTypes: NodeTypes = {
@@ -107,7 +108,13 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
                     position: { x: window.innerWidth / 2 - 300 + (Math.random() * 50), y: window.innerHeight / 2 - 50 + (Math.random() * 50) }, // Approx center of canvas
                     data: {
                         label: def.label,
-                        customDefinition: def // Passed to GenericShapeNode
+                        customDefinition: def, // Passed to GenericShapeNode
+                        backgroundColor: '#1e1e1e', // Defaults for custom shape if not in style
+                        borderColor: '#ffffff',
+                        borderWidth: 2,
+                        textColor: '#ffffff',
+                        fontSize: 14,
+                        ...StyleManager.getDefaultStyle(), // Apply user default style
                     },
                     width: def.width || 100,
                     height: def.height || 100,
@@ -183,6 +190,7 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
                     borderWidth: 2,
                     textColor: '#ffffff', // Initial color white
                     fontSize: 14,
+                    ...StyleManager.getDefaultStyle(), // Apply user default style if any
                 },
                 style: {
                     width: shapeDef.width || 100,
