@@ -14,9 +14,17 @@ export const NodeDataSchema = z.object({
     backgroundColor: z.string().optional(),
     borderColor: z.string().optional(),
     borderWidth: z.number().optional(),
+    borderStyle: z.string().optional(), // 'solid', 'dashed', 'dotted'
     textColor: z.string().optional(),
     fontSize: z.number().optional(),
     icon: z.string().optional(),
+    // Advanced Styling
+    opacity: z.number().optional(),
+    borderRadius: z.number().optional(),
+    shadow: z.boolean().optional(),
+    glass: z.boolean().optional(),
+    sketch: z.boolean().optional(),
+    gradient: z.boolean().optional(),
 });
 
 export const PositionSchema = z.object({

@@ -31,12 +31,14 @@ export function IconShapeNode({ id, selected, data, width, height }: IconNodePro
                 handleStyle={{ width: 8, height: 8, borderRadius: 4 }}
             />
 
+            {/* Icon Render */}
             <div className="relative w-full h-full group flex flex-col items-center justify-center p-2" style={{ minWidth: 30, minHeight: 30 }}>
-                {/* Icon Render */}
-                <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+                <div className="relative w-full h-full flex items-center justify-center overflow-visible">
                     <IconComponent
                         size={Math.min(Number(w), Number(h))}
-                        color={style.stroke}
+                        color={style.stroke} // Lucide uses 'color' for stroke (currentColor)
+                        // Also explicitly pass stroke in case 'color' is ignored or overridden
+                        stroke={style.stroke}
                         strokeWidth={Number(style.strokeWidth)}
                         fill={style.fill}
                         className="w-full h-full transition-all duration-200"
@@ -47,7 +49,7 @@ export function IconShapeNode({ id, selected, data, width, height }: IconNodePro
                 </div>
 
                 {/* Text Label - Below Icon */}
-                <div className="absolute -bottom-6 w-[150%] flex items-center justify-center pointer-events-none">
+                <div className="absolute -bottom-8 w-[200%] flex items-center justify-center pointer-events-none z-50">
                     <EditableLabel
                         id={id}
                         label={data.label || ''}
@@ -59,11 +61,11 @@ export function IconShapeNode({ id, selected, data, width, height }: IconNodePro
                     />
                 </div>
 
-                {/* Connection Handles */}
-                <Handle type="target" position={Position.Top} className="!w-3 !h-3 !bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Handle type="source" position={Position.Bottom} className="!w-3 !h-3 !bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Handle type="target" position={Position.Left} className="!w-3 !h-3 !bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Handle type="source" position={Position.Right} className="!w-3 !h-3 !bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                {/* Connection Handles - All Source to allow dragging FROM any side. Loose mode allows TO any side. Unique IDs needed! */}
+                <Handle id="top" type="source" position={Position.Top} className="!w-3 !h-3 !bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity z-50" />
+                <Handle id="bottom" type="source" position={Position.Bottom} className="!w-3 !h-3 !bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity z-50" />
+                <Handle id="left" type="source" position={Position.Left} className="!w-3 !h-3 !bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity z-50" />
+                <Handle id="right" type="source" position={Position.Right} className="!w-3 !h-3 !bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity z-50" />
             </div>
         </>
     );

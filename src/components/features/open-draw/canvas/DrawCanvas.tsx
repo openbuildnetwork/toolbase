@@ -24,6 +24,7 @@ import { GenericShapeNode } from '../nodes/GenericShapeNode';
 import { IconShapeNode } from '../nodes/IconShapeNode';
 import { ShapeDefinition } from '@/types/open-draw.types';
 import { SHAPE_DEFINITIONS } from '../nodes/shapes';
+import { CustomEdge } from '../edges/CustomEdge';
 import { useCallback, useRef, useEffect, useState, useMemo } from 'react';
 
 // Define node types - we use GenericShapeNode for everything now!
@@ -41,6 +42,10 @@ const nodeTypes: NodeTypes = {
     document: GenericShapeNode,
     parallelogram: GenericShapeNode,
     triangle: GenericShapeNode,
+};
+
+const edgeTypes: EdgeTypes = {
+    custom: CustomEdge,
 };
 
 interface DrawCanvasProps {
@@ -150,9 +155,9 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
                         label: customData.iconName || 'Icon',
                         iconName: customData.iconName || 'Circle',
                         backgroundColor: 'transparent',
-                        borderColor: isDark ? '#ffffff' : '#000000',
+                        borderColor: isDark ? '#ffffff' : '#1e1e1e', // Visible border
                         borderWidth: 2,
-                        textColor: isDark ? '#ffffff' : '#000000',
+                        textColor: '#ffffff', // Always white text as requested
                         fontSize: 14,
                         width: 50,
                         height: 50
@@ -173,10 +178,10 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
                 data: {
                     label: shapeDef.label,
                     shapeType: type, // Store the specific shape type in data
-                    backgroundColor: '#ffffff',
-                    borderColor: '#000000',
+                    backgroundColor: '#1e1e1e', // Greyish background
+                    borderColor: '#ffffff', // Visible white border
                     borderWidth: 2,
-                    textColor: '#000000',
+                    textColor: '#ffffff', // Initial color white
                     fontSize: 14,
                 },
                 style: {
@@ -189,6 +194,28 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
         },
         [rfInstance, setNodes]
     );
+
+    const onEdgeDoubleClick = useCallback((event: React.MouseEvent, edge: Edge) => {
+        event.stopPropagation();
+        // Prompt for new label
+        const currentLabel = typeof edge.data?.label === 'string' ? edge.data.label : '';
+        const newLabel = prompt('Enter Label:', currentLabel);
+
+        if (newLabel !== null) {
+            openDraw.setEdges((eds) =>
+                eds.map((e) => {
+                    if (e.id === edge.id) {
+                        return {
+                            ...e,
+                            data: { ...e.data, label: newLabel },
+                            type: 'custom' // Ensure it's custom type so label renders
+                        };
+                    }
+                    return e;
+                })
+            );
+        }
+    }, [openDraw.setEdges]);
 
     return (
         <div className="w-full h-full bg-slate-50 dark:bg-[#0f0f0f]" ref={reactFlowWrapper}>
@@ -203,10 +230,12 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
                     onSelectionChange={onSelectionChange}
                     onDrop={onDrop}
                     onDragOver={onDragOver}
+                    onEdgeDoubleClick={onEdgeDoubleClick}
                     nodeTypes={nodeTypes}
+                    edgeTypes={edgeTypes}
                     connectionMode={ConnectionMode.Loose}
                     defaultEdgeOptions={{
-                        type: 'smoothstep',
+                        type: 'custom',
                         animated: false,
                         style: { strokeWidth: 2, stroke: isDark ? '#64748b' : '#94a3b8' }
                     }}
