@@ -12,26 +12,51 @@ const downloadFile = (href: string, name: string) => {
     document.body.removeChild(link);
 };
 
+const filterNode = (node: any) => {
+    const classList = (node as HTMLElement).classList;
+    if (!classList) return true;
+    return (
+        !classList.contains('react-flow__controls') &&
+        !classList.contains('react-flow__minimap') &&
+        !classList.contains('react-flow__nodesselection') &&
+        !classList.contains('react-flow__selection')
+    );
+};
+
+const cleanupClone = (documentClone: Document) => {
+    // Remove selection classes
+    const elements = documentClone.querySelectorAll('.selected');
+    elements.forEach((el) => el.classList.remove('selected'));
+
+    // Remove Nodes Selection Box (Group selection)
+    const selection = documentClone.querySelectorAll('.react-flow__nodesselection');
+    selection.forEach((el) => el.remove());
+
+    const selectionRect = documentClone.querySelectorAll('.react-flow__nodesselection-rect');
+    selectionRect.forEach((el) => el.remove());
+
+    // Remove Node Resizer / Handles
+    // NodeResizer container
+    const resizers = documentClone.querySelectorAll('.react-flow__resizer');
+    resizers.forEach((el) => el.remove());
+
+    // Individual resize controls
+    const resizeControls = documentClone.querySelectorAll('.react-flow__resize-control');
+    resizeControls.forEach((el) => el.remove());
+
+    // Connection handles
+    const handles = documentClone.querySelectorAll('.react-flow__handle');
+    handles.forEach((el) => el.remove());
+};
+
 export const exportAsPng = async (element: HTMLElement, fileName: string = 'diagram', backgroundColor?: string) => {
     try {
         const dataUrl = await toPng(element, {
             cacheBust: true,
             skipFonts: true,
-            filter: (node: any) => {
-                const classList = (node as HTMLElement).classList;
-                return !classList?.contains('react-flow__controls') && !classList?.contains('react-flow__minimap');
-            },
+            filter: filterNode,
             backgroundColor, // Use provided color or undefined for transparent/inherited
-            onClone: (documentClone: Document) => {
-                const elements = documentClone.querySelectorAll('.selected');
-                elements.forEach((el) => el.classList.remove('selected'));
-
-                const resizeControls = documentClone.querySelectorAll('.react-flow__resize-control');
-                resizeControls.forEach((el) => el.remove());
-
-                const handles = documentClone.querySelectorAll('.react-flow__handle');
-                handles.forEach((el) => el.remove());
-            }
+            onClone: cleanupClone
         } as any);
         downloadFile(dataUrl, `${fileName}.png`);
     } catch (err) {
@@ -44,22 +69,9 @@ export const exportAsSvg = async (element: HTMLElement, fileName: string = 'diag
         const dataUrl = await toSvg(element, {
             cacheBust: true,
             skipFonts: true,
-            filter: (node: any) => {
-
-                const classList = (node as HTMLElement).classList;
-                return !classList?.contains('react-flow__controls') && !classList?.contains('react-flow__minimap');
-            },
+            filter: filterNode,
             backgroundColor, // Use provided color or undefined
-            onClone: (documentClone: Document) => {
-                const elements = documentClone.querySelectorAll('.selected');
-                elements.forEach((el) => el.classList.remove('selected'));
-
-                const resizeControls = documentClone.querySelectorAll('.react-flow__resize-control');
-                resizeControls.forEach((el) => el.remove());
-
-                const handles = documentClone.querySelectorAll('.react-flow__handle');
-                handles.forEach((el) => el.remove());
-            }
+            onClone: cleanupClone
         } as any);
         downloadFile(dataUrl, `${fileName}.svg`);
     } catch (err) {
@@ -73,22 +85,10 @@ export const exportAsPdf = async (element: HTMLElement, fileName: string = 'diag
         const dataUrl = await toPng(element, {
             cacheBust: true,
             skipFonts: true,
-            filter: (node: any) => {
-                const classList = (node as HTMLElement).classList;
-                return !classList?.contains('react-flow__controls') && !classList?.contains('react-flow__minimap');
-            },
+            filter: filterNode,
             pixelRatio: 2,
             backgroundColor, // Use provided color or undefined
-            onClone: (documentClone: Document) => {
-                const elements = documentClone.querySelectorAll('.selected');
-                elements.forEach((el) => el.classList.remove('selected'));
-
-                const resizeControls = documentClone.querySelectorAll('.react-flow__resize-control');
-                resizeControls.forEach((el) => el.remove());
-
-                const handles = documentClone.querySelectorAll('.react-flow__handle');
-                handles.forEach((el) => el.remove());
-            }
+            onClone: cleanupClone
         } as any);
 
         const pdf = new jsPDF({
@@ -110,21 +110,9 @@ export const copyAsImage = async (element: HTMLElement) => {
     try {
         const blob = await toBlob(element, {
             skipFonts: true,
-            filter: (node: any) => {
-                const classList = (node as HTMLElement).classList;
-                return !classList?.contains('react-flow__controls') && !classList?.contains('react-flow__minimap');
-            },
+            filter: filterNode,
             // Copy usually prefers transparent or white, but let's keep it transparent (undefined) for now
-            onClone: (documentClone: Document) => {
-                const elements = documentClone.querySelectorAll('.selected');
-                elements.forEach((el) => el.classList.remove('selected'));
-
-                const resizeControls = documentClone.querySelectorAll('.react-flow__resize-control');
-                resizeControls.forEach((el) => el.remove());
-
-                const handles = documentClone.querySelectorAll('.react-flow__handle');
-                handles.forEach((el) => el.remove());
-            }
+            onClone: cleanupClone
         } as any);
         if (blob) {
             await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);

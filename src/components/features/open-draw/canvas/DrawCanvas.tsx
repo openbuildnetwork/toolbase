@@ -262,15 +262,15 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
             if (!reactFlowWrapper.current) return;
             const pane = reactFlowWrapper.current.getBoundingClientRect();
 
-            // Precise offset calculation to keep menu within bounds
+            // Precise offset calculation to keep menu within bounds (Relative to container)
             const menuWidth = 180;
             const menuHeight = 350;
 
-            let left = event.clientX;
-            let top = event.clientY;
+            let left = event.clientX - pane.left;
+            let top = event.clientY - pane.top;
 
-            if (left + menuWidth > pane.right) left = pane.right - menuWidth - 10;
-            if (top + menuHeight > pane.bottom) top = pane.bottom - menuHeight - 10;
+            if (left + menuWidth > pane.width) left = pane.width - menuWidth - 10;
+            if (top + menuHeight > pane.height) top = pane.height - menuHeight - 10;
 
             setMenu({
                 id: node.id,
@@ -292,11 +292,11 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
             const menuWidth = 180;
             const menuHeight = 150; // Edges have smaller menu usually
 
-            let left = event.clientX;
-            let top = event.clientY;
+            let left = event.clientX - pane.left;
+            let top = event.clientY - pane.top;
 
-            if (left + menuWidth > pane.right) left = pane.right - menuWidth - 10;
-            if (top + menuHeight > pane.bottom) top = pane.bottom - menuHeight - 10;
+            if (left + menuWidth > pane.width) left = pane.width - menuWidth - 10;
+            if (top + menuHeight > pane.height) top = pane.height - menuHeight - 10;
 
             setMenu({
                 id: edge.id,
