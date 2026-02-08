@@ -188,6 +188,7 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
                     data: {
                         label: customData.iconName || 'Icon',
                         iconName: customData.iconName || 'Circle',
+                        iconType: customData.iconType,
                         backgroundColor: 'transparent',
                         borderColor: isDark ? '#ffffff' : '#1e1e1e', // Visible border
                         borderWidth: 2,

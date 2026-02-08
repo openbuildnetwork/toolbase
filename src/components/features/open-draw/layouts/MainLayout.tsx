@@ -5,7 +5,7 @@ import { useOpenDraw } from '@/hooks/useOpenDraw';
 import { DrawCanvas } from '../canvas/DrawCanvas';
 import { ShapeLibrary } from '../panels/ShapeLibrary';
 import { PropertiesPanel } from '../panels/PropertiesPanel';
-import { Undo2, Redo2, Download, Upload, Moon, Sun, Menu, ChevronLeft, ChevronRight, FileText, ChevronDown, FileCode, FileImage } from 'lucide-react';
+import { Undo2, Redo2, Download, Upload, Moon, Sun, Menu, ChevronLeft, ChevronRight, FileText, ChevronDown, FileCode, FileImage, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { exportAsPng, exportAsSvg, exportAsPdf } from '../utils/export-utils';
 
@@ -17,6 +17,10 @@ export function OpenDrawLayout() {
     const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
     const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
     const [fileMenuOpen, setFileMenuOpen] = useState(false);
+
+    // Export Modal State
+    const [exportModal, setExportModal] = useState<{ open: boolean; type: 'png' | 'svg' | 'pdf' | null }>({ open: false, type: null });
+    const [exportBg, setExportBg] = useState<'transparent' | 'white' | 'dark'>('transparent');
 
     const fileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -123,22 +127,42 @@ export function OpenDrawLayout() {
         e.target.value = '';
     };
 
-    const handleExport = (type: 'png' | 'svg' | 'pdf') => {
-        const flowElement = document.querySelector('.react-flow') as HTMLElement;
+    const openExportModal = (type: 'png' | 'svg' | 'pdf') => {
+        setExportModal({ open: true, type });
+        setFileMenuOpen(false);
+    };
+
+    const performExport = () => {
+        const type = exportModal.type;
+        if (!type) return;
+
+        // Capture parent element to include background color (dark mode support)
+        const flowElement = document.querySelector('.react-flow')?.parentElement as HTMLElement;
         if (!flowElement) return;
+
+        // Determine background color
+        let bgColor: string | undefined = undefined;
+        if (exportBg === 'white') bgColor = '#ffffff';
+        if (exportBg === 'dark') bgColor = '#1e1e1e';
+        // 'transparent' leaves it undefined, which logic handles (or we can pass 'transparent' if needed, but 'undefined' usually means 'use whatever is there' or 'transparent' in html-to-image depending on setup. 
+        // Actually, toPng defaults to transparent if not set. BUT if we want to capture the "Theme" background, we might need to manually set it if the element itself uses CSS background.
+        // If we want explicit transparent, undefined is good. 
+        // If we want "Current Theme", we might need to READ the computed style or pass the theme color.
+
+        // Let's stick to explicit choices requested: Transparent, White, Dark.
 
         switch (type) {
             case 'png':
-                exportAsPng(flowElement, 'open-draw-diagram');
+                exportAsPng(flowElement, 'open-draw-diagram', bgColor);
                 break;
             case 'svg':
-                exportAsSvg(flowElement, 'open-draw-diagram');
+                exportAsSvg(flowElement, 'open-draw-diagram', bgColor);
                 break;
             case 'pdf':
-                exportAsPdf(flowElement, 'open-draw-diagram');
+                exportAsPdf(flowElement, 'open-draw-diagram', bgColor);
                 break;
         }
-        setFileMenuOpen(false);
+        setExportModal({ open: false, type: null });
     };
 
     return (
@@ -192,13 +216,13 @@ export function OpenDrawLayout() {
                                 <div className="h-px bg-gray-100 dark:bg-gray-800 my-1 mx-2" />
 
                                 <div className="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Export</div>
-                                <button onClick={() => handleExport('png')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                <button onClick={() => openExportModal('png')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                     <FileImage className="w-4 h-4 text-purple-500" /> Export as PNG
                                 </button>
-                                <button onClick={() => handleExport('svg')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                <button onClick={() => openExportModal('svg')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                     <FileCode className="w-4 h-4 text-pink-500" /> Export as SVG
                                 </button>
-                                <button onClick={() => handleExport('pdf')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                <button onClick={() => openExportModal('pdf')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                     <FileText className="w-4 h-4 text-red-500" /> Export as PDF
                                 </button>
 
@@ -277,6 +301,53 @@ export function OpenDrawLayout() {
                     />
                 </div>
             </div>
+
+            {/* Export Options Modal */}
+            {exportModal.open && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-[320px] bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl p-4 animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold text-gray-900 dark:text-white">Export as {exportModal.type?.toUpperCase()}</h3>
+                            <button onClick={() => setExportModal({ open: false, type: null })} className="p-1 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] rounded">
+                                <X className="w-4 h-4 text-gray-500" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 block">Background</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <button
+                                        onClick={() => setExportBg('transparent')}
+                                        className={`px-3 py-2 rounded-lg text-sm border transition-all ${exportBg === 'transparent' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                                    >
+                                        <div className="w-4 h-4 border border-gray-300 rounded-full mb-1 mx-auto bg-[conic-gradient(at_top_left,gray_25%_0%,white_0%_25%,gray_50%_0%,white_0%_25%)] bg-[length:4px_4px]" />
+                                        None
+                                    </button>
+                                    <button
+                                        onClick={() => setExportBg('white')}
+                                        className={`px-3 py-2 rounded-lg text-sm border transition-all ${exportBg === 'white' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                                    >
+                                        <div className="w-4 h-4 border border-gray-300 rounded-full mb-1 mx-auto bg-white" />
+                                        White
+                                    </button>
+                                    <button
+                                        onClick={() => setExportBg('dark')}
+                                        className={`px-3 py-2 rounded-lg text-sm border transition-all ${exportBg === 'dark' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}
+                                    >
+                                        <div className="w-4 h-4 border border-gray-500 rounded-full mb-1 mx-auto bg-[#1e1e1e]" />
+                                        Dark
+                                    </button>
+                                </div>
+                            </div>
+
+                            <Button onClick={performExport} className="w-full">
+                                Download {exportModal.type?.toUpperCase()}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

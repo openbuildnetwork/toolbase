@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { SHAPE_CATEGORIES_CONFIG, SHAPE_DEFINITIONS } from '../nodes/shapes';
 import { Search, ChevronDown, ChevronRight, icons } from 'lucide-react';
@@ -8,7 +9,8 @@ import type { ShapeDefinition } from '@/types/open-draw.types';
 
 type ShapeLibraryItem =
     | (ShapeDefinition & { type: string; icon?: undefined; data?: undefined })
-    | { type: 'lucide-icon'; label: string; icon: React.ElementType; data: { iconName: string } };
+    | { type: 'lucide-icon'; label: string; icon: React.ElementType; data: { iconName: string } }
+    | { type: 'react-icon'; label: string; icon: React.ElementType; data: { iconName: string; iconType: 'react-icon' } };
 
 interface ShapeLibraryProps {
     onDragStart: (event: React.DragEvent, shapeType: string) => void;
@@ -29,15 +31,17 @@ export function ShapeLibrary({ onDragStart }: ShapeLibraryProps) {
     // Filter shapes based on search
     const filteredCategories = useMemo(() => {
         if (!searchTerm) {
-            // When no search term, return original categories, but ensure they have 'id' for consistency
-            return SHAPE_CATEGORIES_CONFIG.map(cat => ({
+            // When no search term, return original categories
+            const staticCats = SHAPE_CATEGORIES_CONFIG.map(cat => ({
                 ...cat,
-                id: cat.name.toLowerCase(), // Add id for consistency with new logic
+                id: cat.name.toLowerCase(),
                 shapes: cat.shapes.map(shapeType => {
                     const def = SHAPE_DEFINITIONS[shapeType];
-                    return def ? { ...def, type: shapeType } : null; // Convert shapeType to object
+                    return def ? { ...def, type: shapeType } : null;
                 }).filter((s): s is NonNullable<typeof s> => !!s)
             }));
+
+            return staticCats;
         }
 
         const lowerTerm = searchTerm.toLowerCase();
@@ -45,26 +49,26 @@ export function ShapeLibrary({ onDragStart }: ShapeLibraryProps) {
         // 1. Search existing static options
         const staticResults = SHAPE_CATEGORIES_CONFIG.map(category => ({
             ...category,
-            id: category.name.toLowerCase(), // Ensure id is present
+            id: category.name.toLowerCase(),
             shapes: category.shapes.map(shapeType => {
                 const def = SHAPE_DEFINITIONS[shapeType];
-                return def ? { ...def, type: shapeType } : null; // Convert shapeType to object
+                return def ? { ...def, type: shapeType } : null;
             }).filter((s): s is NonNullable<typeof s> => !!s)
                 .filter(shape =>
                     shape.label.toLowerCase().includes(lowerTerm)
                 ) as ShapeLibraryItem[]
         })).filter(category => category.shapes.length > 0);
 
-        // 2. Search entire Lucide library dynamically
+        // 3. Search entire Lucide library dynamically
         const matchingIcons = Object.keys(icons).filter(iconName =>
             iconName.toLowerCase().includes(lowerTerm)
         ).map(iconName => {
             const IconComponent = icons[iconName as keyof typeof icons];
             return {
-                type: 'lucide-icon' as const, // Custom type for Lucide icons
-                label: iconName.replace(/([A-Z])/g, ' $1').trim(), // Add spaces to CamelCase
-                icon: IconComponent, // Store the component itself
-                data: { iconName } // Store original icon name for identification
+                type: 'lucide-icon' as const,
+                label: iconName.replace(/([A-Z])/g, ' $1').trim(),
+                icon: IconComponent,
+                data: { iconName }
             };
         });
 
@@ -79,12 +83,13 @@ export function ShapeLibrary({ onDragStart }: ShapeLibraryProps) {
                 // Add unique dynamic icons to existing Icons category
                 const existingIconNames = new Set(finalResults[iconsCategoryIndex].shapes.map(s => s.data?.iconName));
                 const newIcons = matchingIcons.filter(i => !existingIconNames.has(i.data.iconName));
+                // @ts-ignore
                 finalResults[iconsCategoryIndex].shapes.push(...newIcons);
             } else {
                 // Create new Icons category with results
                 finalResults.push({
                     id: 'icons',
-                    name: 'Icons (Search Results)', // Use 'name' for display
+                    name: 'Icons (Search Results)',
                     shapes: matchingIcons
                 });
             }
@@ -118,7 +123,7 @@ export function ShapeLibrary({ onDragStart }: ShapeLibraryProps) {
                             onClick={() => toggleCategory(category.name)}
                             className="flex items-center gap-2 px-2 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
                         >
-                            {expandedCategories.includes(category.name) ? (
+                            {(!!searchTerm || expandedCategories.includes(category.name)) ? (
                                 <ChevronDown className="w-3 h-3" />
                             ) : (
                                 <ChevronRight className="w-3 h-3" />
@@ -126,12 +131,12 @@ export function ShapeLibrary({ onDragStart }: ShapeLibraryProps) {
                             {category.name}
                         </button>
 
-                        {expandedCategories.includes(category.name) && (
+                        {(!!searchTerm || expandedCategories.includes(category.name)) && (
                             <div className="grid grid-cols-4 gap-2 px-2 py-2">
                                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                 {category.shapes.map((shape: any) => {
                                     // Handle both Lucide icons and standard SVG shapes
-                                    const isIcon = shape.type === 'lucide-icon';
+                                    const isIcon = shape.type === 'lucide-icon' || shape.type === 'react-icon';
                                     const IconComponent = shape.icon;
 
                                     return (
@@ -144,7 +149,10 @@ export function ShapeLibrary({ onDragStart }: ShapeLibraryProps) {
                                                     // For icons, we need to pass the icon name in data
                                                     e.dataTransfer.setData('application/reactflow', 'icon');
                                                     if (shape.data) {
-                                                        e.dataTransfer.setData('application/open-draw-data', JSON.stringify({ iconName: shape.data.iconName }));
+                                                        e.dataTransfer.setData('application/open-draw-data', JSON.stringify({
+                                                            iconName: shape.data.iconName,
+                                                            iconType: shape.data.iconType
+                                                        }));
                                                     }
                                                 } else {
                                                     e.dataTransfer.setData('application/reactflow', shape.type);

@@ -12,51 +12,84 @@ const downloadFile = (href: string, name: string) => {
     document.body.removeChild(link);
 };
 
-export const exportAsPng = async (element: HTMLElement, fileName: string = 'diagram') => {
+export const exportAsPng = async (element: HTMLElement, fileName: string = 'diagram', backgroundColor?: string) => {
     try {
         const dataUrl = await toPng(element, {
             cacheBust: true,
-            filter: (node) => {
-                // Exclude controls and minimap from export if they are inside the element
+            skipFonts: true,
+            filter: (node: any) => {
                 const classList = (node as HTMLElement).classList;
                 return !classList?.contains('react-flow__controls') && !classList?.contains('react-flow__minimap');
             },
-            backgroundColor: '#ffffff', // Ensure white background for transparent implementations
-        });
+            backgroundColor, // Use provided color or undefined for transparent/inherited
+            onClone: (documentClone: Document) => {
+                const elements = documentClone.querySelectorAll('.selected');
+                elements.forEach((el) => el.classList.remove('selected'));
+
+                const resizeControls = documentClone.querySelectorAll('.react-flow__resize-control');
+                resizeControls.forEach((el) => el.remove());
+
+                const handles = documentClone.querySelectorAll('.react-flow__handle');
+                handles.forEach((el) => el.remove());
+            }
+        } as any);
         downloadFile(dataUrl, `${fileName}.png`);
     } catch (err) {
         console.error('Export PNG failed', err);
     }
 };
 
-export const exportAsSvg = async (element: HTMLElement, fileName: string = 'diagram') => {
+export const exportAsSvg = async (element: HTMLElement, fileName: string = 'diagram', backgroundColor?: string) => {
     try {
         const dataUrl = await toSvg(element, {
             cacheBust: true,
-            filter: (node) => {
+            skipFonts: true,
+            filter: (node: any) => {
+
                 const classList = (node as HTMLElement).classList;
                 return !classList?.contains('react-flow__controls') && !classList?.contains('react-flow__minimap');
             },
-            backgroundColor: '#ffffff',
-        });
+            backgroundColor, // Use provided color or undefined
+            onClone: (documentClone: Document) => {
+                const elements = documentClone.querySelectorAll('.selected');
+                elements.forEach((el) => el.classList.remove('selected'));
+
+                const resizeControls = documentClone.querySelectorAll('.react-flow__resize-control');
+                resizeControls.forEach((el) => el.remove());
+
+                const handles = documentClone.querySelectorAll('.react-flow__handle');
+                handles.forEach((el) => el.remove());
+            }
+        } as any);
         downloadFile(dataUrl, `${fileName}.svg`);
     } catch (err) {
         console.error('Export SVG failed', err);
     }
 };
 
-export const exportAsPdf = async (element: HTMLElement, fileName: string = 'diagram') => {
+export const exportAsPdf = async (element: HTMLElement, fileName: string = 'diagram', backgroundColor?: string) => {
     try {
         // High quality PNG capture first
         const dataUrl = await toPng(element, {
             cacheBust: true,
-            filter: (node) => {
+            skipFonts: true,
+            filter: (node: any) => {
                 const classList = (node as HTMLElement).classList;
                 return !classList?.contains('react-flow__controls') && !classList?.contains('react-flow__minimap');
             },
-            pixelRatio: 2, // 2x resolution for better PDF quality
-            backgroundColor: '#ffffff'
-        });
+            pixelRatio: 2,
+            backgroundColor, // Use provided color or undefined
+            onClone: (documentClone: Document) => {
+                const elements = documentClone.querySelectorAll('.selected');
+                elements.forEach((el) => el.classList.remove('selected'));
+
+                const resizeControls = documentClone.querySelectorAll('.react-flow__resize-control');
+                resizeControls.forEach((el) => el.remove());
+
+                const handles = documentClone.querySelectorAll('.react-flow__handle');
+                handles.forEach((el) => el.remove());
+            }
+        } as any);
 
         const pdf = new jsPDF({
             orientation: 'landscape',
@@ -76,12 +109,23 @@ export const exportAsPdf = async (element: HTMLElement, fileName: string = 'diag
 export const copyAsImage = async (element: HTMLElement) => {
     try {
         const blob = await toBlob(element, {
-            filter: (node) => {
+            skipFonts: true,
+            filter: (node: any) => {
                 const classList = (node as HTMLElement).classList;
                 return !classList?.contains('react-flow__controls') && !classList?.contains('react-flow__minimap');
             },
-            backgroundColor: '#ffffff'
-        });
+            // Copy usually prefers transparent or white, but let's keep it transparent (undefined) for now
+            onClone: (documentClone: Document) => {
+                const elements = documentClone.querySelectorAll('.selected');
+                elements.forEach((el) => el.classList.remove('selected'));
+
+                const resizeControls = documentClone.querySelectorAll('.react-flow__resize-control');
+                resizeControls.forEach((el) => el.remove());
+
+                const handles = documentClone.querySelectorAll('.react-flow__handle');
+                handles.forEach((el) => el.remove());
+            }
+        } as any);
         if (blob) {
             await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
             alert("Copied to clipboard!");

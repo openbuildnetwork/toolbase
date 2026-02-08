@@ -18,6 +18,7 @@ export const NodeDataSchema = z.object({
     textColor: z.string().optional(),
     fontSize: z.number().optional(),
     icon: z.string().optional(),
+    iconType: z.enum(['lucide', 'react-icon']).optional(),
     // Advanced Styling
     opacity: z.number().optional(),
     borderRadius: z.number().optional(),

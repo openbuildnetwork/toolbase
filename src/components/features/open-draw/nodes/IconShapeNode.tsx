@@ -5,11 +5,14 @@ import { useMemo } from 'react';
 import type { NodeData } from '@/types/open-draw.types';
 
 interface IconNodeProps extends NodeProps {
-    data: NodeData & { iconName: keyof typeof icons };
+    data: NodeData & { iconName: string }; // Changed to string to allow both Lucide and AWS keys
 }
 
 export function IconShapeNode({ id, selected, data, width, height }: IconNodeProps) {
-    const IconComponent = icons[data.iconName] || icons.Circle; // Fallback
+    const IconComponent = useMemo(() => {
+        // Default to Lucide
+        return icons[data.iconName as keyof typeof icons] || icons.Circle;
+    }, [data.iconName]);
 
     // Default size if not yet measured or provided
     const w = width ?? 50;
@@ -36,8 +39,8 @@ export function IconShapeNode({ id, selected, data, width, height }: IconNodePro
                 <div className="relative w-full h-full flex items-center justify-center overflow-visible">
                     <IconComponent
                         size={Math.min(Number(w), Number(h))}
-                        color={style.stroke} // Lucide uses 'color' for stroke (currentColor)
-                        // Also explicitly pass stroke in case 'color' is ignored or overridden
+                        color={style.stroke} // Lucide uses 'color' for stroke. React-icons uses 'color' for fill/stroke depending on icon.
+                        // For Lucide:
                         stroke={style.stroke}
                         strokeWidth={Number(style.strokeWidth)}
                         fill={style.fill}
