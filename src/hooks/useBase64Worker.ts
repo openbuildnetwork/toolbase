@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Base64Request, Base64Response } from '@/types/base64';
 
-interface UseBase64Result {
+export interface UseBase64Result {
     process: (request: Base64Request) => Promise<Base64Response>;
     isReady: boolean;
     isProcessing: boolean;
@@ -13,43 +13,49 @@ interface UseBase64Result {
     reset: () => void;
 }
 
+// Persistent Worker Singleton
+let workerInstance: Worker | null = null;
+let workerReadyPromise: Promise<boolean> | null = null;
+
+function getBase64Worker() {
+    if (!workerInstance) {
+        console.log("Worker Manager: Initializing Base64 Worker (Singleton)...");
+        workerInstance = new Worker(new URL('../workers/base64.worker.ts', import.meta.url));
+
+        workerReadyPromise = new Promise((resolve) => {
+            const tempListener = (event: MessageEvent) => {
+                if (event.data.type === 'READY') {
+                    console.log("Worker Manager: Base64 Worker Ready");
+                    workerInstance?.removeEventListener('message', tempListener);
+                    resolve(true);
+                }
+            };
+            workerInstance?.addEventListener('message', tempListener);
+        });
+    }
+    return { worker: workerInstance, ready: workerReadyPromise };
+}
+
 export function useBase64(): UseBase64Result {
-    const workerRef = useRef<Worker | null>(null);
     const [isReady, setIsReady] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [result, setResult] = useState<Base64Response | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        console.log('Hook: Initializing Base64 worker...');
-        // Initialize the worker
-        const worker = new Worker(new URL('../workers/base64.worker.ts', import.meta.url));
-        workerRef.current = worker;
-
-        worker.onmessage = (event) => {
-            console.log('Hook: Message from worker:', event.data.type);
-            const { type } = event.data;
-            if (type === 'READY') {
-                setIsReady(true);
-            } else if (type === 'ERROR') {
-                setError(event.data.error);
-            }
-        };
-
-        worker.onerror = (error) => {
-            console.error('Hook: Worker error:', error);
-            setError('Worker initialization error');
-        };
-
-        return () => {
-            console.log('Hook: Terminating Base64 worker');
-            worker.terminate();
-        };
+        const { ready } = getBase64Worker();
+        ready?.then(() => {
+            setIsReady(true);
+        }).catch(err => {
+            console.error(err);
+            setError("Worker failed to start");
+        });
     }, []);
 
     const process = useCallback((request: Base64Request): Promise<Base64Response> => {
         return new Promise((resolve, reject) => {
-            if (!workerRef.current) {
+            const { worker } = getBase64Worker();
+            if (!worker) {
                 reject(new Error('Worker not initialized'));
                 return;
             }
@@ -61,20 +67,20 @@ export function useBase64(): UseBase64Result {
                 const { type, data, error: workerError } = event.data;
 
                 if (type === 'PROCESS_RESULT') {
-                    workerRef.current?.removeEventListener('message', handleMessage);
+                    worker.removeEventListener('message', handleMessage);
                     setIsProcessing(false);
                     setResult(data);
                     resolve(data);
                 } else if (type === 'PROCESS_ERROR') {
-                    workerRef.current?.removeEventListener('message', handleMessage);
+                    worker.removeEventListener('message', handleMessage);
                     setIsProcessing(false);
                     setError(workerError);
                     reject(new Error(workerError));
                 }
             };
 
-            workerRef.current.addEventListener('message', handleMessage);
-            workerRef.current.postMessage({ type: 'PROCESS', data: request });
+            worker.addEventListener('message', handleMessage);
+            worker.postMessage({ type: 'PROCESS', data: request });
         });
     }, []);
 
@@ -105,9 +111,8 @@ export function useBase64(): UseBase64Result {
                         downloadFilename += '.bin';
                     }
                 } else if (result.result === null || result.result === undefined) {
-                    // Handle null/undefined result (shouldn't happen with fixed Python code)
-                    console.error('Result data is null or undefined. This may indicate a processing error.');
-                    setError('Cannot download: Result data is empty. Please try processing again.');
+                    console.error('Result data is null or undefined.');
+                    setError('Cannot download: Result data is empty.');
                     return;
                 } else {
                     console.error('Unknown result type:', typeof result.result, result.result);
@@ -115,7 +120,6 @@ export function useBase64(): UseBase64Result {
                     return;
                 }
 
-                // Create download link
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
@@ -123,8 +127,6 @@ export function useBase64(): UseBase64Result {
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-
-                // Cleanup
                 setTimeout(() => URL.revokeObjectURL(url), 100);
             } catch (err) {
                 console.error('Error downloading file:', err);
@@ -139,7 +141,6 @@ export function useBase64(): UseBase64Result {
         setError(null);
     }, []);
 
-    // Compute derived states
     const isLargeFile = result?.is_large ?? false;
     const previewText = result?.preview || (typeof result?.result === 'string' ? result.result : '');
 

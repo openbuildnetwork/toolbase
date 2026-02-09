@@ -3,5 +3,5 @@ import { StaticImageData } from "next/image";
 export interface ToolCardProps {
     title: string;
     toolFolderName?: string;
-    icon: StaticImageData;
+    icon: StaticImageData | string;
 }

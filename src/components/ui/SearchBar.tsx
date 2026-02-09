@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Search, Command } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -10,9 +10,36 @@ interface SearchBarProps {
 const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
     const [isFocused, setIsFocused] = useState(false);
     const [isMac, setIsMac] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         setIsMac(navigator.platform.toUpperCase().indexOf('MAC') >= 0);
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Check for Cmd+K / Ctrl+K
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                inputRef.current?.focus();
+                return;
+            }
+
+            // Don't trigger if already in an input/textarea
+            const activeElement = document.activeElement;
+            const isInput = activeElement instanceof HTMLInputElement ||
+                activeElement instanceof HTMLTextAreaElement ||
+                (activeElement as HTMLElement)?.isContentEditable;
+
+            if (isInput) return;
+
+            // Trigger on printable characters (length 1 characters)
+            // but ignore if any modifier keys are pressed (except Shift)
+            if (e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey) {
+                inputRef.current?.focus();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
     return (
@@ -31,6 +58,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
 
                 {/* Input Field */}
                 <input
+                    ref={inputRef}
                     className={cn(
                         "w-full h-[56px] pl-14 pr-16 text-lg font-medium outline-none transition-all duration-300",
                         "bg-white/70 backdrop-blur-xl border border-black/5 rounded-2xl",
