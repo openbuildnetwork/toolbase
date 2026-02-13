@@ -51,6 +51,12 @@ export default function Home() {
       icon: appIcons['speed-test'],
       metadata: ["download", "upload", "bandwidth", "internet speed", "connection", "network", "speed"]
     },
+    {
+      title: "Open Draw",
+      toolFolderName: "open-draw",
+      icon: appIcons['open-draw'],
+      metadata: ["drawing", "sketching", "diagramming", "whiteboard", "collaboration"]
+    }
 
   ];
 
