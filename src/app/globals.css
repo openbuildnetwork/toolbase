@@ -188,5 +188,89 @@
     @apply focus:bg-white focus:border-primary/30 focus:ring-4 focus:ring-primary/10;
   }
 
-}
+  /* OpenDraw Animation Utilities */
+  @keyframes slide-in-from-left {
+    from {
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
 
+  @keyframes slide-in-from-right {
+    from {
+      opacity: 0;
+      transform: translateX(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slide-in-from-top {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-in {
+    animation-duration: 200ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-fill-mode: forwards;
+  }
+
+  .slide-in-from-left-2 {
+    animation-name: slide-in-from-left;
+  }
+
+  .slide-in-from-right-4 {
+    animation-name: slide-in-from-right;
+  }
+
+  .slide-in-from-top-1 {
+    animation-name: slide-in-from-top;
+  }
+
+  .fade-in {
+    animation-name: fade-in;
+  }
+
+  .duration-150 {
+    animation-duration: 150ms;
+  }
+
+  .duration-200 {
+    animation-duration: 200ms;
+  }
+
+  .duration-300 {
+    animation-duration: 300ms;
+  }
+
+  /* Hide scrollbar utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

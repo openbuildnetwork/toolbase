@@ -9,9 +9,7 @@ import {
     Settings2,
     FileCode,
     Terminal,
-    AlertCircle,
-    ArrowRightLeft,
-    ChevronDown
+    AlertCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
