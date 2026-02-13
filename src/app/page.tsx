@@ -14,6 +14,8 @@ export default function Home() {
     { title: "Magic PDF", toolFolderName: "magic-pdf", icon: appIcons['magic-pdf'] },
     { title: "Base64 Encode/Decode", toolFolderName: "base64", icon: appIcons['b64EnDc'] },
     { title: "DataLens", toolFolderName: "data-lens", icon: appIcons['data-lens'] },
+    { title: "Mock Data Engine", toolFolderName: "data-forge", icon: appIcons['data-forge'] },
+    { title: "OmniParse", toolFolderName: "omni-parse", icon: appIcons['omni-parse'] },
     { title: "Ping Tester", toolFolderName: "ping-tester", icon: appIcons['ping-tester'] },
     { title: "Internet Speed Test", toolFolderName: "speed-test", icon: appIcons['speed-test'] },
 
