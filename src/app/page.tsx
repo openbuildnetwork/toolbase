@@ -56,6 +56,12 @@ export default function Home() {
       toolFolderName: "open-draw",
       icon: appIcons['open-draw'],
       metadata: ["drawing", "sketching", "diagramming", "whiteboard", "collaboration"]
+    },
+    {
+      title: "Image Compressor",
+      toolFolderName: "image-compressor",
+      icon: appIcons['compress-image'],
+      metadata: ["image", "compress", "optimize", "resize", "convert", "format", "quality", "lossy", "lossless"]
     }
 
   ];
