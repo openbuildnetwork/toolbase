@@ -9,14 +9,49 @@ import { useState } from 'react';
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const tools: ToolCardProps[] = [
-    { title: "Redact Secrets", toolFolderName: "redact-secrets", icon: appIcons['redact-secrets'] },
-    { title: "JSON to Interface/Model", toolFolderName: "json-to-interface", icon: appIcons['json-to-interface'] },
-    { title: "Magic PDF", toolFolderName: "magic-pdf", icon: appIcons['magic-pdf'] },
-    { title: "Base64 Encode/Decode", toolFolderName: "base64", icon: appIcons['b64EnDc'] },
-    { title: "DataLens", toolFolderName: "data-lens", icon: appIcons['data-lens'] },
-    { title: "Ping Tester", toolFolderName: "ping-tester", icon: appIcons['ping-tester'] },
-    { title: "Internet Speed Test", toolFolderName: "speed-test", icon: appIcons['speed-test'] },
-    { title: "OpenDraw", toolFolderName: "open-draw", icon: appIcons['open-draw'] },
+    {
+      title: "Redact Secrets",
+      toolFolderName: "redact-secrets",
+      icon: appIcons['redact-secrets'],
+      metadata: ["security", "privacy", "text", "remove", "hide", "clean", "sanitize", "secret"]
+    },
+    {
+      title: "JSON to Interface/Model",
+      toolFolderName: "json-to-interface",
+      icon: appIcons['json-to-interface'],
+      metadata: ["json", "typescript", "interface", "model", "schema", "convert", "generator", "type", "definition"]
+    },
+    {
+      title: "Magic PDF",
+      toolFolderName: "magic-pdf",
+      icon: appIcons['magic-pdf'],
+      metadata: ["pdf", "merge", "split", "compress", "edit", "rearrange", "sign", "protect", "document"]
+    },
+    {
+      title: "Base64 Encode/Decode",
+      toolFolderName: "base64",
+      icon: appIcons['b64EnDc'],
+      metadata: ["base64", "encode", "decode", "string", "binary", "convert", "text", "buffer"]
+    },
+    {
+      title: "DataLens",
+      toolFolderName: "data-lens",
+      icon: appIcons['data-lens'],
+      metadata: ["json", "viewer", "explorer", "data", "analyze", "visualize", "structure", "tree"]
+    },
+    {
+      title: "Ping Tester",
+      toolFolderName: "ping-tester",
+      icon: appIcons['ping-tester'],
+      metadata: ["network", "latency", "icmp", "response time", "connectivity", "internet", "ping"]
+    },
+    {
+      title: "Internet Speed Test",
+      toolFolderName: "speed-test",
+      icon: appIcons['speed-test'],
+      metadata: ["download", "upload", "bandwidth", "internet speed", "connection", "network", "speed"]
+    },
+
   ];
 
   return (
