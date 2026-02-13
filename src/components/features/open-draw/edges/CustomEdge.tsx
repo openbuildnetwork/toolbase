@@ -2,12 +2,17 @@ import {
     BaseEdge,
     EdgeLabelRenderer,
     getSmoothStepPath,
-    getBezierPath,
-    getStraightPath,
     EdgeProps,
     useReactFlow,
+    Edge,
 } from '@xyflow/react';
-import { MouseEvent } from 'react';
+
+interface CustomEdgeData extends Record<string, unknown> {
+    label?: string;
+    textColor?: string;
+    animated?: boolean;
+    markerStart?: string;
+}
 
 export function CustomEdge({
     id,
@@ -21,7 +26,7 @@ export function CustomEdge({
     markerEnd,
     data,
     selected,
-}: EdgeProps) {
+}: EdgeProps<Edge<CustomEdgeData>>) {
     const { setEdges } = useReactFlow();
 
     // Default to SmoothStep if not specified
@@ -35,18 +40,11 @@ export function CustomEdge({
         targetPosition,
     });
 
-    const onEdgeClick = (evt: MouseEvent) => {
-        evt.stopPropagation();
-        // Selection is handled by React Flow default behavior usually
-    };
+
 
     const hasLabel = data?.label && typeof data.label === 'string' && data.label.length > 0;
 
-    // Smart Animation Logic
-    // If markerStart is present but markerEnd is not, flow backwards?
-    // Or we can use `animationDirection` style property if supported, or SVG `stroke-dashoffset` tricks.
-    // simpler: If animated, check markers.
-    const isAnimated = style.animationDirection || (data?.animated as boolean) || (style as any).animated; // Check various sources
+
 
     // React Flow's BaseEdge style prop handles 'strokeDasharray' and 'animation' if we pass it right.
     // BUT 'animated' prop on BaseEdge controls the class.
@@ -67,7 +65,7 @@ export function CustomEdge({
             <BaseEdge
                 path={edgePath}
                 markerEnd={markerEnd}
-                markerStart={(data as any).markerStart} // Support markerStart from data
+                markerStart={data?.markerStart} // Support markerStart from data
                 style={edgeStyle}
                 // Determine animation class. React Flow adds 'react-flow__edge-path' by default.
                 // We can append a custom class for reverse animation if needed.
@@ -86,7 +84,7 @@ export function CustomEdge({
                             fontSize: 12,
                             fontWeight: 500,
                             pointerEvents: 'all',
-                            color: data.textColor, // Allow class to dictate if undefined
+                            color: data?.textColor, // Allow class to dictate if undefined
                             zIndex: 10,
                         }}
                         className="nodrag nopan text-gray-800 dark:text-gray-200 bg-slate-50 dark:bg-[#0f0f0f]"
