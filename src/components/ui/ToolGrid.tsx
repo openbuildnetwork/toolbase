@@ -28,14 +28,14 @@ const itemVariants: any = {
 };
 
 
+import { searchTools } from '@/lib/searchTools';
+
 const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery, tools }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const filteredTools = useMemo(() => {
-        return tools.filter(tool =>
-            tool.title.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    }, [searchQuery]);
+        return searchTools(tools, searchQuery);
+    }, [searchQuery, tools]);
 
     return (
         <div className="flex flex-col items-center mt-12 w-full">
@@ -58,6 +58,7 @@ const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery, tools }) => {
                                 title={tool.title}
                                 toolFolderName={tool.toolFolderName}
                                 icon={tool.icon}
+                                metadata={tool.metadata} // Pass metadata for future use (e.g. highlighting)
                             />
                         </motion.div>
                     ))}
