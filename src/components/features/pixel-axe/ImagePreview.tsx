@@ -11,6 +11,7 @@ interface ImagePreviewProps {
     originalInfo: any;
     compressedInfo: any;
     isProcessing: boolean;
+    mode?: 'compress' | 'upscale';
 }
 
 export function ImagePreview({
@@ -19,6 +20,7 @@ export function ImagePreview({
     originalInfo,
     compressedInfo,
     isProcessing,
+    mode = 'compress'
 }: ImagePreviewProps) {
     const [sliderValue, setSliderValue] = useState(50);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -26,24 +28,33 @@ export function ImagePreview({
 
     if (!originalUrl) return null;
 
-    const savings = compressedInfo && originalInfo 
-        ? (((originalInfo as any).size_bytes - (compressedInfo as any).size_bytes) / (originalInfo as any).size_bytes * 100).toFixed(1)
+    // Calculate percentage change
+    const sizeDiff = compressedInfo && originalInfo
+        ? ((compressedInfo.size_bytes - originalInfo.size_bytes) / originalInfo.size_bytes) * 100
         : 0;
+
+    const isSmaller = sizeDiff < 0;
+    const diffLabel = isSmaller ? `${sizeDiff.toFixed(1)}%` : `+${sizeDiff.toFixed(1)}%`;
+    const diffColor = isSmaller ? "text-emerald-700 bg-emerald-100" : "text-amber-700 bg-amber-100";
+
+    const labelText = mode === 'upscale' ? 'Upscaled' : 'Compressed';
+    const labelColorClass = mode === 'upscale' ? "text-violet-600" : "text-emerald-600";
+    const badgeColorClass = mode === 'upscale' ? "bg-violet-600/80 shadow-violet-900/20" : "bg-emerald-600/80 shadow-emerald-900/20";
 
     return (
         <div className="relative w-full h-full flex flex-col gap-4">
-             {/* Stats Header */}
+            {/* Stats Header */}
             <div className="flex items-center justify-between px-4 py-3 bg-white/60 backdrop-blur-md rounded-2xl border border-white/20 shadow-sm">
                 <div className="flex items-center gap-4">
                     <div className="flex flex-col">
                         <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Original</span>
                         <div className="flex items-baseline gap-2">
-                             <span className="text-sm font-medium text-gray-700">{formatBytes(originalInfo?.size_bytes || 0)}</span>
-                             {originalInfo?.width && (
+                            <span className="text-sm font-medium text-gray-700">{formatBytes(originalInfo?.size_bytes || 0)}</span>
+                            {originalInfo?.width && (
                                 <span className="text-[10px] text-gray-400 font-mono">
                                     {originalInfo.width}x{originalInfo.height}
                                 </span>
-                             )}
+                            )}
                         </div>
                     </div>
                 </div>
@@ -51,19 +62,19 @@ export function ImagePreview({
                 {compressedUrl && (
                     <>
                         <div className="h-8 w-px bg-gray-200" />
-                        
+
                         <div className="flex flex-col items-end">
-                            <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
-                                Compressed
-                                <span className="bg-emerald-100 text-emerald-700 px-1.5 rounded text-[10px]">-{savings}%</span>
+                            <span className={cn("text-xs font-bold uppercase tracking-wider flex items-center gap-1", labelColorClass)}>
+                                {labelText}
+                                <span className={cn("px-1.5 rounded text-[10px]", diffColor)}>{diffLabel}</span>
                             </span>
-                             <div className="flex items-baseline gap-2">
+                            <div className="flex items-baseline gap-2">
                                 <span className="text-sm font-bold text-gray-900">{formatBytes(compressedInfo?.size_bytes || 0)}</span>
-                                 {compressedInfo?.width && (
+                                {compressedInfo?.width && (
                                     <span className="text-[10px] text-gray-400 font-mono">
                                         {compressedInfo.width}x{compressedInfo.height}
                                     </span>
-                                 )}
+                                )}
                             </div>
                         </div>
                     </>
@@ -71,49 +82,51 @@ export function ImagePreview({
             </div>
 
             {/* Comparison Slider */}
-            <div 
+            <div
                 ref={containerRef}
                 className="relative flex-1 min-h-[400px] w-full bg-checkered rounded-3xl overflow-hidden border border-gray-200 shadow-inner group select-none"
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
             >
-                {/* Background Image (Compressed/After) */}
+                {/* Background Image (Processed/After) */}
                 {compressedUrl ? (
-                    <img 
-                        src={compressedUrl} 
-                        alt="Compressed" 
+                    <img
+                        src={compressedUrl}
+                        alt={labelText}
                         className="absolute inset-0 w-full h-full object-contain pointer-events-none"
                     />
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <span className="text-sm text-gray-400 animate-pulse">Waiting for compression...</span>
+                        <span className="text-sm text-gray-400 animate-pulse">
+                            Waiting for {mode === 'upscale' ? 'upscaling' : 'compression'}...
+                        </span>
                     </div>
                 )}
 
                 {/* Foreground Image (Original/Before) - Clipped */}
-                <div 
+                <div
                     className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none border-r-2 border-white/50 shadow-2xl"
-                    style={{ 
-                         clipPath: compressedUrl ? `inset(0 ${100 - sliderValue}% 0 0)` : 'none' 
+                    style={{
+                        clipPath: compressedUrl ? `inset(0 ${100 - sliderValue}% 0 0)` : 'none'
                     }}
                 >
-                    <img 
-                        src={originalUrl} 
-                        alt="Original" 
-                        className="absolute inset-0 w-full h-full object-contain" 
+                    <img
+                        src={originalUrl}
+                        alt="Original"
+                        className="absolute inset-0 w-full h-full object-contain"
                         style={{ width: '100%', height: '100%' }} // Ensure it matches parent exactly
                     />
-                    
+
                     {/* Floating Label: Original */}
-                     <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur-md text-white text-xs font-medium px-2 py-1 rounded-lg pointer-events-auto">
+                    <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur-md text-white text-xs font-medium px-2 py-1 rounded-lg pointer-events-auto">
                         Original
                     </div>
                 </div>
-                
-                 {/* Floating Label: Compressed */}
-                 {compressedUrl && (
-                     <div className="absolute bottom-4 right-4 bg-emerald-600/80 backdrop-blur-md text-white text-xs font-medium px-2 py-1 rounded-lg pointer-events-auto shadow-lg shadow-emerald-900/20">
-                        Compressed
+
+                {/* Floating Label: Processed */}
+                {compressedUrl && (
+                    <div className={cn("absolute bottom-4 right-4 backdrop-blur-md text-white text-xs font-medium px-2 py-1 rounded-lg pointer-events-auto shadow-lg", badgeColorClass)}>
+                        {labelText}
                     </div>
                 )}
 
@@ -121,10 +134,10 @@ export function ImagePreview({
                 {/* Slider Handle */}
                 {compressedUrl && (
                     <div className="absolute inset-0 pointer-events-none">
-                         <div 
+                        <div
                             className="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_20px_rgba(0,0,0,0.3)] cursor-ew-resize pointer-events-auto flex items-center justify-center group-hover:bg-blue-400 transition-colors"
                             style={{ left: `${sliderValue}%` }}
-                         >
+                        >
                             <div className="w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center transform hover:scale-110 transition-transform">
                                 <MoveHorizontal className="w-4 h-4 text-gray-600" />
                             </div>
@@ -141,8 +154,8 @@ export function ImagePreview({
                     </div>
                 )}
             </div>
-            
-             <style jsx global>{`
+
+            <style jsx global>{`
                 .bg-checkered {
                     background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
                     background-size: 20px 20px;

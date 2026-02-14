@@ -78,14 +78,22 @@ export function usePixelAxe() {
     const compressImage = useCallback(async (file: File, options: { 
         quality: number, 
         format: string, 
-        resizeFactor: number 
+        resizeFactor: number,
+        enhance: boolean,
+        denoise?: boolean,
+        vibrant?: boolean, 
+        print_dpi?: boolean
     }) => {
         const buffer = await file.arrayBuffer();
         const data = {
             image_data: new Uint8Array(buffer),
             quality: options.quality,
             format: options.format,
-            resize_factor: options.resizeFactor
+            resize_factor: options.resizeFactor,
+            enhance: options.enhance,
+            denoise: options.denoise,
+            vibrant: options.vibrant,
+            print_dpi: options.print_dpi
         };
         return execute('compress', data);
     }, [execute]);
