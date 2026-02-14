@@ -11,7 +11,7 @@ interface ImagePreviewProps {
     originalInfo: any;
     compressedInfo: any;
     isProcessing: boolean;
-    mode?: 'compress' | 'upscale';
+    mode?: 'compress' | 'upscale' | 'resize';
 }
 
 export function ImagePreview({
@@ -37,9 +37,9 @@ export function ImagePreview({
     const diffLabel = isSmaller ? `${sizeDiff.toFixed(1)}%` : `+${sizeDiff.toFixed(1)}%`;
     const diffColor = isSmaller ? "text-emerald-700 bg-emerald-100" : "text-amber-700 bg-amber-100";
 
-    const labelText = mode === 'upscale' ? 'Upscaled' : 'Compressed';
-    const labelColorClass = mode === 'upscale' ? "text-violet-600" : "text-emerald-600";
-    const badgeColorClass = mode === 'upscale' ? "bg-violet-600/80 shadow-violet-900/20" : "bg-emerald-600/80 shadow-emerald-900/20";
+    const labelText = mode === 'upscale' ? 'Upscaled' : mode === 'resize' ? 'Resized' : 'Compressed';
+    const labelColorClass = mode === 'upscale' ? "text-violet-600" : mode === 'resize' ? "text-cyan-600" : "text-emerald-600";
+    const badgeColorClass = mode === 'upscale' ? "bg-violet-600/80 shadow-violet-900/20" : mode === 'resize' ? "bg-cyan-600/80 shadow-cyan-900/20" : "bg-emerald-600/80 shadow-emerald-900/20";
 
     return (
         <div className="relative w-full h-full flex flex-col gap-4">
@@ -98,7 +98,7 @@ export function ImagePreview({
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <span className="text-sm text-gray-400 animate-pulse">
-                            Waiting for {mode === 'upscale' ? 'upscaling' : 'compression'}...
+                            Waiting for {mode === 'upscale' ? 'upscaling' : mode === 'resize' ? 'resizing' : 'compression'}...
                         </span>
                     </div>
                 )}

@@ -1,5 +1,6 @@
 from .core.compressor import compress_image
 from .core.upscaler import upscale_image
+from .core.resizer import resize_image
 from .core.metadata import get_image_info
 
 
@@ -29,6 +30,13 @@ def handle_request(action, data):
             return upscale_image(data)
         else:
             return compress_image(data)
+
+    elif action == "resize":
+        # Check required params
+        if "width" not in data or "height" not in data:
+            return "ERROR: Missing width/height for resize."
+
+        return resize_image(data)
 
     elif action == "get_info":
         return get_image_info(data)

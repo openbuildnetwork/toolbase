@@ -103,9 +103,31 @@ export function usePixelAxe() {
         return execute('get_info', { image_data: new Uint8Array(buffer) });
     }, [execute]);
 
+    const resizeImage = useCallback(async (file: File, options: {
+        width: number,
+        height: number,
+        quality: number,
+        format: string,
+        mode?: 'stretch' | 'contain',
+        fill_color?: string
+    }) => {
+        const buffer = await file.arrayBuffer();
+        const data = {
+            image_data: new Uint8Array(buffer),
+            width: options.width,
+            height: options.height,
+            quality: options.quality,
+            format: options.format,
+            mode: options.mode,
+            fill_color: options.fill_color
+        };
+        return execute('resize', data);
+    }, [execute]);
+
     return {
         ...state,
         compressImage,
-        getImageInfo
+        getImageInfo,
+        resizeImage
     };
 }
