@@ -1,5 +1,5 @@
 import io
-from PIL import Image
+from PIL import Image, ImageOps
 
 def compress_image(data):
     """
@@ -19,6 +19,9 @@ def compress_image(data):
         
         # Open image from bytes
         img = Image.open(io.BytesIO(image_bytes))
+        
+        # Bake EXIF orientation
+        img = ImageOps.exif_transpose(img)
         
         # Resize if needed
         if resize_factor != 1.0:

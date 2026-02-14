@@ -1,16 +1,17 @@
-"use strict";
+
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { FileDropZone } from "@/components/ui/FileDropZone";
 import { Button } from "@/components/ui/Button";
-import { Slider } from "@/components/ui/Slider";
-import { Select } from "@/components/ui/Select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { useImageCompressor } from "@/hooks/useImageCompressor";
-import { formatBytes } from "@/lib/utils";
-import { Download, Image as ImageIcon, RefreshCw, ArrowRight, Zap, ShieldCheck } from "lucide-react";
+import { Download, RefreshCw, Zap, ShieldCheck, ImagePlus, ChevronRight, Settings2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatBytes } from "@/lib/utils";
+
+// Feature Components
+import { ImagePreview } from "@/components/features/image-compressor/ImagePreview";
+import { CompressionSettings } from "@/components/features/image-compressor/CompressionSettings";
 
 export default function ImageCompressorPage() {
     const { isReady, isProcessing, error, compressImage, getImageInfo } = useImageCompressor();
@@ -23,7 +24,7 @@ export default function ImageCompressorPage() {
     const [compressedUrl, setCompressedUrl] = useState<string | null>(null);
     const [compressedInfo, setCompressedInfo] = useState<any>(null);
     
-    // Settings
+    // Settings use dedicated state for UI responsiveness
     const [quality, setQuality] = useState(80);
     const [format, setFormat] = useState("JPEG");
     const [resizeFactor, setResizeFactor] = useState(1.0);
@@ -35,6 +36,8 @@ export default function ImageCompressorPage() {
             if (compressedUrl) URL.revokeObjectURL(compressedUrl);
         };
     }, [originalUrl, compressedUrl]);
+
+    // Auto-compress removed. Manual trigger only.
 
     const handleFileSelect = async (files: File[]) => {
         if (files.length === 0) return;
@@ -57,7 +60,7 @@ export default function ImageCompressorPage() {
             if (info.format && ["JPEG", "PNG", "WEBP"].includes(info.format)) {
                 setFormat(info.format);
             } else {
-                setFormat("JPEG"); // Default
+                setFormat("JPEG"); 
             }
 
         } catch (err) {
@@ -105,225 +108,147 @@ export default function ImageCompressorPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50/50 p-6 md:p-12 font-sans text-slate-800">
-            <div className="max-w-6xl mx-auto space-y-10">
-                
-                {/* Header */}
-                <header className="space-y-4 text-center md:text-left">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-white rounded-2xl shadow-sm border border-gray-100">
-                                <ImageIcon className="w-8 h-8 text-blue-600" />
-                            </div>
-                            <div>
-                                <h1 className="text-3xl font-bold tracking-tight text-slate-900">Image Compressor</h1>
-                                <p className="text-slate-500 font-medium mt-1">Professional-grade compression. 100% Private.</p>
-                            </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100/50 shadow-sm">
-                            <ShieldCheck className="w-4 h-4" />
-                            <span className="text-xs font-bold uppercase tracking-wider">Client-Side Secure</span>
-                        </div>
+        <div className="min-h-screen bg-gray-50/50 font-sans text-slate-800 pb-20">
+            
+            {/* Header / Nav */}
+            <nav className="sticky top-0 z-30 bg-white/70 backdrop-blur-xl border-b border-gray-200/50">
+                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                         <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
+                            <Zap className="w-5 h-5 fill-white" />
+                         </div>
+                        <span className="font-bold text-lg tracking-tight">PixelSqueeze</span>
                     </div>
-                </header>
+                    
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100/50 shadow-sm">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Client-Side Secure</span>
+                    </div>
+                </div>
+            </nav>
 
+            <main className="max-w-7xl mx-auto px-6 py-8">
                 <AnimatePresence mode="wait">
                     {!originalFile ? (
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
+                            className="max-w-2xl mx-auto mt-20"
                         >
-                            <Card className="border-dashed border-2 bg-white/50 backdrop-blur-sm">
-                                <CardContent className="pt-12 pb-12">
-                                    <FileDropZone
-                                        onFileSelected={(file) => handleFileSelect(file ? [file] : [])}
-                                        accept="image/png, image/jpeg, image/webp"
-                                        className="border-none bg-transparent"
-                                    />
-                                </CardContent>
-                            </Card>
+                            <div className="text-center mb-10 space-y-4">
+                                <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
+                                    Compress Images <br/>
+                                    <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-violet-600">Without Quality Loss</span>
+                                </h1>
+                                <p className="text-lg text-slate-500 max-w-lg mx-auto leading-relaxed">
+                                    Professional grade compression powered by WebAssembly. 
+                                    Photos never leave your device.
+                                </p>
+                            </div>
+
+                            <div className="p-1.5 bg-white rounded-[32px] shadow-2xl shadow-gray-200/50 border border-gray-100">
+                                <FileDropZone
+                                    onFileSelected={(file) => handleFileSelect(file ? [file] : [])}
+                                    accept="image/png, image/jpeg, image/webp"
+                                    className="border-2 border-dashed border-gray-200 rounded-[28px] bg-gray-50/50 hover:bg-blue-50/50 hover:border-blue-200 transition-all duration-300 min-h-[300px]"
+                                />
+                            </div>
                         </motion.div>
                     ) : (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="grid grid-cols-1 lg:grid-cols-12 gap-8"
+                            className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[calc(100vh-140px)]"
                         >
-                            {/* Left Panel: Settings */}
-                            <div className="lg:col-span-4 space-y-6">
-                                <Card className="bg-white shadow-sm border-gray-100/50">
-                                    <CardHeader>
-                                        <CardTitle>Compression Settings</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-6">
-                                        <div className="space-y-3">
-                                            <div className="flex justify-between">
-                                                <label className="text-sm font-semibold text-slate-700">Quality</label>
-                                                <span className="text-sm font-mono text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{quality}%</span>
-                                            </div>
-                                            <Slider
-                                                min={1}
-                                                max={100}
-                                                value={quality}
-                                                onChange={(e) => setQuality(Number(e.target.value))}
-                                                className="accent-blue-600"
-                                            />
-                                            <p className="text-xs text-slate-400">Lower quality = smaller file size</p>
-                                        </div>
-
-                                        <div className="space-y-3">
-                                            <label className="text-sm font-semibold text-slate-700">Output Format</label>
-                                            <Select
-                                                value={format}
-                                                onChange={(e) => setFormat(e.target.value)}
-                                                className="bg-gray-50 border-gray-200"
-                                            >
-                                                <option value="JPEG">JPEG (Best for photos)</option>
-                                                <option value="PNG">PNG (Lossless)</option>
-                                                <option value="WEBP">WEBP (Modern & Efficient)</option>
-                                            </Select>
-                                        </div>
-
-                                        <div className="space-y-3">
-                                            <div className="flex justify-between">
-                                                <label className="text-sm font-semibold text-slate-700">Resize</label>
-                                                <span className="text-sm font-mono text-slate-500">{Math.round(resizeFactor * 100)}%</span>
-                                            </div>
-                                            <Slider
-                                                min={0.1}
-                                                max={1.0}
-                                                step={0.1}
-                                                value={resizeFactor}
-                                                onChange={(e) => setResizeFactor(Number(e.target.value))}
-                                            />
-                                        </div>
-
-                                        <div className="pt-4 flex gap-3">
-                                            <Button 
-                                                onClick={handleCompress} 
-                                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-12 shadow-lg shadow-blue-600/20"
-                                                disabled={!isReady || isProcessing}
-                                            >
-                                                {isProcessing ? (
-                                                    <>
-                                                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                                                        Compressing...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Zap className="w-4 h-4 mr-2" />
-                                                        Compress
-                                                    </>
-                                                )}
-                                            </Button>
-                                            <Button 
-                                                variant="outline"
-                                                onClick={() => setOriginalFile(null)}
-                                                className="px-4 rounded-xl border-gray-200 hover:bg-gray-50"
-                                            >
-                                                New
-                                            </Button>
-                                        </div>
-
-                                        {error && (
-                                            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">
-                                                {error}
-                                            </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            </div>
-
-                            {/* Right Panel: Preview */}
-                            <div className="lg:col-span-8 space-y-6">
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    {/* Original */}
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Original</span>
-                                            {originalInfo && (
-                                                <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-600">
-                                                    {formatBytes(originalInfo.size_bytes)}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className="relative aspect-square rounded-2xl overflow-hidden bg-checkered border border-gray-200 shadow-sm group">
-                                            {originalUrl && (
-                                                <img 
-                                                    src={originalUrl} 
-                                                    alt="Original" 
-                                                    className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" 
-                                                />
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Compressed */}
-                                    <div className="space-y-3">
-                                         <div className="flex items-center justify-between">
-                                            <span className="text-sm font-bold text-blue-600 uppercase tracking-wider flex items-center gap-2">
-                                                Compressed
-                                                {compressedInfo && (
-                                                     <span className="bg-green-100 text-green-700 text-[10px] px-1.5 py-0.5 rounded-full">
-                                                        -{Math.round((1 - compressedInfo.size_bytes / originalInfo.size_bytes) * 100)}%
-                                                     </span>
-                                                )}
-                                            </span>
-                                            {compressedInfo && (
-                                                <span className="text-xs font-mono bg-blue-50 px-2 py-1 rounded text-blue-700 font-bold border border-blue-100">
-                                                    {formatBytes(compressedInfo.size_bytes)}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className="relative aspect-square rounded-2xl overflow-hidden bg-checkered border-2 border-dashed border-blue-100 group">
-                                            {compressedUrl ? (
-                                                <img 
-                                                    src={compressedUrl} 
-                                                    alt="Compressed" 
-                                                    className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" 
-                                                />
-                                            ) : (
-                                                <div className="absolute inset-0 flex items-center justify-center text-gray-300">
-                                                    <div className="text-center">
-                                                        <ArrowRight className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                                                        <p className="text-sm">Preview will appear here</p>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
+                            {/* Left Panel: Preview (Takes up most space) */}
+                            <div className="lg:col-span-8 flex flex-col h-full gap-4">
+                                <div className="flex-1 bg-white rounded-[32px] shadow-xl shadow-gray-200/50 border border-white p-2">
+                                    <div className="w-full h-full rounded-[24px] overflow-hidden bg-gray-50 relative">
+                                        <ImagePreview 
+                                            originalUrl={originalUrl}
+                                            compressedUrl={compressedUrl}
+                                            originalInfo={originalInfo}
+                                            compressedInfo={compressedInfo}
+                                            isProcessing={isProcessing}
+                                        />
                                     </div>
                                 </div>
+                            </div>
 
-                                {compressedUrl && (
-                                    <motion.div 
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="flex justify-end pt-4"
+                            {/* Right Panel: Settings Sidebar */}
+                            <div className="lg:col-span-4 flex flex-col gap-6">
+                                <div className="bg-white rounded-[32px] p-6 shadow-xl shadow-gray-200/50 border border-white flex-1">
+                                    <div className="flex items-center gap-3 mb-8">
+                                        <div className="p-2.5 bg-gray-50 rounded-xl">
+                                            <Settings2 className="w-5 h-5 text-gray-700" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900">Config</h3>
+                                            <p className="text-xs text-gray-500">Fine-tune your output</p>
+                                        </div>
+                                    </div>
+
+                                    <CompressionSettings 
+                                        quality={quality}
+                                        setQuality={setQuality}
+                                        format={format}
+                                        setFormat={setFormat}
+                                        resizeFactor={resizeFactor}
+                                        setResizeFactor={setResizeFactor}
+                                        isProcessing={isProcessing}
+                                    />
+                                </div>
+
+                                {/* Actions Card */}
+                                <div className="bg-slate-900 rounded-[24px] p-5 shadow-2xl shadow-slate-900/20 text-white space-y-4">
+                                    <div className="flex justify-between items-center opacity-80 text-sm">
+                                         <span>Ready to save?</span>
+                                         {compressedInfo && (
+                                            <span className="font-mono text-emerald-400">
+                                                {formatBytes(compressedInfo.size_bytes)}
+                                            </span>
+                                         )}
+                                    </div>
+                                    <Button 
+                                        onClick={handleCompress}
+                                        className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-xl h-12 font-bold shadow-lg shadow-blue-900/20 border-0 mb-3"
+                                        disabled={isProcessing}
                                     >
-                                        <Button 
-                                            onClick={downloadImage}
-                                            className="bg-slate-900 text-white hover:bg-black rounded-xl h-12 px-8 shadow-xl shadow-slate-900/10"
-                                        >
-                                            <Download className="w-5 h-5 mr-2" />
-                                            Download Image
-                                        </Button>
-                                    </motion.div>
-                                )}
+                                        {isProcessing ? (
+                                            <>
+                                                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                                Compressing...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Zap className="w-4 h-4 mr-2" />
+                                                Compress Now
+                                            </>
+                                        )}
+                                    </Button>
+
+                                    <Button 
+                                        onClick={downloadImage}
+                                        className="w-full bg-white text-slate-900 hover:bg-gray-100 rounded-xl h-12 font-bold shadow-none border-0"
+                                        disabled={!compressedUrl}
+                                    >
+                                        <Download className="w-4 h-4 mr-2" />
+                                        Download Image
+                                    </Button>
+                                    <button 
+                                        onClick={() => setOriginalFile(null)}
+                                        className="w-full flex items-center justify-center gap-2 text-xs font-medium text-slate-400 hover:text-white transition-colors py-2"
+                                    >
+                                        <RefreshCw className="w-3 h-3" />
+                                        Compress Another
+                                    </button>
+                                </div>
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </div>
-            
-            <style jsx global>{`
-                .bg-checkered {
-                    background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
-                    background-size: 20px 20px;
-                    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-                }
-            `}</style>
+            </main>
         </div>
     );
 }

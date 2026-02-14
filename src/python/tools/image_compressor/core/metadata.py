@@ -1,5 +1,5 @@
 import io
-from PIL import Image
+from PIL import Image, ImageOps
 
 def get_image_info(data):
     """
@@ -14,6 +14,9 @@ def get_image_info(data):
     try:
         image_bytes = bytes(data.get('image_data'))
         img = Image.open(io.BytesIO(image_bytes))
+        
+        # Bake EXIF orientation for correct dimensions
+        img = ImageOps.exif_transpose(img)
         
         return {
             "format": img.format,
