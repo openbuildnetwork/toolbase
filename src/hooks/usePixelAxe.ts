@@ -14,7 +14,7 @@ interface WorkerMessage {
     id?: string;
 }
 
-export function useImageCompressor() {
+export function usePixelAxe() {
     const [state, setState] = useState<CompressorState>({
         isReady: false,
         isProcessing: false,
@@ -27,7 +27,7 @@ export function useImageCompressor() {
     useEffect(() => {
         // Initialize worker
         if (!workerRef.current) {
-            workerRef.current = new Worker(new URL('../workers/image-compressor.worker', import.meta.url));
+            workerRef.current = new Worker(new URL('../workers/pixel-axe.worker', import.meta.url));
             
             workerRef.current.onmessage = (event: MessageEvent<WorkerMessage>) => {
                 const { type, data, error, id } = event.data;

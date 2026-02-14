@@ -8,7 +8,7 @@ def handle_request(action, data):
 
     Args:
         action (str): The action to perform ('compress', 'get_info').
-        data (dict): The input data containing image bytes and parameters.
+        data (dict): The input data containing image bytes and parameters
 
     Returns:
         dict: The result of the action.

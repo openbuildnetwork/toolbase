@@ -1,6 +1,6 @@
 import { loadPyodide, type PyodideInterface } from "pyodide";
 // @ts-ignore - The bundle file is auto-generated
-import { PYTHON_FILES } from "@/python/bundles/image_compressor.bundle";
+import { PYTHON_FILES } from "@/python/bundles/pixel-axe.bundle";
 
 let pyodideInitPromise: Promise<PyodideInterface> | null = null;
 
@@ -15,7 +15,7 @@ async function loadPyodideAndPackages() {
         console.log("Worker: Installing Pillow...");
         await pyodide.loadPackage(["micropip"]); 
         const micropip = pyodide.pyimport("micropip");
-        await micropip.install(["Pillow"]);
+        await micropip.install(["Pillow"]); 
 
         console.log("Worker: Pyodide loaded, setting up filesystem...");
 
@@ -47,7 +47,7 @@ import os
 print(f"Current CWD: {os.getcwd()}")
 try:
     sys.path.append(os.getcwd())
-    import tools.image_compressor.main as compressor_main
+    import tools.pixel_axe.main as compressor_main
     handle_request = compressor_main.handle_request
     print("Python: handle_request imported successfully")
 except Exception as e:

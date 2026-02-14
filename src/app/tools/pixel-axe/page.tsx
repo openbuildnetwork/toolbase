@@ -4,17 +4,17 @@
 import React, { useState, useEffect } from "react";
 import { FileDropZone } from "@/components/ui/FileDropZone";
 import { Button } from "@/components/ui/Button";
-import { useImageCompressor } from "@/hooks/useImageCompressor";
+import { usePixelAxe } from "@/hooks/usePixelAxe";
 import { Download, RefreshCw, Zap, ShieldCheck, ImagePlus, ChevronRight, Settings2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatBytes } from "@/lib/utils";
 
 // Feature Components
-import { ImagePreview } from "@/components/features/image-compressor/ImagePreview";
-import { CompressionSettings } from "@/components/features/image-compressor/CompressionSettings";
+import { ImagePreview } from "@/components/features/pixel-axe/ImagePreview";
+import { CompressionSettings } from "@/components/features/pixel-axe/CompressionSettings";
 
 export default function ImageCompressorPage() {
-    const { isReady, isProcessing, error, compressImage, getImageInfo } = useImageCompressor();
+    const { isReady, isProcessing, error, compressImage, getImageInfo } = usePixelAxe();
     
     // State
     const [originalFile, setOriginalFile] = useState<File | null>(null);
@@ -117,7 +117,7 @@ export default function ImageCompressorPage() {
                          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
                             <Zap className="w-5 h-5 fill-white" />
                          </div>
-                        <span className="font-bold text-lg tracking-tight">PixelSqueeze</span>
+                        <span className="font-bold text-lg tracking-tight">PixelAxe</span>
                     </div>
                     
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100/50 shadow-sm">
