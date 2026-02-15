@@ -60,9 +60,9 @@ export default function Home() {
       metadata: ["drawing", "sketching", "diagramming", "whiteboard", "collaboration"]
     },
     {
-      title: "Image Compressor",
-      toolFolderName: "image-compressor",
-      icon: appIcons['compress-image'],
+      title: "Pixel Axe",
+      toolFolderName: "pixel-axe",
+      icon: appIcons['pixel-axe'],
       metadata: ["image", "compress", "optimize", "resize", "convert", "format", "quality", "lossy", "lossless"]
     }
 

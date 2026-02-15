@@ -22,13 +22,13 @@ export default function PixelAxePage() {
     const tools: ToolSidebarItem[] = [
         { id: 'compress', label: 'Compress Image', icon: Zap },
         { id: 'upscale', label: 'Upscale Image', icon: Scaling, badge: "Beta" },
-        { id: 'resize', label: 'Resize Image', icon: Image, badge: "New" },
+        { id: 'resize', label: 'Resize Image', icon: Image},
     ];
 
     const activeToolLabel = tools.find(t => t.id === activeTool)?.label || 'Tool';
 
     return (
-        <div className="flex h-[calc(100vh-80px)] overflow-hidden bg-[#FDFDFD] relative">
+        <div className="flex h-screen overflow-hidden bg-[#FDFDFD] relative">
             <ToolSidebar
                 title="Pixel Axe"
                 items={tools}
