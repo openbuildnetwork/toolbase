@@ -56,6 +56,18 @@ export default function Home() {
       toolFolderName: "open-draw",
       icon: appIcons['open-draw'],
       metadata: ["drawing", "sketching", "diagramming", "whiteboard", "collaboration"]
+    },
+    {
+      title: "Data Forge",
+      toolFolderName: "data-forge",
+      icon: appIcons['data-forge'],
+      metadata: ["data", "forge", "generate", "mock", "test", "data", "generate", "mock", "test"]
+    },
+    {
+      title: "Omniparse",
+      toolFolderName: "omni-parse",
+      icon: appIcons['omni-parse'],
+      metadata: ["pdf", "merge", "split", "compress", "edit", "rearrange", "sign", "protect", "document"]
     }
 
   ];
