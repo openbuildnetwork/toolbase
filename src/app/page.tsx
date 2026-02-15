@@ -39,6 +39,8 @@ export default function Home() {
       icon: appIcons['data-lens'],
       metadata: ["json", "viewer", "explorer", "data", "analyze", "visualize", "structure", "tree"]
     },
+    { title: "Mock Data Engine", toolFolderName: "data-forge", icon: appIcons['data-forge'] },
+    { title: "OmniParse", toolFolderName: "omni-parse", icon: appIcons['omni-parse'] },
     {
       title: "Ping Tester",
       toolFolderName: "ping-tester",

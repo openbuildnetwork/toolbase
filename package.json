@@ -19,6 +19,8 @@
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-tabs": "^1.1.13",
     "@tanstack/react-table": "^8.21.3",
+    "ajv": "^8.17.1",
+    "@xyflow/react": "^12.10.0",
     "@xyflow/react": "^12.10.0",
     "aws-svg-icons": "^3.0.0-2021-07-30",
     "ajv": "^8.17.1",
