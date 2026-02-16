@@ -93,7 +93,7 @@ const DemoAnimation = () => {
             <div className="absolute bottom-4 left-0 right-0 text-center">
                 <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/5 text-slate-600 text-xs backdrop-blur-md border border-slate-200">
                     <Wand2 className="w-3 h-3 text-indigo-500" />
-                    AI Auto-Removal
+                    Auto-Removal
                 </span>
             </div>
         </div>
@@ -107,6 +107,7 @@ export default function BgRemoverPage() {
     const [isDragOver, setIsDragOver] = useState(false);
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [downloadProgress, setDownloadProgress] = useState<string | null>(null);
+    const [isUrlLoading, setIsUrlLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Process queue effect
@@ -128,28 +129,80 @@ export default function BgRemoverPage() {
                 // Construct public path for local assets
                 const publicPath = `${window.location.origin}/imgly/`;
 
+                let lastUpdate = 0;
+
                 const config: Config = {
                     publicPath: publicPath, // Use local assets to prevent "Failed to fetch"
-                    model: 'isnet', // Use the heavier model for better quality
+                    model: 'isnet_fp16', // Use FP16 model (Higher accuracy than Quint8) to ensure body/clothing is detected, not just head
                     output: {
                         format: 'image/png',
-                        quality: 1.0, // Maximum quality
+                        quality: 1.0,
                     },
                     progress: (key, current, total) => {
-                        setDownloadProgress(`Loading AI Model (${key}): ${Math.round(current / total * 100)}%`);
+                        const now = Date.now();
+                        // Aggressively throttle updates to every 500ms to prevent UI freezing
+                        if (now - lastUpdate > 500) {
+                            setDownloadProgress(`Loading AI Model (${key}): ${Math.round(current / total * 100)}%`);
+                            lastUpdate = now;
+                        }
                     }
                 };
 
+                // Yield control to the main thread for 800ms to ensure the UI fully updates (spinner starts)
+                await new Promise(resolve => setTimeout(resolve, 800));
+
                 const blob = await removeBackground(nextImage.file || nextImage.originalUrl, config);
-                const processedUrl = URL.createObjectURL(blob);
+
+                // --- Post-Processing: Sharpen & Remove Shadows ---
+                let processedUrl: string | null = null;
+                try {
+                    const cleanupBitmap = await createImageBitmap(blob);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = cleanupBitmap.width;
+                    canvas.height = cleanupBitmap.height;
+                    const ctx = canvas.getContext('2d');
+
+                    if (ctx) {
+                        ctx.drawImage(cleanupBitmap, 0, 0);
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const data = imageData.data;
+
+                        for (let i = 3; i < data.length; i += 4) {
+                            const alpha = data[i];
+                            // Threshold lowered to 40 to PRESERVE body/clothing details while removing low-opacity shadows.
+                            // Previously 100 was too high and cut off shoulders/clothes.
+                            if (alpha < 40) {
+                                data[i] = 0; // Remove shadows/glare
+                            } else {
+                                data[i] = 255; // Make subject fully opaque and sharp
+                            }
+                        }
+                        ctx.putImageData(imageData, 0, 0);
+
+                        const cleanBlob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+                        processedUrl = cleanBlob ? URL.createObjectURL(cleanBlob) : URL.createObjectURL(blob);
+                    } else {
+                        processedUrl = URL.createObjectURL(blob);
+                    }
+                } catch (e) {
+                    console.warn("Post-processing failed, using raw output", e);
+                    processedUrl = URL.createObjectURL(blob);
+                }
 
                 setImages(prev => prev.map(img =>
                     img.id === nextImage.id ? { ...img, status: 'completed', processedUrl } : img
                 ));
             } catch (err) {
                 console.error("BG Removal Error", err);
+
+                let errorMessage = 'Failed to process image.';
+                // Check if it's likely a CORS error (external URL)
+                if (!nextImage.file && nextImage.originalUrl.startsWith('http')) {
+                    errorMessage = 'Failed to load URL. This is likely due to CORS restrictions on the source image. Please save the image and upload it manually.';
+                }
+
                 setImages(prev => prev.map(img =>
-                    img.id === nextImage.id ? { ...img, status: 'error', error: 'Failed to process image. Check console.' } : img
+                    img.id === nextImage.id ? { ...img, status: 'error', error: errorMessage } : img
                 ));
             } finally {
                 setProcessingId(null);
@@ -195,16 +248,44 @@ export default function BgRemoverPage() {
             return;
         }
 
-        const newItem: ImageItem = {
-            id: Math.random().toString(36).substring(7),
-            originalUrl: urlInput,
-            processedUrl: null,
-            status: 'pending', // Will switch to processing immediately
-            name: 'Image from URL'
-        };
+        setIsUrlLoading(true);
 
-        setImages(prev => [...prev, newItem]);
-        setUrlInput('');
+        try {
+            // Fetch the image via our proxy to handle CORS/CORP headers correctly
+            const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(urlInput)}`;
+            const response = await fetch(proxyUrl);
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch image: ${response.statusText}`);
+            }
+
+            const blob = await response.blob();
+            // Create a local object URL from the proxied blob
+            // This ensures the image displays correctly (CORP headers bypassed by blob URL context)
+            // and can be processed by the background remover without extensive network delays.
+            const localUrl = URL.createObjectURL(blob);
+
+            // Create a File object from the blob to pass directly to the library
+            // This bypasses the internal fetching mechanism which can fail even with blob URLs
+            const file = new File([blob], 'image_from_url.png', { type: blob.type });
+
+            const newItem: ImageItem = {
+                id: Math.random().toString(36).substring(7),
+                originalUrl: localUrl,
+                file: file, // Pass the file object
+                processedUrl: null,
+                status: 'pending', // Will switch to processing immediately
+                name: 'Image from URL'
+            };
+
+            setImages(prev => [...prev, newItem]);
+            setUrlInput('');
+        } catch (error) {
+            console.error("URL Import Error:", error);
+            alert("Failed to import image from URL. The server may be blocking access. Please download the image and upload manually.");
+        } finally {
+            setIsUrlLoading(false);
+        }
     };
 
     const handleDrop = (e: React.DragEvent) => {
@@ -261,7 +342,7 @@ export default function BgRemoverPage() {
                     >
                         <Wand2 className="w-5 h-5 text-indigo-500 mr-2" />
                         <span className="font-medium text-indigo-600">
-                            AI Background Remover
+                            Image Background Remover
                         </span>
                     </motion.div>
 
@@ -284,7 +365,7 @@ export default function BgRemoverPage() {
                         </span>
                     </h1>
                     <p className="text-lg text-slate-600">
-                        Upload images or paste a URL. High-quality AI processing runs 100% in your browser.
+                        Upload images or paste a URL. High-quality processing runs 100% in your browser.
                         No logins, no watermarks, completely private.
                     </p>
                 </motion.div>
@@ -360,7 +441,7 @@ export default function BgRemoverPage() {
                                             <ImageIcon className="w-8 h-8 text-indigo-500" />
                                         </div>
                                         <p className="text-lg font-medium mb-2 text-slate-700">Click or Drag images here</p>
-                                        <p className="text-sm text-slate-500">Supports JPG, PNG, WEBP (Max 5 images)</p>
+                                        <p className="text-sm text-slate-500">Supports JPG, PNG, WEBP</p>
                                     </div>
                                 </motion.div>
                             ) : (
@@ -385,10 +466,11 @@ export default function BgRemoverPage() {
                                         </div>
                                         <button
                                             type="submit"
-                                            disabled={!urlInput}
-                                            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-all shadow-lg shadow-indigo-200 active:scale-[0.98]"
+                                            disabled={!urlInput || isUrlLoading}
+                                            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-all shadow-lg shadow-indigo-200 active:scale-[0.98] flex items-center justify-center gap-2"
                                         >
-                                            Import Image
+                                            {isUrlLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                                            {isUrlLoading ? 'Importing...' : 'Import Image'}
                                         </button>
                                     </form>
                                 </motion.div>
@@ -434,8 +516,15 @@ export default function BgRemoverPage() {
                                             <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 z-10 rounded text-[10px] text-white/90 uppercase tracking-wider backdrop-blur-md">Result</div>
 
                                             {img.status === 'completed' && img.processedUrl ? (
-                                                /* eslint-disable-next-line @next/next/no-img-element */
-                                                <img src={img.processedUrl} alt="Processed" className="relative z-10 w-full h-full object-contain" />
+                                                <>
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img
+                                                        src={img.processedUrl}
+                                                        alt="Processed"
+                                                        className="relative z-10 w-full h-full object-contain"
+                                                        style={{ imageRendering: 'auto' }} // Ensure browser uses high-quality scaling
+                                                    />
+                                                </>
                                             ) : (
                                                 <div className="relative z-10 text-slate-500 text-sm font-medium">
                                                     {img.status === 'processing' ? 'Removing background...' : img.status === 'error' ? 'Failed' : 'Waiting...'}
