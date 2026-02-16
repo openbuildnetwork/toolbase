@@ -33,24 +33,12 @@ export default function Home() {
       icon: appIcons['b64EnDc'],
       metadata: ["base64", "encode", "decode", "string", "binary", "convert", "text", "buffer"]
     },
-	    {
-	      title: "DataLens",
-	      toolFolderName: "data-lens",
-	      icon: appIcons['data-lens'],
-	      metadata: ["json", "viewer", "explorer", "data", "analyze", "visualize", "structure", "tree"]
-	    },
-	    {
-	      title: "Mock Data Engine",
-	      toolFolderName: "data-forge",
-	      icon: appIcons['data-forge'],
-	      metadata: ["mock", "data", "generator", "fixtures", "seed", "json", "schema", "blueprint", "test", "api"]
-	    },
-	    {
-	      title: "OmniParse",
-	      toolFolderName: "omni-parse",
-	      icon: appIcons['omni-parse'],
-	      metadata: ["convert", "validate", "format", "json", "xml", "yaml", "toml", "escape", "flatten", "graph", "documentation"]
-	    },
+    {
+      title: "DataLens",
+      toolFolderName: "data-lens",
+      icon: appIcons['data-lens'],
+      metadata: ["json", "viewer", "explorer", "data", "analyze", "visualize", "structure", "tree"]
+    },
     {
       title: "Ping Tester",
       toolFolderName: "ping-tester",
@@ -63,14 +51,14 @@ export default function Home() {
       icon: appIcons['speed-test'],
       metadata: ["download", "upload", "bandwidth", "internet speed", "connection", "network", "speed"]
     },
-	    {
-	      title: "Open Draw",
-	      toolFolderName: "open-draw",
-	      icon: appIcons['open-draw'],
-	      metadata: ["drawing", "sketching", "diagramming", "whiteboard", "collaboration"]
-	    }
+    {
+      title: "Open Draw",
+      toolFolderName: "open-draw",
+      icon: appIcons['open-draw'],
+      metadata: ["drawing", "sketching", "diagramming", "whiteboard", "collaboration"]
+    }
 
-	  ];
+  ];
 
   return (
     <div className="bg-background-light view font-display text-[#1c1c1e] min-h-screen flex flex-col selection:bg-primary/30 antialiased">
