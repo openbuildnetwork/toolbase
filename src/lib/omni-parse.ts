@@ -78,7 +78,11 @@ export function serializeFromObject(
     case "yaml":
       return YAML.stringify(data);
     case "toml":
-      return TOML.stringify(data);
+      // TOML stringify expects a top-level map/object.
+      if (!data || typeof data !== "object" || Array.isArray(data)) {
+        throw new Error("TOML output requires a top-level object.");
+      }
+      return TOML.stringify(data as any);
     default:
       throw new Error(`Unsupported output format: ${format}`);
   }
@@ -249,7 +253,7 @@ export function unflattenJson(flat: Record<string, unknown>, options: FlattenOpt
       }
 
       const shouldBeArray = nextPart !== undefined && isIndex(nextPart);
-      const existing =
+      const existing: unknown =
         Array.isArray(current) && isIndex(part)
           ? (current as unknown[])[Number(part)]
           : (current as Record<string, unknown>)[part];
