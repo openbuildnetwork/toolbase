@@ -20,6 +20,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@xyflow/react": "^12.10.0",
     "aws-svg-icons": "^3.0.0-2021-07-30",
+    "@imgly/background-removal": "^1.7.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.26.2",
     "html-to-image": "^1.11.13",
