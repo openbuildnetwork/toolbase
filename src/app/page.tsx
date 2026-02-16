@@ -40,6 +40,18 @@ export default function Home() {
       metadata: ["json", "viewer", "explorer", "data", "analyze", "visualize", "structure", "tree"]
     },
     {
+      title: "Mock Data Engine",
+      toolFolderName: "data-forge",
+      icon: appIcons['data-forge'],
+      metadata: ["mock", "data", "generator", "fixtures", "seed", "json", "schema", "blueprint", "test", "api"]
+    },
+    {
+      title: "OmniParse",
+      toolFolderName: "omni-parse",
+      icon: appIcons['omni-parse'],
+      metadata: ["convert", "validate", "format", "json", "xml", "yaml", "toml", "escape", "flatten", "graph", "documentation"]
+    },
+    {
       title: "Ping Tester",
       toolFolderName: "ping-tester",
       icon: appIcons['ping-tester'],
@@ -62,6 +74,12 @@ export default function Home() {
       toolFolderName: "passwordx",
       icon: appIcons['password-generator'],
       metadata: ["password", "generator", "security", "random", "secure", "strong", "passwordx"]
+    },
+    {
+      title: "Open Draw",
+      toolFolderName: "open-draw",
+      icon: appIcons['open-draw'],
+      metadata: ["drawing", "sketching", "diagramming", "whiteboard", "collaboration"]
     }
 
   ];
