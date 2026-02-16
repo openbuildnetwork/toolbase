@@ -1,6 +1,7 @@
 from .core.compressor import compress_image
 from .core.upscaler import upscale_image
 from .core.resizer import resize_image
+from .core.steganography import hide_text, reveal_text
 from .core.metadata import get_image_info
 
 
@@ -10,7 +11,7 @@ def handle_request(action, data):
     Routes requests to appropriate modules based on action and parameters.
 
     Args:
-        action (str): The action to perform ('compress', 'get_info').
+        action (str): The action to perform ('compress', 'get_info', 'hide_text', 'reveal_text').
         data (dict): The input data containing image bytes and parameters.
 
     Returns:
@@ -37,6 +38,12 @@ def handle_request(action, data):
             return "ERROR: Missing width/height for resize."
 
         return resize_image(data)
+
+    elif action == "hide_text":
+        return hide_text(data)
+
+    elif action == "reveal_text":
+        return reveal_text(data)
 
     elif action == "get_info":
         return get_image_info(data)

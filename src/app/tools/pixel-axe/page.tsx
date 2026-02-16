@@ -11,9 +11,10 @@ import { cn } from "@/lib/utils";
 import { CompressImage } from "@/components/features/pixel-axe/CompressImage";
 import { UpscaleImage } from "@/components/features/pixel-axe/UpscaleImage";
 import { ResizeImage } from "@/components/features/pixel-axe/ResizeImage";
+import { Steganography } from "@/components/features/pixel-axe/Steganography";
 
 export default function PixelAxePage() {
-    const { isReady, isProcessing, error, compressImage, getImageInfo, resizeImage } = usePixelAxe();
+    const { isReady, isProcessing, error, compressImage, getImageInfo, resizeImage, hideText, revealText } = usePixelAxe();
 
     // Sidebar State
     const [activeTool, setActiveTool] = useState('compress');
@@ -22,7 +23,8 @@ export default function PixelAxePage() {
     const tools: ToolSidebarItem[] = [
         { id: 'compress', label: 'Compress Image', icon: Zap },
         { id: 'upscale', label: 'Upscale Image', icon: Scaling, badge: "Beta" },
-        { id: 'resize', label: 'Resize Image', icon: Image},
+        { id: 'resize', label: 'Resize Image', icon: Image },
+        { id: 'stego', label: 'Hide Data in Img', icon: ShieldCheck, badge: "New" },
     ];
 
     const activeToolLabel = tools.find(t => t.id === activeTool)?.label || 'Tool';
@@ -86,7 +88,7 @@ export default function PixelAxePage() {
                                     className="h-full"
                                 >
                                     <UpscaleImage
-                                        compressImage={compressImage} // Still passed for compatibility if needed, but likely unused in Resize
+                                        compressImage={compressImage}
                                         getImageInfo={getImageInfo}
                                         isProcessing={isProcessing}
                                         isReady={isReady}
@@ -104,6 +106,24 @@ export default function PixelAxePage() {
                                 >
                                     <ResizeImage
                                         resizeImage={resizeImage}
+                                        getImageInfo={getImageInfo}
+                                        isProcessing={isProcessing}
+                                        isReady={isReady}
+                                    />
+                                </motion.div>
+                            )}
+                            {activeTool === 'stego' && (
+                                <motion.div
+                                    key="stego"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="h-full"
+                                >
+                                    <Steganography
+                                        hideText={hideText}
+                                        revealText={revealText}
                                         getImageInfo={getImageInfo}
                                         isProcessing={isProcessing}
                                         isReady={isReady}

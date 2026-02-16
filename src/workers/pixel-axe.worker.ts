@@ -1,6 +1,6 @@
 import { loadPyodide, type PyodideInterface } from "pyodide";
 // @ts-ignore - The bundle file is auto-generated
-import { PYTHON_FILES } from "@/python/bundles/pixel-axe.bundle";
+import { PYTHON_FILES } from "@/python/bundles/pixel_axe.bundle";
 
 let pyodideInitPromise: Promise<PyodideInterface> | null = null;
 
@@ -12,10 +12,10 @@ async function loadPyodideAndPackages() {
         });
 
         // Install dependencies
-        console.log("Worker: Installing Pillow...");
+        console.log("Worker: Installing Pillow and NumPy...");
         await pyodide.loadPackage(["micropip"]); 
         const micropip = pyodide.pyimport("micropip");
-        await micropip.install(["Pillow"]); 
+        await micropip.install(["Pillow", "numpy"]); 
 
         console.log("Worker: Pyodide loaded, setting up filesystem...");
 

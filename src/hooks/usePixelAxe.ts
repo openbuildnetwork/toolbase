@@ -124,10 +124,31 @@ export function usePixelAxe() {
         return execute('resize', data);
     }, [execute]);
 
+    const hideText = useCallback(async (file: File, text: string) => {
+        const buffer = await file.arrayBuffer();
+        const data = {
+            image_data: new Uint8Array(buffer),
+            text: text,
+        };
+        // Returns the PNG bytes with hidden text
+        return execute('hide_text', data);
+    }, [execute]);
+
+    const revealText = useCallback(async (file: File) => {
+        const buffer = await file.arrayBuffer();
+        const data = {
+            image_data: new Uint8Array(buffer),
+        };
+        // Returns the extracted string
+        return execute('reveal_text', data);
+    }, [execute]);
+
     return {
         ...state,
         compressImage,
         getImageInfo,
-        resizeImage
+        resizeImage,
+        hideText,
+        revealText
     };
 }

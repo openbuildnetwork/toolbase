@@ -63,7 +63,7 @@ export default function Home() {
       title: "Pixel Axe",
       toolFolderName: "pixel-axe",
       icon: appIcons['pixel-axe'],
-      metadata: ["image", "compress", "optimize", "resize", "convert", "format", "quality", "lossy", "lossless"]
+      metadata: ["image", "compress", "optimize", "resize", "convert", "format", "quality", "lossy", "lossless", "stego", "hide", "reveal", "upscale", "hide data in image", "extract data from image", "image info"]
     }
 
   ];
