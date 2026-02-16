@@ -56,6 +56,12 @@ export default function Home() {
       toolFolderName: "open-draw",
       icon: appIcons['open-draw'],
       metadata: ["drawing", "sketching", "diagramming", "whiteboard", "collaboration"]
+    },
+    {
+      title: "PasswordX",
+      toolFolderName: "passwordx",
+      icon: appIcons['password-generator'],
+      metadata: ["password", "generator", "security", "random", "secure", "strong", "passwordx"]
     }
 
   ];
