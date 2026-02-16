@@ -7,7 +7,8 @@
     "start": "next start",
     "build:python": "ts-node scripts/build-python-bundler.ts",
     "watch:python": "nodemon --watch src/python -e py --exec \"npm run build:python\"",
-    "build": "npm run build:python && next build",
+    "build": "python scripts/setup-bg-remover.py && npm run build:python && next build",
+    "predev": "python scripts/setup-bg-remover.py",
     "dev": "concurrently \"npm run watch:python\" \"next dev\"",
     "lint": "eslint"
   },
