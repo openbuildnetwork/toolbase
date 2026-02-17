@@ -64,12 +64,6 @@ export default function Home() {
       toolFolderName: "pixel-axe",
       icon: appIcons['pixel-axe'],
       metadata: ["image", "compress", "optimize", "resize", "convert", "format", "quality", "lossy", "lossless", "stego", "hide", "reveal", "upscale", "hide data in image", "extract data from image", "image info"]
-    },
-    {
-      title: "Background Remover",
-      toolFolderName: "bgremover",
-      icon: appIcons['bgremover'],
-      metadata: ["Background", "remove", "erase", "image", "clear", "transparent", "png", "jpg", "jpeg", "webp", "cut"]
     }
 
   ];
