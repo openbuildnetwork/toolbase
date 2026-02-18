@@ -1,44 +1,31 @@
-import React from "react";
+import React, { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
-interface SliderProps extends React.InputHTMLAttributes<HTMLInputElement> {
-    label?: string;
-    valueDisplay?: React.ReactNode;
-}
+export interface SliderProps
+  extends React.InputHTMLAttributes<HTMLInputElement> { }
 
-export const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
-    ({ className, label, valueDisplay, ...props }, ref) => {
-        return (
-            <div className={cn("w-full", className)}>
-                {(label || valueDisplay) && (
-                    <div className="flex justify-between items-center mb-2">
-                        {label && (
-                            <label className="text-sm font-medium text-gray-700">
-                                {label}
-                            </label>
-                        )}
-                        {valueDisplay && (
-                            <span className="text-sm font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">
-                                {valueDisplay}
-                            </span>
-                        )}
-                    </div>
-                )}
-                <div className="relative flex items-center select-none touch-none w-full h-5">
-                    <input
-                        type="range"
-                        ref={ref}
-                        className={cn(
-                            "w-full absolute h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-primary",
-                            "focus:outline-none focus:ring-2 focus:ring-primary/20",
-                            className
-                        )}
-                        {...props}
-                    />
-                </div>
-            </div>
-        );
-    }
+const Slider = forwardRef<HTMLInputElement, SliderProps>(
+  ({ className, ...props }, ref) => {
+    return (
+      <div className="relative w-full h-6 flex items-center">
+        <input
+          type="range"
+          className={cn(
+            "w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary",
+            // Webkit slider thumb
+            "[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-gray-200 [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:hover:scale-110",
+            // Firefox slider thumb
+            "[&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:border [&::-moz-range-thumb]:border-gray-200 [&::-moz-range-thumb]:transition-all [&::-moz-range-thumb]:hover:scale-110",
+            className
+          )}
+          ref={ref}
+          {...props}
+        />
+      </div>
+    );
+  }
 );
 
 Slider.displayName = "Slider";
+
+export { Slider };
