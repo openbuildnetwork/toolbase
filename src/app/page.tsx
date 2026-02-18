@@ -72,7 +72,7 @@ export default function Home() {
     {
       title: "PasswordX",
       toolFolderName: "passwordx",
-      icon: appIcons['passwordx'],
+      icon: appIcons['password-generator'],
       metadata: ["password", "generator", "security", "random", "secure", "strong", "passwordx"]
 
     }
