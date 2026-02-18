@@ -1,0 +1,11 @@
+﻿.next/types/validator.ts(25,44): error TS2344: Type 'Route' does not satisfy the constraint 'LayoutRoutes'.
+  Type 'import("C:/Users/Rony/Desktop/OBN/toolbase/.next/types/routes").LayoutRoutes' is not assignable to type 'import("C:/Users/Rony/Desktop/OBN/toolbase/.next/dev/types/routes").LayoutRoutes'.
+    Type '"/tools/bgremover"' is not assignable to type 'LayoutRoutes'.
+.next/types/validator.ts(25,75): error TS2344: Type 'Route' does not satisfy the constraint 'LayoutRoutes'.
+  Type 'import("C:/Users/Rony/Desktop/OBN/toolbase/.next/types/routes").LayoutRoutes' is not assignable to type 'import("C:/Users/Rony/Desktop/OBN/toolbase/.next/dev/types/routes").LayoutRoutes'.
+    Type '"/tools/bgremover"' is not assignable to type 'LayoutRoutes'.
+.next/types/validator.ts(71,39): error TS2307: Cannot find module '../../src/app/tools/bgremover/page.js' or its corresponding type declarations.
+.next/types/validator.ts(134,39): error TS2307: Cannot find module '../../src/app/tools/pixel-axe/page.js' or its corresponding type declarations.
+.next/types/validator.ts(161,39): error TS2307: Cannot find module '../../src/app/api/proxy-image/route.js' or its corresponding type declarations.
+.next/types/validator.ts(192,39): error TS2307: Cannot find module '../../src/app/tools/bgremover/layout.js' or its corresponding type declarations.
+.next/types/validator.ts(228,39): error TS2307: Cannot find module '../../src/app/tools/pixel-axe/layout.js' or its corresponding type declarations.

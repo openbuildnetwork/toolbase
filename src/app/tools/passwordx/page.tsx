@@ -4,16 +4,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Slider } from '@/components/ui/Slider';
+import { Input } from '@/components/ui/Input';
 import { Checkbox } from '@/components/ui/Checkbox'; // Assuming this is now created
 import { CopyToClipboard } from '@/components/ui/CopyToClipboard';
 import {
     RefreshCw,
-    Shield,
     CheckCircle2,
-    Lock,
-    Unlock,
-    Copy,
-    Settings
+    Lock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -90,7 +87,7 @@ export default function PasswordGeneratorPage() {
     }, [generatePassword]);
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 py-6 px-4">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-6 px-4">
             <div className="max-w-2xl mx-auto">
                 <div className="mb-8 text-center space-y-4">
                     <div className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-full w-fit mx-auto">
@@ -183,14 +180,43 @@ export default function PasswordGeneratorPage() {
 
                     <div className="space-y-6 mt-8">
                         {/* Length Slider */}
-                        <div className="space-y-3">
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <label className="text-sm font-medium text-gray-700">
+                                    Password Length
+                                </label>
+                                <Input
+                                    type="number"
+                                    min={4}
+                                    max={64}
+                                    value={length}
+                                    onChange={(e) => {
+                                        const newValue = parseInt(e.target.value);
+                                        if (!isNaN(newValue)) {
+                                            // Strictly enforce max length during typing
+                                            if (newValue > 64) {
+                                                setLength(64);
+                                            } else {
+                                                setLength(newValue);
+                                            }
+                                        } else if (e.target.value === '') {
+                                            setLength(0);
+                                        }
+                                    }}
+                                    onBlur={() => {
+                                        if (length < 4) setLength(4);
+                                        if (length > 64) setLength(64);
+                                    }}
+                                    className="w-20 h-9 text-center bg-gray-50 border-gray-200 focus:border-primary/50"
+                                />
+                            </div>
                             <Slider
                                 min={4}
                                 max={64}
-                                value={length}
+                                step={1}
+                                value={length || 4} // Fallback to min if length is 0/NaN during editing
                                 onChange={(e) => setLength(parseInt(e.target.value))}
-                                label="Password Length"
-                                valueDisplay={<span className="font-mono">{length}</span>}
+                                className="w-full"
                             />
                         </div>
 
