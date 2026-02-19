@@ -64,8 +64,14 @@ export default function Home() {
       toolFolderName: "pixel-axe",
       icon: appIcons['pixel-axe'],
       metadata: ["image", "compress", "optimize", "resize", "convert", "format", "quality", "lossy", "lossless", "stego", "hide", "reveal", "upscale", "hide data in image", "extract data from image", "image info"]
-    }
+    },
+    {
+      title: "PasswordX",
+      toolFolderName: "passwordx",
+      icon: appIcons['passwordx'],
+      metadata: ["password", "generator", "security", "random", "secure", "strong", "passwordx"]
 
+    }
   ];
 
   return (
