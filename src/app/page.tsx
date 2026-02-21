@@ -1,72 +1,32 @@
 'use client';
 import NextImage from 'next/image';
-import { appIcons } from "@/config/icons";
-import { ToolCardProps } from "@/types/tool-search";
 import SearchBar from "../components/ui/SearchBar";
 import ToolGrid from "../components/ui/ToolGrid";
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Header from '@/components/ui/Header';
 import Footer from '@/components/ui/Footer';
+import { TOOLS } from '@/config/tools.registry';
+import type { ToolMeta } from '@/config/tools.registry';
+import { ToolCardProps } from '@/types/tool-search';
+
+/**
+ * Map the central tool registry to the ToolCardProps shape expected
+ * by ToolGrid / ToolCard. This is the single translation point —
+ * add a tool to tools.registry.ts and it automatically appears here.
+ */
+function registryToCardProps(tools: ToolMeta[]): ToolCardProps[] {
+  return tools.map((tool) => ({
+    title: tool.name,
+    toolFolderName: tool.id,
+    icon: tool.thumbnail,
+    metadata: tool.tags,
+  }));
+}
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
-  const tools: ToolCardProps[] = [
-    {
-      title: "Redact Secrets",
-      toolFolderName: "redact-secrets",
-      icon: appIcons['redact-secrets'],
-      metadata: ["security", "privacy", "text", "remove", "hide", "clean", "sanitize", "secret"]
-    },
-    {
-      title: "JSON to Interface/Model",
-      toolFolderName: "json-to-interface",
-      icon: appIcons['json-to-interface'],
-      metadata: ["json", "typescript", "interface", "model", "schema", "convert", "generator", "type", "definition"]
-    },
-    {
-      title: "Magic PDF",
-      toolFolderName: "magic-pdf",
-      icon: appIcons['magic-pdf'],
-      metadata: ["pdf", "merge", "split", "compress", "edit", "rearrange", "sign", "protect", "document"]
-    },
-    {
-      title: "Base64 Encode/Decode",
-      toolFolderName: "base64",
-      icon: appIcons['b64EnDc'],
-      metadata: ["base64", "encode", "decode", "string", "binary", "convert", "text", "buffer"]
-    },
-    {
-      title: "DataLens",
-      toolFolderName: "data-lens",
-      icon: appIcons['data-lens'],
-      metadata: ["json", "viewer", "explorer", "data", "analyze", "visualize", "structure", "tree"]
-    },
-    {
-      title: "Ping Tester",
-      toolFolderName: "ping-tester",
-      icon: appIcons['ping-tester'],
-      metadata: ["network", "latency", "icmp", "response time", "connectivity", "internet", "ping"]
-    },
-    {
-      title: "Internet Speed Test",
-      toolFolderName: "speed-test",
-      icon: appIcons['speed-test'],
-      metadata: ["download", "upload", "bandwidth", "internet speed", "connection", "network", "speed"]
-    },
-    {
-      title: "Open Draw",
-      toolFolderName: "open-draw",
-      icon: appIcons['open-draw'],
-      metadata: ["drawing", "sketching", "diagramming", "whiteboard", "collaboration"]
-    },
-    {
-      title: "Pixel Axe",
-      toolFolderName: "pixel-axe",
-      icon: appIcons['pixel-axe'],
-      metadata: ["image", "compress", "optimize", "resize", "convert", "format", "quality", "lossy", "lossless", "stego", "hide", "reveal", "upscale", "hide data in image", "extract data from image", "image info"]
-    }
 
-  ];
+  const tools = useMemo(() => registryToCardProps(TOOLS), []);
 
   return (
     <div>
@@ -120,7 +80,7 @@ export default function Home() {
             </section>
 
             <section className="sm:mt-[72px] animate-from-bottom mt-[42px] pt-[16px] border-t border-black/5 max-w-3xl mx-auto text-center">
-              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-[#8e8e93] mb-6">Open Source & Community</h2>
+              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-[#8e8e93] mb-6">Open Source &amp; Community</h2>
               <div className="space-y-8">
                 <p className="text-lg md:text-xl leading-relaxed text-[#3a3a3c] font-normal">
                   OBN is built by the community, for the community. Our source code is fully transparent, and we welcome contributions to help build the world&apos;s most secure toolset.

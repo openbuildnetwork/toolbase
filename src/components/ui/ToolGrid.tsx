@@ -5,7 +5,6 @@ import React, { useState, useMemo } from 'react';
 import ToolCard from './ToolCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ToolCardProps } from '@/types/tool-search';
-import { appIcons } from '@/config/icons';
 
 interface ToolGridProps {
     searchQuery: string;
