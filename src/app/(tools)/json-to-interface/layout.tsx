@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ToolPageTracker } from '@/components/ui/ToolPageTracker';
 
 export const metadata: Metadata = {
     title: "JSON to Interface | TypeScript, Go, Java, Python",
@@ -11,5 +12,10 @@ export default function JsonToInterfaceLayout({
 }: {
     children: React.ReactNode;
 }) {
-    return <>{children}</>;
+    return (
+        <>
+            <ToolPageTracker toolId="json-to-interface" />
+            {children}
+        </>
+    );
 }

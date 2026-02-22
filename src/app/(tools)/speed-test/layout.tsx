@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ToolPageTracker } from '@/components/ui/ToolPageTracker';
 
 export const metadata: Metadata = {
     title: 'Speed Test | OBN Toolkit',
@@ -10,5 +11,10 @@ export default function SpeedTestLayout({
 }: {
     children: React.ReactNode;
 }) {
-    return children;
+    return (
+        <>
+            <ToolPageTracker toolId="speed-test" />
+            {children}
+        </>
+    );
 }

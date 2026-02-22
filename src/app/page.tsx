@@ -9,6 +9,7 @@ import Footer from '@/components/ui/Footer';
 import { TOOLS } from '@/config/tools.registry';
 import type { ToolMeta } from '@/types/tool-search';
 import { ToolCardProps } from '@/types/tool-search';
+import { PersonalizedGallery } from '@/components/ui/PersonalizedGallery';
 
 /**
  * Map the central tool registry to the ToolCardProps shape expected
@@ -21,6 +22,7 @@ function registryToCardProps(tools: ToolMeta[]): ToolCardProps[] {
     route: tool.route,
     icon: tool.thumbnail,
     metadata: tool.tags,
+    toolId: tool.id,
   }));
 }
 
@@ -42,6 +44,9 @@ export default function Home() {
             <div className="animate-fade-up-delay-1 mb-12">
               <SearchBar value={searchQuery} onChange={setSearchQuery} />
             </div>
+
+            {/* Personalized sections: Favorites + Recents */}
+            <PersonalizedGallery allTools={tools} />
 
             <div id="tool-grid-section">
               <ToolGrid searchQuery={searchQuery} tools={tools} />

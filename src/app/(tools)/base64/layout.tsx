@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ToolPageTracker } from '@/components/ui/ToolPageTracker';
 
 export const metadata: Metadata = {
     title: "Base64 Converter | Encode & Decode Files & Text",
@@ -11,5 +12,10 @@ export default function Base64Layout({
 }: {
     children: React.ReactNode;
 }) {
-    return <>{children}</>;
+    return (
+        <>
+            <ToolPageTracker toolId="base64" />
+            {children}
+        </>
+    );
 }

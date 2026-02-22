@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ToolPageTracker } from '@/components/ui/ToolPageTracker';
 
 export const metadata: Metadata = {
     title: 'PasswordX | OBN Toolkit',
@@ -10,5 +11,10 @@ export default function PasswordXLayout({
 }: {
     children: React.ReactNode;
 }) {
-    return children;
+    return (
+        <>
+            <ToolPageTracker toolId="passwordx" />
+            {children}
+        </>
+    );
 }

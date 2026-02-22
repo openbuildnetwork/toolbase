@@ -207,7 +207,7 @@ export default function BottomNav({ tools, className, triggerId = "tool-grid-sec
                                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
                                 >
                                     <Link
-                                        href={`/tools/${tool.toolFolderName || '#'}`}
+                                        href={tool.route}
                                         title={tool.title}
                                         className="relative group p-2 rounded-xl transition-colors block"
                                     >

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ToolPageTracker } from '@/components/ui/ToolPageTracker';
 
 export const metadata: Metadata = {
     title: "Secret Redactor | Secure Local Redaction Tool",
@@ -11,5 +12,10 @@ export default function RedactSecretsLayout({
 }: {
     children: React.ReactNode;
 }) {
-    return <>{children}</>;
+    return (
+        <>
+            <ToolPageTracker toolId="redact-secrets" />
+            {children}
+        </>
+    );
 }

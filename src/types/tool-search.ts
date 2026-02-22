@@ -51,4 +51,8 @@ export interface ToolCardProps {
     route: string; // Must be same as tool folder name
     icon: StaticImageData | string;
     metadata: string[];
+    /** Tool registry ID used for favouriting and recents tracking */
+    toolId?: string;
+    /** Internal tool folder name — kept for BottomNav compat */
+    toolFolderName?: string;
 }

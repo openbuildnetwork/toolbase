@@ -1,0 +1,136 @@
+'use client';
+
+/**
+ * useToolPreferences
+ *
+ * Manages user-specific tool preferences stored exclusively in localStorage.
+ * Provides favorites (toggle), recents (capped at 5, newest-first), and
+ * cross-tab sync via the native `storage` event.
+ *
+ * localStorage keys:
+ *   toolbase:favorites  → string[]  e.g. ['magic-pdf', 'pixel-axe']
+ *   toolbase:recents    → string[]  e.g. ['data-lens', 'base64']  (max 5)
+ */
+
+import { useState, useEffect, useCallback } from 'react';
+
+const FAVORITES_KEY = 'toolbase:favorites';
+const RECENTS_KEY = 'toolbase:recents';
+const RECENTS_MAX = 5;
+
+// ─── helpers ──────────────────────────────────────────────────────────────────
+
+function readJSON<T>(key: string, fallback: T): T {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeJSON<T>(key: string, value: T): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    // Defer cross-instance notification so it fires AFTER React finishes
+    // the current commit cycle. Synchronous dispatch would call setState
+    // inside another component's state updater → "setState during render" error.
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('toolbase:prefs-updated'));
+    }, 0);
+  } catch {
+    // localStorage may be unavailable (private browsing quota, etc.)
+  }
+}
+
+// ─── hook ─────────────────────────────────────────────────────────────────────
+
+export interface ToolPreferences {
+  favorites: string[];
+  recents: string[];
+  isFavorite: (id: string) => boolean;
+  toggleFavorite: (id: string) => void;
+  clearFavorites: () => void;
+  addRecent: (id: string) => void;
+  removeRecent: (id: string) => void;
+  clearRecents: () => void;
+}
+
+export function useToolPreferences(): ToolPreferences {
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [recents, setRecents] = useState<string[]>([]);
+
+  // Hydrate once from localStorage (avoids SSR mismatch)
+  useEffect(() => {
+    setFavorites(readJSON<string[]>(FAVORITES_KEY, []));
+    setRecents(readJSON<string[]>(RECENTS_KEY, []));
+  }, []);
+
+  // Sync across tabs AND same-tab instances
+  useEffect(() => {
+    const sync = () => {
+      setFavorites(readJSON<string[]>(FAVORITES_KEY, []));
+      setRecents(readJSON<string[]>(RECENTS_KEY, []));
+    };
+
+    window.addEventListener('toolbase:prefs-updated', sync);
+    window.addEventListener('storage', sync); // cross-tab
+
+    return () => {
+      window.removeEventListener('toolbase:prefs-updated', sync);
+      window.removeEventListener('storage', sync);
+    };
+  }, []);
+
+  const isFavorite = useCallback(
+    (id: string) => favorites.includes(id),
+    [favorites]
+  );
+
+  const toggleFavorite = useCallback((id: string) => {
+    setFavorites((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((fid) => fid !== id)
+        : [...prev, id];
+      writeJSON(FAVORITES_KEY, next);
+      return next;
+    });
+  }, []);
+
+  /**
+   * Call this whenever a user navigates to a tool page.
+   * Prepends the id — deduplicates — caps at RECENTS_MAX.
+   */
+  const addRecent = useCallback((id: string) => {
+    setRecents((prev) => {
+      const deduplicated = prev.filter((rid) => rid !== id);
+      const next = [id, ...deduplicated].slice(0, RECENTS_MAX);
+      writeJSON(RECENTS_KEY, next);
+      return next;
+    });
+  }, []);
+
+  /** Remove a single tool from the recents list */
+  const removeRecent = useCallback((id: string) => {
+    setRecents((prev) => {
+      const next = prev.filter((rid) => rid !== id);
+      writeJSON(RECENTS_KEY, next);
+      return next;
+    });
+  }, []);
+
+  /** Wipe the entire recents list */
+  const clearRecents = useCallback(() => {
+    setRecents([]);
+    writeJSON(RECENTS_KEY, []);
+  }, []);
+
+  /** Wipe the entire favourites list */
+  const clearFavorites = useCallback(() => {
+    setFavorites([]);
+    writeJSON(FAVORITES_KEY, []);
+  }, []);
+
+  return { favorites, recents, isFavorite, toggleFavorite, clearFavorites, addRecent, removeRecent, clearRecents };
+}

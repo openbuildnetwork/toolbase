@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ToolPageTracker } from '@/components/ui/ToolPageTracker';
 
 export const metadata: Metadata = {
     title: "DataLens | In-Browser SQL & Data Analytics",
@@ -11,5 +12,10 @@ export default function DataLensLayout({
 }: {
     children: React.ReactNode;
 }) {
-    return <>{children}</>;
+    return (
+        <>
+            <ToolPageTracker toolId="data-lens" />
+            {children}
+        </>
+    );
 }

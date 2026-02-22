@@ -57,7 +57,8 @@ const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery, tools }) => {
                                 title={tool.title}
                                 route={tool.route}
                                 icon={tool.icon}
-                                metadata={tool.metadata} // Pass metadata for future use (e.g. highlighting)
+                                metadata={tool.metadata}
+                                toolId={tool.toolId}
                             />
                         </motion.div>
                     ))}
