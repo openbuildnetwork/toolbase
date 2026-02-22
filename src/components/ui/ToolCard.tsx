@@ -3,10 +3,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import React from 'react';
 
-const ToolCard: React.FC<ToolCardProps> = ({ title, toolFolderName, icon }) => {
+const ToolCard: React.FC<ToolCardProps> = ({ title, route, icon }) => {
     return (
         <Link
-            href={`/tools/${toolFolderName}`}
+            href={route}
             className="tool-card flex flex-col items-center gap-4 cursor-pointer group haptic-click"
         >
             <div className="relative z-10 w-full h-full flex items-center justify-center">

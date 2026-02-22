@@ -5,50 +5,8 @@
 // Do NOT hardcode tool metadata anywhere else in the codebase.
 // ============================================================
 
-export type ToolCategory =
-  | 'pdf'
-  | 'image'
-  | 'text'
-  | 'data'
-  | 'network'
-  | 'security'
-  | 'drawing'
-  | 'developer';
 
-export type ToolStatus = 'stable' | 'beta' | 'experimental';
-
-export interface ToolMeta {
-  /** Unique identifier — matches the folder name in src/app/tools/ */
-  id: string;
-  /** Display name shown in the UI */
-  name: string;
-  /** Short one-liner shown on tool cards */
-  description: string;
-  /** Longer description for tool detail page and SEO */
-  longDescription?: string;
-  /** Primary category for filtering */
-  category: ToolCategory;
-  /** Next.js route to the tool */
-  route: string;
-  /** Path to thumbnail image in /public/assets/thumbnails/ */
-  thumbnail: string;
-  /** Search tags — used by the search engine */
-  tags: string[];
-  /** Shows "NEW" badge on tool card */
-  isNew?: boolean;
-  /** Featured on home/landing page */
-  isFeatured?: boolean;
-  /** Shows WASM badge — communicates performance and privacy */
-  wasmPowered?: boolean;
-  /** Subset of wasmPowered — powered by Python via Pyodide */
-  pythonPowered?: boolean;
-  /** Stability status */
-  status: ToolStatus;
-  /** ISO date string — when this tool was added */
-  addedAt: string;
-  /** GitHub username of the contributor who built this tool */
-  author?: string;
-}
+import { ToolCategory, ToolMeta } from "@/types/tool-search";
 
 // ============================================================
 // REGISTERED TOOLS
@@ -62,7 +20,7 @@ export const TOOLS: ToolMeta[] = [
     longDescription:
       'Magic PDF is a full-featured PDF toolkit that runs entirely in your browser using WebAssembly. Compress PDFs without quality loss, merge multiple files, split by page range, add password protection, sign documents, convert to images, and more. No file ever leaves your machine.',
     category: 'pdf',
-    route: '/tools/magic-pdf',
+    route: 'magic-pdf',
     thumbnail: '/assets/thumbnails/magic-pdf.png',
     tags: ['pdf', 'compress', 'merge', 'split', 'protect', 'sign', 'convert', 'word', 'image'],
     isNew: false,
@@ -79,7 +37,7 @@ export const TOOLS: ToolMeta[] = [
     longDescription:
       'Pixel Axe is a powerful image processing toolkit. Compress images without visible quality loss, resize to exact dimensions, upscale with AI-like algorithms, and even hide secret messages inside images using steganography — all processed locally in your browser.',
     category: 'image',
-    route: '/tools/pixel-axe',
+    route: 'pixel-axe',
     thumbnail: '/assets/thumbnails/pixel-axe.png',
     tags: ['image', 'compress', 'resize', 'upscale', 'steganography', 'png', 'jpg', 'webp'],
     isNew: false,
@@ -96,7 +54,7 @@ export const TOOLS: ToolMeta[] = [
     longDescription:
       'Data Lens turns your browser into a data analysis workbench. Load CSV or JSON files, run SQL queries against them, execute Python (Pandas, NumPy) for deep analysis, visualize with charts, and filter with a visual query builder. Your data stays completely local.',
     category: 'data',
-    route: '/tools/data-lens',
+    route: 'data-lens',
     thumbnail: '/assets/thumbnails/data-lens.png',
     tags: ['csv', 'json', 'sql', 'python', 'pandas', 'chart', 'data', 'analysis', 'filter'],
     isNew: false,
@@ -113,7 +71,7 @@ export const TOOLS: ToolMeta[] = [
     longDescription:
       'Redact Secrets scans text, code, config files and documents for sensitive information — API keys, passwords, tokens, private keys, credit card numbers — and redacts them. Perfect for sanitizing files before sharing. All scanning happens locally in your browser.',
     category: 'security',
-    route: '/tools/redact-secrets',
+    route: 'redact-secrets',
     thumbnail: '/assets/thumbnails/redact-secrets.png',
     tags: ['redact', 'secrets', 'api-keys', 'passwords', 'tokens', 'security', 'privacy', 'scan'],
     isNew: false,
@@ -130,7 +88,7 @@ export const TOOLS: ToolMeta[] = [
     longDescription:
       'Instantly encode any text, file or image to Base64, or decode Base64 strings back to their original form. Supports URL-safe Base64, handles binary files, and processes everything locally with no size limits imposed by server uploads.',
     category: 'developer',
-    route: '/tools/base64',
+    route: 'base64',
     thumbnail: '/assets/thumbnails/b64EnDc.png',
     tags: ['base64', 'encode', 'decode', 'binary', 'text', 'image', 'file', 'url-safe'],
     isNew: false,
@@ -147,7 +105,7 @@ export const TOOLS: ToolMeta[] = [
     longDescription:
       'Paste any JSON and instantly get a typed TypeScript interface. Handles nested objects, arrays, optional fields, and complex structures. Saves developers hours of manual type writing. Runs entirely in the browser — paste sensitive API responses without worry.',
     category: 'developer',
-    route: '/tools/json-to-interface',
+    route: 'json-to-interface',
     thumbnail: '/assets/thumbnails/json-to-interface.png',
     tags: ['json', 'typescript', 'interface', 'types', 'convert', 'developer'],
     isNew: false,
@@ -164,7 +122,7 @@ export const TOOLS: ToolMeta[] = [
     longDescription:
       'Open Draw is a privacy-first diagramming tool inspired by draw.io. Create system architecture diagrams, flowcharts, entity relationship diagrams, network diagrams and more. Export to SVG, PNG or XML. Everything stays in your browser — no cloud sync required.',
     category: 'drawing',
-    route: '/tools/open-draw',
+    route: 'open-draw',
     thumbnail: '/assets/thumbnails/open-draw.png',
     tags: ['diagram', 'flowchart', 'draw', 'architecture', 'erd', 'svg', 'canvas', 'shapes'],
     isNew: false,
@@ -181,7 +139,7 @@ export const TOOLS: ToolMeta[] = [
     longDescription:
       'Test network latency and check if hosts are reachable directly from your browser. Useful for quick network diagnostics without installing command-line tools.',
     category: 'network',
-    route: '/tools/ping-tester',
+    route: 'ping-tester',
     thumbnail: '/assets/thumbnails/ping-tester.png',
     tags: ['ping', 'network', 'latency', 'connectivity', 'host', 'diagnostic'],
     isNew: false,
@@ -198,7 +156,7 @@ export const TOOLS: ToolMeta[] = [
     longDescription:
       'Measure your real internet connection speed with download and upload tests. Get accurate results directly in your browser without installing any extensions or apps.',
     category: 'network',
-    route: '/tools/speed-test',
+    route: 'speed-test',
     thumbnail: '/assets/thumbnails/speed-test.png',
     tags: ['speed', 'network', 'internet', 'download', 'upload', 'bandwidth', 'test'],
     isNew: false,

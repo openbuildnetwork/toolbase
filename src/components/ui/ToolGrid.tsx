@@ -55,7 +55,7 @@ const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery, tools }) => {
                         >
                             <ToolCard
                                 title={tool.title}
-                                toolFolderName={tool.toolFolderName}
+                                route={tool.route}
                                 icon={tool.icon}
                                 metadata={tool.metadata} // Pass metadata for future use (e.g. highlighting)
                             />

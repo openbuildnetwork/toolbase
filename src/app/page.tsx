@@ -6,7 +6,7 @@ import { useState, useMemo } from 'react';
 import Header from '@/components/ui/Header';
 import Footer from '@/components/ui/Footer';
 import { TOOLS } from '@/config/tools.registry';
-import type { ToolMeta } from '@/config/tools.registry';
+import type { ToolMeta } from '@/types/tool-search';
 import { ToolCardProps } from '@/types/tool-search';
 
 /**
@@ -17,7 +17,7 @@ import { ToolCardProps } from '@/types/tool-search';
 function registryToCardProps(tools: ToolMeta[]): ToolCardProps[] {
   return tools.map((tool) => ({
     title: tool.name,
-    toolFolderName: tool.id,
+    route: tool.route,
     icon: tool.thumbnail,
     metadata: tool.tags,
   }));
