@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ToolPageTracker } from '@/components/ui/ToolPageTracker';
+import { PrivacyBadge } from '@/components/ui/PrivacyBadge';
 
 export const metadata: Metadata = {
     title: 'Open Draw | OBN Toolkit',
@@ -14,6 +15,7 @@ export default function OpenDrawLayout({
     return (
         <>
             <ToolPageTracker toolId="open-draw" />
+            <PrivacyBadge toolId="open-draw" />
             {children}
         </>
     );

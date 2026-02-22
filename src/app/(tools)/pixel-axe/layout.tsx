@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ToolPageTracker } from '@/components/ui/ToolPageTracker';
+import { PrivacyBadge } from '@/components/ui/PrivacyBadge';
 
 export const metadata: Metadata = {
   title: 'Image Compressor | Secure Client-Side Compression',
@@ -29,6 +30,7 @@ export default function Layout({
   return (
     <>
       <ToolPageTracker toolId="pixel-axe" />
+      <PrivacyBadge toolId="pixel-axe" />
       {children}
     </>
   );

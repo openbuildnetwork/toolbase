@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ToolPageTracker } from '@/components/ui/ToolPageTracker';
+import { PrivacyBadge } from '@/components/ui/PrivacyBadge';
 
 export const metadata: Metadata = {
     title: "JSON to Interface | TypeScript, Go, Java, Python",
@@ -15,6 +16,7 @@ export default function JsonToInterfaceLayout({
     return (
         <>
             <ToolPageTracker toolId="json-to-interface" />
+            <PrivacyBadge toolId="json-to-interface" />
             {children}
         </>
     );

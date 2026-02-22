@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ToolPageTracker } from '@/components/ui/ToolPageTracker';
+import { PrivacyBadge } from '@/components/ui/PrivacyBadge';
 
 export const metadata: Metadata = {
     title: 'Ping Tester | OBN Toolkit',
@@ -14,6 +15,7 @@ export default function PingTesterLayout({
     return (
         <>
             <ToolPageTracker toolId="ping-tester" />
+            <PrivacyBadge toolId="ping-tester" />
             {children}
         </>
     );
