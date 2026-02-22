@@ -25,9 +25,9 @@ export default function SpeedTestPage() {
 
     const getMeterLabel = () => {
         if (status === 'ping') return 'Ping (ms)';
-        if (status === 'download') return 'Download (Mbps)';
-        if (status === 'upload') return 'Upload (Mbps)';
-        if (status === 'complete') return 'Download (Mbps)';
+        if (status === 'download') return 'Download (mbps)';
+        if (status === 'upload') return 'Upload (mbps)';
+        if (status === 'complete') return 'Download (mbps)';
         return 'Ready';
     };
 
@@ -131,7 +131,7 @@ export default function SpeedTestPage() {
                                 <span className="text-xs font-bold uppercase tracking-wider">Download</span>
                             </div>
                             <div className="text-3xl font-bold text-gray-800 tabular-nums">
-                                {results.download ? `${results.download} Mbps` : '-'}
+                                {results.download ? `${results.download} mbps` : '-'}
                             </div>
                         </div>
                     </Card>
@@ -147,7 +147,7 @@ export default function SpeedTestPage() {
                                 <span className="text-xs font-bold uppercase tracking-wider">Upload</span>
                             </div>
                             <div className="text-3xl font-bold text-gray-800 tabular-nums">
-                                {results.upload ? `${results.upload} Mbps` : '-'}
+                                {results.upload ? `${results.upload} mbps` : '-'}
                             </div>
                         </div>
                     </Card>

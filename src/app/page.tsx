@@ -3,6 +3,7 @@ import NextImage from 'next/image';
 import SearchBar from "../components/ui/SearchBar";
 import ToolGrid from "../components/ui/ToolGrid";
 import { useState, useMemo } from 'react';
+import BottomNav from "../components/ui/BottomNav";
 import Header from '@/components/ui/Header';
 import Footer from '@/components/ui/Footer';
 import { TOOLS } from '@/config/tools.registry';
@@ -42,7 +43,9 @@ export default function Home() {
               <SearchBar value={searchQuery} onChange={setSearchQuery} />
             </div>
 
-            <ToolGrid searchQuery={searchQuery} tools={tools} />
+            <div id="tool-grid-section">
+              <ToolGrid searchQuery={searchQuery} tools={tools} />
+            </div>
 
             <section className="sm:mt-[72px] animate-from-bottom mt-[42px] pt-[16px] border-t border-black/5 max-w-3xl mx-auto">
               <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-[#8e8e93] mb-6 text-center sm:text-left">About the Platform</h2>
@@ -95,9 +98,9 @@ export default function Home() {
             </section>
           </div>
         </main>
-
+        <Footer />
+        <BottomNav tools={tools} />
       </div>
-      <Footer />
     </div>
   );
 }
