@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Trash2, FilePlus, Merge, Download, Eye, ArrowDown, ArrowUp } from 'lucide-react';
 import { mergePdfs } from '@/lib/pdf-actions';
 import { Card } from '@/components/ui/Card';
+import { createTimer } from '@/lib/performance';
 
 export default function MergePdf() {
     const [files, setFiles] = useState<File[]>([]);
@@ -38,9 +39,16 @@ export default function MergePdf() {
 
     const handleMerge = async () => {
         if (files.length < 2) return;
+
+        const timer = createTimer();
+        timer.start();
+
         setIsMerging(true);
         try {
             const mergedBytes = await mergePdfs(files);
+
+            timer.stop('magic-pdf');
+
             const blob = new Blob([mergedBytes as any], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             setMergedPdfUrl(url);

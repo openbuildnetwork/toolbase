@@ -1,5 +1,5 @@
-
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createTimer } from '@/lib/performance';
 
 interface CompressorState {
     isReady: boolean;
@@ -22,7 +22,6 @@ export function usePixelAxe() {
     });
 
     const workerRef = useRef<Worker | null>(null);
-    const pendingRequests = useRef<Map<string, { resolve: (value: any) => void, reject: (reason?: any) => void }>>(new Map());
 
     useEffect(() => {
         // Initialize worker
@@ -30,24 +29,9 @@ export function usePixelAxe() {
             workerRef.current = new Worker(new URL('../workers/pixel-axe.worker', import.meta.url));
             
             workerRef.current.onmessage = (event: MessageEvent<WorkerMessage>) => {
-                const { type, data, error, id } = event.data;
-
+                const { type } = event.data;
                 if (type === 'READY') {
                     setState(prev => ({ ...prev, isReady: true }));
-                } else if (type === 'RESULT' && id) {
-                    const request = pendingRequests.current.get(id);
-                    if (request) {
-                        request.resolve(data);
-                        pendingRequests.current.delete(id);
-                    }
-                    setState(prev => ({ ...prev, isProcessing: false }));
-                } else if (type === 'ERROR' && id) {
-                    const request = pendingRequests.current.get(id);
-                    if (request) {
-                        request.reject(new Error(error));
-                        pendingRequests.current.delete(id);
-                    }
-                    setState(prev => ({ ...prev, isProcessing: false, error: error || 'Verification failed' }));
                 }
             };
             
@@ -66,11 +50,31 @@ export function usePixelAxe() {
             throw new Error("Worker not ready");
         }
 
+        const timer = createTimer();
+        timer.start();
+
         setState(prev => ({ ...prev, isProcessing: true, error: null }));
         const id = Math.random().toString(36).substring(7);
 
         return new Promise((resolve, reject) => {
-            pendingRequests.current.set(id, { resolve, reject });
+            const handleResult = (event: MessageEvent<WorkerMessage>) => {
+                const { type, id: msgId, data: resultData, error } = event.data;
+                if (msgId === id) {
+                    workerRef.current?.removeEventListener('message', handleResult);
+                    
+                    timer.stop('pixel-axe');
+                    
+                    setState(prev => ({ ...prev, isProcessing: false }));
+                    if (type === 'RESULT') {
+                        resolve(resultData);
+                    } else {
+                        setState(prev => ({ ...prev, error: error || 'Operation failed' }));
+                        reject(new Error(error));
+                    }
+                }
+            };
+            
+            workerRef.current?.addEventListener('message', handleResult);
             workerRef.current?.postMessage({ type: 'EXECUTE', action, data, id });
         });
     }, [state.isReady]);
@@ -130,7 +134,6 @@ export function usePixelAxe() {
             image_data: new Uint8Array(buffer),
             text: text,
         };
-        // Returns the PNG bytes with hidden text
         return execute('hide_text', data);
     }, [execute]);
 
@@ -139,7 +142,6 @@ export function usePixelAxe() {
         const data = {
             image_data: new Uint8Array(buffer),
         };
-        // Returns the extracted string
         return execute('reveal_text', data);
     }, [execute]);
 

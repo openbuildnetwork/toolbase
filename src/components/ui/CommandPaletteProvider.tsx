@@ -10,11 +10,15 @@
 import React from 'react';
 import { useCommandPalette } from '@/hooks/useCommandPalette';
 import { CommandPalette } from '@/components/ui/CommandPalette';
+import { PerformanceToast } from '@/components/ui/PerformanceToast';
 
 export function CommandPaletteProvider() {
     const palette = useCommandPalette();
 
     return (
-        <CommandPalette isOpen={palette.isOpen} onClose={palette.close} />
+        <>
+            <CommandPalette isOpen={palette.isOpen} onClose={palette.close} />
+            <PerformanceToast />
+        </>
     );
 }
