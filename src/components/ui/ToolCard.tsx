@@ -9,6 +9,7 @@ import { usePinnedTools } from '@/hooks/usePinnedTools';
 import { cn } from '@/lib/utils';
 import { FavoriteButton } from './FavoriteButton';
 import { useToolPreferences } from '@/hooks/useToolPreferences';
+import { motion } from 'framer-motion';
 
 const ToolCard: React.FC<ToolCardProps> = ({ title, route, icon, toolId }) => {
     const { isPinned, togglePin } = usePinnedTools();
@@ -23,16 +24,17 @@ const ToolCard: React.FC<ToolCardProps> = ({ title, route, icon, toolId }) => {
     };
 
     return (
-        // Named group so nested group-hover targets work precisely
-        <div className="relative group/card p-4 rounded-3xl transition-all duration-300">
-
-            {/* ── Favourite Button (top-left) ───────────────────────────── */}
+        <motion.div
+            className="relative group/card p-4 rounded-3xl"
+            whileHover={{ y: -4, transition: { type: 'spring', stiffness: 400, damping: 22 } }}
+            whileTap={{ scale: 0.95, y: 0, transition: { duration: 0.1 } }}
+        >
+            {/* ── Favourite Button (top-left) ─────────────────────────────── */}
             {toolId && (
                 <FavoriteButton
                     toolId={toolId}
                     className={cn(
                         'absolute top-2 left-2 z-20 transition-all duration-200',
-                        // If already favorited → always visible; else show on hover
                         favorited
                             ? 'opacity-100 scale-100'
                             : 'opacity-0 group-hover/card:opacity-100 scale-90 group-hover/card:scale-100'
@@ -40,7 +42,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ title, route, icon, toolId }) => {
                 />
             )}
 
-            {/* ── Pin Button (top-right) ────────────────────────────────── */}
+            {/* ── Pin Button (top-right) ──────────────────────────────────── */}
             <button
                 onClick={handlePinClick}
                 className={cn(
@@ -61,26 +63,32 @@ const ToolCard: React.FC<ToolCardProps> = ({ title, route, icon, toolId }) => {
                 />
             </button>
 
-            {/* ── Card Link ─────────────────────────────────────────────── */}
+            {/* ── Card Link ──────────────────────────────────────────────── */}
             <Link
                 href={route}
-                className="flex flex-col items-center gap-4 cursor-pointer haptic-click"
+                className="relative z-10 flex flex-col items-center gap-4 cursor-pointer"
             >
-                <div className="relative z-10 w-full h-full flex items-center justify-center">
-                    <Image
-                        src={icon}
-                        alt={title}
-                        width={80}
-                        height={80}
-                        className="w-20 h-20 rounded-[28px] p-2 object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)] group-hover/card:scale-110 transition-transform duration-500"
-                    />
+                <div className="relative w-full h-full flex items-center justify-center">
+                    <motion.div
+                        whileHover={{ scale: 1.12 }}
+                        transition={{ type: 'spring', stiffness: 380, damping: 18 }}
+                    >
+                        <Image
+                            src={icon}
+                            alt={title}
+                            width={80}
+                            height={80}
+                            className="w-20 h-20 rounded-[28px] p-2 object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)]"
+                        />
+                    </motion.div>
                 </div>
                 <p className="text-[13px] font-semibold text-center text-[#3a3a3c] group-hover/card:text-black transition-colors tracking-tight">
                     {title}
                 </p>
             </Link>
-        </div>
+        </motion.div>
     );
 };
 
 export default ToolCard;
+
