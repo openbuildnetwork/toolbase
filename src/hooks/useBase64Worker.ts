@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Base64Request, Base64Response } from '@/types/base64';
+import { createTimer } from '@/lib/performance';
 
 export interface UseBase64Result {
     process: (request: Base64Request) => Promise<Base64Response>;
@@ -60,6 +61,9 @@ export function useBase64(): UseBase64Result {
                 return;
             }
 
+            const timer = createTimer();
+            timer.start();
+
             setIsProcessing(true);
             setError(null);
 
@@ -68,11 +72,17 @@ export function useBase64(): UseBase64Result {
 
                 if (type === 'PROCESS_RESULT') {
                     worker.removeEventListener('message', handleMessage);
+                    
+                    timer.stop('base64');
+                    
                     setIsProcessing(false);
                     setResult(data);
                     resolve(data);
                 } else if (type === 'PROCESS_ERROR') {
                     worker.removeEventListener('message', handleMessage);
+                    
+                    timer.stop('base64');
+                    
                     setIsProcessing(false);
                     setError(workerError);
                     reject(new Error(workerError));

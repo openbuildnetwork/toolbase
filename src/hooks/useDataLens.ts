@@ -1,5 +1,5 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { createTimer } from '@/lib/performance';
 
 export interface EtlState {
     isReady: boolean;
@@ -70,9 +70,6 @@ export function useDataLens(): UseDataLensResult {
         const { ready } = getDataLensWorker();
         ready?.then(() => {
             setIsReady(true);
-            // On re-connect, we might want to fetch existing state from worker if we were advanced enough,
-            // but for now we just acknowledge readiness.
-            // If data persisted in worker memory, we can fetch schemas.
             refreshSchemas();
         }).catch(err => {
             console.error("Worker initialization failed", err);
@@ -87,6 +84,10 @@ export function useDataLens(): UseDataLensResult {
                 reject(new Error("Worker not initialized"));
                 return;
             }
+
+            const timer = createTimer();
+            timer.start();
+
             setIsProcessing(true);
             setError(null);
 
@@ -94,16 +95,16 @@ export function useDataLens(): UseDataLensResult {
 
             const handleMessage = (event: MessageEvent) => {
                 const { type, id, data: resultData, error } = event.data;
-                // console.log('Hook: Received message from worker:', { type, id, messageId, hasData: !!resultData });
                 if (id === messageId) {
                     worker.removeEventListener('message', handleMessage);
+                    
+                    timer.stop('data-lens');
+                    
                     setIsProcessing(false);
                     if (type === 'ERROR') {
-                        console.log('Hook: Error received:', error);
                         setError(error);
                         reject(new Error(error));
                     } else {
-                        // console.log('Hook: Success! Result data:', resultData);
                         resolve(resultData);
                     }
                 }
@@ -133,7 +134,6 @@ export function useDataLens(): UseDataLensResult {
             });
 
             if (res.success) {
-                // Refresh schemas
                 const schemaRes = await sendMessage('get_schemas', {});
                 if (schemaRes.success) {
                     setSchemas(schemaRes.schemas);
@@ -184,9 +184,6 @@ export function useDataLens(): UseDataLensResult {
             if (res.success) {
                 setSchemas(res.schemas);
                 return res.schemas;
-            } else {
-                // Allow failure if not ready yet
-                // throw new Error(res.error || "Failed to fetch schemas");
             }
         } catch (err: any) {
             console.error(err);
@@ -197,7 +194,6 @@ export function useDataLens(): UseDataLensResult {
         try {
             const res = await sendMessage('delete_table', { table_name: tableName });
             if (res.success) {
-                // Refresh schemas after deletion
                 const schemaRes = await sendMessage('get_schemas', {});
                 if (schemaRes.success) {
                     setSchemas(schemaRes.schemas);
@@ -230,7 +226,6 @@ export function useDataLens(): UseDataLensResult {
         try {
             const res = await sendMessage('query_json', { table_name: tableName, query });
             if (res.success && !res.is_json) {
-                // Regular table result
                 setQueryResult(res);
             }
             return res;

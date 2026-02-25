@@ -5,7 +5,6 @@ import React, { useState, useMemo } from 'react';
 import ToolCard from './ToolCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ToolCardProps } from '@/types/tool-search';
-import { appIcons } from '@/config/icons';
 
 interface ToolGridProps {
     searchQuery: string;
@@ -56,9 +55,10 @@ const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery, tools }) => {
                         >
                             <ToolCard
                                 title={tool.title}
-                                toolFolderName={tool.toolFolderName}
+                                route={tool.route}
                                 icon={tool.icon}
-                                metadata={tool.metadata} // Pass metadata for future use (e.g. highlighting)
+                                metadata={tool.metadata}
+                                toolId={tool.toolId}
                             />
                         </motion.div>
                     ))}
