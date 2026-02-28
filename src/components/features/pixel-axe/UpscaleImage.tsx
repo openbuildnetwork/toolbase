@@ -7,14 +7,11 @@ import { formatBytes, cn } from "@/lib/utils";
 import { ImagePreview } from "@/components/features/pixel-axe/ImagePreview";
 import { CompressionSettings } from "@/components/features/pixel-axe/CompressionSettings";
 
-interface UpscaleImageProps {
-    compressImage: (file: File, options: any) => Promise<any>;
-    getImageInfo: (file: File) => Promise<any>;
-    isProcessing: boolean;
-    isReady: boolean;
-}
+import { useTIPTool } from "@/hooks/useTIPTool";
+import { getImageInfo } from "@/lib/image-utils";
 
-export function UpscaleImage({ compressImage, getImageInfo, isProcessing, isReady }: UpscaleImageProps) {
+
+export function UpscaleImage() {
     // State
     const [originalFile, setOriginalFile] = useState<File | null>(null);
     const [originalUrl, setOriginalUrl] = useState<string | null>(null);
@@ -33,6 +30,10 @@ export function UpscaleImage({ compressImage, getImageInfo, isProcessing, isRead
     const [denoise, setDenoise] = useState(false);
     const [vibrant, setVibrant] = useState(false);
     const [printDpi, setPrintDpi] = useState(false);
+
+    // Engine Hooks
+    const { execute, isProcessing, error } = useTIPTool('pixel-axe/upscale');
+    const isReady = true;
 
     // Cleanup URLs
     useEffect(() => {
@@ -56,7 +57,7 @@ export function UpscaleImage({ compressImage, getImageInfo, isProcessing, isRead
         setOriginalUrl(URL.createObjectURL(file));
 
         try {
-            const info = await getImageInfo(file) as any;
+            const info = await getImageInfo(file);
             setOriginalInfo(info);
 
             // Auto-set format to match original if valid
@@ -79,7 +80,7 @@ export function UpscaleImage({ compressImage, getImageInfo, isProcessing, isRead
         if (!originalFile) return;
 
         try {
-            const result = await compressImage(originalFile, {
+            const config = {
                 quality,
                 format,
                 resizeFactor,
@@ -87,33 +88,23 @@ export function UpscaleImage({ compressImage, getImageInfo, isProcessing, isRead
                 denoise,
                 vibrant,
                 print_dpi: printDpi
-            });
+            };
 
-            if (typeof result === 'string' && result.startsWith('ERROR:')) {
-                const errMsg = result.replace('ERROR:', '').trim();
-                console.error("Compression failed on backend:", errMsg);
-                alert(`Upscaling failed: ${errMsg}`);
-                return;
+            const outputFiles = await execute([originalFile], config);
+
+            if (outputFiles && outputFiles.length > 0) {
+                const blob = outputFiles[0];
+                const url = URL.createObjectURL(blob);
+
+                if (compressedUrl) URL.revokeObjectURL(compressedUrl);
+                setCompressedUrl(url);
+
+                setCompressedInfo({
+                    size_bytes: blob.size,
+                    width: originalInfo?.width ? Math.round(originalInfo.width * resizeFactor) : 0,
+                    height: originalInfo?.height ? Math.round(originalInfo.height * resizeFactor) : 0,
+                });
             }
-
-            if (result && (result.error || result instanceof Error)) {
-                const errMsg = result.error || result.message || "Unknown error";
-                console.error("Compression failed on backend:", errMsg);
-                alert(`Upscaling failed: ${errMsg}`); // Ideally use a Toast
-                return;
-            }
-
-            const blob = new Blob([result as BlobPart], { type: `image/${format.toLowerCase()}` });
-            const url = URL.createObjectURL(blob);
-
-            if (compressedUrl) URL.revokeObjectURL(compressedUrl);
-            setCompressedUrl(url);
-
-            setCompressedInfo({
-                size_bytes: blob.size,
-                width: originalInfo?.width ? Math.round(originalInfo.width * resizeFactor) : 0,
-                height: originalInfo?.height ? Math.round(originalInfo.height * resizeFactor) : 0,
-            });
 
         } catch (err) {
             console.error("Compression failed", err);

@@ -50,8 +50,9 @@ export const TOOLS: ToolMeta[] = [
       },
     ] },
       getExecutor: async () => {
-        const mod = await import('@/features/magic-pdf/tip/compress.tip');
-        return mod.compressPdfTool.invoke;
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(magicPdfWorker, 'compress', (b, c) => ({ file_bytes: b, ...c }), () => 'application/pdf', 'Compress PDF');
       }
     },
       {
@@ -71,8 +72,9 @@ export const TOOLS: ToolMeta[] = [
       },
     ] },
       getExecutor: async () => {
-        const mod = await import('@/features/magic-pdf/tip/split.tip');
-        return mod.splitPdfTool.invoke;
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(magicPdfWorker, 'split', (b, c) => ({ file_bytes: b, page_ranges: c.pageRanges || '' }), () => 'application/pdf', 'Split PDF');
       }
     },
       {
@@ -83,8 +85,9 @@ export const TOOLS: ToolMeta[] = [
       produces: ['application/pdf'],
       configSchema: { fields: [] },
       getExecutor: async () => {
-        const mod = await import('@/features/magic-pdf/tip/merge.tip');
-        return mod.mergePdfTool.invoke;
+        const { createBatchTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createBatchTIPExecutor(magicPdfWorker, 'merge', (b, c) => ({ files_bytes: b, ...c }), () => 'application/pdf', 'Merge PDFs', 'merged.pdf');
       }
     },
       {
@@ -104,8 +107,9 @@ export const TOOLS: ToolMeta[] = [
       },
     ] },
       getExecutor: async () => {
-        const mod = await import('@/features/magic-pdf/tip/protect.tip');
-        return mod.protectPdfTool.invoke;
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(magicPdfWorker, 'protect', (b, c) => ({ file_bytes: b, ...c, permissions: typeof c.permissions === 'string' ? JSON.parse(c.permissions) : c.permissions }), () => 'application/pdf', 'Protect PDF');
       }
     },
       {
@@ -128,8 +132,9 @@ export const TOOLS: ToolMeta[] = [
       },
     ] },
       getExecutor: async () => {
-        const mod = await import('@/features/magic-pdf/tip/pdf-to-images.tip');
-        return mod.pdfToImagesTool.invoke;
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(magicPdfWorker, 'pdf_to_images', (b, c) => ({ file_bytes: b, image_format: 'png', ...c }), () => 'image/png', 'PDF to Images');
       }
     },
       {
@@ -151,8 +156,35 @@ export const TOOLS: ToolMeta[] = [
         ] }
       ] },
       getExecutor: async () => {
-        const mod = await import('@/features/magic-pdf/tip/html-to-pdf.tip');
-        return mod.htmlToPdfTool.invoke;
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(magicPdfWorker, 'html_to_pdf', (b, c) => ({ file_bytes: b, page_size: c.pageSize, ...c }), () => 'application/pdf', 'HTML to PDF');
+      }
+    },
+      {
+      id: 'magic-pdf/images-to-pdf',
+      name: 'Images to PDF',
+      description: 'Convert multiple images into a single PDF document.',
+      consumes: ['image/png', 'image/jpeg', 'image/webp'],
+      produces: ['application/pdf'],
+      configSchema: { fields: [] },
+      getExecutor: async () => {
+        const { createBatchTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createBatchTIPExecutor(magicPdfWorker, 'images_to_pdf', (b, c) => ({ files_bytes_list: b, ...c }), () => 'application/pdf', 'Images to PDF', 'images.pdf');
+      }
+    },
+      {
+      id: 'magic-pdf/pdf-to-word',
+      name: 'PDF to Word',
+      description: 'Convert a PDF into an editable Word Document.',
+      consumes: ['application/pdf'],
+      produces: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+      configSchema: { fields: [] },
+      getExecutor: async () => {
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(magicPdfWorker, 'pdf_to_word', (b, c) => ({ file_bytes: b, ...c }), () => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'PDF to Word');
       }
     }
     ]
@@ -201,8 +233,15 @@ export const TOOLS: ToolMeta[] = [
       },
     ] },
       getExecutor: async () => {
-        const mod = await import('@/features/pixel-axe/tip/compress.tip');
-        return mod.compressImageTool.invoke;
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { pixelAxeWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          pixelAxeWorker,
+          'compress',
+          (buffer, config) => ({ image_data: buffer, ...config }),
+          (payload, config) => (config.format ? `image/${config.format.toLowerCase()}` : payload.contentType) as any,
+          'Compress Images'
+        );
       }
     },
       {
@@ -253,8 +292,15 @@ export const TOOLS: ToolMeta[] = [
         ] }
       ] },
       getExecutor: async () => {
-        const mod = await import('@/features/pixel-axe/tip/resize.tip');
-        return mod.resizeImageTool.invoke;
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { pixelAxeWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          pixelAxeWorker,
+          'resize',
+          (buffer, config) => ({ image_data: buffer, ...config }),
+          (payload, config) => (config.format ? `image/${config.format.toLowerCase()}` : payload.contentType) as any,
+          'Resize Images'
+        );
       }
     },
       {
@@ -277,8 +323,76 @@ export const TOOLS: ToolMeta[] = [
         ] }
       ] },
       getExecutor: async () => {
-        const mod = await import('@/features/pixel-axe/tip/upscale.tip');
-        return mod.upscaleImageTool.invoke;
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { pixelAxeWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          pixelAxeWorker, 
+          'upscale', 
+          (buffer, config) => ({ image_data: buffer, ...config }),
+          () => 'image/png', 
+          'Upscale Images'
+        );
+      }
+    },
+      {
+      id: 'pixel-axe/hide-data',
+      name: 'Hide Data in Image',
+      description: 'Hide a secret text message inside an image using steganography. Optionally encrypt it with a password.',
+      consumes: ['image/png', 'image/jpeg', 'image/webp'],
+      produces: ['image/png'],
+      configSchema: { fields: [
+      {
+        key: 'message',
+        label: 'Secret Message',
+        type: 'string',
+        default: '',
+        required: true,
+      },
+      {
+        key: 'key',
+        label: 'Encryption Key',
+        type: 'string',
+        default: '',
+        description: 'Optional password to encrypt the message.',
+      }
+      ] },
+      getExecutor: async () => {
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { pixelAxeWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          pixelAxeWorker,
+          'hide_text',
+          (buffer, config) => ({ image_data: buffer, ...config }),
+          () => 'image/png',
+          'Hide Data'
+        );
+      }
+    },
+      {
+      id: 'pixel-axe/reveal-data',
+      name: 'Reveal Data from Image',
+      description: 'Extract and decrypt a hidden text message from an image.',
+      consumes: ['image/png', 'image/jpeg', 'image/webp'],
+      produces: ['text/plain'],
+      configSchema: { fields: [
+      {
+        key: 'key',
+        label: 'Decryption Key',
+        type: 'string',
+        default: '',
+        description: 'Password to decrypt the message, if one was used during hiding.',
+      }
+      ] },
+      getExecutor: async () => {
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { pixelAxeWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          pixelAxeWorker,
+          'reveal_text',
+          (buffer, config) => ({ image_data: buffer, ...config }),
+          () => 'text/plain',
+          'Reveal Data'
+        );
       }
     }
     ]
@@ -375,8 +489,15 @@ export const TOOLS: ToolMeta[] = [
       },
     ] },
       getExecutor: async () => {
-        const mod = await import('@/features/base64/tip/encode.tip');
-        return mod.base64EncodeTool.invoke;
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { base64Worker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          base64Worker, 
+          'PROCESS', 
+          (buffer, config) => ({ mode: 'file_encode', data: Array.from(buffer), url_safe: config.urlSafe }),
+          () => 'text/plain', 
+          'Base64 Encode'
+        );
       }
     },
       {
@@ -395,8 +516,19 @@ export const TOOLS: ToolMeta[] = [
       },
     ] },
       getExecutor: async () => {
-        const mod = await import('@/features/base64/tip/decode.tip');
-        return mod.base64DecodeTool.invoke;
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { base64Worker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          base64Worker, 
+          'PROCESS', 
+          (buffer, config) => {
+            // Read string from buffer
+            const text = new TextDecoder().decode(buffer);
+            return { mode: 'text_decode', data: text, url_safe: config.urlSafe };
+          },
+          () => 'application/octet-stream', 
+          'Base64 Decode'
+        );
       }
     }
     ]

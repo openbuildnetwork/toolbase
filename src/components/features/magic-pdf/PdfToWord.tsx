@@ -13,12 +13,12 @@ import {
     FileCode
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
-import { useMagicPdfWorker } from '@/hooks/useMagicPdfWorker';
+import { useTIPTool } from '@/hooks/useTIPTool';
 
 export default function PdfToWord() {
     const [file, setFile] = useState<File | null>(null);
     const [resultDocUrl, setResultDocUrl] = useState<string | null>(null);
-    const { processPdf, isProcessing } = useMagicPdfWorker();
+    const { execute, isProcessing } = useTIPTool('magic-pdf/pdf-to-word');
 
     const handleFileSelected = (files: File[]) => {
         if (files.length > 0) {
@@ -31,12 +31,11 @@ export default function PdfToWord() {
         if (!file) return;
 
         try {
-            const resultBytes = await processPdf('pdf_to_word', file);
-            const blob = new Blob([resultBytes as any], {
-                type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-            });
-            const url = URL.createObjectURL(blob);
-            setResultDocUrl(url);
+            const outputFiles = await execute([file], {});
+            if (outputFiles && outputFiles.length > 0) {
+                const url = URL.createObjectURL(outputFiles[0]);
+                setResultDocUrl(url);
+            }
         } catch (error) {
             console.error('Conversion failed:', error);
             alert('Failed to convert PDF to Word');

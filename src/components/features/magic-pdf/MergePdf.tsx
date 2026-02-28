@@ -5,13 +5,13 @@ import { FileUploader } from '@/components/ui/FileUploader';
 import { PdfPreview } from '@/components/ui/PdfPreview';
 import { Button } from '@/components/ui/Button';
 import { Trash2, FilePlus, Merge, Download, Eye, ArrowDown, ArrowUp } from 'lucide-react';
-import { mergePdfs } from '@/lib/pdf-actions';
+import { useTIPTool } from '@/hooks/useTIPTool';
 import { Card } from '@/components/ui/Card';
 import { createTimer } from '@/lib/performance';
 
 export default function MergePdf() {
     const [files, setFiles] = useState<File[]>([]);
-    const [isMerging, setIsMerging] = useState(false);
+    const { execute, isProcessing, error, progress, progressMessage } = useTIPTool('magic-pdf/merge');
     const [mergedPdfUrl, setMergedPdfUrl] = useState<string | null>(null);
 
     const handleFilesSelected = (newFiles: File[]) => {
@@ -43,20 +43,19 @@ export default function MergePdf() {
         const timer = createTimer();
         timer.start();
 
-        setIsMerging(true);
         try {
-            const mergedBytes = await mergePdfs(files);
+            const outputFiles = await execute(files, {});
 
             timer.stop('magic-pdf');
 
-            const blob = new Blob([mergedBytes as any], { type: 'application/pdf' });
-            const url = URL.createObjectURL(blob);
-            setMergedPdfUrl(url);
+            if (outputFiles && outputFiles.length > 0) {
+                const blob = outputFiles[0];
+                const url = URL.createObjectURL(blob);
+                setMergedPdfUrl(url);
+            }
         } catch (error) {
             console.error('Failed to merge PDFs:', error);
             alert('Failed to merge PDFs. Please try again.');
-        } finally {
-            setIsMerging(false);
         }
     };
 
@@ -174,12 +173,22 @@ export default function MergePdf() {
                                         <Button
                                             size="lg"
                                             onClick={handleMerge}
-                                            disabled={files.length < 2 || isMerging}
-                                            className="shadow-lg shadow-primary/25 rounded-2xl"
-                                            isLoading={isMerging}
+                                            disabled={files.length < 2 || isProcessing}
+                                            className="shadow-lg shadow-primary/25 rounded-2xl flex flex-col items-center justify-center p-6 h-auto"
+                                            isLoading={isProcessing}
                                         >
-                                            <Merge className="w-5 h-5 mr-2" />
-                                            {files.length < 2 ? 'Add at least 2 files' : 'Merge PDFs'}
+                                            <div className="flex items-center">
+                                                <Merge className="w-5 h-5 mr-2" />
+                                                {files.length < 2 ? 'Add at least 2 files' : isProcessing ? (progressMessage || 'Merging PDFs...') : 'Merge PDFs'}
+                                            </div>
+                                            {isProcessing && progress > 0 && (
+                                                <div className="w-full mt-2 bg-white/20 rounded-full h-1 overflow-hidden">
+                                                    <div
+                                                        className="bg-white/80 h-1 transition-all duration-300"
+                                                        style={{ width: `${progress}%` }}
+                                                    />
+                                                </div>
+                                            )}
                                         </Button>
                                     </motion.div>
                                 )}

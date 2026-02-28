@@ -12,17 +12,9 @@ import { Label } from "@/components/ui/Label";
 import { Input } from "@/components/ui/Input";
 import { Slider } from "@/components/ui/Slider";
 import { ColorPicker } from "@/components/ui/ColorPicker";
+import { useTIPTool } from "@/hooks/useTIPTool";
+import { getImageInfo } from "@/lib/image-utils";
 
-// Fallback if Tabs/Select don't exist in @/components/ui path - usually they do in shadcn setup
-// If not, I'll use standard HTML or simplified UI.
-// But user requested "lock aspect ratio", "export file types".
-
-interface ResizeImageProps {
-    resizeImage: (file: File, options: any) => Promise<any>;
-    getImageInfo: (file: File) => Promise<any>;
-    isProcessing: boolean;
-    isReady: boolean;
-}
 
 const SOCIAL_PRESETS = [
     { id: "ig_post", name: "IG Post", width: 1080, height: 1080, icon: Smartphone },
@@ -32,7 +24,7 @@ const SOCIAL_PRESETS = [
     { id: "yt_thumb", name: "YouTube Thumb", width: 1280, height: 720, icon: Monitor },
 ];
 
-export function ResizeImage({ resizeImage, getImageInfo, isProcessing, isReady }: ResizeImageProps) {
+export function ResizeImage() {
     const [originalFile, setOriginalFile] = useState<File | null>(null);
     const [originalUrl, setOriginalUrl] = useState<string | null>(null);
     const [originalInfo, setOriginalInfo] = useState<any>(null);
@@ -51,6 +43,10 @@ export function ResizeImage({ resizeImage, getImageInfo, isProcessing, isReady }
     const [resizeMode, setResizeMode] = useState("dimensions"); // dimensions | percentage | social
     const [fitMode, setFitMode] = useState<'stretch' | 'contain'>('stretch');
     const [fillColor, setFillColor] = useState('transparent');
+
+    // Engine Hooks
+    const { execute, isProcessing, error } = useTIPTool('pixel-axe/resize');
+    const isReady = true;
 
     // Cleanup
     useEffect(() => {
@@ -74,7 +70,7 @@ export function ResizeImage({ resizeImage, getImageInfo, isProcessing, isReady }
         setOriginalUrl(URL.createObjectURL(file));
 
         try {
-            const info = await getImageInfo(file) as any;
+            const info = await getImageInfo(file);
             setOriginalInfo(info);
             setAspectRatio(info.width / info.height);
             setWidth(info.width);
@@ -141,30 +137,29 @@ export function ResizeImage({ resizeImage, getImageInfo, isProcessing, isReady }
         if (!originalFile) return;
 
         try {
-            const result = await resizeImage(originalFile, {
+            const config = {
                 width,
                 height,
                 quality,
                 format,
                 mode: fitMode,
                 fill_color: fillColor
-            });
+            };
 
-            if (typeof result === 'string' && result.startsWith('ERROR:')) {
-                alert(result);
-                return;
+            const outputFiles = await execute([originalFile], config);
+
+            if (outputFiles && outputFiles.length > 0) {
+                const blob = outputFiles[0];
+                const url = URL.createObjectURL(blob);
+
+                if (processedUrl) URL.revokeObjectURL(processedUrl);
+                setProcessedUrl(url);
+                setProcessedInfo({
+                    size_bytes: blob.size,
+                    width,
+                    height
+                });
             }
-
-            const blob = new Blob([result as BlobPart], { type: `image/${format.toLowerCase()}` });
-            const url = URL.createObjectURL(blob);
-
-            if (processedUrl) URL.revokeObjectURL(processedUrl);
-            setProcessedUrl(url);
-            setProcessedInfo({
-                size_bytes: blob.size,
-                width,
-                height
-            });
 
         } catch (err) {
             console.error("Resize failed", err);

@@ -22,6 +22,7 @@ export const TIP_CONTENT_TYPES = [
   'application/json',
   'application/octet-stream', // binary fallback
   'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/zip',
   'image/gif',
   'image/jpeg',

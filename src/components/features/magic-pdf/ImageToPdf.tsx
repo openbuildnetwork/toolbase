@@ -14,7 +14,7 @@ import {
     GripVertical
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
-import { useMagicPdfWorker } from '@/hooks/useMagicPdfWorker';
+import { useTIPTool } from '@/hooks/useTIPTool';
 import { cn } from '@/lib/utils';
 import { PdfPreview } from '@/components/ui/PdfPreview';
 import {
@@ -97,7 +97,7 @@ export default function ImageToPdf() {
     const [files, setFiles] = useState<File[]>([]);
     const [activeId, setActiveId] = useState<string | null>(null);
     const [resultPdfUrl, setResultPdfUrl] = useState<string | null>(null);
-    const { processPdf, isProcessing } = useMagicPdfWorker();
+    const { execute, isProcessing } = useTIPTool('magic-pdf/images-to-pdf');
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -136,10 +136,11 @@ export default function ImageToPdf() {
         if (files.length === 0) return;
 
         try {
-            const resultBytes = await processPdf('images_to_pdf', files);
-            const blob = new Blob([resultBytes as any], { type: 'application/pdf' });
-            const url = URL.createObjectURL(blob);
-            setResultPdfUrl(url);
+            const outputFiles = await execute(files, {});
+            if (outputFiles && outputFiles.length > 0) {
+                const url = URL.createObjectURL(outputFiles[0]);
+                setResultPdfUrl(url);
+            }
         } catch (error) {
             console.error('Conversion failed:', error);
             alert('Failed to convert images to PDF');

@@ -6,7 +6,7 @@ import { FileUploader } from '@/components/ui/FileUploader';
 import { Button } from '@/components/ui/Button';
 import { Minimize2, Download, RefreshCw, AlertCircle, CheckCircle, Flame, Leaf, Feather } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
-import { useMagicPdfWorker } from '@/hooks/useMagicPdfWorker';
+import { useTIPTool } from '@/hooks/useTIPTool';
 import { cn } from '@/lib/utils';
 
 export default function CompressPdf() {
@@ -14,9 +14,7 @@ export default function CompressPdf() {
     const [compressedPdfUrl, setCompressedPdfUrl] = useState<string | null>(null);
     const [compressedSize, setCompressedSize] = useState<number>(0);
     const [compressionLevel, setCompressionLevel] = useState<'recommended' | 'extreme' | 'less'>('recommended');
-    const [isCompressing, setIsCompressing] = useState(false);
-
-    const { processPdf, isReady, isProcessing, error } = useMagicPdfWorker();
+    const { execute, isProcessing, error, progress, progressMessage } = useTIPTool('magic-pdf/compress');
 
     const handleFileSelected = (files: File[]) => {
         if (files.length > 0) {
@@ -27,27 +25,20 @@ export default function CompressPdf() {
     };
 
     const handleCompress = async () => {
-        if (!file || !isReady) {
-            alert('Compression engine not ready yet. Please wait a moment.');
-            return;
-        }
-
-        setIsCompressing(true);
+        if (!file) return;
 
         try {
-            // Use Python worker for all compression modes
-            const resultBytes = await processPdf('compress', file, { level: compressionLevel });
+            const outputFiles = await execute([file], { level: compressionLevel });
 
-            const blob = new Blob([resultBytes as any], { type: 'application/pdf' });
-            const url = URL.createObjectURL(blob);
-
-            setCompressedPdfUrl(url);
-            setCompressedSize(blob.size);
+            if (outputFiles && outputFiles.length > 0) {
+                const blob = outputFiles[0];
+                const url = URL.createObjectURL(blob);
+                setCompressedPdfUrl(url);
+                setCompressedSize(blob.size);
+            }
         } catch (e) {
             console.error(e);
             alert("Compression failed: " + (e as Error).message);
-        } finally {
-            setIsCompressing(false);
         }
     };
 
@@ -79,12 +70,7 @@ export default function CompressPdf() {
                             <div className="text-center mb-8">
                                 <h2 className="text-2xl font-semibold mb-2">Compress PDF</h2>
                                 <p className="text-gray-500">Reduce file size while maintaining quality.</p>
-                                {!isReady && (
-                                    <div className="mt-4 inline-flex items-center gap-2 text-xs text-amber-600 bg-amber-50 px-3 py-1 rounded-full">
-                                        <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                                        Initializing Compression Engine...
-                                    </div>
-                                )}
+
                             </div>
                             <FileUploader
                                 onFilesSelected={handleFileSelected}
@@ -171,16 +157,24 @@ export default function CompressPdf() {
                                         <Button
                                             size="lg"
                                             onClick={handleCompress}
-                                            disabled={isCompressing}
-                                            isLoading={isCompressing}
+                                            disabled={isProcessing}
+                                            isLoading={isProcessing}
                                             className="w-full max-w-xs"
                                         >
-                                            {isCompressing ? 'Compressing...' : 'Compress PDF'}
+                                            {isProcessing ? progressMessage || 'Compressing...' : 'Compress PDF'}
                                         </Button>
                                         {(compressionLevel === 'extreme' || compressionLevel === 'recommended') && (
                                             <p className="text-xs text-amber-600 mt-2 text-center max-w-md">
                                                 {compressionLevel === 'extreme' ? 'Maximum' : 'High'} compression mode converts pages to images
                                             </p>
+                                        )}
+                                        {isProcessing && progress > 0 && (
+                                            <div className="w-full max-w-xs mt-4 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                                <div
+                                                    className="bg-blue-600 h-1.5 transition-all duration-300"
+                                                    style={{ width: `${progress}%` }}
+                                                />
+                                            </div>
                                         )}
                                         {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
                                     </>

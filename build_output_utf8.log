@@ -1,0 +1,17 @@
+﻿
+> tool-box@0.1.0 build
+> npm run build:python && next build
+
+
+> tool-box@0.1.0 build:python
+> ts-node scripts/build-python-bundler.ts
+
+Ô£ô base64_tool bundle generated (2 files) -> base64_tool.bundle.ts
+Ô£ô data_lens bundle generated (8 files) -> data_lens.bundle.ts
+Ô£ô open_draw bundle generated (6 files) -> open_draw.bundle.ts
+Ô£ô pdf_magic bundle generated (8 files) -> pdf_magic.bundle.ts
+Ô£ô pixel_axe bundle generated (9 files) -> pixel_axe.bundle.ts
+Ô£ô redact_secrets bundle generated (6 files) -> redact_secrets.bundle.ts
+Ôû▓ Next.js 16.1.2 (Turbopack)
+
+  Creating an optimized production build ...

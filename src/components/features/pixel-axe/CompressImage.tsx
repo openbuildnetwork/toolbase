@@ -7,14 +7,11 @@ import { formatBytes, cn } from "@/lib/utils";
 import { ImagePreview } from "@/components/features/pixel-axe/ImagePreview";
 import { CompressionSettings } from "@/components/features/pixel-axe/CompressionSettings";
 
-interface CompressImageProps {
-    compressImage: (file: File, options: any) => Promise<any>;
-    getImageInfo: (file: File) => Promise<any>;
-    isProcessing: boolean;
-    isReady: boolean;
-}
+import { useTIPTool } from "@/hooks/useTIPTool";
+import { getImageInfo } from "@/lib/image-utils";
 
-export function CompressImage({ compressImage, getImageInfo, isProcessing, isReady }: CompressImageProps) {
+
+export function CompressImage() {
     // State
     const [originalFile, setOriginalFile] = useState<File | null>(null);
     const [originalUrl, setOriginalUrl] = useState<string | null>(null);
@@ -27,8 +24,11 @@ export function CompressImage({ compressImage, getImageInfo, isProcessing, isRea
     const [quality, setQuality] = useState(80);
     const [format, setFormat] = useState("JPEG");
     const [resizeFactor, setResizeFactor] = useState(1.0);
-    // Enhance is not used in compression mode, but we need to pass props
     const [enhance, setEnhance] = useState(false);
+
+    // Engine Hooks
+    const { execute, isProcessing, error } = useTIPTool('pixel-axe/compress');
+    const isReady = true;
 
     // Cleanup URLs
     useEffect(() => {
@@ -52,7 +52,7 @@ export function CompressImage({ compressImage, getImageInfo, isProcessing, isRea
         setOriginalUrl(URL.createObjectURL(file));
 
         try {
-            const info = await getImageInfo(file) as any;
+            const info = await getImageInfo(file);
             setOriginalInfo(info);
 
             // Auto-set format to match original if valid
@@ -74,24 +74,28 @@ export function CompressImage({ compressImage, getImageInfo, isProcessing, isRea
         if (!originalFile) return;
 
         try {
-            const result = await compressImage(originalFile, {
+            const config = {
                 quality,
                 format,
                 resizeFactor,
-                enhance: false // Force false for compression mode
-            });
+                enhance: false
+            };
 
-            const blob = new Blob([result as BlobPart], { type: `image/${format.toLowerCase()}` });
-            const url = URL.createObjectURL(blob);
+            const resultFiles = await execute([originalFile], config);
 
-            if (compressedUrl) URL.revokeObjectURL(compressedUrl);
-            setCompressedUrl(url);
+            if (resultFiles && resultFiles.length > 0) {
+                const blob = resultFiles[0];
+                const url = URL.createObjectURL(blob);
 
-            setCompressedInfo({
-                size_bytes: blob.size,
-                width: originalInfo?.width ? Math.round(originalInfo.width * resizeFactor) : 0,
-                height: originalInfo?.height ? Math.round(originalInfo.height * resizeFactor) : 0,
-            });
+                if (compressedUrl) URL.revokeObjectURL(compressedUrl);
+                setCompressedUrl(url);
+
+                setCompressedInfo({
+                    size_bytes: blob.size,
+                    width: originalInfo?.width ? Math.round(originalInfo.width * resizeFactor) : 0,
+                    height: originalInfo?.height ? Math.round(originalInfo.height * resizeFactor) : 0,
+                });
+            }
 
         } catch (err) {
             console.error("Compression failed", err);

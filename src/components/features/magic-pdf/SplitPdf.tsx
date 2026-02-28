@@ -5,7 +5,7 @@ import { FileUploader } from '@/components/ui/FileUploader';
 import { PdfPreview } from '@/components/ui/PdfPreview';
 import { Button } from '@/components/ui/Button';
 import { Scissors, Download, RefreshCw, SplitSquareHorizontal, Eye, Check } from 'lucide-react';
-import { splitPdf } from '@/lib/pdf-actions';
+import { useTIPTool } from '@/hooks/useTIPTool';
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
 
@@ -14,7 +14,7 @@ export default function SplitPdf() {
     const [numPages, setNumPages] = useState<number>(0);
     const [pdfDocument, setPdfDocument] = useState<any>(null);
     const [splitIndices, setSplitIndices] = useState<number[]>([]); // Indices AFTER which to split (0-based page index)
-    const [isSplitting, setIsSplitting] = useState(false);
+    const { execute, isProcessing, error, progress, progressMessage } = useTIPTool('magic-pdf/split');
     const [splitResult, setSplitResult] = useState<{ name: string, url: string }[]>([]);
 
     useEffect(() => {
@@ -60,17 +60,10 @@ export default function SplitPdf() {
 
     const handleSplit = async () => {
         if (!file || splitIndices.length === 0) return;
-        setIsSplitting(true);
 
         try {
-            // Calculate groups
             const groups: number[][] = [];
             let startIndex = 0;
-
-            // splitIndices represents the page index AFTER which we split
-            // e.g. if we have pages [0, 1, 2, 3] and split at 1 (after page index 1, i.e. after Page 2)
-            // Group 1: 0 to 1
-            // Group 2: 2 to end
 
             [...splitIndices, numPages - 1].forEach(endIndex => {
                 const group = [];
@@ -81,31 +74,26 @@ export default function SplitPdf() {
                 startIndex = endIndex + 1;
             });
 
-            // Handle case where last split is NOT the end (already handled by adding numPages-1 above? 
-            // If splitIndices includes numPages-1, we filter/uniq it or just logic checks. 
-            // My logic: [...splitIndices, numPages-1] ensures we capture the last segment.
-            // If user unselects the last page, we just process.
-            // Wait, splitIndices are "cuts". 
-            // Visual: Page 0 | Page 1. Click separator between 0 and 1 -> splitIndex = 0.
-            // So splitIndex 0 means "Split after Page 1".
+            const pageRanges = groups.map(group => {
+                if (group.length === 1) return `${group[0] + 1}`;
+                return `${group[0] + 1}-${group[group.length - 1] + 1}`;
+            }).join(',');
 
-            const pdfBytes = await splitPdf(file, groups);
+            const outputFiles = await execute([file], { pageRanges });
 
-            const results = pdfBytes.map((bytes, i) => {
-                const blob = new Blob([bytes as any], { type: 'application/pdf' });
-                return {
-                    name: `${file.name.replace('.pdf', '')}_part_${i + 1}.pdf`,
-                    url: URL.createObjectURL(blob)
-                };
-            });
-
-            setSplitResult(results);
+            if (outputFiles) {
+                const results = outputFiles.map((f, i) => {
+                    return {
+                        name: f.name,
+                        url: URL.createObjectURL(f)
+                    };
+                });
+                setSplitResult(results);
+            }
 
         } catch (error) {
             console.error(error);
             alert("Failed to split PDF");
-        } finally {
-            setIsSplitting(false);
         }
     };
 
@@ -160,9 +148,9 @@ export default function SplitPdf() {
                                         Reset
                                     </Button>
                                 ) : (
-                                    <Button onClick={handleSplit} disabled={splitIndices.length === 0} isLoading={isSplitting}>
+                                    <Button onClick={handleSplit} disabled={splitIndices.length === 0 || isProcessing} isLoading={isProcessing}>
                                         <Scissors className="w-4 h-4 mr-2" />
-                                        Split PDF ({splitIndices.length + 1} Files)
+                                        {isProcessing ? progressMessage || 'Splitting...' : `Split PDF (${splitIndices.length + 1} Files)`}
                                     </Button>
                                 )}
                             </div>

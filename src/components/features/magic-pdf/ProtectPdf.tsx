@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
-import { useMagicPdfWorker } from '@/hooks/useMagicPdfWorker';
+import { useTIPTool } from '@/hooks/useTIPTool';
 
 export default function ProtectPdf() {
     const [file, setFile] = useState<File | null>(null);
@@ -35,7 +35,7 @@ export default function ProtectPdf() {
     const [allowAnnotating, setAllowAnnotating] = useState(true);
     const [allowFillingForms, setAllowFillingForms] = useState(true);
 
-    const { processPdf, isReady, isProcessing: isWorkerBusy, error: workerError } = useMagicPdfWorker();
+    const { execute, isProcessing, error, progress, progressMessage, tool } = useTIPTool('magic-pdf/protect');
 
     const handleFileSelected = (files: File[]) => {
         if (files.length > 0) {
@@ -52,32 +52,27 @@ export default function ProtectPdf() {
             return;
         }
 
-        if (!isReady) {
-            alert('Encryption engine not ready yet. Please wait a moment.');
-            return;
-        }
-
         setIsProtecting(true);
 
         try {
-            // Use Python worker for encryption
-            const resultBytes = await processPdf('protect', file, {
+            // Use Python worker for encryption through TIP
+            const outputFiles = await execute([file], {
                 password: userPassword,
                 owner_password: useOwnerPassword && ownerPassword ? ownerPassword : userPassword,
-                permissions: {
+                permissions: JSON.stringify({
                     printing: allowPrinting,
                     modifying: allowModifying,
                     copying: allowCopying,
                     annotating: allowAnnotating,
                     fillingForms: allowFillingForms,
                     accessibility: true
-                }
+                })
             });
 
-            const blob = new Blob([resultBytes as any], { type: 'application/pdf' });
-            const url = URL.createObjectURL(blob);
-
-            setProtectedPdfUrl(url);
+            if (outputFiles && outputFiles.length > 0) {
+                const url = URL.createObjectURL(outputFiles[0]);
+                setProtectedPdfUrl(url);
+            }
         } catch (error) {
             console.error('Error protecting PDF:', error);
             alert('Failed to protect PDF: ' + (error as Error).message);
@@ -120,12 +115,6 @@ export default function ProtectPdf() {
                                 </div>
                                 <h2 className="text-2xl font-semibold mb-2">Protect PDF</h2>
                                 <p className="text-gray-500">Encrypt your PDF with a password to prevent unauthorized access.</p>
-                                {!isReady && (
-                                    <div className="mt-4 inline-flex items-center gap-2 text-xs text-amber-600 bg-amber-50 px-3 py-1 rounded-full">
-                                        <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                                        Initializing Encryption Engine...
-                                    </div>
-                                )}
                             </div>
                             <FileUploader
                                 onFilesSelected={handleFileSelected}
@@ -346,12 +335,12 @@ export default function ProtectPdf() {
                                     <Button
                                         size="lg"
                                         onClick={handleProtect}
-                                        disabled={isProtecting || isWorkerBusy || !userPassword}
-                                        isLoading={isProtecting || isWorkerBusy}
+                                        disabled={isProtecting || isProcessing || !userPassword}
+                                        isLoading={isProtecting || isProcessing}
                                         className="w-full max-w-xs"
                                     >
                                         <Lock className="w-4 h-4 mr-2" />
-                                        {(isProtecting || isWorkerBusy) ? 'Protecting...' : 'Protect PDF'}
+                                        {(isProtecting || isProcessing) ? progressMessage || 'Protecting...' : 'Protect PDF'}
                                     </Button>
 
                                     {!userPassword && (
