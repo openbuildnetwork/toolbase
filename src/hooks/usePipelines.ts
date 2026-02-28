@@ -15,6 +15,9 @@ import type { PipelineDefinition } from '@/types/pipeline';
 import { TIPToolRegistry } from '@/tip/registry';
 import { validateTipVersion } from '@/tip/validators';
 
+// TIP tools are now declaratively registered in TOOLS registry.
+
+
 const STORAGE_KEY = 'toolbase:pipelines';
 
 // ─── Validation ───────────────────────────────────────────────────────────────

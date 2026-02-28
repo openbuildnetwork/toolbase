@@ -29,6 +29,133 @@ export const TOOLS: ToolMeta[] = [
     pythonPowered: true,
     status: 'stable',
     addedAt: '2025-01-01',
+    tip: [
+      {
+      id: 'magic-pdf/compress',
+      name: 'Compress PDF',
+      description: 'Reduce PDF file size while preserving quality.',
+      consumes: ['application/pdf'],
+      produces: ['application/pdf'],
+      configSchema: { fields: [
+      {
+        key: 'quality',
+        label: 'Quality',
+        type: 'number',
+        default: 75,
+        min: 1,
+        max: 100,
+        step: 1,
+        unit: '%',
+        description: 'Higher = better quality, larger file.',
+      },
+    ] },
+      getExecutor: async () => {
+        const mod = await import('@/features/magic-pdf/tip/compress.tip');
+        return mod.compressPdfTool.invoke;
+      }
+    },
+      {
+      id: 'magic-pdf/split',
+      name: 'Split PDF',
+      description: 'Split a PDF into individual pages or custom page ranges.',
+      consumes: ['application/pdf'],
+      produces: ['application/pdf'],
+      configSchema: { fields: [
+      {
+        key: 'pageRanges',
+        label: 'Page Ranges',
+        type: 'string',
+        default: '',
+        description:
+          'Comma-separated ranges e.g. "1-3,5,7-9". Leave blank to split every page.',
+      },
+    ] },
+      getExecutor: async () => {
+        const mod = await import('@/features/magic-pdf/tip/split.tip');
+        return mod.splitPdfTool.invoke;
+      }
+    },
+      {
+      id: 'magic-pdf/merge',
+      name: 'Merge PDFs',
+      description: 'Merge multiple PDF files into a single PDF document.',
+      consumes: ['application/pdf'],
+      produces: ['application/pdf'],
+      configSchema: { fields: [] },
+      getExecutor: async () => {
+        const mod = await import('@/features/magic-pdf/tip/merge.tip');
+        return mod.mergePdfTool.invoke;
+      }
+    },
+      {
+      id: 'magic-pdf/protect',
+      name: 'Protect PDF',
+      description: 'Password-protect a PDF so it requires a password to open.',
+      consumes: ['application/pdf'],
+      produces: ['application/pdf'],
+      configSchema: { fields: [
+      {
+        key: 'password',
+        label: 'Password',
+        type: 'password',
+        default: '',
+        required: true,
+        description: 'The password required to open the protected PDF.',
+      },
+    ] },
+      getExecutor: async () => {
+        const mod = await import('@/features/magic-pdf/tip/protect.tip');
+        return mod.protectPdfTool.invoke;
+      }
+    },
+      {
+      id: 'magic-pdf/pdf-to-images',
+      name: 'PDF to Images',
+      description: 'Convert each PDF page to a PNG image. Output is one image per page.',
+      consumes: ['application/pdf'],
+      produces: ['image/png'],
+      configSchema: { fields: [
+      {
+        key: 'dpi',
+        label: 'Resolution',
+        type: 'number',
+        default: 150,
+        min: 72,
+        max: 600,
+        step: 1,
+        unit: 'DPI',
+        description: 'Higher DPI = sharper images, larger files.',
+      },
+    ] },
+      getExecutor: async () => {
+        const mod = await import('@/features/magic-pdf/tip/pdf-to-images.tip');
+        return mod.pdfToImagesTool.invoke;
+      }
+    },
+      {
+      id: 'magic-pdf/html-to-pdf',
+      name: 'HTML to PDF',
+      description: 'Convert an HTML document into a PDF file.',
+      consumes: ['text/html'],
+      produces: ['application/pdf'],
+      configSchema: { fields: [
+      {
+        key: 'pageSize',
+        label: 'Page Size',
+        type: 'select',
+        default: 'A4',
+        options: [
+          { label: 'A4', value: 'A4' },
+          { label: 'Letter', value: 'Letter' },
+          { label: 'Legal', value: 'Legal' },
+        ] }
+      ] },
+      getExecutor: async () => {
+        const mod = await import('@/features/magic-pdf/tip/html-to-pdf.tip');
+        return mod.htmlToPdfTool.invoke;
+      }
+    }
+    ]
   },
   {
     id: 'pixel-axe',
@@ -46,6 +173,115 @@ export const TOOLS: ToolMeta[] = [
     pythonPowered: true,
     status: 'stable',
     addedAt: '2025-01-01',
+    tip: [
+      {
+      id: 'pixel-axe/compress',
+      name: 'Compress Images',
+      description: 'Compress PNG, JPEG, or WebP images to reduce file size.',
+      consumes: ['image/png', 'image/jpeg', 'image/webp'],
+      produces: ['image/png', 'image/jpeg', 'image/webp'],
+      configSchema: { fields: [
+      {
+        key: 'quality',
+        label: 'Quality',
+        type: 'number',
+        default: 80,
+        min: 1,
+        max: 100,
+        step: 1,
+        unit: '%',
+        description: 'Higher = better quality, larger file.',
+      },
+      {
+        key: 'enhance',
+        label: 'Auto Enhance',
+        type: 'boolean',
+        default: false,
+        description: 'Apply subtle auto-enhancement to contrast and sharpness.',
+      },
+    ] },
+      getExecutor: async () => {
+        const mod = await import('@/features/pixel-axe/tip/compress.tip');
+        return mod.compressImageTool.invoke;
+      }
+    },
+      {
+      id: 'pixel-axe/resize',
+      name: 'Resize Images',
+      description: 'Resize images to a specific width and height.',
+      consumes: ['image/png', 'image/jpeg', 'image/webp'],
+      produces: ['image/png', 'image/jpeg', 'image/webp'],
+      configSchema: { fields: [
+      {
+        key: 'width',
+        label: 'Width',
+        type: 'number',
+        default: 1920,
+        min: 1,
+        max: 8192,
+        step: 1,
+        unit: 'px',
+      },
+      {
+        key: 'height',
+        label: 'Height',
+        type: 'number',
+        default: 1080,
+        min: 1,
+        max: 8192,
+        step: 1,
+        unit: 'px',
+      },
+      {
+        key: 'quality',
+        label: 'Quality',
+        type: 'number',
+        default: 85,
+        min: 1,
+        max: 100,
+        step: 1,
+        unit: '%',
+      },
+      {
+        key: 'mode',
+        label: 'Resize Mode',
+        type: 'select',
+        default: 'contain',
+        options: [
+          { label: 'Contain (letterbox)', value: 'contain' },
+          { label: 'Stretch (exact fit)', value: 'stretch' },
+        ] }
+      ] },
+      getExecutor: async () => {
+        const mod = await import('@/features/pixel-axe/tip/resize.tip');
+        return mod.resizeImageTool.invoke;
+      }
+    },
+      {
+      id: 'pixel-axe/upscale',
+      name: 'Upscale Images',
+      description: 'Upscale images to a larger size with quality enhancement. Always outputs PNG.',
+      consumes: ['image/png', 'image/jpeg', 'image/webp'],
+      produces: ['image/png'],
+      configSchema: { fields: [
+      {
+        key: 'scaleFactor',
+        label: 'Scale Factor',
+        type: 'select',
+        default: 2,
+        options: [
+          { label: '1.5×', value: 1.5 },
+          { label: '2×',   value: 2   },
+          { label: '3×',   value: 3   },
+          { label: '4×',   value: 4   },
+        ] }
+      ] },
+      getExecutor: async () => {
+        const mod = await import('@/features/pixel-axe/tip/upscale.tip');
+        return mod.upscaleImageTool.invoke;
+      }
+    }
+    ]
   },
   {
     id: 'data-lens',
@@ -80,6 +316,31 @@ export const TOOLS: ToolMeta[] = [
     pythonPowered: true,
     status: 'stable',
     addedAt: '2025-01-01',
+    tip: [
+      {
+      id: 'redact-secrets/redact',
+      name: 'Redact Secrets',
+      description: 'Scan and redact secrets, API keys, PII, and sensitive data from text or JSON.',
+      consumes: ['text/plain', 'application/json'],
+      produces: ['text/plain', 'application/json'],
+      configSchema: { fields: [
+      {
+        key: 'maskingStyle',
+        label: 'Masking Style',
+        type: 'select',
+        default: 'partial',
+        options: [
+          { label: 'Partial (show first/last chars)', value: 'partial' },
+          { label: 'Full (replace entirely)',         value: 'full'    },
+          { label: 'Hash (SHA-256 digest)',            value: 'hash'   },
+        ] }
+      ] },
+      getExecutor: async () => {
+        const mod = await import('@/features/redact-secrets/tip/redact.tip');
+        return mod.redactSecretsTool.invoke;
+      }
+    }
+    ]
   },
   {
     id: 'base64',
@@ -97,6 +358,48 @@ export const TOOLS: ToolMeta[] = [
     pythonPowered: false,
     status: 'stable',
     addedAt: '2025-01-01',
+    tip: [
+      {
+      id: 'base64/encode',
+      name: 'Base64 Encode',
+      description: 'Encode binary or text data as a Base64 string.',
+      consumes: ['application/octet-stream', 'text/plain'],
+      produces: ['text/plain'],
+      configSchema: { fields: [
+      {
+        key: 'urlSafe',
+        label: 'URL-Safe Encoding',
+        type: 'boolean',
+        default: false,
+        description: 'Use URL-safe Base64 alphabet (replaces + and / with - and _).',
+      },
+    ] },
+      getExecutor: async () => {
+        const mod = await import('@/features/base64/tip/encode.tip');
+        return mod.base64EncodeTool.invoke;
+      }
+    },
+      {
+      id: 'base64/decode',
+      name: 'Base64 Decode',
+      description: 'Decode a Base64 string back to its original binary or text data.',
+      consumes: ['text/plain'],
+      produces: ['application/octet-stream'],
+      configSchema: { fields: [
+      {
+        key: 'urlSafe',
+        label: 'URL-Safe Decoding',
+        type: 'boolean',
+        default: false,
+        description: 'Use URL-safe Base64 alphabet when decoding (- and _ instead of + and /).',
+      },
+    ] },
+      getExecutor: async () => {
+        const mod = await import('@/features/base64/tip/decode.tip');
+        return mod.base64DecodeTool.invoke;
+      }
+    }
+    ]
   },
   {
     id: 'json-to-interface',

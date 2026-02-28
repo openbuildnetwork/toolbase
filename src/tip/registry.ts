@@ -2,73 +2,82 @@
  * TIPToolRegistry — Tool discovery and pipeline auto-routing
  *
  * The registry is the intelligence hub of TIP.
- * Tools register themselves here once; the registry then powers:
+ * Tools are registered declaratively in src/config/tools.registry.ts.
+ * The registry then powers:
  *  - Step selector UI (what tools can come next?)
  *  - Pipeline validation (does this chain typecheck?)
  *  - Auto-discovery (what's the shortest path from PDF to PNG?)
- *
- * Design: module-level Map, exported as a singleton object.
- * This means registration is global and persistent for the lifetime
- * of the browser tab — exactly what we want.
  */
 
 import type { TIPContentType, TIPTool } from './protocol';
+import { TOOLS } from '@/config/tools.registry';
 
-/** Module-private tool store */
-const tools = new Map<string, TIPTool>();
+/** Helper to construct a TIPTool interface from a single TIP operation config in ToolMeta */
+function toTIPTool(config: NonNullable<typeof TOOLS[0]['tip']>[0]): TIPTool {
+  return {
+    id: config.id,
+    name: config.name,
+    description: config.description,
+    consumes: config.consumes,
+    produces: config.produces,
+    configSchema: config.configSchema,
+    invoke: async (input, configValue, hooks) => {
+      const execute = await config.getExecutor();
+      return execute(input, configValue, hooks);
+    },
+  };
+}
+
+// Internal storage for temporary/custom tools (mostly for tests)
+const customTools: TIPTool[] = [];
 
 export const TIPToolRegistry = {
-  // ── Registration ────────────────────────────────────────────────────────────
-
-  /**
-   * Register a TIP-compliant tool.
-   * Logs a warning (not an error) if overwriting an existing registration
-   * so hot-reloading in development doesn't throw.
-   */
-  register(tool: TIPTool): void {
-    if (tools.has(tool.id)) {
-      console.warn(`TIP: Tool "${tool.id}" is already registered. Overwriting.`);
-    }
-    tools.set(tool.id, tool);
-  },
-
-  /**
-   * Register multiple tools at once.
-   * Equivalent to calling register() for each tool in sequence.
-   */
-  registerAll(toolList: TIPTool[]): void {
-    toolList.forEach((t) => this.register(t));
-  },
-
   // ── Retrieval ───────────────────────────────────────────────────────────────
 
-  /** Get a tool by its ID. Returns undefined if not registered. */
-  get(id: string): TIPTool | undefined {
-    return tools.get(id);
+  /** Register new tools dynamically (primarily used for tests). */
+  registerAll(tools: TIPTool[]): void {
+    customTools.push(...tools);
   },
 
-  /** Return all registered tools as an array (insertion order). */
-  getAll(): TIPTool[] {
-    return Array.from(tools.values());
-  },
-
-  /**
-   * Return the number of registered tools.
-   * Useful for asserting registration is complete in tests.
-   */
-  size(): number {
-    return tools.size;
-  },
-
-  /**
-   * Unregister all tools. Primarily for use in unit tests to get a clean slate.
-   * Should NOT be called in production code.
-   */
+  /** Clear all dynamically registered tools. */
   clear(): void {
-    tools.clear();
+    customTools.length = 0;
+  },
+
+  /** Get a tool by its TIP ID (e.g. 'magic-pdf/compress'). Returns undefined if not found. */
+  get(id: string): TIPTool | undefined {
+    // Check custom tools first
+    const custom = customTools.find((t) => t.id === id);
+    if (custom) return custom;
+
+    for (const meta of TOOLS) {
+      if (!meta.tip) continue;
+      const config = meta.tip.find((c) => c.id === id);
+      if (config) return toTIPTool(config);
+    }
+    return undefined;
+  },
+
+  /** Return all strictly TIP-compliant operations registered across all tools. */
+  getAll(): TIPTool[] {
+    const all: TIPTool[] = [...customTools];
+    for (const meta of TOOLS) {
+      if (meta.tip) {
+        for (const config of meta.tip) {
+          all.push(toTIPTool(config));
+        }
+      }
+    }
+    return all;
+  },
+
+  /** Return the number of TIP-compliant operations. */
+  size(): number {
+    return this.getAll().length;
   },
 
   // ── Discovery ───────────────────────────────────────────────────────────────
+
 
   /** Find all tools that declare the given content type in their `consumes` list. */
   findConsumers(contentType: TIPContentType): TIPTool[] {

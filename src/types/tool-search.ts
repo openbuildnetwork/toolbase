@@ -43,6 +43,24 @@ export interface ToolMeta {
   addedAt: string;
   /** GitHub username of the contributor who built this tool */
   author?: string;
+  /** 
+   * If defined, this tool supports the TIP Protocol and can be chained
+   * in the Pipeline Builder. An array is used because some UI tools
+   * (like Magic PDF) expose multiple distinct TIP-operations.
+   */
+  tip?: {
+    id: string; // e.g. "magic-pdf/compress"
+    name: string;
+    description: string;
+    consumes: import('@/tip').TIPContentType[];
+    produces: import('@/tip').TIPContentType[];
+    configSchema: import('@/tip').TIPConfigSchema;
+    /**
+     * DYNAMIC IMPORT of the execution logic. 
+     * Keeps the registry lightweight.
+     */
+    getExecutor: () => Promise<(input: import('@/tip').TIPBundle, config: import('@/tip').TIPConfig, hooks: import('@/tip').TIPHooks) => Promise<import('@/tip').TIPBundle>>;
+  }[];
 }
 
 

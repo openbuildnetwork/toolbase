@@ -2,11 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CommandPaletteProvider } from "../components/ui/CommandPaletteProvider";
-// TIP — Register all TIP-compliant tools once at app startup
-// After this call, TIPToolRegistry.getAll() is populated and
-// the Pipeline Builder can offer step discovery and auto-routing.
-import { registerAllTIPTools } from "@/tip-tools";
-registerAllTIPTools();
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

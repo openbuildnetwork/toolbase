@@ -3,9 +3,12 @@
 import React, { useState } from 'react';
 import { Layers, Zap, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { PipelineBuilder } from '@/components/features/pipeline/PipelineBuilder';
+import { FlowCanvas } from '@/components/features/pipeline/FlowCanvas';
 import { ToolSidebar, ToolSidebarItem } from '@/components/ui/ToolSidebar';
 import { cn } from '@/lib/utils';
+
+// TIP tools are now declaratively registered in TOOLS registry.
+
 
 const SIDEBAR_ITEMS: ToolSidebarItem[] = [
     { id: 'builder', label: 'Pipeline Builder', icon: Layers },
@@ -17,7 +20,7 @@ export default function PipelinePage() {
     const [isSidebarOpen, setSidebarOpen] = useState(true);
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[#FDFDFD]">
+        <div className="flex h-screen overflow-hidden bg-[#1f1f1f]">
             <ToolSidebar
                 title="Pipeline"
                 items={SIDEBAR_ITEMS}
@@ -27,11 +30,12 @@ export default function PipelinePage() {
                 onToggle={setSidebarOpen}
             />
 
-            <main className="flex-1 overflow-hidden flex flex-col bg-gray-50/30">
-                {/* Toolbar */}
-                <header className="h-14 border-b border-gray-200/50 bg-white/50 backdrop-blur-md flex items-center justify-between px-6 shrink-0">
+            <main className="flex-1 flex flex-col h-screen overflow-hidden bg-white">
+                {/* Header (optional, if you want a top bar above the canvas Toolbar) */}
+                <header className="h-14 border-b border-gray-200 bg-white flex items-center justify-between px-6 shrink-0 z-10 w-full">
                     <div className={cn('flex items-center gap-2 transition-all duration-300', !isSidebarOpen && 'pl-12')}>
                         <div className="text-sm text-gray-500 flex items-center gap-2">
+                            <Layers className="w-5 h-5 text-violet-500" />
                             <span className="font-semibold text-gray-800">Pipeline Builder</span>
                             <span className="text-gray-300">/</span>
                             <span>{SIDEBAR_ITEMS.find((i) => i.id === activeTab)?.label}</span>
@@ -44,29 +48,16 @@ export default function PipelinePage() {
                 </header>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 w-full h-full relative overflow-hidden">
                     {activeTab === 'builder' && (
                         <motion.div
                             key="builder"
-                            initial={{ opacity: 0, x: 16 }}
-                            animate={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
                             transition={{ duration: 0.25 }}
-                            className="max-w-2xl mx-auto px-4 py-8"
+                            className="w-full h-full"
                         >
-                            {/* Page heading */}
-                            <div className="mb-8">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
-                                        <Layers className="w-5 h-5 text-white" />
-                                    </div>
-                                    <div>
-                                        <h1 className="text-xl font-bold text-gray-900">Pipeline Builder</h1>
-                                        <p className="text-sm text-gray-500">Chain tools into automated workflows</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <PipelineBuilder />
+                            <FlowCanvas />
                         </motion.div>
                     )}
 
@@ -76,7 +67,7 @@ export default function PipelinePage() {
                             initial={{ opacity: 0, x: 16 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.25 }}
-                            className="max-w-2xl mx-auto px-4 py-8"
+                            className="max-w-2xl mx-auto px-4 py-8 overflow-y-auto h-full"
                         >
                             <div className="prose prose-sm text-gray-700">
                                 <h1 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
