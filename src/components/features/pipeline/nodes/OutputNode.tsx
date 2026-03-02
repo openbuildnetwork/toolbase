@@ -1,58 +1,143 @@
 import { Handle, Position } from '@xyflow/react';
-import { Download, PackageCheck } from 'lucide-react';
+import { Download, PackageCheck, Sparkles } from 'lucide-react';
 
+/**
+ * OutputNode — The pipeline terminal node that shows results and allows file download.
+ */
 export function OutputNode({ data }: { data: any }) {
     const bundle = data.bundle;
     const status = data.status || 'idle';
 
-    let borderClass = 'border-gray-700/30';
-    if (status === 'complete') borderClass = 'border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)]';
+    const isComplete = status === 'complete' && !!bundle;
 
     return (
-        <div className={`bg-[#1a1a1a] border-2 ${borderClass} rounded-xl p-4 w-64 text-white shadow-xl transition-colors duration-300`}>
+        <div style={{
+            width: 220,
+            background: isComplete
+                ? 'linear-gradient(145deg, #0d1f19 0%, #0a1814 100%)'
+                : 'linear-gradient(145deg, #121212 0%, #0d0d0d 100%)',
+            border: `1.5px solid ${isComplete ? 'rgba(52,211,153,0.5)' : 'rgba(255,255,255,0.07)'}`,
+            borderRadius: 14,
+            padding: '12px',
+            boxShadow: isComplete
+                ? '0 0 24px rgba(52,211,153,0.15), 0 8px 32px rgba(0,0,0,0.4)'
+                : '0 8px 32px rgba(0,0,0,0.4)',
+            transition: 'all 0.3s ease',
+        }}>
+            {/* Input handle */}
             <Handle
                 type="target"
                 position={Position.Left}
-                style={{ background: '#9ca3af', width: 12, height: 12, border: '2px solid #2a2a2a' }}
+                style={{
+                    background: '#34d399',
+                    width: 11, height: 11,
+                    border: '2px solid #0a1814',
+                    boxShadow: '0 0 6px rgba(52,211,153,0.4)',
+                }}
             />
 
-            <div className="flex flex-col gap-3">
-                <div className="font-semibold text-sm flex items-center gap-2 text-emerald-400">
-                    <PackageCheck className="w-4 h-4" /> Pipeline Output
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <div style={{
+                    width: 30, height: 30, borderRadius: 8,
+                    background: isComplete ? 'rgba(52,211,153,0.15)' : 'rgba(52,211,153,0.07)',
+                    border: `1px solid ${isComplete ? 'rgba(52,211,153,0.3)' : 'rgba(52,211,153,0.15)'}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
+                }}>
+                    {isComplete
+                        ? <Sparkles style={{ width: 14, height: 14, color: '#34d399' }} />
+                        : <PackageCheck style={{ width: 15, height: 15, color: '#34d399' }} />
+                    }
                 </div>
+                <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#34d399', letterSpacing: '0.02em' }}>
+                        Pipeline Output
+                    </div>
+                    <div style={{ fontSize: 9, color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        Terminal Node
+                    </div>
+                </div>
+            </div>
 
-                {bundle ? (
-                    <div className="bg-[#222] border border-emerald-900/30 rounded-lg p-3 text-xs flex flex-col gap-2">
-                        <div className="text-emerald-400 font-medium text-center mb-1 bg-emerald-900/20 py-1 rounded">Execution Complete</div>
-                        <div className="flex justify-between items-center px-1">
-                            <span className="text-gray-400">Output Files:</span>
-                            <span className="font-mono">{bundle.meta.count}</span>
+            {/* Content */}
+            {isComplete ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {/* Stats */}
+                    <div style={{
+                        background: 'rgba(52,211,153,0.06)',
+                        border: '1px solid rgba(52,211,153,0.12)',
+                        borderRadius: 9,
+                        padding: '8px 10px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 5,
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: 10, color: '#666' }}>Files</span>
+                            <span style={{ fontSize: 11, fontWeight: 600, color: '#d1fae5', fontFamily: 'monospace' }}>
+                                {bundle.meta.count}
+                            </span>
                         </div>
-                        <div className="flex justify-between items-center px-1 border-gray-800">
-                            <span className="text-gray-400">Total Size:</span>
-                            <span className="font-mono">{(bundle.meta.totalSizeBytes / 1024).toFixed(1)} KB</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: 10, color: '#666' }}>Size</span>
+                            <span style={{ fontSize: 11, fontWeight: 600, color: '#d1fae5', fontFamily: 'monospace' }}>
+                                {(bundle.meta.totalSizeBytes / 1024).toFixed(1)} KB
+                            </span>
                         </div>
                         {data.totalDurationMs !== undefined && (
-                            <div className="flex justify-between items-center px-1 border-t border-gray-800 pt-1 border-gray-800 mt-1">
-                                <span className="text-gray-400">Total Time:</span>
-                                <span className="font-mono text-emerald-400">{(data.totalDurationMs / 1000).toFixed(1)}s</span>
+                            <div style={{
+                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                borderTop: '1px solid rgba(52,211,153,0.1)', paddingTop: 5, marginTop: 2,
+                            }}>
+                                <span style={{ fontSize: 10, color: '#666' }}>Duration</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: '#34d399', fontFamily: 'monospace' }}>
+                                    {(data.totalDurationMs / 1000).toFixed(2)}s
+                                </span>
                             </div>
                         )}
+                    </div>
 
-                        <button
-                            onClick={data.onDownload}
-                            className="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 rounded-md py-2 text-xs flex items-center justify-center font-semibold tracking-wide transition-colors"
-                        >
-                            <Download className="w-3.5 h-3.5 mr-2" />
-                            Download
-                        </button>
-                    </div>
-                ) : (
-                    <div className="text-xs text-gray-500 text-center py-6 bg-[#222] rounded-lg border border-dashed border-gray-700/50">
-                        Awaiting execution stream...
-                    </div>
-                )}
-            </div>
+                    {/* Download button */}
+                    <button
+                        onClick={data.onDownload}
+                        style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                            width: '100%',
+                            background: 'linear-gradient(135deg, #059669, #10b981)',
+                            border: 'none',
+                            borderRadius: 9,
+                            padding: '9px',
+                            color: 'white',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            letterSpacing: '0.02em',
+                            boxShadow: '0 4px 12px rgba(16,185,129,0.3)',
+                            transition: 'all 0.2s ease',
+                        }}
+                    >
+                        <Download style={{ width: 13, height: 13 }} />
+                        Download Results
+                    </button>
+                </div>
+            ) : (
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 5,
+                    padding: '20px 10px',
+                    border: '1px dashed rgba(255,255,255,0.06)',
+                    borderRadius: 9,
+                }}>
+                    <PackageCheck style={{ width: 22, height: 22, color: 'rgba(52,211,153,0.25)' }} />
+                    <span style={{ fontSize: 10.5, color: '#444', textAlign: 'center', lineHeight: 1.5 }}>
+                        Awaiting pipeline execution...
+                    </span>
+                </div>
+            )}
         </div>
     );
 }

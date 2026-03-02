@@ -1,53 +1,174 @@
-import { Handle, Position } from '@xyflow/react';
-import { Upload, File } from 'lucide-react';
+import React from 'react';
+import { Handle, Position, useReactFlow } from '@xyflow/react';
+import { Upload, FileCheck, X } from 'lucide-react';
 import { getTypeColor } from './ToolNode';
 
-export function FileInputNode({ data }: { data: any }) {
+/**
+ * FileInputNode — The pipeline starting node where a user drops/selects their file.
+ *
+ * Uses useReactFlow().updateNodeData() directly — no callback prop needed,
+ * so there is no race condition with the parent's effect-based wiring.
+ */
+export function FileInputNode({ id, data }: { id: string; data: any }) {
+    const { updateNodeData } = useReactFlow();
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file && data.onFileSelect) {
-            data.onFileSelect(file);
-        }
+        const file = e.target.files?.[0] ?? null;
+        updateNodeData(id, { file });
+        // Also call the parent callback if provided (e.g. for pipeline engine)
+        data.onFileSelect?.(file);
+    };
+
+    const handleRemove = () => {
+        updateNodeData(id, { file: null });
+        data.onFileSelect?.(null);
     };
 
     const contentType = data.file?.type || 'application/octet-stream';
     const status = data.status || 'idle';
-    let borderClass = 'border-gray-700/30';
 
-    if (status === 'running') borderClass = 'border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.3)] animate-pulse';
-    if (status === 'complete') borderClass = 'border-green-500';
+    const borderColor = status === 'running'
+        ? 'rgba(74,222,128,0.7)'
+        : status === 'complete'
+            ? 'rgba(74,222,128,0.5)'
+            : data.file
+                ? 'rgba(74,222,128,0.35)'
+                : 'rgba(255,255,255,0.07)';
+
+    const glowColor = (status === 'running' || status === 'complete' || data.file)
+        ? 'rgba(74,222,128,0.15), 0 8px 32px rgba(0,0,0,0.4)'
+        : 'rgba(0,0,0,0.4)';
 
     return (
-        <div className={`bg-[#1a1a1a] border-2 ${borderClass} rounded-xl p-4 w-64 text-white shadow-xl transition-colors duration-300`}>
-            <div className="flex flex-col gap-3">
-                <div className="font-semibold text-sm flex items-center gap-2 text-green-400">
-                    <File className="w-4 h-4" /> File Input
+        <div style={{
+            width: 220,
+            background: 'linear-gradient(145deg, #0d1a12 0%, #0a1210 100%)',
+            border: `1.5px solid ${borderColor}`,
+            borderRadius: 14,
+            padding: '12px',
+            boxShadow: `0 0 20px ${glowColor}`,
+            transition: 'all 0.25s ease',
+        }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <div style={{
+                    width: 30, height: 30, borderRadius: 8,
+                    background: 'rgba(74,222,128,0.12)',
+                    border: '1px solid rgba(74,222,128,0.2)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
+                }}>
+                    {data.file
+                        ? <FileCheck style={{ width: 15, height: 15, color: '#4ade80' }} />
+                        : <Upload style={{ width: 15, height: 15, color: '#4ade80' }} />
+                    }
                 </div>
-
-                {!data.file ? (
-                    <label className="border border-dashed border-gray-600 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-800 transition-colors">
-                        <Upload className="w-6 h-6 text-gray-400 mb-2" />
-                        <span className="text-xs text-gray-400">Click to upload</span>
-                        <input type="file" className="hidden" onChange={handleFileChange} />
-                    </label>
-                ) : (
-                    <div className="bg-[#222] border border-gray-800 rounded-lg p-3 text-xs flex flex-col gap-1.5">
-                        <div className="truncate font-medium">{data.file.name}</div>
-                        <div className="flex items-center justify-between text-gray-400 border-t border-gray-800 pt-1.5 mt-0.5">
-                            <span>{(data.file.size / 1024).toFixed(1)} KB</span>
-                            <span style={{ color: getTypeColor(contentType) }}>{contentType.split('/')[1]?.toUpperCase() || 'BIN'}</span>
-                        </div>
-                        <button onClick={() => data.onFileSelect?.(null)} className="mt-1 text-red-400 hover:text-red-300 w-full text-right text-[11px] font-semibold">
-                            Remove
-                        </button>
+                <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#4ade80', letterSpacing: '0.02em' }}>
+                        File Input
                     </div>
-                )}
+                    <div style={{ fontSize: 9, color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        Starting Point
+                    </div>
+                </div>
             </div>
 
+            {/* Drop zone or file preview */}
+            {!data.file ? (
+                <label
+                    className="nopan nodrag"
+                    onMouseDown={e => e.stopPropagation()}
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                        border: '1px dashed rgba(74,222,128,0.25)',
+                        borderRadius: 10,
+                        padding: '18px 10px',
+                        cursor: 'pointer',
+                        background: 'rgba(74,222,128,0.04)',
+                        transition: 'all 0.2s ease',
+                    }}
+                >
+                    <Upload style={{ width: 20, height: 20, color: 'rgba(74,222,128,0.5)' }} />
+                    <span style={{ fontSize: 11, color: '#555', textAlign: 'center', lineHeight: 1.4 }}>
+                        Click to select file
+                    </span>
+                    <input
+                        type="file"
+                        className="nopan nodrag"
+                        style={{ display: 'none' }}
+                        onChange={handleFileChange}
+                    />
+                </label>
+            ) : (
+                <div style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                    borderRadius: 9,
+                    padding: '8px 10px',
+                }}>
+                    <div style={{
+                        fontSize: 11.5,
+                        color: '#e5e7eb',
+                        fontWeight: 500,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        marginBottom: 5,
+                    }}>
+                        {data.file.name}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: 10, color: '#666' }}>
+                                {(data.file.size / 1024).toFixed(1)} KB
+                            </span>
+                            <span style={{
+                                fontSize: 9,
+                                color: getTypeColor(contentType),
+                                background: `${getTypeColor(contentType)}18`,
+                                border: `1px solid ${getTypeColor(contentType)}30`,
+                                padding: '1px 6px',
+                                borderRadius: 4,
+                                fontFamily: 'monospace',
+                                fontWeight: 600,
+                                textTransform: 'uppercase',
+                            }}>
+                                {contentType.split('/')[1] || 'BIN'}
+                            </span>
+                        </div>
+                        <button
+                            className="nopan nodrag"
+                            onMouseDown={e => e.stopPropagation()}
+                            onClick={handleRemove}
+                            style={{
+                                background: 'rgba(239,68,68,0.1)',
+                                border: '1px solid rgba(239,68,68,0.2)',
+                                borderRadius: 5,
+                                padding: '2px 5px',
+                                cursor: 'pointer',
+                                display: 'flex', alignItems: 'center',
+                            }}
+                        >
+                            <X style={{ width: 11, height: 11, color: '#f87171' }} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Output handle */}
             <Handle
                 type="source"
                 position={Position.Right}
-                style={{ background: data.file ? getTypeColor(contentType) : '#9ca3af', width: 12, height: 12, border: '2px solid #2a2a2a' }}
+                style={{
+                    background: data.file ? getTypeColor(contentType) : '#4ade80',
+                    width: 11, height: 11,
+                    border: '2px solid #0a1210',
+                    boxShadow: '0 0 6px rgba(74,222,128,0.5)',
+                }}
             />
         </div>
     );
