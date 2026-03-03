@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="omni-bg" x1="32" y1="26" x2="226" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0F172A"/>
+      <stop offset="0.5" stop-color="#1E293B"/>
+      <stop offset="1" stop-color="#0B1120"/>
+    </linearGradient>
+    <linearGradient id="omni-accent" x1="64" y1="52" x2="196" y2="214" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22D3EE"/>
+      <stop offset="0.52" stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#38BDF8"/>
+    </linearGradient>
+    <linearGradient id="omni-core" x1="86" y1="76" x2="168" y2="174" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#A5F3FC"/>
+      <stop offset="1" stop-color="#0284C7"/>
+    </linearGradient>
+    <filter id="omni-shadow" x="14" y="14" width="228" height="228" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dy="8"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.02 0 0 0 0 0.05 0 0 0 0 0.12 0 0 0 0.36 0"/>
+      <feBlend in2="SourceGraphic" mode="normal"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#omni-shadow)">
+    <rect x="24" y="24" width="208" height="208" rx="46" fill="url(#omni-bg)"/>
+    <rect x="26" y="26" width="204" height="204" rx="44" stroke="#BAE6FD" stroke-opacity="0.24" stroke-width="2"/>
+  </g>
+
+  <circle cx="128" cy="128" r="62" stroke="url(#omni-accent)" stroke-width="8"/>
+  <circle cx="128" cy="128" r="34" fill="#082F49" stroke="#67E8F9" stroke-opacity="0.75" stroke-width="3"/>
+
+  <path d="M72 96L52 116L72 136" stroke="url(#omni-accent)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M184 96L204 116L184 136" stroke="url(#omni-accent)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M110 84L146 172" stroke="url(#omni-accent)" stroke-width="7" stroke-linecap="round"/>
+
+  <path d="M110 106H140C151 106 158 113 158 124C158 135 151 142 140 142H124V170H110V106ZM124 118V130H139C142 130 144 128 144 124C144 120 142 118 139 118H124Z" fill="url(#omni-core)"/>
+
+  <g opacity="0.8" stroke="#67E8F9" stroke-width="3.5" stroke-linecap="round">
+    <path d="M64 166H86"/>
+    <circle cx="94" cy="166" r="5" fill="#0E7490"/>
+    <path d="M170 172H192"/>
+    <circle cx="162" cy="172" r="5" fill="#0E7490"/>
+  </g>
+</svg>
