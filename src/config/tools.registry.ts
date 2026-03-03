@@ -225,11 +225,41 @@ export const TOOLS: ToolMeta[] = [
         description: 'Higher = better quality, larger file.',
       },
       {
+        key: 'format',
+        label: 'Output Format',
+        type: 'select',
+        default: 'JPEG',
+        options: [
+          { label: 'JPEG', value: 'JPEG' },
+          { label: 'PNG',  value: 'PNG'  },
+          { label: 'WEBP', value: 'WEBP' },
+        ],
+        description: 'Output image format.',
+      },
+      {
+        key: 'resizeFactor',
+        label: 'Image Scale',
+        type: 'number',
+        default: 1.0,
+        min: 0.1,
+        max: 1.0,
+        step: 0.1,
+        unit: '×',
+        description: 'Scale the image before compression (1.0 = original size).',
+      },
+      {
         key: 'enhance',
         label: 'Auto Enhance',
         type: 'boolean',
         default: false,
         description: 'Apply subtle auto-enhancement to contrast and sharpness.',
+      },
+      {
+        key: 'stripMetadata',
+        label: 'Strip Metadata',
+        type: 'boolean',
+        default: true,
+        description: 'Remove GPS, camera, and EXIF data from the output image.',
       },
     ] },
       getExecutor: async () => {
@@ -238,8 +268,16 @@ export const TOOLS: ToolMeta[] = [
         return createPerPayloadTIPExecutor(
           pixelAxeWorker,
           'compress',
-          (buffer, config) => ({ image_data: buffer, ...config }),
-          (payload, config) => (config.format ? `image/${config.format.toLowerCase()}` : payload.contentType) as any,
+          // Explicit mapping: JS camelCase → Python snake_case
+          (buffer, config) => ({
+            image_data:      buffer,
+            quality:         config.quality,
+            format:          config.format,
+            resize_factor:   config.resizeFactor,
+            enhance:         config.enhance,
+            strip_metadata:  config.stripMetadata,
+          }),
+          (payload, config) => (config.format ? `image/${String(config.format).toLowerCase()}` as any : payload.contentType),
           'Compress Images'
         );
       }
@@ -275,30 +313,58 @@ export const TOOLS: ToolMeta[] = [
         key: 'quality',
         label: 'Quality',
         type: 'number',
-        default: 85,
+        default: 90,
         min: 1,
         max: 100,
         step: 1,
         unit: '%',
       },
       {
-        key: 'mode',
-        label: 'Resize Mode',
+        key: 'format',
+        label: 'Output Format',
         type: 'select',
-        default: 'contain',
+        default: 'JPEG',
         options: [
-          { label: 'Contain (letterbox)', value: 'contain' },
+          { label: 'JPEG', value: 'JPEG' },
+          { label: 'PNG',  value: 'PNG'  },
+          { label: 'WEBP', value: 'WEBP' },
+        ],
+      },
+      {
+        key: 'mode',
+        label: 'Fit Mode',
+        type: 'select',
+        default: 'stretch',
+        options: [
           { label: 'Stretch (exact fit)', value: 'stretch' },
-        ] }
-      ] },
+          { label: 'Contain (letterbox)', value: 'contain' },
+        ],
+      },
+      {
+        key: 'fillColor',
+        label: 'Fill Color',
+        type: 'string',
+        default: 'transparent',
+        description: 'Background fill color when fit mode is Contain (hex or "transparent").',
+      },
+    ] },
       getExecutor: async () => {
         const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
         const { pixelAxeWorker } = await import('@/workers/instances');
         return createPerPayloadTIPExecutor(
           pixelAxeWorker,
           'resize',
-          (buffer, config) => ({ image_data: buffer, ...config }),
-          (payload, config) => (config.format ? `image/${config.format.toLowerCase()}` : payload.contentType) as any,
+          // Explicit mapping: JS camelCase → Python snake_case
+          (buffer, config) => ({
+            image_data:  buffer,
+            width:       config.width,
+            height:      config.height,
+            quality:     config.quality,
+            format:      config.format,
+            mode:        config.mode,
+            fill_color:  config.fillColor,
+          }),
+          (payload, config) => (config.format ? `image/${String(config.format).toLowerCase()}` as any : payload.contentType),
           'Resize Images'
         );
       }
@@ -311,25 +377,79 @@ export const TOOLS: ToolMeta[] = [
       produces: ['image/png'],
       configSchema: { fields: [
       {
-        key: 'scaleFactor',
+        key: 'resizeFactor',
         label: 'Scale Factor',
+        type: 'number',
+        default: 2.0,
+        min: 1.0,
+        max: 4.0,
+        step: 0.25,
+        unit: '×',
+        description: 'How much to enlarge the image.',
+      },
+      {
+        key: 'quality',
+        label: 'Quality',
+        type: 'number',
+        default: 90,
+        min: 1,
+        max: 100,
+        step: 1,
+        unit: '%',
+        description: 'Output image quality.',
+      },
+      {
+        key: 'format',
+        label: 'Output Format',
         type: 'select',
-        default: 2,
+        default: 'PNG',
         options: [
-          { label: '1.5×', value: 1.5 },
-          { label: '2×',   value: 2   },
-          { label: '3×',   value: 3   },
-          { label: '4×',   value: 4   },
-        ] }
-      ] },
+          { label: 'PNG',  value: 'PNG'  },
+          { label: 'JPEG', value: 'JPEG' },
+          { label: 'WEBP', value: 'WEBP' },
+        ],
+        description: 'Output image format (PNG recommended for quality).',
+      },
+      {
+        key: 'denoise',
+        label: 'Reduce Noise',
+        type: 'boolean',
+        default: false,
+        description: 'Apply median filter to smooth grain.',
+      },
+      {
+        key: 'vibrant',
+        label: 'Vibrant Colors',
+        type: 'boolean',
+        default: false,
+        description: 'Boost saturation and contrast for punchier colors.',
+      },
+      {
+        key: 'printDpi',
+        label: 'Print Ready (300 DPI)',
+        type: 'boolean',
+        default: false,
+        description: 'Set output DPI to 300 for print-quality output.',
+      },
+    ] },
       getExecutor: async () => {
         const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
         const { pixelAxeWorker } = await import('@/workers/instances');
         return createPerPayloadTIPExecutor(
-          pixelAxeWorker, 
-          'upscale', 
-          (buffer, config) => ({ image_data: buffer, ...config }),
-          () => 'image/png', 
+          pixelAxeWorker,
+          'compress',  // upscale goes through the 'compress' action in main.py (which routes to upscale_image when resize_factor > 1)
+          // Explicit mapping: JS camelCase → Python snake_case
+          (buffer, config) => ({
+            image_data:    buffer,
+            quality:       config.quality,
+            format:        config.format,
+            resize_factor: config.resizeFactor,
+            enhance:       true,            // always true for upscale
+            denoise:       config.denoise,
+            vibrant:       config.vibrant,
+            print_dpi:     config.printDpi,
+          }),
+          (payload, config) => (config.format ? `image/${String(config.format).toLowerCase()}` as any : 'image/png'),
           'Upscale Images'
         );
       }

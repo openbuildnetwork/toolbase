@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FileDropZone } from "@/components/ui/FileDropZone";
 import { Button } from "@/components/ui/Button";
 import { Download, RefreshCw, Zap, Scaling } from "lucide-react";
@@ -20,20 +20,33 @@ export function UpscaleImage() {
     const [compressedUrl, setCompressedUrl] = useState<string | null>(null);
     const [compressedInfo, setCompressedInfo] = useState<any>(null);
 
-    // Settings
-    const [quality, setQuality] = useState(90); // Default high quality for upscaling
-    const [format, setFormat] = useState("JPEG");
-    const [resizeFactor, setResizeFactor] = useState(2.0); // Default to 2x
-    // Enhance is always true for upscaling now, no UI control
-    const enhance = true;
-    const setEnhance = () => { }; // No-op since we removed the switch
-    const [denoise, setDenoise] = useState(false);
-    const [vibrant, setVibrant] = useState(false);
-    const [printDpi, setPrintDpi] = useState(false);
-
-    // Engine Hooks
-    const { execute, isProcessing, error } = useTIPTool('pixel-axe/upscale');
+    // Engine Hook — config defaults come directly from the TIP schema.
+    // This keeps the direct tool and the pipeline node in sync automatically.
+    const { execute, isProcessing, error, tool } = useTIPTool('pixel-axe/upscale');
     const isReady = true;
+
+    const defaultConfig = useMemo(
+        () => Object.fromEntries(
+            (tool?.configSchema.fields ?? []).map(f => [f.key, f.default])
+        ),
+        [tool]
+    );
+
+    const [config, setConfig] = useState<Record<string, any>>(defaultConfig);
+
+    /** Update a single config field by key */
+    const updateConfig = (key: string, value: any) =>
+        setConfig(prev => ({ ...prev, [key]: value }));
+
+    // Seed config from schema defaults on first mount
+    const seededRef = React.useRef(false);
+    useEffect(() => {
+        if (!seededRef.current && Object.keys(defaultConfig).length > 0) {
+            setConfig(defaultConfig);
+            seededRef.current = true;
+        }
+    }, [defaultConfig]);
+
 
     // Cleanup URLs
     useEffect(() => {
@@ -61,15 +74,10 @@ export function UpscaleImage() {
             setOriginalInfo(info);
 
             // Auto-set format to match original if valid
-            if (info.format && ["JPEG", "PNG", "WEBP"].includes(info.format)) {
-                setFormat(info.format);
-            } else {
-                setFormat("JPEG");
-            }
-
-            // Default settings for new file
-            setResizeFactor(2.0);
-            setQuality(90);
+            const detectedFormat = info.format && ["JPEG", "PNG", "WEBP"].includes(info.format)
+                ? info.format
+                : 'PNG';  // PNG is preferred for upscaling to avoid double lossy compression
+            setConfig(prev => ({ ...prev, format: detectedFormat }));
 
         } catch (err) {
             console.error("Failed to get image info", err);
@@ -80,16 +88,6 @@ export function UpscaleImage() {
         if (!originalFile) return;
 
         try {
-            const config = {
-                quality,
-                format,
-                resizeFactor,
-                enhance,
-                denoise,
-                vibrant,
-                print_dpi: printDpi
-            };
-
             const outputFiles = await execute([originalFile], config);
 
             if (outputFiles && outputFiles.length > 0) {
@@ -99,6 +97,7 @@ export function UpscaleImage() {
                 if (compressedUrl) URL.revokeObjectURL(compressedUrl);
                 setCompressedUrl(url);
 
+                const resizeFactor = Number(config.resizeFactor ?? 2.0);
                 setCompressedInfo({
                     size_bytes: blob.size,
                     width: originalInfo?.width ? Math.round(originalInfo.width * resizeFactor) : 0,
@@ -115,7 +114,7 @@ export function UpscaleImage() {
         if (!compressedUrl) return;
         const link = document.createElement('a');
         link.href = compressedUrl;
-        const ext = format.toLowerCase();
+        const ext = String(config.format ?? 'png').toLowerCase();
         link.download = `upscaled-image.${ext}`;
         document.body.appendChild(link);
         link.click();
@@ -197,20 +196,20 @@ export function UpscaleImage() {
 
                             <CompressionSettings
                                 mode="upscale"
-                                quality={quality}
-                                setQuality={setQuality}
-                                format={format}
-                                setFormat={setFormat}
-                                resizeFactor={resizeFactor}
-                                setResizeFactor={setResizeFactor}
-                                enhance={enhance}
-                                setEnhance={setEnhance}
-                                denoise={denoise}
-                                setDenoise={setDenoise}
-                                vibrant={vibrant}
-                                setVibrant={setVibrant}
-                                printDpi={printDpi}
-                                setPrintDpi={setPrintDpi}
+                                quality={Number(config.quality ?? 90)}
+                                setQuality={v => updateConfig('quality', v)}
+                                format={String(config.format ?? 'PNG')}
+                                setFormat={v => updateConfig('format', v)}
+                                resizeFactor={Number(config.resizeFactor ?? 2.0)}
+                                setResizeFactor={v => updateConfig('resizeFactor', v)}
+                                enhance={true}
+                                setEnhance={() => { }}
+                                denoise={Boolean(config.denoise ?? false)}
+                                setDenoise={v => updateConfig('denoise', v)}
+                                vibrant={Boolean(config.vibrant ?? false)}
+                                setVibrant={v => updateConfig('vibrant', v)}
+                                printDpi={Boolean(config.printDpi ?? false)}
+                                setPrintDpi={v => updateConfig('printDpi', v)}
                                 isProcessing={isProcessing}
                             />
                         </div>
