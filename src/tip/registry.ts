@@ -21,6 +21,9 @@ function toTIPTool(config: NonNullable<typeof TOOLS[0]['tip']>[0]): TIPTool {
     consumes: config.consumes,
     produces: config.produces,
     configSchema: config.configSchema,
+    // INP: forward optional interactive fields so ToolNode can detect them
+    interactable: config.interactable,
+    getInteractionComponent: config.getInteractionComponent,
     invoke: async (input, configValue, hooks) => {
       const execute = await config.getExecutor();
       return execute(input, configValue, hooks);

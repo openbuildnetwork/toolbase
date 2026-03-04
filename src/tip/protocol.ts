@@ -158,6 +158,37 @@ export interface TIPConfigSchema {
 /** The resolved config passed into tool.invoke() */
 export type TIPConfig = Record<string, string | number | boolean>;
 
+// ─── Interactive Node Protocol ─────────────────────────────────────────────────
+// Some tools require user interaction before execution (reorder, crop, annotate).
+// Interaction components implement TIPInteractionProps and are rendered inside
+// the pipeline's InteractionModal — reusing the exact same UI as the direct tool.
+
+/**
+ * Props that every interaction component MUST accept.
+ * Interaction components are rendered inside InteractionModal in the pipeline.
+ */
+export interface TIPInteractionProps {
+  /** Files flowing into this node from upstream (passed in when available) */
+  files: File[];
+  /** Current node config draft */
+  config: Record<string, unknown>;
+  /**
+   * Called when the user confirms. `files` is the final ordered/filtered
+   * list to use as the execution input. `config` carries any extra settings.
+   */
+  onConfirm: (result: TIPInteractionResult) => void;
+  /** Called when the user cancels — modal closes, node state unchanged */
+  onCancel: () => void;
+}
+
+/** The result emitted by an interaction component on confirm */
+export interface TIPInteractionResult {
+  /** Final ordered file list to use as the execution bundle */
+  files: File[];
+  /** Optional extra config values captured in the interaction UI */
+  config?: Record<string, unknown>;
+}
+
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 // Standard hooks every tool receives during invocation.
 // Progress, logging, and cancellation — the same for every tool.
@@ -230,4 +261,21 @@ export interface TIPTool {
     config: TIPConfig,
     hooks: TIPHooks
   ): Promise<TIPBundle>;
+
+  // ── Interactive Node Protocol (optional) ──────────────────────────────────────
+
+  /**
+   * When true, this tool requires user interaction before it can execute.
+   * The pipeline ToolNode shows a "Configure" button and an amber indicator
+   * until the user has confirmed the interaction.
+   */
+  interactable?: true;
+
+  /**
+   * Lazily loads the interaction component for this tool.
+   * The component receives TIPInteractionProps and calls onConfirm / onCancel.
+   * Only present when interactable === true.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getInteractionComponent?: () => Promise<(props: TIPInteractionProps) => any>;
 }

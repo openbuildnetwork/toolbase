@@ -16,11 +16,12 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { executeTIPPipeline } from '@/tip/engine';
-import { bundleFromFile } from '@/tip/bundle';
+import { bundleFromFile, bundleFromFiles } from '@/tip/bundle';
 import type { TIPBundle } from '@/tip/protocol';
 import type { TIPPipelineStep } from '@/tip/engine';
 import type { TIPError } from '@/tip/errors';
 import type { PipelineEngineState, StepState, PipelineStep } from '@/types/pipeline';
+import type { Node } from '@xyflow/react';
 
 // ─── Extended state with output ───────────────────────────────────────────────
 
@@ -28,8 +29,14 @@ interface UsePipelineEngineReturn {
   state: PipelineEngineState;
   /** The final TIPBundle produced after successful completion */
   output: TIPBundle | null;
-  /** Start the pipeline. Accepts a PipelineDefinition's steps + the user's file. */
-  run: (steps: PipelineStep[], file: File) => Promise<void>;
+  /**
+   * Start the pipeline.
+   * @param steps   - Ordered pipeline steps
+   * @param file    - The file from the FileInputNode (used as the initial bundle)
+   * @param nodes   - Optional: React Flow nodes array, used to resolve interactionFiles
+   *                  for interactable (INP) nodes so they override the upstream bundle.
+   */
+  run: (steps: PipelineStep[], file: File, nodes?: Node[]) => Promise<void>;
   /** Abort the running pipeline (honours AbortSignal in each TIPTool) */
   cancel: () => void;
   /** Reset to idle state (clears output and error) */
@@ -78,7 +85,7 @@ export function usePipelineEngine(): UsePipelineEngineReturn {
   // ── run ───────────────────────────────────────────────────────────────────────
 
   const run = useCallback(
-    async (steps: PipelineStep[], file: File) => {
+    async (steps: PipelineStep[], file: File, nodes?: Node[]) => {
       // Cancel any in-flight run
       controllerRef.current?.abort();
       const controller = new AbortController();
@@ -94,13 +101,29 @@ export function usePipelineEngine(): UsePipelineEngineReturn {
       });
       setOutput(null);
 
-      // Build the initial bundle from the file
+      // Build the initial bundle from the FileInputNode file
       const initialBundle = bundleFromFile(file);
+
+      // Build a map of stepId → override bundle for INP (interactable) nodes.
+      // When a node has interactionFiles, those files are used as the bundle
+      // instead of the upstream output — the user explicitly ordered them.
+      const interactionBundleMap = new Map<string, TIPBundle>();
+      if (nodes) {
+        for (const step of steps) {
+          const node = nodes.find(n => n.id === step.id);
+          const interactionFiles = node?.data.interactionFiles as File[] | undefined;
+          if (interactionFiles && interactionFiles.length > 0) {
+            interactionBundleMap.set(step.id, bundleFromFiles(interactionFiles));
+          }
+        }
+      }
 
       // Map PipelineStep (UI type) → TIPPipelineStep (engine type)
       const engineSteps: TIPPipelineStep[] = steps.map((s) => ({
         toolId: s.toolId,
         config: s.config,
+        // Attach the override bundle so the engine can use it
+        interactionBundle: interactionBundleMap.get(s.id),
       }));
 
       try {

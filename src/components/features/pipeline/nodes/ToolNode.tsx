@@ -1,6 +1,7 @@
+import React from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { TIPToolRegistry } from '@/tip/registry';
-import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Settings2 } from 'lucide-react';
 import Image from 'next/image';
 
 export function getTypeColor(type: string): string {
@@ -37,42 +38,63 @@ export function ToolNode({ data }: { data: any }) {
 
     const status = data.status || 'idle';
     const thumbnail = getToolThumbnail(data.toolId);
+    const isInteractable = !!tool.interactable;
+    const needsConfig = isInteractable && !data.interactionDone;
 
     const inColor = getTypeColor(tool.consumes[0] || '');
     const outColor = getTypeColor(tool.produces[0] || '');
 
-    const containerStyle: React.CSSProperties = {
-        width: 220,
-        background: status === 'complete'
-            ? 'linear-gradient(145deg, #0d1f14 0%, #0f1a10 100%)'
-            : status === 'error'
-                ? 'linear-gradient(145deg, #1f0d0d 0%, #1a0f0f 100%)'
-                : status === 'running'
-                    ? 'linear-gradient(145deg, #0d1020 0%, #0f1028 100%)'
-                    : 'linear-gradient(145deg, #161618 0%, #111113 100%)',
-        border: `1.5px solid ${status === 'running' ? 'rgba(99,102,241,0.7)' :
-            status === 'complete' ? 'rgba(34,197,94,0.5)' :
-                status === 'error' ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.07)'}`,
-        borderRadius: 14,
-        padding: '12px',
-        boxShadow: status === 'running'
-            ? '0 0 20px rgba(99,102,241,0.25), 0 8px 32px rgba(0,0,0,0.4)'
-            : status === 'complete'
-                ? '0 0 20px rgba(34,197,94,0.15), 0 8px 32px rgba(0,0,0,0.4)'
-                : '0 8px 32px rgba(0,0,0,0.4)',
-        transition: 'all 0.25s ease',
-    };
+    const borderColor = status === 'running' ? 'rgba(99,102,241,0.7)' :
+        status === 'complete' ? 'rgba(34,197,94,0.5)' :
+            status === 'error' ? 'rgba(239,68,68,0.5)' :
+                needsConfig ? 'rgba(251,191,36,0.45)' :
+                    'rgba(255,255,255,0.07)';
+
+    const shadowColor = status === 'running' ? 'rgba(99,102,241,0.25)' :
+        status === 'complete' ? 'rgba(34,197,94,0.15)' :
+            status === 'error' ? 'rgba(239,68,68,0.15)' :
+                needsConfig ? 'rgba(251,191,36,0.12)' :
+                    'transparent';
+
+    const bg = status === 'complete' ? 'linear-gradient(145deg, #0d1f14 0%, #0f1a10 100%)' :
+        status === 'error' ? 'linear-gradient(145deg, #1f0d0d 0%, #1a0f0f 100%)' :
+            status === 'running' ? 'linear-gradient(145deg, #0d1020 0%, #0f1028 100%)' :
+                'linear-gradient(145deg, #161618 0%, #111113 100%)';
 
     return (
-        <div style={containerStyle}>
+        <div style={{
+            width: 220,
+            background: bg,
+            border: `1.5px solid ${borderColor}`,
+            borderRadius: 14,
+            padding: '12px',
+            boxShadow: `0 0 20px ${shadowColor}, 0 8px 32px rgba(0,0,0,0.4)`,
+            transition: 'all 0.25s ease',
+            position: 'relative',
+        }}>
+            {/* ── Amber "needs config" dot ─────────────────────────────────────── */}
+            {needsConfig && (
+                <div
+                    title="Configure this node before running"
+                    style={{
+                        position: 'absolute', top: -5, right: -5,
+                        width: 13, height: 13,
+                        borderRadius: '50%',
+                        background: '#f59e0b',
+                        border: '2px solid #111',
+                        boxShadow: '0 0 8px rgba(251,191,36,0.6)',
+                        zIndex: 10,
+                    }}
+                />
+            )}
+
             {/* Input handle */}
             <Handle
                 type="target"
                 position={Position.Left}
                 style={{
                     background: inColor,
-                    width: 11,
-                    height: 11,
+                    width: 11, height: 11,
                     border: '2px solid #111',
                     boxShadow: `0 0 6px ${inColor}66`,
                 }}
@@ -82,22 +104,11 @@ export function ToolNode({ data }: { data: any }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 {thumbnail ? (
                     <div style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 9,
-                        overflow: 'hidden',
+                        width: 36, height: 36, borderRadius: 9, overflow: 'hidden',
                         border: '1px solid rgba(255,255,255,0.1)',
-                        background: '#1a1a1e',
-                        flexShrink: 0,
-                        position: 'relative',
+                        background: '#1a1a1e', flexShrink: 0, position: 'relative',
                     }}>
-                        <Image
-                            src={thumbnail}
-                            alt={tool.name}
-                            fill
-                            style={{ objectFit: 'cover' }}
-                            sizes="36px"
-                        />
+                        <Image src={thumbnail} alt={tool.name} fill style={{ objectFit: 'cover' }} sizes="36px" />
                     </div>
                 ) : (
                     <div style={{
@@ -113,22 +124,14 @@ export function ToolNode({ data }: { data: any }) {
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: '#f0f0f0',
-                        lineHeight: 1.3,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
+                        fontSize: 12, fontWeight: 600, color: '#f0f0f0', lineHeight: 1.3,
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                         {tool.name}
                     </div>
                     <div style={{
-                        fontSize: 9,
-                        color: '#666',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        marginTop: 2,
+                        fontSize: 9, color: '#666',
+                        textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 2,
                     }}>
                         {tool.id.split('/')[1]}
                     </div>
@@ -155,15 +158,11 @@ export function ToolNode({ data }: { data: any }) {
 
             {/* I/O flow pill */}
             <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
+                display: 'flex', alignItems: 'center', gap: 6,
                 background: 'rgba(255,255,255,0.04)',
                 border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: 7,
-                padding: '5px 8px',
-                fontSize: 9.5,
-                fontFamily: 'monospace',
+                borderRadius: 7, padding: '5px 8px',
+                fontSize: 9.5, fontFamily: 'monospace',
             }}>
                 <span style={{ color: inColor, fontWeight: 600, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {tool.consumes[0]?.split('/')[1]?.toUpperCase() || 'ANY'}
@@ -174,17 +173,42 @@ export function ToolNode({ data }: { data: any }) {
                 </span>
             </div>
 
+            {/* ── Configure button (INP: only for interactable tools) ────────────── */}
+            {isInteractable && (
+                <button
+                    className="nopan nodrag"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={() => data.onOpenInteraction?.()}
+                    style={{
+                        marginTop: 8,
+                        width: '100%',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                        padding: '6px 10px',
+                        borderRadius: 8,
+                        background: needsConfig ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.04)',
+                        border: `1px solid ${needsConfig ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        color: needsConfig ? '#fbbf24' : '#888',
+                        fontSize: 10.5,
+                        fontWeight: 600,
+                        letterSpacing: '0.04em',
+                    }}
+                >
+                    <Settings2 style={{ width: 11, height: 11 }} />
+                    {data.interactionDone
+                        ? `Configured · ${(data.interactionFiles as File[] | undefined)?.length ?? 0} files`
+                        : 'Configure ✦'}
+                </button>
+            )}
+
             {/* Error message */}
             {status === 'error' && data.error && (
                 <div style={{
-                    marginTop: 8,
-                    fontSize: 10,
-                    color: '#f87171',
+                    marginTop: 8, fontSize: 10, color: '#f87171',
                     background: 'rgba(239,68,68,0.08)',
                     border: '1px solid rgba(239,68,68,0.15)',
-                    borderRadius: 6,
-                    padding: '5px 7px',
-                    lineHeight: 1.4,
+                    borderRadius: 6, padding: '5px 7px', lineHeight: 1.4,
                 }}>
                     {data.error}
                 </div>
@@ -196,8 +220,7 @@ export function ToolNode({ data }: { data: any }) {
                 position={Position.Right}
                 style={{
                     background: outColor,
-                    width: 11,
-                    height: 11,
+                    width: 11, height: 11,
                     border: '2px solid #111',
                     boxShadow: `0 0 6px ${outColor}66`,
                 }}

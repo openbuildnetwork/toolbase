@@ -60,6 +60,17 @@ export interface ToolMeta {
      * Keeps the registry lightweight.
      */
     getExecutor: () => Promise<(input: import('@/tip').TIPBundle, config: import('@/tip').TIPConfig, hooks: import('@/tip').TIPHooks) => Promise<import('@/tip').TIPBundle>>;
+    /**
+     * INP: when true, this operation requires user interaction before execution.
+     * The pipeline ToolNode shows a Configure button and amber indicator.
+     */
+    interactable?: true;
+    /**
+     * INP: lazily loads the interaction component.
+     * Only present when interactable === true.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getInteractionComponent?: () => Promise<(props: import('@/tip').TIPInteractionProps) => any>;
   }[];
 }
 

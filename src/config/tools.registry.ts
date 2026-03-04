@@ -84,6 +84,12 @@ export const TOOLS: ToolMeta[] = [
       consumes: ['application/pdf'],
       produces: ['application/pdf'],
       configSchema: { fields: [] },
+      // INP: requires user interaction to set file order before execution
+      interactable: true as const,
+      getInteractionComponent: async () => {
+        const { default: MergePdf } = await import('@/components/features/magic-pdf/MergePdf');
+        return MergePdf;
+      },
       getExecutor: async () => {
         const { createBatchTIPExecutor } = await import('@/tip/executor');
         const { magicPdfWorker } = await import('@/workers/instances');

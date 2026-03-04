@@ -16,6 +16,7 @@ import '@xyflow/react/dist/style.css';
 import { NodePalette, PaletteFilterContext } from './NodePalette';
 import { InspectorPanel } from './InspectorPanel';
 import { PipelineToolbar } from './PipelineToolbar';
+import { InteractionModal } from './InteractionModal';
 import { useFlowGraph } from './hooks/useFlowGraph';
 import { useGraphSerializer } from './hooks/useGraphSerializer';
 
@@ -50,6 +51,7 @@ function FlowCanvasBuilder() {
     const { save, exportJson } = usePipelines();
 
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+    const [interactionNodeId, setInteractionNodeId] = useState<string | null>(null);
 
     useEffect(() => {
         if (nodes.length === 0) {
@@ -67,11 +69,15 @@ function FlowCanvasBuilder() {
         setNodes(nds => nds.map(n => n.id === nodeId ? { ...n, data: { ...n.data, ...partialData } } : n));
     }, [setNodes]);
 
-    // Sync file-select and download callbacks
+    // Sync file-select, download, and INP callbacks into nodes
     useEffect(() => {
         setNodes(nds => nds.map(n => {
             if (n.type === 'fileInput') {
                 return { ...n, data: { ...n.data, onFileSelect: (f: File | null) => updateNodeData(n.id, { file: f }) } };
+            }
+            if (n.type === 'tool') {
+                // Inject INP open callback so ToolNode button can trigger the modal
+                return { ...n, data: { ...n.data, onOpenInteraction: () => setInteractionNodeId(n.id) } };
             }
             if (n.type === 'output') {
                 return {
@@ -166,7 +172,14 @@ function FlowCanvasBuilder() {
             const tool = TIPToolRegistry.get(toolId);
             if (!tool) return;
             const config = Object.fromEntries(tool.configSchema.fields.map(f => [f.key, f.default]));
-            setNodes(nds => nds.concat({ id: newNodeId, type, position, data: { toolId, config, status: 'idle' } }));
+            setNodes(nds => nds.concat({
+                id: newNodeId, type, position,
+                data: {
+                    toolId, config, status: 'idle',
+                    // Inject INP callback immediately so Configure button works on first render
+                    onOpenInteraction: () => setInteractionNodeId(newNodeId),
+                }
+            }));
         } else {
             setNodes(nds => nds.concat({ id: newNodeId, type, position, data: { status: 'idle', file: null } }));
         }
@@ -181,7 +194,7 @@ function FlowCanvasBuilder() {
         const fileNode = nodes.find(n => n.type === 'fileInput');
         const file = fileNode?.data.file;
         if (!file) return;
-        await run(orderedSteps, file as File);
+        await run(orderedSteps, file as File, nodes);
     }, [nodes, edges, graphToPipeline, run, resetEngine, setNodes, setEdges]);
 
     const handleStop = useCallback(() => { cancel(); }, [cancel]);
@@ -275,6 +288,85 @@ function FlowCanvasBuilder() {
 
             {/* Floating NodePalette on left */}
             <NodePalette filterContext={paletteFilterContext} />
+
+            {/* INP: Interaction modal — shown when a tool node's Configure button is clicked */}
+            {interactionNodeId && (() => {
+                const interactionNode = nodes.find(n => n.id === interactionNodeId);
+                const interactionTool = interactionNode?.data.toolId
+                    ? TIPToolRegistry.get(interactionNode.data.toolId as string)
+                    : null;
+                if (!interactionTool?.interactable || !interactionTool.getInteractionComponent) return null;
+
+                // Resolve seed files: prefer files from upstream FileInputNodes,
+                // fall back to previously confirmed interactionFiles, then empty.
+                const upstreamFiles = edges
+                    .filter(e => e.target === interactionNodeId)
+                    .map(e => nodes.find(n => n.id === e.source))
+                    .filter(Boolean)
+                    .map(n => n?.data.file as File | null)
+                    .filter((f): f is File => !!f);
+
+                const seedFiles: File[] =
+                    upstreamFiles.length > 0
+                        ? upstreamFiles
+                        : (interactionNode?.data.interactionFiles as File[] | undefined) ?? [];
+
+                return (
+                    <InteractionModal
+                        tool={interactionTool}
+                        seedFiles={seedFiles}
+                        config={(interactionNode?.data.config as Record<string, unknown>) ?? {}}
+                        onConfirm={(result) => {
+                            const hasUpstream = edges.some(e => e.target === interactionNodeId);
+
+                            // Standalone mode: user browsed files directly in the modal.
+                            // Auto-create a FileInputNode for each confirmed file and wire them up.
+                            if (!hasUpstream && result.files.length > 0) {
+                                const mx = interactionNode?.position?.x ?? 500;
+                                const my = interactionNode?.position?.y ?? 300;
+                                const gap = 170;
+                                const totalH = (result.files.length - 1) * gap;
+
+                                const fileNodes: Node[] = result.files.map((file, i) => {
+                                    const nid = `file-input-auto-${Date.now()}-${i}`;
+                                    return {
+                                        id: nid,
+                                        type: 'fileInput',
+                                        position: {
+                                            x: mx - 290,
+                                            y: my - totalH / 2 + i * gap,
+                                        },
+                                        data: {
+                                            file,
+                                            // Inject the update callback so user can swap files later
+                                            onFileSelect: (f: File | null) => updateNodeData(nid, { file: f }),
+                                        },
+                                    };
+                                });
+
+                                const fileEdges: Edge[] = fileNodes.map(n => ({
+                                    id: `edge-${n.id}-${interactionNodeId}`,
+                                    source: n.id,
+                                    target: interactionNodeId,
+                                    type: 'tip',
+                                    data: { isRunning: false },
+                                }));
+
+                                setNodes(prev => [...prev, ...fileNodes]);
+                                setEdges(prev => [...prev, ...fileEdges]);
+                            }
+
+                            updateNodeData(interactionNodeId, {
+                                interactionFiles: result.files,
+                                interactionDone: true,
+                                ...(result.config ? { config: { ...((interactionNode?.data.config as Record<string, unknown>) ?? {}), ...result.config } } : {}),
+                            });
+                            setInteractionNodeId(null);
+                        }}
+                        onCancel={() => setInteractionNodeId(null)}
+                    />
+                );
+            })()}
 
             {/* Flow canvas */}
             <ReactFlow

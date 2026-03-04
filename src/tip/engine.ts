@@ -34,6 +34,12 @@ export interface TIPPipelineStep {
   toolId: string;
   /** Config values for this invocation */
   config: TIPConfig;
+  /**
+   * INP override: when an interactable node has user-confirmed files,
+   * this bundle replaces the upstream output at the start of this step.
+   * Injected by usePipelineEngine from node.data.interactionFiles.
+   */
+  interactionBundle?: TIPBundle;
 }
 
 // ─── Engine Hooks ─────────────────────────────────────────────────────────────
@@ -86,6 +92,11 @@ export async function executeTIPPipeline(
     }
 
     const step = steps[i];
+
+    // ── INP override: interactable nodes supply their own input bundle ──────────
+    if (step.interactionBundle) {
+      current = step.interactionBundle;
+    }
 
     // ── Tool resolution ────────────────────────────────────────────────────────
     const tool = TIPToolRegistry.get(step.toolId);
