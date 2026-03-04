@@ -13,7 +13,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { NodePalette } from './NodePalette';
+import { NodePalette, PaletteFilterContext } from './NodePalette';
 import { InspectorPanel } from './InspectorPanel';
 import { PipelineToolbar } from './PipelineToolbar';
 import { useFlowGraph } from './hooks/useFlowGraph';
@@ -224,6 +224,26 @@ function FlowCanvasBuilder() {
     const hasInvalidEdges = edges.some(e => e.data?.isInvalid);
     const canRun = !!fileNode?.data.file && !!outNode && !!ordered && ordered.length > 0 && !hasInvalidEdges;
 
+    /**
+     * Palette filter context — tells NodePalette which tools to highlight.
+     * Priority: selected tool node > file in FileInputNode > no filter.
+     */
+    const paletteFilterContext = useMemo((): PaletteFilterContext => {
+        // A tool node is selected → show tools that can consume what it produces
+        if (selectedNode && selectedNode.type === 'tool') {
+            const tool = TIPToolRegistry.get(selectedNode.data.toolId as string);
+            if (tool && tool.produces.length > 0) {
+                return { kind: 'node', produces: tool.produces };
+            }
+        }
+        // FileInputNode has a file → show tools that consume that MIME type
+        const uploadedFile = fileNode?.data.file as File | null;
+        if (uploadedFile?.type) {
+            return { kind: 'file', mimeType: uploadedFile.type };
+        }
+        return { kind: 'none' };
+    }, [selectedNode, fileNode]);
+
     return (
         <div style={{
             position: 'relative',
@@ -254,7 +274,7 @@ function FlowCanvasBuilder() {
             />
 
             {/* Floating NodePalette on left */}
-            <NodePalette />
+            <NodePalette filterContext={paletteFilterContext} />
 
             {/* Flow canvas */}
             <ReactFlow
