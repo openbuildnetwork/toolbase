@@ -45,7 +45,7 @@ export default function DataForgePage() {
 
   const [activeSection, setActiveSection] = useState<"fields" | "blueprint">("fields");
   const [isSidebarOpen, setSidebarOpen] = useState(true);
-  const activeLabel = sections.find(s => s.id === activeSection)?.label || "Mock Data Engine";
+  const activeLabel = sections.find(s => s.id === activeSection)?.label || "Data Forge";
 
   const [fields, setFields] = useState<MockField[]>([
     { id: "field-1", name: "id", type: "uuid" },
@@ -95,7 +95,7 @@ export default function DataForgePage() {
   return (
     <div className="flex h-[calc(100vh-80px)] overflow-hidden bg-[#f7f6f3] relative font-display text-gray-900">
       <ToolSidebar
-        title="Mock Data Engine"
+        title="Data Forge"
         items={sections}
         activeId={activeSection}
         onSelect={(id) => setActiveSection(id as typeof activeSection)}
@@ -107,7 +107,7 @@ export default function DataForgePage() {
         <header className="h-14 border-b border-gray-200/50 bg-white/50 backdrop-blur-md flex items-center justify-between px-6 transition-all duration-300">
           <div className={cn("flex items-center gap-2 transition-all duration-300", !isSidebarOpen && "pl-12")}>
             <div className="flex items-center text-sm text-gray-500">
-              <span className="font-semibold text-gray-800 mr-2">Mock Data Engine</span>
+              <span className="font-semibold text-gray-800 mr-2">Data Forge</span>
               <span className="text-gray-300">/</span>
               <span className="ml-2">{activeLabel}</span>
             </div>
@@ -121,12 +121,17 @@ export default function DataForgePage() {
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
-          <div className={cn(
-            "mx-auto h-full space-y-8",
-            activeSection === "blueprint" ? "max-w-5xl" : "max-w-6xl"
-          )}>
+          <div className="h-full w-full space-y-8">
             {activeSection === "fields" && (
-              <Card className="p-6 bg-white border border-black/10 shadow-sm">
+              <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
+                <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+                  <div className="flex items-center gap-2">
+                    <Layers3 className="w-4 h-4 text-sky-700" />
+                    <h3 className="text-sm font-semibold text-gray-900">Field Builder</h3>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">Define fields and constraints to generate realistic mock rows.</p>
+                </div>
+                <div className="p-5">
                 <div className="grid lg:grid-cols-12 gap-6">
                   <div className="lg:col-span-7 space-y-4">
                     <div className="space-y-3">
@@ -312,15 +317,24 @@ export default function DataForgePage() {
                     />
                   </div>
                 </div>
+                </div>
               </Card>
             )}
 
             {activeSection === "blueprint" && (
-              <Card className="p-6 bg-white border border-black/10 shadow-sm">
+              <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
+                <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-sky-700" />
+                    <h3 className="text-sm font-semibold text-gray-900">Blueprint Generator</h3>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">Define nested structures with constraints, null chance, and linked logic.</p>
+                </div>
+                <div className="p-5">
                 <div className="flex items-center justify-between gap-4 mb-4">
                   <div>
-                    <h3 className="text-base font-semibold">Blueprint Generator</h3>
-                    <p className="text-xs text-gray-500">Define nested structures with constraints, null chance, and linked logic.</p>
+                    <h3 className="text-sm font-semibold text-gray-900">Blueprint Controls</h3>
+                    <p className="text-xs text-gray-500">Configure records and metadata, then generate output.</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <label className="flex items-center gap-2 text-xs text-gray-500">
@@ -362,6 +376,7 @@ export default function DataForgePage() {
                       className="min-h-[320px] font-mono text-xs"
                     />
                   </div>
+                </div>
                 </div>
               </Card>
             )}

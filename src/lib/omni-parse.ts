@@ -1,92 +1,16 @@
-import YAML from "yaml";
-import * as TOML from "@iarna/toml";
-import { XMLBuilder, XMLParser, XMLValidator } from "fast-xml-parser";
+import {
+  DataFormat,
+  TranspileOptions,
+  parseToObject,
+  serializeFromObject,
+  sortObjectKeysDeep,
+} from "./omni-parse/shared";
 
-export type DataFormat = "json" | "xml" | "yaml" | "toml";
-export type FormatMode = "beautify" | "minify";
-
-export type XmlOptions = {
-  preserveAttributes?: boolean;
-};
-
-export type TranspileOptions = {
-  xml?: XmlOptions;
-  sortKeys?: boolean;
-};
-
-const xmlParser = new XMLParser({
-  ignoreAttributes: false,
-  attributeNamePrefix: "@_",
-  parseTagValue: true,
-  parseAttributeValue: true,
-  trimValues: true,
-});
-
-function buildXmlBuilder(format: boolean) {
-  return new XMLBuilder({
-    ignoreAttributes: false,
-    attributeNamePrefix: "@_",
-    format,
-    indentBy: "  ",
-  });
-}
-
-function sortObjectKeysDeep(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(sortObjectKeysDeep);
-
-  if (value !== null && typeof value === "object") {
-    const record = value as Record<string, unknown>;
-    return Object.keys(record)
-      .sort()
-      .reduce((sorted: Record<string, unknown>, key) => {
-        sorted[key] = sortObjectKeysDeep(record[key]);
-        return sorted;
-      }, {});
-  }
-
-  return value;
-}
-
-export function parseToObject(format: DataFormat, input: string): unknown {
-  if (!input.trim()) throw new Error("Input is empty.");
-
-  switch (format) {
-    case "json":
-      return JSON.parse(input);
-    case "xml":
-      return xmlParser.parse(input);
-    case "yaml":
-      return YAML.parse(input);
-    case "toml":
-      return TOML.parse(input);
-    default:
-      throw new Error(`Unsupported input format: ${format}`);
-  }
-}
-
-export function serializeFromObject(
-  format: DataFormat,
-  data: unknown,
-  _options?: TranspileOptions,
-  mode: FormatMode = "beautify"
-): string {
-  switch (format) {
-    case "json":
-      return mode === "minify" ? JSON.stringify(data) : JSON.stringify(data, null, 2);
-    case "xml":
-      return buildXmlBuilder(mode === "beautify").build(data);
-    case "yaml":
-      return YAML.stringify(data);
-    case "toml":
-      // TOML stringify expects a top-level map/object.
-      if (!data || typeof data !== "object" || Array.isArray(data)) {
-        throw new Error("TOML output requires a top-level object.");
-      }
-      return TOML.stringify(data as any);
-    default:
-      throw new Error(`Unsupported output format: ${format}`);
-  }
-}
+export type { DataFormat, FormatMode, XmlOptions, TranspileOptions } from "./omni-parse/shared";
+export type { ValidationResult } from "./omni-parse/validators";
+export { formatData } from "./omni-parse/formatters";
+export { validateData } from "./omni-parse/validators";
+export { parseToObject } from "./omni-parse/shared";
 
 export function convertFormat(
   inputFormat: DataFormat,
@@ -97,51 +21,6 @@ export function convertFormat(
   const parsed = parseToObject(inputFormat, input);
   const transformed = options?.sortKeys ? sortObjectKeysDeep(parsed) : parsed;
   return serializeFromObject(outputFormat, transformed, options, "beautify");
-}
-
-export type ValidationResult = {
-  valid: boolean;
-  errors: string[];
-  warnings: string[];
-};
-
-export function validateData(format: "json" | "xml" | "yaml", input: string): ValidationResult {
-  const warnings: string[] = [];
-
-  try {
-    if (!input.trim()) {
-      return { valid: false, errors: ["Input is empty."], warnings };
-    }
-
-    if (format === "json") {
-      JSON.parse(input);
-      return { valid: true, errors: [], warnings };
-    }
-
-    if (format === "yaml") {
-      YAML.parse(input);
-      return { valid: true, errors: [], warnings };
-    }
-
-    if (format === "xml") {
-      const result = XMLValidator.validate(input);
-      if (result !== true) {
-        return { valid: false, errors: [result.err.msg], warnings };
-      }
-      return { valid: true, errors: [], warnings };
-    }
-
-    return { valid: false, errors: ["Unsupported format"], warnings };
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Validation failed";
-    return { valid: false, errors: [message], warnings };
-  }
-}
-
-export function formatData(format: DataFormat, input: string, mode: FormatMode, options?: TranspileOptions): string {
-  const parsed = parseToObject(format, input);
-  const transformed = options?.sortKeys ? sortObjectKeysDeep(parsed) : parsed;
-  return serializeFromObject(format, transformed, options, mode);
 }
 
 export function generateMarkdownDoc(json: unknown, rootName: string) {
@@ -155,16 +34,32 @@ export function generateMarkdownDoc(json: unknown, rootName: string) {
     return typeof value;
   }
 
-  function describeObject(obj: unknown, path: string) {
+  function describeNode(node: unknown, path: string) {
     const title = path || rootName || "Root";
     sections.push(`## ${title}`);
 
-    if (!obj || typeof obj !== "object" || Array.isArray(obj)) {
-      sections.push("- `value`: " + inferType(obj));
+    if (Array.isArray(node)) {
+      if (node.length === 0) {
+        sections.push("- (empty array)");
+        return;
+      }
+
+      sections.push(`- (array with ${node.length} items)`);
+      const sample = node.find((item) => item !== null && item !== undefined) ?? node[0];
+      sections.push(`- \`item\`: ${inferType(sample)}`);
+
+      if (sample && typeof sample === "object") {
+        describeNode(sample, `${title}[]`);
+      }
       return;
     }
 
-    const record = obj as Record<string, unknown>;
+    if (!node || typeof node !== "object") {
+      sections.push("- `value`: " + inferType(node));
+      return;
+    }
+
+    const record = node as Record<string, unknown>;
     const keys = Object.keys(record);
     if (keys.length === 0) {
       sections.push("- (empty object)");
@@ -177,14 +72,19 @@ export function generateMarkdownDoc(json: unknown, rootName: string) {
 
     keys.forEach((key) => {
       const value = record[key];
-      if (value && typeof value === "object" && !Array.isArray(value)) {
-        describeObject(value, `${title}.${key}`);
+      if (Array.isArray(value) && value.length > 0) {
+        const sample = value.find((item) => item !== null && item !== undefined) ?? value[0];
+        if (sample && typeof sample === "object") {
+          describeNode(sample, `${title}.${key}[]`);
+        }
+      } else if (value && typeof value === "object" && !Array.isArray(value)) {
+        describeNode(value, `${title}.${key}`);
       }
     });
   }
 
   sections.push(`# ${rootName || "Root"} Schema`);
-  describeObject(json, rootName || "Root");
+  describeNode(json, rootName || "Root");
 
   return sections.join("\n");
 }

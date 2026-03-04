@@ -1,6 +1,6 @@
-# Mock Data Engine
+# Data Forge
 
-Mock Data Engine is OBN’s browser-only mock data generator. It helps you create realistic JSON/XML datasets for testing, demos, and prototyping without sending data to any server.
+Data Forge is OBN’s browser-only mock data generator. It helps you create realistic JSON/XML datasets for testing, demos, and prototyping without sending data to any server.
 
 All generation runs locally in your browser.
 

@@ -1,0 +1,38 @@
+<svg width="1400" height="860" viewBox="0 0 1400 860" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1400" y2="860" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f2f6fb"/>
+      <stop offset="1" stop-color="#e5edf7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="860" fill="url(#bg2)"/>
+  <rect x="90" y="70" width="1220" height="720" rx="28" fill="#ffffff" fill-opacity="0.75" stroke="#ced9e8"/>
+  <rect x="90" y="70" width="1220" height="56" rx="28" fill="#f7fbff" stroke="#ced9e8"/>
+  <circle cx="124" cy="98" r="8" fill="#ff605c"/><circle cx="150" cy="98" r="8" fill="#ffbd44"/><circle cx="176" cy="98" r="8" fill="#00ca4e"/>
+  <text x="700" y="104" text-anchor="middle" font-family="SF Pro Display, Arial" font-size="16" fill="#4a5f77">Graph (macOS Fluent)</text>
+  <g stroke="#e5edf7">
+    <path d="M120 170H1280"/><path d="M120 230H1280"/><path d="M120 290H1280"/><path d="M120 350H1280"/>
+    <path d="M120 410H1280"/><path d="M120 470H1280"/><path d="M120 530H1280"/><path d="M120 590H1280"/><path d="M120 650H1280"/><path d="M120 710H1280"/>
+  </g>
+  <g fill="#fdfefe" stroke="#ccd9e9">
+    <rect x="170" y="360" width="270" height="120" rx="18"/>
+    <rect x="550" y="250" width="290" height="130" rx="18"/>
+    <rect x="550" y="470" width="290" height="110" rx="18"/>
+    <rect x="960" y="230" width="230" height="95" rx="18"/>
+    <rect x="960" y="390" width="230" height="95" rx="18"/>
+  </g>
+  <g font-family="SF Pro Text, Arial" fill="#223449">
+    <text x="198" y="402" font-size="34" font-weight="700">Payload</text>
+    <text x="198" y="448" font-size="30" fill="#2e7dd5">active:</text><text x="318" y="448" font-size="30">true</text>
+    <text x="578" y="300" font-size="32" font-weight="700">user</text>
+    <text x="578" y="342" font-size="30" fill="#2e7dd5">id:</text><text x="636" y="342" font-size="30">7</text>
+    <text x="578" y="378" font-size="30" fill="#2e7dd5">name:</text><text x="690" y="378" font-size="30">"Ava"</text>
+    <text x="578" y="518" font-size="30" font-weight="700">active</text><text x="578" y="555" font-size="30">true</text>
+    <text x="985" y="272" font-size="30" font-weight="700">id</text><text x="985" y="307" font-size="30">7</text>
+    <text x="985" y="432" font-size="30" font-weight="700">name</text><text x="985" y="467" font-size="30">"Ava"</text>
+  </g>
+  <g stroke="#8ea5bf" stroke-width="2.5" fill="none">
+    <path d="M440 420 C510 420 510 315 550 315"/><path d="M440 420 C510 420 510 525 550 525"/>
+    <path d="M840 315 C900 315 905 277 960 277"/><path d="M840 315 C900 315 905 437 960 437"/>
+  </g>
+</svg>
