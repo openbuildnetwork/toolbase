@@ -43,7 +43,7 @@ Auto-Documentation:
 ## Related Tool
 
 Mock data generation (flat fields + constraints, and advanced blueprint-driven generation) lives in the separate OBN tool:
-- `Mock Data Engine` (`/tools/data-forge`)
+- `Data Forge` (`/tools/data-forge`)
 
 ## Tech Notes
 
