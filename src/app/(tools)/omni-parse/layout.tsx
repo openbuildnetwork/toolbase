@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { ToolPageTracker } from "@/components/ui/ToolPageTracker";
+import { PrivacyBadge } from "@/components/ui/PrivacyBadge";
 
 export const metadata: Metadata = {
   title: "OmniParse | Structural Data Engine",
@@ -11,5 +13,11 @@ export default function OmniParseLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      <ToolPageTracker toolId="omni-parse" />
+      <PrivacyBadge toolId="omni-parse" />
+      {children}
+    </>
+  );
 }
