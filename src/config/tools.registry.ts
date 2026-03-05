@@ -184,13 +184,13 @@ export const TOOLS: ToolMeta[] = [
     addedAt: '2025-01-01',
   },
   {
-    id: 'omni-parser',
+    id: 'omni-parse',
     name: 'Omni Parser',
     description: 'AI-powered image editor for pixel art creation and editing.',
     longDescription:
       'Omni Parser is an AI-powered image editor designed for pixel art creation and editing. With intelligent tools and a user-friendly interface, you can create stunning pixel art with ease.',
     category: 'image',
-    route: 'omni-parser',
+    route: 'omni-parse',
     thumbnail: '/assets/thumbnails/omni-parse.svg',
     tags: ['image', 'pixel art', 'ai', 'editor', 'create', 'edit', 'pixel-axe'],
     isNew: false,
