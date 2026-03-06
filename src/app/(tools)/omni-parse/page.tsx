@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Editor } from "@monaco-editor/react";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
@@ -12,10 +12,13 @@ import { cn } from "@/lib/utils";
 import { DataGraph } from "@/components/ui/DataGraph";
 import {
   convertFormat,
+  diffObjects,
   formatData,
   validateData,
   parseToObject,
   generateMarkdownDoc,
+  generateSchemaSummary,
+  generateOpenApiSnippet,
   flattenJson,
   unflattenJson,
 } from "@/lib/omni-parse";
@@ -23,7 +26,10 @@ import type { DataFormat } from "@/lib/omni-parse";
 import {
   ArrowRightLeft,
   AlertTriangle,
+  Download,
   CheckCircle2,
+  FileDiff,
+  Upload,
   XCircle,
   Braces,
   Wand2,
@@ -45,7 +51,36 @@ const languageMap: Record<DataFormat, string> = {
 
 
 export default function OmniParsePage() {
-  const [activeTab, setActiveTab] = useState<"transpile" | "validate" | "format" | "generate">("transpile");
+  type RecipeStepOp =
+    | "beautify"
+    | "minify"
+    | "sortKeys"
+    | "flatten"
+    | "unflatten"
+    | "jsonEscape"
+    | "jsonUnescape"
+    | "convert";
+
+  type RecipeStep = {
+    id: string;
+    op: RecipeStepOp;
+    targetFormat?: "json" | "xml" | "yaml";
+  };
+
+  type FormatterRecipe = {
+    id: string;
+    name: string;
+    inputFormat: "json" | "xml" | "yaml";
+    steps: RecipeStep[];
+  };
+  type OmniFixture = {
+    id: string;
+    name: string;
+    format: "json" | "xml" | "yaml";
+    input: string;
+    expectedValid: boolean;
+  };
+  const [activeTab, setActiveTab] = useState<"transpile" | "validate" | "format" | "diff" | "generate">("transpile");
 
   const [inputFormat, setInputFormat] = useState<DataFormat>("json");
   const [outputFormat, setOutputFormat] = useState<DataFormat>("yaml");
@@ -74,12 +109,31 @@ export default function OmniParsePage() {
   const [docGraphRestoreExpandDepth, setDocGraphRestoreExpandDepth] = useState(2);
   const [docGraphExpandedPaths, setDocGraphExpandedPaths] = useState<Set<string>>(() => new Set());
   const [isDocGraphModalOpen, setDocGraphModalOpen] = useState(false);
+  const [docSearchPath, setDocSearchPath] = useState("");
+  const [docSchemaOutput, setDocSchemaOutput] = useState("");
+  const [docOpenApiOutput, setDocOpenApiOutput] = useState("");
+  const [roundTripReport, setRoundTripReport] = useState("");
+
+  const [diffFormat, setDiffFormat] = useState<"json" | "xml" | "yaml">("json");
+  const [diffLeft, setDiffLeft] = useState("{\n  \"id\": 7,\n  \"name\": \"Ava\",\n  \"meta\": { \"active\": true }\n}");
+  const [diffRight, setDiffRight] = useState("{\n  \"id\": \"7\",\n  \"name\": \"Ava\",\n  \"meta\": { \"active\": false },\n  \"role\": \"admin\"\n}");
+  const [diffError, setDiffError] = useState<string | null>(null);
+  const [diffEntries, setDiffEntries] = useState<ReturnType<typeof diffObjects>>([]);
+  const [formatterRecipes, setFormatterRecipes] = useState<FormatterRecipe[]>([]);
+  const [recipeNameDraft, setRecipeNameDraft] = useState("My Pipeline");
+  const [recipeStepOpDraft, setRecipeStepOpDraft] = useState<RecipeStepOp>("beautify");
+  const [recipeStepTargetDraft, setRecipeStepTargetDraft] = useState<"json" | "xml" | "yaml">("json");
+  const [recipeStepsDraft, setRecipeStepsDraft] = useState<RecipeStep[]>([]);
+  const [fixtureCases, setFixtureCases] = useState<OmniFixture[]>([]);
+  const [fixtureResults, setFixtureResults] = useState<Array<{ id: string; name: string; passed: boolean; detail: string }>>([]);
+  const fixtureImportRef = useRef<HTMLInputElement | null>(null);
 
 
   const tools: ToolSidebarItem[] = useMemo(() => ([
     { id: "transpile", label: "Convert", icon: ArrowRightLeft },
     { id: "validate", label: "Validators", icon: CheckCircle2 },
     { id: "format", label: "Formatters", icon: Wand2 },
+    { id: "diff", label: "Diff Lab", icon: FileDiff },
     { id: "generate", label: "Generator Hub", icon: Braces },
   ]), []);
 
@@ -90,6 +144,39 @@ export default function OmniParsePage() {
     const lines = validateInput ? validateInput.split("\n").length : 0;
     return { chars, lines };
   }, [validateInput]);
+
+  const validationIssues = useMemo(() => {
+    if (!validationResult) return [];
+    const errors = validationResult.errors.map((text) => {
+      const lineMatch = text.match(/line\s+(\d+)/i);
+      const colMatch = text.match(/column\s+(\d+)/i);
+      const pathMatch = text.match(/(?:at|path)\s+([$.a-zA-Z0-9_[\]-]+)/i);
+      const lowered = text.toLowerCase();
+      const severity: "critical" | "warning" | "info" =
+        lowered.includes("invalid") || lowered.includes("error") ? "critical" : "warning";
+      let suggestion = "Check syntax and matching brackets/quotes for this section.";
+      if (lowered.includes("json")) suggestion = "Ensure property names and string values use double quotes.";
+      if (lowered.includes("xml")) suggestion = "Validate matching open/close tags and attribute quote usage.";
+      if (lowered.includes("yaml")) suggestion = "Check indentation and avoid tabs in YAML blocks.";
+      return {
+        severity,
+        message: text,
+        line: lineMatch ? Number(lineMatch[1]) : null,
+        column: colMatch ? Number(colMatch[1]) : null,
+        path: pathMatch ? pathMatch[1] : null,
+        suggestion,
+      };
+    });
+    const warnings = validationResult.warnings.map((text) => ({
+      severity: "warning" as const,
+      message: text,
+      line: null,
+      column: null,
+      path: null,
+      suggestion: "Review this warning before shipping payloads to downstream systems.",
+    }));
+    return [...errors, ...warnings];
+  }, [validationResult]);
 
   const jsonToolState = useMemo(() => {
     if (validateFormat !== "json") {
@@ -176,6 +263,35 @@ export default function OmniParsePage() {
     }
   };
 
+  const handleFormatterPreset = (preset: "clean" | "normalize" | "apiReady") => {
+    try {
+      if (preset === "clean") {
+        const cleaned = validateInput
+          .split("\n")
+          .map((line) => line.replace(/\s+$/g, ""))
+          .join("\n")
+          .trim();
+        setValidateInput(cleaned);
+        return;
+      }
+      if (preset === "normalize") {
+        const normalized = formatData(validateFormat, validateInput, "beautify", { sortKeys: true });
+        setValidateInput(normalized);
+        return;
+      }
+      const normalized = formatData(validateFormat, validateInput, "beautify", { sortKeys: true });
+      if (validateFormat === "json") {
+        const parsed = JSON.parse(normalized);
+        setValidateInput(JSON.stringify(parsed, null, 2));
+      } else {
+        setValidateInput(normalized);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Preset apply failed";
+      setValidationResult({ valid: false, errors: [message], warnings: [] });
+    }
+  };
+
   const handleJsonEscape = () => {
     try {
       // Keep quotes so the result is valid JSON (auto-detect stays on JSON).
@@ -208,7 +324,321 @@ export default function OmniParsePage() {
       return;
     }
     setDocOutput(generateMarkdownDoc(docGraph.value, docRootName || "Root"));
+    setDocSchemaOutput(generateSchemaSummary(docGraph.value, docRootName || "Payload"));
+    setDocOpenApiOutput(generateOpenApiSnippet(docGraph.value, docRootName || "Payload"));
   };
+
+  const runRecipePipeline = (
+    startFormat: "json" | "xml" | "yaml",
+    startInput: string,
+    steps: RecipeStep[]
+  ): { format: "json" | "xml" | "yaml"; output: string } => {
+    let currentFormat: "json" | "xml" | "yaml" = startFormat;
+    let current = startInput;
+
+    for (const step of steps) {
+      switch (step.op) {
+        case "beautify":
+          current = formatData(currentFormat, current, "beautify");
+          break;
+        case "minify":
+          current = formatData(currentFormat, current, "minify");
+          break;
+        case "sortKeys":
+          current = formatData(currentFormat, current, "beautify", { sortKeys: true });
+          break;
+        case "flatten": {
+          if (currentFormat !== "json") throw new Error("Flatten works only for JSON.");
+          const parsed = JSON.parse(current);
+          current = JSON.stringify(flattenJson(parsed), null, 2);
+          break;
+        }
+        case "unflatten": {
+          if (currentFormat !== "json") throw new Error("Unflatten works only for JSON.");
+          const parsed = JSON.parse(current) as Record<string, unknown>;
+          current = JSON.stringify(unflattenJson(parsed), null, 2);
+          break;
+        }
+        case "jsonEscape":
+          if (currentFormat !== "json") throw new Error("JSON Escape works only for JSON.");
+          current = JSON.stringify(current);
+          break;
+        case "jsonUnescape": {
+          if (currentFormat !== "json") throw new Error("JSON Unescape works only for JSON.");
+          const trimmed = current.trim();
+          const jsonString = trimmed.startsWith("\"") && trimmed.endsWith("\"")
+            ? trimmed
+            : `"${trimmed.replace(/\\/g, "\\\\").replace(/"/g, "\\\"")}"`;
+          current = JSON.parse(jsonString) as string;
+          break;
+        }
+        case "convert": {
+          if (!step.targetFormat) throw new Error("Convert step requires a target format.");
+          current = convertFormat(currentFormat, step.targetFormat, current);
+          currentFormat = step.targetFormat;
+          break;
+        }
+      }
+    }
+
+    return { format: currentFormat, output: current };
+  };
+
+  const addRecipeStepDraft = () => {
+    setRecipeStepsDraft((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        op: recipeStepOpDraft,
+        targetFormat: recipeStepOpDraft === "convert" ? recipeStepTargetDraft : undefined,
+      },
+    ]);
+  };
+
+  const moveRecipeStep = (id: string, dir: "up" | "down") => {
+    setRecipeStepsDraft((prev) => {
+      const index = prev.findIndex((s) => s.id === id);
+      if (index < 0) return prev;
+      const next = [...prev];
+      const swap = dir === "up" ? index - 1 : index + 1;
+      if (swap < 0 || swap >= next.length) return prev;
+      [next[index], next[swap]] = [next[swap], next[index]];
+      return next;
+    });
+  };
+
+  const removeRecipeStep = (id: string) => {
+    setRecipeStepsDraft((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const saveFormatterRecipe = () => {
+    const name = recipeNameDraft.trim();
+    if (!name) return;
+    if (recipeStepsDraft.length === 0) return;
+    setFormatterRecipes((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        name,
+        inputFormat: validateFormat,
+        steps: recipeStepsDraft,
+      },
+    ]);
+  };
+
+  const loadFormatterRecipe = (id: string) => {
+    const recipe = formatterRecipes.find((r) => r.id === id);
+    if (!recipe) return;
+    setRecipeNameDraft(recipe.name);
+    setRecipeStepsDraft(recipe.steps);
+    setValidateFormat(recipe.inputFormat);
+  };
+
+  const runSavedRecipe = (id: string) => {
+    try {
+      const recipe = formatterRecipes.find((r) => r.id === id);
+      if (!recipe) return;
+      const out = runRecipePipeline(validateFormat, validateInput, recipe.steps);
+      setValidateFormat(out.format);
+      setValidateInput(out.output);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Recipe run failed";
+      setValidationResult({ valid: false, errors: [message], warnings: [] });
+    }
+  };
+
+  const runDraftRecipe = () => {
+    try {
+      const out = runRecipePipeline(validateFormat, validateInput, recipeStepsDraft);
+      setValidateFormat(out.format);
+      setValidateInput(out.output);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Recipe run failed";
+      setValidationResult({ valid: false, errors: [message], warnings: [] });
+    }
+  };
+
+  const addCurrentAsFixture = () => {
+    const name = window.prompt("Fixture name");
+    if (!name) return;
+    setFixtureCases((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        name: name.trim(),
+        format: validateFormat,
+        input: validateInput,
+        expectedValid: true,
+      },
+    ]);
+  };
+
+  const runFixtureTests = () => {
+    const results = fixtureCases.map((fixture) => {
+      const res = validateData(fixture.format, fixture.input);
+      const passed = res.valid === fixture.expectedValid;
+      return {
+        id: fixture.id,
+        name: fixture.name,
+        passed,
+        detail: passed
+          ? `Expected ${fixture.expectedValid ? "valid" : "invalid"}, got match`
+          : `Expected ${fixture.expectedValid ? "valid" : "invalid"}, got ${res.valid ? "valid" : "invalid"}`,
+      };
+    });
+    setFixtureResults(results);
+  };
+
+  const exportFixturePack = () => {
+    const pack = {
+      suite: "omniparse-fixtures",
+      version: "1.0.0",
+      generatedAt: new Date().toISOString(),
+      cases: fixtureCases.map((f) => ({
+        name: f.name,
+        format: f.format,
+        input: f.input,
+        expectedValid: f.expectedValid,
+      })),
+    };
+    exportTextFile("omniparse-fixtures.json", JSON.stringify(pack, null, 2), "application/json");
+  };
+
+  const handleImportFixturePack = async (file: File) => {
+    try {
+      const raw = await file.text();
+      const parsed = JSON.parse(raw) as { cases?: Array<{ name: string; format: "json" | "xml" | "yaml"; input: string; expectedValid: boolean }> };
+      if (!parsed.cases || !Array.isArray(parsed.cases)) {
+        throw new Error("Invalid fixture pack: missing cases array.");
+      }
+      const imported: OmniFixture[] = parsed.cases.map((c, idx) => ({
+        id: crypto.randomUUID(),
+        name: c.name || `case_${idx + 1}`,
+        format: c.format,
+        input: c.input,
+        expectedValid: !!c.expectedValid,
+      }));
+      setFixtureCases(imported);
+      setFixtureResults([]);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Fixture import failed";
+      setValidationResult({ valid: false, errors: [message], warnings: [] });
+    }
+  };
+
+  const handleRunDiff = () => {
+    try {
+      const left = parseToObject(diffFormat, diffLeft);
+      const right = parseToObject(diffFormat, diffRight);
+      const changes = diffObjects(left, right);
+      setDiffEntries(changes);
+      setDiffError(null);
+    } catch (err: unknown) {
+      setDiffEntries([]);
+      setDiffError(err instanceof Error ? err.message : "Unable to generate diff");
+    }
+  };
+
+  const exportTextFile = (filename: string, body: string, contentType = "text/plain") => {
+    const blob = new Blob([body], { type: contentType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportBundle = () => {
+    if (docGraph.error) return;
+    const root = docRootName || "payload";
+    exportTextFile(`${root}-doc.md`, docOutput || generateMarkdownDoc(docGraph.value, root), "text/markdown");
+    exportTextFile(`${root}-schema.md`, docSchemaOutput || generateSchemaSummary(docGraph.value, root), "text/markdown");
+    exportTextFile(`${root}-openapi.json`, docOpenApiOutput || generateOpenApiSnippet(docGraph.value, root), "application/json");
+  };
+
+  const handleRoundTripCheck = () => {
+    try {
+      const original = parseToObject(docInputFormat, docInput);
+      const asJson = JSON.stringify(original, null, 2);
+      const targetFormat = docInputFormat === "json" ? "yaml" : "json";
+      const converted = convertFormat("json", targetFormat, asJson);
+      const back = convertFormat(targetFormat, "json", converted);
+      const roundTrip = JSON.parse(back);
+      const changes = diffObjects(original, roundTrip);
+      if (changes.length === 0) {
+        setRoundTripReport(`Round-trip check passed via ${targetFormat.toUpperCase()}. No fidelity loss detected.`);
+      } else {
+        setRoundTripReport(`Round-trip check found ${changes.length} difference(s) via ${targetFormat.toUpperCase()}.`);
+      }
+    } catch (err: unknown) {
+      setRoundTripReport(err instanceof Error ? err.message : "Round-trip check failed");
+    }
+  };
+
+  useEffect(() => {
+    handleRunDiff();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diffFormat, diffLeft, diffRight]);
+
+  useEffect(() => {
+    try {
+      const rawRecipes = localStorage.getItem("omniparse:formatter-recipes");
+      if (rawRecipes) {
+        const parsed = JSON.parse(rawRecipes) as Array<
+          Partial<FormatterRecipe> & { format?: "json" | "xml" | "yaml"; content?: string }
+        >;
+        const migrated = parsed
+          .map((item) => {
+            if (Array.isArray(item.steps) && item.inputFormat) {
+              return {
+                id: item.id || crypto.randomUUID(),
+                name: item.name || "Unnamed Recipe",
+                inputFormat: item.inputFormat,
+                steps: item.steps,
+              } as FormatterRecipe;
+            }
+            if (item.format && typeof item.content === "string") {
+              return {
+                id: item.id || crypto.randomUUID(),
+                name: item.name || "Legacy Recipe",
+                inputFormat: item.format,
+                steps: [{ id: crypto.randomUUID(), op: "beautify" as const }],
+              } as FormatterRecipe;
+            }
+            return null;
+          })
+          .filter(Boolean) as FormatterRecipe[];
+        setFormatterRecipes(migrated);
+      }
+      const rawFixtures = localStorage.getItem("omniparse:fixtures");
+      if (rawFixtures) {
+        const parsed = JSON.parse(rawFixtures) as Array<Partial<OmniFixture>>;
+        const normalized = parsed
+          .filter((item) => item && typeof item.input === "string")
+          .map((item, idx) => ({
+            id: item.id || crypto.randomUUID(),
+            name: item.name || `fixture_${idx + 1}`,
+            format: (item.format || "json") as "json" | "xml" | "yaml",
+            input: item.input as string,
+            expectedValid: typeof item.expectedValid === "boolean" ? item.expectedValid : true,
+          }));
+        setFixtureCases(normalized);
+      }
+    } catch {
+      // ignore malformed local data
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("omniparse:formatter-recipes", JSON.stringify(formatterRecipes.slice(-30)));
+  }, [formatterRecipes]);
+
+  useEffect(() => {
+    localStorage.setItem("omniparse:fixtures", JSON.stringify(fixtureCases.slice(-40)));
+  }, [fixtureCases]);
 
   useEffect(() => {
     if (!isDocGraphModalOpen) return;
@@ -429,33 +859,38 @@ export default function OmniParsePage() {
 
                       {validationResult && (!validationResult.valid || validationResult.warnings.length > 0) && (
                         <div className="mt-4 space-y-3">
-                          {validationResult.errors.length > 0 && (
-                            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-                              <div className="flex items-center gap-2 text-sm font-semibold text-red-700">
-                                <XCircle className="h-4 w-4" />
-                                Errors
+                          {(["critical", "warning", "info"] as const).map((severity) => {
+                            const rows = validationIssues.filter((issue) => issue.severity === severity);
+                            if (rows.length === 0) return null;
+                            const style =
+                              severity === "critical"
+                                ? "border-red-200 bg-red-50 text-red-700"
+                                : severity === "warning"
+                                  ? "border-amber-200 bg-amber-50 text-amber-700"
+                                  : "border-sky-200 bg-sky-50 text-sky-700";
+                            return (
+                              <div key={severity} className={`rounded-xl border px-4 py-3 ${style}`}>
+                                <div className="flex items-center gap-2 text-sm font-semibold capitalize">
+                                  {severity === "critical" ? <XCircle className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
+                                  {severity}
+                                </div>
+                                <ul className="mt-2 space-y-2 text-sm">
+                                  {rows.map((row, idx) => (
+                                    <li key={`${severity}-${idx}`} className="rounded-lg border border-black/10 bg-white/70 px-3 py-2">
+                                      <div className="font-medium">{row.message}</div>
+                                      <div className="text-xs mt-1">
+                                        {(row.line || row.column) && (
+                                          <span>line {row.line ?? "?"}, col {row.column ?? "?"}</span>
+                                        )}
+                                        {row.path && <span className="ml-2">path {row.path}</span>}
+                                      </div>
+                                      <div className="text-xs mt-1">Suggestion: {row.suggestion}</div>
+                                    </li>
+                                  ))}
+                                </ul>
                               </div>
-                              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
-                                {validationResult.errors.map((error, idx) => (
-                                  <li key={`validation-error-${idx}`}>{error}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {validationResult.warnings.length > 0 && (
-                            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-                              <div className="flex items-center gap-2 text-sm font-semibold text-amber-700">
-                                <AlertTriangle className="h-4 w-4" />
-                                Warnings
-                              </div>
-                              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-700">
-                                {validationResult.warnings.map((warning, idx) => (
-                                  <li key={`validation-warning-${idx}`}>{warning}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -511,6 +946,24 @@ export default function OmniParsePage() {
 	                          <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={handleSortKeys}>
 	                            Sort Keys
 	                          </Button>
+                            <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={() => handleFormatterPreset("clean")}>
+                              Clean Payload
+                            </Button>
+                            <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={() => handleFormatterPreset("normalize")}>
+                              Normalize Keys
+                            </Button>
+                            <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={() => handleFormatterPreset("apiReady")}>
+                              API Ready
+                            </Button>
+                            <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={saveFormatterRecipe}>
+                              Save Recipe
+                            </Button>
+                            <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={runDraftRecipe}>
+                              Run Pipeline
+                            </Button>
+                            <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={addCurrentAsFixture}>
+                              Add Fixture
+                            </Button>
 	                          {validateFormat === "json" ? (
 	                            <>
 	                              {jsonToolState.canFlatten && (
@@ -575,11 +1028,214 @@ export default function OmniParsePage() {
                         }}
 	                      />
 	                      </div>
+                        <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Pipeline Builder</span>
+                            <Input
+                              value={recipeNameDraft}
+                              onChange={(e) => setRecipeNameDraft(e.target.value)}
+                              className="h-8 w-48"
+                              placeholder="Recipe name"
+                            />
+                            <Select
+                              value={recipeStepOpDraft}
+                              onChange={(e) => setRecipeStepOpDraft(e.target.value as RecipeStepOp)}
+                              className="w-40"
+                            >
+                              <option value="beautify">Beautify</option>
+                              <option value="minify">Minify</option>
+                              <option value="sortKeys">Sort Keys</option>
+                              <option value="flatten">Flatten</option>
+                              <option value="unflatten">Unflatten</option>
+                              <option value="jsonEscape">JSON Escape</option>
+                              <option value="jsonUnescape">JSON Unescape</option>
+                              <option value="convert">Convert</option>
+                            </Select>
+                            {recipeStepOpDraft === "convert" && (
+                              <Select
+                                value={recipeStepTargetDraft}
+                                onChange={(e) => setRecipeStepTargetDraft(e.target.value as "json" | "xml" | "yaml")}
+                                className="w-28"
+                              >
+                                <option value="json">JSON</option>
+                                <option value="xml">XML</option>
+                                <option value="yaml">YAML</option>
+                              </Select>
+                            )}
+                            <Button variant="outline" size="sm" onClick={addRecipeStepDraft}>Add Step</Button>
+                            <Button variant="outline" size="sm" onClick={() => setRecipeStepsDraft([])}>Clear Steps</Button>
+                          </div>
+                          <div className="max-h-32 overflow-auto space-y-1">
+                            {recipeStepsDraft.length === 0 ? (
+                              <div className="text-xs text-gray-500">No steps yet. Add operations and run/save the pipeline.</div>
+                            ) : recipeStepsDraft.map((step, idx) => (
+                              <div key={step.id} className="flex items-center gap-2 rounded-md border border-gray-100 px-2 py-1 text-xs">
+                                <span className="font-semibold text-gray-600">{idx + 1}.</span>
+                                <span className="capitalize">{step.op}</span>
+                                {step.targetFormat && <span className="text-gray-500">→ {step.targetFormat.toUpperCase()}</span>}
+                                <div className="ml-auto flex items-center gap-1">
+                                  <Button variant="outline" size="sm" onClick={() => moveRecipeStep(step.id, "up")}>↑</Button>
+                                  <Button variant="outline" size="sm" onClick={() => moveRecipeStep(step.id, "down")}>↓</Button>
+                                  <Button variant="outline" size="sm" onClick={() => removeRecipeStep(step.id)}>Remove</Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        {(formatterRecipes.length > 0 || fixtureCases.length > 0) && (
+                          <div className="grid lg:grid-cols-2 gap-3">
+                            <div className="rounded-xl border border-gray-200 bg-white p-3">
+                              <div className="flex items-center justify-between">
+                                <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">Saved Recipes</div>
+                                <span className="text-xs text-gray-500">{formatterRecipes.length}</span>
+                              </div>
+                              <div className="mt-2 max-h-28 overflow-auto space-y-1">
+                                {formatterRecipes.slice(-8).reverse().map((recipe) => (
+                                  <div key={recipe.id} className="flex items-center justify-between rounded-md border border-gray-100 px-2 py-1 text-xs">
+                                    <span className="truncate">{recipe.name} ({recipe.inputFormat})</span>
+                                    <div className="flex items-center gap-1">
+                                      <Button variant="outline" size="sm" onClick={() => loadFormatterRecipe(recipe.id)}>Load</Button>
+                                      <Button variant="outline" size="sm" onClick={() => runSavedRecipe(recipe.id)}>Run</Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="rounded-xl border border-gray-200 bg-white p-3">
+                              <div className="flex items-center justify-between">
+                                <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">Fixture Tests</div>
+                                <div className="flex items-center gap-1">
+                                  <Button variant="outline" size="sm" onClick={runFixtureTests}>Run</Button>
+                                  <Button variant="outline" size="sm" onClick={exportFixturePack}>Export</Button>
+                                  <Button variant="outline" size="sm" onClick={() => fixtureImportRef.current?.click()}>
+                                    <Upload className="w-3 h-3 mr-1" />
+                                    Import
+                                  </Button>
+                                  <input
+                                    ref={fixtureImportRef}
+                                    type="file"
+                                    accept="application/json,.json"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleImportFixturePack(file);
+                                      e.currentTarget.value = "";
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              <div className="mt-2 max-h-28 overflow-auto space-y-1">
+                                {fixtureCases.slice(-8).reverse().map((fx) => (
+                                  <div key={fx.id} className="flex items-center justify-between rounded-md border border-gray-100 px-2 py-1 text-xs">
+                                    <span className="truncate">{fx.name} ({fx.format}) - expect {fx.expectedValid ? "valid" : "invalid"}</span>
+                                    <button
+                                      type="button"
+                                      className="text-sky-700 hover:underline"
+                                      onClick={() => setFixtureCases((prev) => prev.map((item) => item.id === fx.id ? { ...item, expectedValid: !item.expectedValid } : item))}
+                                    >
+                                      Toggle
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="text-sky-700 hover:underline"
+                                      onClick={() => setFixtureCases((prev) => prev.filter((item) => item.id !== fx.id))}
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                ))}
+                                {fixtureResults.slice(-4).map((res) => (
+                                  <div key={res.id} className={`rounded-md px-2 py-1 text-xs ${res.passed ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
+                                    {res.name}: {res.detail}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
 	                    </div>
 	                  </Card>
 
 	                </div>
 
+              </div>
+            )}
+
+            {activeTab === "diff" && (
+              <div className="grid lg:grid-cols-12 gap-6">
+                <div className="lg:col-span-12 space-y-5">
+                  <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
+                    <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+                      <div className="flex items-center gap-2">
+                        <FileDiff className="w-4 h-4 text-sky-700" />
+                        <h3 className="text-sm font-semibold text-gray-900">Diff Lab</h3>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">Compare two payloads and inspect structural and value changes.</p>
+                    </div>
+                    <div className="p-5 space-y-4">
+                      <div className="flex items-center gap-3">
+                        <Select value={diffFormat} onChange={(e) => setDiffFormat(e.target.value as "json" | "xml" | "yaml")} className="w-28">
+                          <option value="json">JSON</option>
+                          <option value="xml">XML</option>
+                          <option value="yaml">YAML</option>
+                        </Select>
+                        <Button variant="secondary" onClick={handleRunDiff}>Run Diff</Button>
+                        <span className="text-xs text-gray-500 ml-auto">{diffEntries.length} changes</span>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Left</label>
+                          <div className="h-[280px] border border-gray-200 rounded-xl overflow-hidden">
+                            <Editor
+                              height="100%"
+                              defaultLanguage={languageMap[diffFormat]}
+                              value={diffLeft}
+                              onChange={(val) => setDiffLeft(val || "")}
+                              theme="vs"
+                              options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Right</label>
+                          <div className="h-[280px] border border-gray-200 rounded-xl overflow-hidden">
+                            <Editor
+                              height="100%"
+                              defaultLanguage={languageMap[diffFormat]}
+                              value={diffRight}
+                              onChange={(val) => setDiffRight(val || "")}
+                              theme="vs"
+                              options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      {diffError && <div className="text-sm text-red-600">{diffError}</div>}
+                      {!diffError && (
+                        <div className="rounded-xl border border-gray-200 overflow-hidden">
+                          <div className="grid grid-cols-12 gap-2 bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                            <div className="col-span-1">Type</div>
+                            <div className="col-span-4">Path</div>
+                            <div className="col-span-3">Left</div>
+                            <div className="col-span-4">Right</div>
+                          </div>
+                          <div className="max-h-[280px] overflow-auto">
+                            {diffEntries.length === 0 ? (
+                              <div className="px-3 py-4 text-sm text-gray-500">No differences detected.</div>
+                            ) : diffEntries.map((entry, idx) => (
+                              <div key={`${entry.path}-${idx}`} className="grid grid-cols-12 gap-2 px-3 py-2 border-t border-gray-100 text-sm">
+                                <div className="col-span-1 text-xs font-semibold uppercase text-sky-700">{entry.kind}</div>
+                                <div className="col-span-4 font-mono text-xs truncate">{entry.path}</div>
+                                <div className="col-span-3 truncate">{entry.left}</div>
+                                <div className="col-span-4 truncate">{entry.right}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
               </div>
             )}
 
@@ -618,8 +1274,20 @@ export default function OmniParsePage() {
 		                            className="w-full sm:w-64"
 		                          />
 		                          <Button onClick={handleGenerateDoc}>Generate</Button>
+                              <Button variant="outline" onClick={handleRoundTripCheck}>
+                                Round-trip Check
+                              </Button>
+                              <Button variant="outline" onClick={handleExportBundle} disabled={!!docGraph.error}>
+                                <Download className="w-3.5 h-3.5 mr-1" />
+                                Export Bundle
+                              </Button>
 		                        </div>
 		                      </div>
+                          {roundTripReport && (
+                            <div className="mt-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-700">
+                              {roundTripReport}
+                            </div>
+                          )}
 		                      <div className="mt-3 h-[260px] border border-gray-200 rounded-xl overflow-hidden bg-white">
 		                        <Editor
 		                          height="100%"
@@ -690,6 +1358,26 @@ export default function OmniParsePage() {
 		                          </div>
 		                        ) : (
 		                          <>
+                                <div className="mb-3 flex flex-wrap items-center gap-2">
+                                  <Input
+                                    value={docSearchPath}
+                                    onChange={(e) => setDocSearchPath(e.target.value)}
+                                    placeholder="Find node path (ex: payload.user)"
+                                    className="w-full sm:w-80"
+                                  />
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      const query = docSearchPath.trim().replace(/\./g, "/");
+                                      if (!query) return;
+                                      const path = query.startsWith("$") ? query : `$/` + query.replace(/^\//, "");
+                                      setDocGraphExpandedPaths((prev) => new Set(prev).add(path));
+                                    }}
+                                  >
+                                    Focus Path
+                                  </Button>
+                                </div>
 		                            <DataGraph
 		                              value={docGraph.value}
 		                              rootLabel={docRootName || "root"}
@@ -742,6 +1430,24 @@ export default function OmniParsePage() {
 		                              />
 		                            </div>
 		                            </div>
+                                <div className="mt-4 grid lg:grid-cols-2 gap-4">
+                                  <div className="rounded-xl border border-gray-200 bg-white p-3">
+                                    <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Schema Summary</div>
+                                    <Textarea
+                                      value={docSchemaOutput}
+                                      onChange={(e) => setDocSchemaOutput(e.target.value)}
+                                      className="min-h-[180px] font-mono text-xs"
+                                    />
+                                  </div>
+                                  <div className="rounded-xl border border-gray-200 bg-white p-3">
+                                    <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">OpenAPI Snippet</div>
+                                    <Textarea
+                                      value={docOpenApiOutput}
+                                      onChange={(e) => setDocOpenApiOutput(e.target.value)}
+                                      className="min-h-[180px] font-mono text-xs"
+                                    />
+                                  </div>
+                                </div>
 		                          </>
 		                        )}
 		                      </div>
