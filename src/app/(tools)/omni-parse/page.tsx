@@ -1,33 +1,26 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { Editor } from "@monaco-editor/react";
-import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
-import { Input } from "@/components/ui/Input";
-import { Textarea } from "@/components/ui/Textarea";
-import { Card } from "@/components/ui/Card";
+import React, { useMemo, useState } from "react";
 import { ToolSidebar, ToolSidebarItem } from "@/components/ui/ToolSidebar";
 import { cn } from "@/lib/utils";
-import { DataGraph } from "@/components/ui/DataGraph";
-import {
-  convertFormat,
-  formatData,
-  validateData,
-  parseToObject,
-  generateMarkdownDoc,
-  flattenJson,
-  unflattenJson,
-} from "@/lib/omni-parse";
 import type { DataFormat } from "@/lib/omni-parse";
+import { ConvertStudio } from "@/components/features/omni-parse/ConvertStudio";
+import { ValidatorStudio } from "@/components/features/omni-parse/ValidatorStudio";
+import { FormatterStudio } from "@/components/features/omni-parse/FormatterStudio";
+import { DiffLab } from "@/components/features/omni-parse/DiffLab";
+import { GeneratorHub } from "@/components/features/omni-parse/GeneratorHub";
 import {
   ArrowRightLeft,
-  AlertTriangle,
   CheckCircle2,
-  XCircle,
+  FileDiff,
   Braces,
   Wand2,
 } from "lucide-react";
+import { useOmniParseConvert } from "@/hooks/omni-parse/useOmniParseConvert";
+import { useOmniParseValidate } from "@/hooks/omni-parse/useOmniParseValidate";
+import { useOmniParseFormatRecipes } from "@/hooks/omni-parse/useOmniParseFormatRecipes";
+import { useOmniParseDiff } from "@/hooks/omni-parse/useOmniParseDiff";
+import { useOmniParseGenerator } from "@/hooks/omni-parse/useOmniParseGenerator";
 
 const formatOptions: { id: DataFormat; label: string }[] = [
   { id: "json", label: "JSON" },
@@ -43,203 +36,31 @@ const languageMap: Record<DataFormat, string> = {
   toml: "toml",
 };
 
-
 export default function OmniParsePage() {
-  const [activeTab, setActiveTab] = useState<"transpile" | "validate" | "format" | "generate">("transpile");
-
-  const [inputFormat, setInputFormat] = useState<DataFormat>("json");
-  const [outputFormat, setOutputFormat] = useState<DataFormat>("yaml");
-  const [inputText, setInputText] = useState("{\n  \"status\": \"ok\",\n  \"count\": 2\n}");
-  const [outputText, setOutputText] = useState("");
-  const [transpileError, setTranspileError] = useState<string | null>(null);
-
-  const [validateFormat, setValidateFormat] = useState<"json" | "xml" | "yaml">("json");
-  const [validateInput, setValidateInput] = useState("{\n  \"name\": \"OBN\",\n  \"version\": 1\n}");
-  const [validationResult, setValidationResult] = useState<{ valid: boolean; errors: string[]; warnings: string[] } | null>(null);
-  const [docInputFormat, setDocInputFormat] = useState<"json" | "xml" | "yaml">("json");
-  const [docInput, setDocInput] = useState("{\n  \"user\": {\n    \"id\": 7,\n    \"name\": \"Ava\"\n  },\n  \"active\": true\n}");
-  const [docRootName, setDocRootName] = useState("Payload");
-  const [docOutput, setDocOutput] = useState("");
-  const docGraph = useMemo(() => {
-    try {
-      return { value: parseToObject(docInputFormat, docInput) as unknown, error: null as string | null };
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Invalid input";
-      return { value: null as unknown, error: message };
-    }
-  }, [docInputFormat, docInput]);
-  const [docGraphMaxDepth, setDocGraphMaxDepth] = useState(7);
-  const [docGraphMaxNodes, setDocGraphMaxNodes] = useState(260);
-  const [docGraphDefaultExpandDepth, setDocGraphDefaultExpandDepth] = useState(2);
-  const [docGraphRestoreExpandDepth, setDocGraphRestoreExpandDepth] = useState(2);
-  const [docGraphExpandedPaths, setDocGraphExpandedPaths] = useState<Set<string>>(() => new Set());
-  const [isDocGraphModalOpen, setDocGraphModalOpen] = useState(false);
-
+  const [activeTab, setActiveTab] = useState<"transpile" | "validate" | "format" | "diff" | "generate">("transpile");
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
 
   const tools: ToolSidebarItem[] = useMemo(() => ([
     { id: "transpile", label: "Convert", icon: ArrowRightLeft },
     { id: "validate", label: "Validators", icon: CheckCircle2 },
     { id: "format", label: "Formatters", icon: Wand2 },
+    { id: "diff", label: "Diff Lab", icon: FileDiff },
     { id: "generate", label: "Generator Hub", icon: Braces },
   ]), []);
 
-  const activeToolLabel = tools.find(t => t.id === activeTab)?.label || "OmniParse";
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
-  const formatStats = useMemo(() => {
-    const chars = validateInput.length;
-    const lines = validateInput ? validateInput.split("\n").length : 0;
-    return { chars, lines };
-  }, [validateInput]);
+  const activeToolLabel = tools.find((t) => t.id === activeTab)?.label || "OmniParse";
 
-  const jsonToolState = useMemo(() => {
-    if (validateFormat !== "json") {
-      return {
-        canEscape: false,
-        canUnescape: false,
-        canFlatten: false,
-        canUnflatten: false,
-      };
-    }
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(validateInput);
-    } catch {
-      return {
-        canEscape: true,
-        canUnescape: false,
-        canFlatten: false,
-        canUnflatten: false,
-      };
-    }
-
-    const isEscapedString = typeof parsed === "string";
-
-    const isFlattenedObject = (() => {
-      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return false;
-      const keys = Object.keys(parsed as Record<string, unknown>);
-      return keys.some((k) => k.includes(".") || /^\d+(\.|$)/.test(k));
-    })();
-
-    return {
-      canEscape: !isEscapedString,
-      canUnescape: isEscapedString,
-      // Show Flatten for regular JSON (including flat objects/arrays),
-      // hide it only for already flattened dot-path payloads.
-      canFlatten: !isEscapedString && !isFlattenedObject,
-      canUnflatten: !isEscapedString && isFlattenedObject,
-    };
-  }, [validateFormat, validateInput]);
-
-  const handleTranspile = () => {
-    try {
-      const result = convertFormat(inputFormat, outputFormat, inputText);
-      setOutputText(result);
-      setTranspileError(null);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Conversion failed";
-      setTranspileError(message);
-    }
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const result = validateData(validateFormat, validateInput);
-      setValidationResult(result);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [validateFormat, validateInput]);
-
-  // Note: We intentionally avoid auto-detecting between JSON and YAML.
-  // YAML is permissive enough that many invalid JSON inputs are still valid YAML,
-  // which is confusing for users expecting JSON-style errors.
-
-  const handleFormat = (mode: "beautify" | "minify") => {
-    try {
-      const formatted = formatData(validateFormat, validateInput, mode);
-      setValidateInput(formatted);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Formatting failed";
-      setValidationResult({ valid: false, errors: [message], warnings: [] });
-    }
-  };
-
-  const handleSortKeys = () => {
-    try {
-      const formatted = formatData(validateFormat, validateInput, "beautify", {
-        sortKeys: true,
-      });
-      setValidateInput(formatted);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Sort keys failed";
-      setValidationResult({ valid: false, errors: [message], warnings: [] });
-    }
-  };
-
-  const handleJsonEscape = () => {
-    try {
-      // Keep quotes so the result is valid JSON (auto-detect stays on JSON).
-      const escaped = JSON.stringify(validateInput);
-      setValidateInput(escaped);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "JSON escape failed";
-      setValidationResult({ valid: false, errors: [message], warnings: [] });
-    }
-  };
-
-  const handleJsonUnescape = () => {
-    try {
-      // Accept either raw escape sequences or a quoted JSON string.
-      const trimmed = validateInput.trim();
-      const jsonString = trimmed.startsWith("\"") && trimmed.endsWith("\"")
-        ? trimmed
-        : `"${trimmed.replace(/\\/g, "\\\\").replace(/"/g, "\\\"")}"`;
-      const unescaped = JSON.parse(jsonString) as string;
-      setValidateInput(unescaped);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "JSON unescape failed";
-      setValidationResult({ valid: false, errors: [message], warnings: [] });
-    }
-  };
-
-  const handleGenerateDoc = () => {
-    if (docGraph.error) {
-      setDocOutput("Invalid input: " + docGraph.error);
-      return;
-    }
-    setDocOutput(generateMarkdownDoc(docGraph.value, docRootName || "Root"));
-  };
-
-  useEffect(() => {
-    if (!isDocGraphModalOpen) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setDocGraphModalOpen(false);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isDocGraphModalOpen]);
-
-  const handleFlatten = () => {
-    try {
-      const parsed = JSON.parse(validateInput);
-      const flattened = flattenJson(parsed);
-      setValidateInput(JSON.stringify(flattened, null, 2));
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Error";
-      setValidationResult({ valid: false, errors: ["Invalid JSON input: " + message], warnings: [] });
-    }
-  };
-
-  const handleUnflatten = () => {
-    try {
-      const parsed = JSON.parse(validateInput) as Record<string, unknown>;
-      const unflattened = unflattenJson(parsed);
-      setValidateInput(JSON.stringify(unflattened, null, 2));
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Error";
-      setValidationResult({ valid: false, errors: ["Invalid JSON input: " + message], warnings: [] });
-    }
-  };
+  const convert = useOmniParseConvert();
+  const validate = useOmniParseValidate();
+  const formatRecipes = useOmniParseFormatRecipes({
+    validateFormat: validate.validateFormat,
+    validateInput: validate.validateInput,
+    setValidateFormat: validate.setValidateFormat,
+    setValidateInput: validate.setValidateInput,
+    reportValidationError: validate.reportValidationError,
+  });
+  const diff = useOmniParseDiff();
+  const generator = useOmniParseGenerator();
 
   return (
     <div className="flex h-[calc(100vh-80px)] overflow-hidden bg-[#f7f6f3] relative font-display text-gray-900">
@@ -272,592 +93,126 @@ export default function OmniParsePage() {
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="h-full w-full space-y-8">
             {activeTab === "transpile" && (
-              <div className="grid lg:grid-cols-12 gap-6">
-                <div className="lg:col-span-12 space-y-5">
-                  <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-                    <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <ArrowRightLeft className="w-4 h-4 text-sky-700" />
-                            <h3 className="text-sm font-semibold text-gray-900">Convert Studio</h3>
-                          </div>
-                          <p className="mt-1 text-xs text-gray-500">Convert structured data between JSON, XML, YAML, and TOML.</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-5">
-                      <div className="flex flex-wrap items-center gap-4">
-                        <div className="w-48">
-                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Input Format</label>
-                          <Select value={inputFormat} onChange={(e) => setInputFormat(e.target.value as DataFormat)}>
-                            {formatOptions.map((opt) => (
-                              <option key={opt.id} value={opt.id}>{opt.label}</option>
-                            ))}
-                          </Select>
-                        </div>
-                        <div className="w-48">
-                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Output Format</label>
-                          <Select value={outputFormat} onChange={(e) => setOutputFormat(e.target.value as DataFormat)}>
-                            {formatOptions.map((opt) => (
-                              <option key={opt.id} value={opt.id}>{opt.label}</option>
-                            ))}
-                          </Select>
-                        </div>
-                        <div className="flex items-center gap-3 ml-auto">
-                          <Button variant="secondary" onClick={handleTranspile}>
-                            Convert
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 grid md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Input</label>
-                          <div className="h-[360px] border border-gray-200 rounded-xl overflow-hidden">
-                            <Editor
-                              height="100%"
-                              defaultLanguage={languageMap[inputFormat]}
-                              value={inputText}
-                              onChange={(val) => setInputText(val || "")}
-                              theme="vs"
-                              options={{
-                                minimap: { enabled: false },
-                                fontSize: 13,
-                                padding: { top: 12, bottom: 12 },
-                                scrollBeyondLastLine: false,
-                              }}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Output</label>
-                          <div className="h-[360px] border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
-                            <Editor
-                              height="100%"
-                              defaultLanguage={languageMap[outputFormat]}
-                              value={outputText}
-                              options={{
-                                minimap: { enabled: false },
-                                fontSize: 13,
-                                padding: { top: 12, bottom: 12 },
-                                scrollBeyondLastLine: false,
-                                readOnly: true,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {transpileError && (
-                        <div className="mt-4 flex items-center gap-2 text-sm text-red-600">
-                          <XCircle className="w-4 h-4" />
-                          {transpileError}
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                </div>
-
-              </div>
+              <ConvertStudio
+                inputFormat={convert.inputFormat}
+                outputFormat={convert.outputFormat}
+                setInputFormat={convert.setInputFormat}
+                setOutputFormat={convert.setOutputFormat}
+                inputText={convert.inputText}
+                setInputText={convert.setInputText}
+                outputText={convert.outputText}
+                transpileError={convert.transpileError}
+                onTranspile={convert.handleTranspile}
+                formatOptions={formatOptions}
+                languageMap={languageMap}
+              />
             )}
 
             {activeTab === "validate" && (
-              <div className="grid lg:grid-cols-12 gap-6">
-                <div className="lg:col-span-12 space-y-5">
-                  <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-                    <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-sky-700" />
-                            <h3 className="text-sm font-semibold text-gray-900">Validator Studio</h3>
-                          </div>
-                          <p className="mt-1 text-xs text-gray-500">Validate JSON, XML, and YAML inputs in real time.</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-5">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <div className="flex items-center gap-2">
-                          <Select
-                            value={validateFormat}
-                            onChange={(e) => setValidateFormat(e.target.value as "json" | "xml" | "yaml")}
-                            className="w-28"
-                          >
-                            <option value="json">JSON</option>
-                            <option value="xml">XML</option>
-                            <option value="yaml">YAML</option>
-                          </Select>
-                        </div>
-                        <div className="ml-auto flex items-center gap-2">
-                          {validationResult?.valid ? (
-                            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">
-                              <CheckCircle2 className="w-4 h-4" />
-                              Valid
-                            </div>
-                          ) : (
-                            <div
-                              className="group flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 text-red-700 text-xs font-semibold"
-                              title={validationResult?.errors?.join("\n") || "Invalid input"}
-                            >
-                              <XCircle className="w-4 h-4" />
-                              Invalid
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="mt-4 h-[360px] border border-gray-200 rounded-xl overflow-hidden">
-                        <Editor
-                          height="100%"
-                          defaultLanguage={languageMap[validateFormat]}
-                          value={validateInput}
-                          onChange={(val) => setValidateInput(val || "")}
-                          theme="vs"
-                          options={{
-                            minimap: { enabled: false },
-                            fontSize: 13,
-                            padding: { top: 12, bottom: 12 },
-                            scrollBeyondLastLine: false,
-                          }}
-                        />
-                      </div>
-
-                      {validationResult && (!validationResult.valid || validationResult.warnings.length > 0) && (
-                        <div className="mt-4 space-y-3">
-                          {validationResult.errors.length > 0 && (
-                            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-                              <div className="flex items-center gap-2 text-sm font-semibold text-red-700">
-                                <XCircle className="h-4 w-4" />
-                                Errors
-                              </div>
-                              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
-                                {validationResult.errors.map((error, idx) => (
-                                  <li key={`validation-error-${idx}`}>{error}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {validationResult.warnings.length > 0 && (
-                            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-                              <div className="flex items-center gap-2 text-sm font-semibold text-amber-700">
-                                <AlertTriangle className="h-4 w-4" />
-                                Warnings
-                              </div>
-                              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-700">
-                                {validationResult.warnings.map((warning, idx) => (
-                                  <li key={`validation-warning-${idx}`}>{warning}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                </div>
-
-              </div>
+              <ValidatorStudio
+                validateFormat={validate.validateFormat}
+                setValidateFormat={validate.setValidateFormat}
+                validateInput={validate.validateInput}
+                setValidateInput={validate.setValidateInput}
+                validationResult={validate.validationResult}
+                validationIssues={validate.validationIssues}
+                languageMap={languageMap as Record<"json" | "xml" | "yaml", string>}
+              />
             )}
 
             {activeTab === "format" && (
-              <div className="grid lg:grid-cols-12 gap-6">
-                <div className="lg:col-span-12 space-y-5">
-                  <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-                    <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <Wand2 className="w-4 h-4 text-sky-700" />
-                            <h3 className="text-sm font-semibold text-gray-900">Formatter Studio</h3>
-                          </div>
-                          <p className="mt-1 text-xs text-gray-500">Clean, normalize, and escape payload text quickly.</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="rounded-full border border-sky-100 bg-white/80 px-3 py-1 text-[11px] font-semibold text-sky-700">
-                            {formatStats.lines} lines
-                          </span>
-                          <span className="rounded-full border border-sky-100 bg-white/80 px-3 py-1 text-[11px] font-semibold text-sky-700">
-                            {formatStats.chars} chars
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-	                    <div className="p-5 space-y-4">
-	                      <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-3">
-	                        <div className="flex flex-wrap items-center gap-2">
-	                          <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Format</span>
-	                          <Select
-	                            value={validateFormat}
-	                            onChange={(e) => setValidateFormat(e.target.value as "json" | "xml" | "yaml")}
-	                            className="w-28"
-	                          >
-	                            <option value="json">JSON</option>
-	                            <option value="xml">XML</option>
-	                            <option value="yaml">YAML</option>
-	                          </Select>
-	                          <Button variant="secondary" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={() => handleFormat("beautify")}>
-	                            Beautify
-	                          </Button>
-	                          <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={() => handleFormat("minify")}>
-	                            Minify
-	                          </Button>
-	                          <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={handleSortKeys}>
-	                            Sort Keys
-	                          </Button>
-	                          {validateFormat === "json" ? (
-	                            <>
-	                              {jsonToolState.canFlatten && (
-	                                <Button
-	                                  variant="outline"
-	                                  className="h-8 rounded-full px-3 text-xs font-semibold"
-	                                  onClick={handleFlatten}
-	                                  title="Flatten nested JSON into dot-path keys"
-	                                >
-	                                  Flatten
-	                                </Button>
-	                              )}
-	                              {jsonToolState.canUnflatten && (
-	                                <Button
-	                                  variant="outline"
-	                                  className="h-8 rounded-full px-3 text-xs font-semibold"
-	                                  onClick={handleUnflatten}
-	                                  title="Unflatten dot-path keys back to nested JSON"
-	                                >
-	                                  Unflatten
-	                                </Button>
-	                              )}
-	                              {jsonToolState.canEscape && (
-	                                <Button
-	                                  variant="outline"
-	                                  className="h-8 rounded-full px-3 text-xs font-semibold"
-	                                  onClick={handleJsonEscape}
-	                                  title="Escape as JSON string content"
-	                                >
-	                                  JSON Escape
-	                                </Button>
-	                              )}
-	                              {jsonToolState.canUnescape && (
-	                                <Button
-	                                  variant="outline"
-	                                  className="h-8 rounded-full px-3 text-xs font-semibold"
-	                                  onClick={handleJsonUnescape}
-	                                  title="Unescape JSON string content"
-	                                >
-	                                  JSON Unescape
-	                                </Button>
-	                              )}
-	                            </>
-	                          ) : (
-	                            <span className="text-xs text-gray-500">JSON-only: Flatten, Unflatten, Escape, Unescape.</span>
-	                          )}
-	                        </div>
-	                      </div>
-
-	                      <div className="h-[360px] border border-gray-200 rounded-xl overflow-hidden bg-white">
-	                      <Editor
-                        height="100%"
-                        defaultLanguage={languageMap[validateFormat]}
-                        value={validateInput}
-                        onChange={(val) => setValidateInput(val || "")}
-                        theme="vs"
-                        options={{
-                          minimap: { enabled: false },
-                          fontSize: 13,
-                          padding: { top: 12, bottom: 12 },
-                          scrollBeyondLastLine: false,
-                        }}
-	                      />
-	                      </div>
-	                    </div>
-	                  </Card>
-
-	                </div>
-
-              </div>
+              <FormatterStudio
+                validateFormat={validate.validateFormat}
+                setValidateFormat={validate.setValidateFormat}
+                validateInput={validate.validateInput}
+                setValidateInput={validate.setValidateInput}
+                formatStats={validate.formatStats}
+                jsonToolState={validate.jsonToolState}
+                onFormat={validate.handleFormat}
+                onSortKeys={validate.handleSortKeys}
+                onFormatterPreset={validate.handleFormatterPreset}
+                onSaveFormatterRecipe={formatRecipes.saveFormatterRecipe}
+                onRunDraftRecipe={formatRecipes.runDraftRecipe}
+                onAddCurrentAsFixture={formatRecipes.addCurrentAsFixture}
+                onFlatten={validate.handleFlatten}
+                onUnflatten={validate.handleUnflatten}
+                onJsonEscape={validate.handleJsonEscape}
+                onJsonUnescape={validate.handleJsonUnescape}
+                recipeNameDraft={formatRecipes.recipeNameDraft}
+                setRecipeNameDraft={formatRecipes.setRecipeNameDraft}
+                recipeStepOpDraft={formatRecipes.recipeStepOpDraft}
+                setRecipeStepOpDraft={formatRecipes.setRecipeStepOpDraft}
+                recipeStepTargetDraft={formatRecipes.recipeStepTargetDraft}
+                setRecipeStepTargetDraft={formatRecipes.setRecipeStepTargetDraft}
+                recipeStepsDraft={formatRecipes.recipeStepsDraft}
+                onAddRecipeStepDraft={formatRecipes.addRecipeStepDraft}
+                onClearRecipeStepsDraft={() => formatRecipes.setRecipeStepsDraft([])}
+                onMoveRecipeStep={formatRecipes.moveRecipeStep}
+                onRemoveRecipeStep={formatRecipes.removeRecipeStep}
+                formatterRecipes={formatRecipes.formatterRecipes}
+                onLoadFormatterRecipe={formatRecipes.loadFormatterRecipe}
+                onRunSavedRecipe={formatRecipes.runSavedRecipe}
+                fixtureCases={formatRecipes.fixtureCases}
+                setFixtureCases={formatRecipes.setFixtureCases}
+                fixtureResults={formatRecipes.fixtureResults}
+                onRunFixtureTests={formatRecipes.runFixtureTests}
+                onExportFixturePack={formatRecipes.exportFixturePack}
+                onImportFixturePack={formatRecipes.handleImportFixturePack}
+                fixtureImportRef={formatRecipes.fixtureImportRef}
+                languageMap={languageMap}
+              />
             )}
 
-			            {activeTab === "generate" && (
-			              <div className="grid lg:grid-cols-1 gap-6">
-			                <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-                        <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
-                          <div className="flex items-center gap-2">
-                            <Braces className="w-4 h-4 text-sky-700" />
-                            <h3 className="text-sm font-semibold text-gray-900">Generator Hub</h3>
-                          </div>
-                          <p className="mt-1 text-xs text-gray-500">Use one input (JSON/XML/YAML) to generate both Markdown and Graph outputs.</p>
-                        </div>
-                        <div className="p-5">
-			                  <div className="grid gap-6">
-			                    <div className="rounded-2xl border border-gray-200 bg-white p-4">
-			                      <div className="flex flex-wrap items-center justify-between gap-3">
-			                        <div>
-				                          <div className="text-sm font-semibold text-gray-900">Input Data</div>
-				                          <div className="text-[11px] text-gray-500">This input is used for both Markdown and Graph generation.</div>
-				                        </div>
-				                        <div className="flex items-center gap-2 w-full sm:w-auto">
-				                          <Select
-				                            value={docInputFormat}
-				                            onChange={(e) => setDocInputFormat(e.target.value as "json" | "xml" | "yaml")}
-				                            className="w-28"
-				                          >
-				                            <option value="json">JSON</option>
-				                            <option value="xml">XML</option>
-				                            <option value="yaml">YAML</option>
-				                          </Select>
-				                          <Input
-				                            value={docRootName}
-			                            onChange={(e) => setDocRootName(e.target.value)}
-			                            placeholder="Root name"
-		                            className="w-full sm:w-64"
-		                          />
-		                          <Button onClick={handleGenerateDoc}>Generate</Button>
-		                        </div>
-		                      </div>
-		                      <div className="mt-3 h-[260px] border border-gray-200 rounded-xl overflow-hidden bg-white">
-		                        <Editor
-		                          height="100%"
-			                          language={languageMap[docInputFormat]}
-		                          value={docInput}
-		                          onChange={(val) => setDocInput(val || "")}
-		                          theme="vs"
-		                          options={{
-		                            minimap: { enabled: false },
-		                            fontSize: 12,
-		                            padding: { top: 12, bottom: 12 },
-		                            scrollBeyondLastLine: false,
-		                          }}
-		                        />
-		                      </div>
-		                    </div>
+            {activeTab === "diff" && (
+              <DiffLab
+                diffFormat={diff.diffFormat}
+                setDiffFormat={diff.setDiffFormat}
+                diffLeft={diff.diffLeft}
+                setDiffLeft={diff.setDiffLeft}
+                diffRight={diff.diffRight}
+                setDiffRight={diff.setDiffRight}
+                diffError={diff.diffError}
+                diffEntries={diff.diffEntries}
+                onRunDiff={diff.handleRunDiff}
+                languageMap={languageMap}
+              />
+            )}
 
-			                    <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4">
-			                      <div className="text-sm font-semibold text-gray-900">Markdown</div>
-				                      <div className="text-[11px] text-gray-500 mt-1">Generated from the Input Data above.</div>
-			                      <Textarea
-			                        value={docOutput}
-			                        readOnly
-			                        placeholder="Generated Markdown will appear here..."
-			                        className="mt-3 min-h-[220px] font-mono text-xs bg-white"
-		                      />
-		                    </div>
-
-			                    <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4">
-			                      <div className="flex flex-wrap items-center justify-between gap-3">
-			                        <div>
-			                          <div className="text-sm font-semibold text-gray-900">Graph</div>
-				                          <div className="text-[11px] text-gray-400">Generated from the same Input Data as connected nodes.</div>
-			                        </div>
-		                        {!docGraph.error && (
-		                          <div className="flex flex-wrap items-center gap-2">
-		                            <Button
-		                              variant="outline"
-		                              className="h-8 rounded-full px-3 text-xs font-semibold"
-		                              onClick={() => {
-		                                if (docGraphDefaultExpandDepth > 0) {
-		                                  setDocGraphRestoreExpandDepth(docGraphDefaultExpandDepth);
-		                                  setDocGraphDefaultExpandDepth(0);
-		                                  setDocGraphExpandedPaths(new Set());
-		                                  return;
-		                                }
-		                                setDocGraphDefaultExpandDepth(Math.max(1, docGraphRestoreExpandDepth));
-		                                setDocGraphExpandedPaths(new Set());
-		                              }}
-		                            >
-		                              {docGraphDefaultExpandDepth > 0 ? "Collapse Nodes" : "Restore Nodes"}
-		                            </Button>
-		                            <Button
-		                              variant="outline"
-		                              className="h-8 rounded-full px-3 text-xs font-semibold"
-		                              onClick={() => setDocGraphModalOpen(true)}
-		                            >
-		                              Expand
-		                            </Button>
-		                          </div>
-		                        )}
-		                      </div>
-
-		                      <div className="mt-3">
-		                        {docGraph.error ? (
-		                          <div className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
-			                            Invalid input: {docGraph.error}
-		                          </div>
-		                        ) : (
-		                          <>
-		                            <DataGraph
-		                              value={docGraph.value}
-		                              rootLabel={docRootName || "root"}
-		                              className="h-[420px]"
-		                              maxDepth={docGraphMaxDepth}
-		                              maxNodes={docGraphMaxNodes}
-		                              defaultExpandDepth={docGraphDefaultExpandDepth}
-		                              expandedPaths={docGraphExpandedPaths}
-		                              onTogglePath={(path) => {
-		                                setDocGraphExpandedPaths((prev) => {
-		                                  const next = new Set(prev);
-		                                  if (next.has(path)) next.delete(path);
-		                                  else next.add(path);
-		                                  return next;
-		                                });
-		                              }}
-		                            />
-		                            <div className="mt-3 flex flex-wrap items-center gap-2 justify-end">
-		                            <div className="flex items-center gap-2">
-		                              <span className="text-xs font-semibold text-gray-500">Expand</span>
-		                              <Input
-		                                type="number"
-		                                min={0}
-		                                max={20}
-		                                value={docGraphDefaultExpandDepth}
-		                                onChange={(e) => setDocGraphDefaultExpandDepth(Number(e.target.value))}
-		                                className="w-20"
-		                              />
-		                            </div>
-		                            <div className="flex items-center gap-2">
-		                              <span className="text-xs font-semibold text-gray-500">Depth</span>
-		                              <Input
-		                                type="number"
-		                                min={1}
-		                                max={50}
-		                                value={docGraphMaxDepth}
-		                                onChange={(e) => setDocGraphMaxDepth(Number(e.target.value))}
-		                                className="w-20"
-		                              />
-		                            </div>
-		                            <div className="flex items-center gap-2">
-		                              <span className="text-xs font-semibold text-gray-500">Nodes</span>
-		                              <Input
-		                                type="number"
-		                                min={50}
-		                                max={2000}
-		                                value={docGraphMaxNodes}
-		                                onChange={(e) => setDocGraphMaxNodes(Number(e.target.value))}
-		                                className="w-24"
-		                              />
-		                            </div>
-		                            </div>
-		                          </>
-		                        )}
-		                      </div>
-		                    </div>
-			                  </div>
-                        </div>
-			                </Card>
-
-		                {isDocGraphModalOpen && (
-		                  <div
-		                    className="absolute top-14 bottom-0 right-0 left-0 z-50 pointer-events-none"
-		                  >
-		                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm pointer-events-auto" onClick={() => setDocGraphModalOpen(false)} />
-		                    <div className="absolute inset-0 pointer-events-none flex items-start justify-start p-0">
-		                      <div
-		                        className="pointer-events-auto w-full h-full bg-white/90 backdrop-blur-2xl border border-black/10 rounded-none shadow-2xl overflow-hidden flex flex-col"
-		                        onClick={(e) => e.stopPropagation()}
-		                      >
-		                        <div className="h-14 border-b border-gray-200/70 bg-white/60 backdrop-blur-md flex items-center justify-between px-5">
-		                          <div className="text-sm text-gray-500">
-		                            <span className="font-semibold text-gray-800 mr-2">Graph</span>
-		                            <span className="text-gray-300">/</span>
-		                            <span className="ml-2">Input Data</span>
-		                          </div>
-		                          <div className="flex items-center gap-2">
-		                            <Button
-		                              variant="outline"
-		                              size="sm"
-		                              onClick={() => {
-		                                if (docGraphDefaultExpandDepth > 0) {
-		                                  setDocGraphRestoreExpandDepth(docGraphDefaultExpandDepth);
-		                                  setDocGraphDefaultExpandDepth(0);
-		                                  setDocGraphExpandedPaths(new Set());
-		                                  return;
-		                                }
-		                                setDocGraphDefaultExpandDepth(Math.max(1, docGraphRestoreExpandDepth));
-		                                setDocGraphExpandedPaths(new Set());
-		                              }}
-		                            >
-		                              {docGraphDefaultExpandDepth > 0 ? "Collapse Nodes" : "Restore Nodes"}
-		                            </Button>
-		                            <Button variant="outline" size="sm" onClick={() => setDocGraphModalOpen(false)}>
-		                              Close
-		                            </Button>
-		                          </div>
-		                        </div>
-
-		                        <div className="p-4 md:p-6 flex flex-col gap-3 min-h-0 flex-1">
-		                          {docGraph.error ? (
-		                            <div className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
-		                              Invalid input: {docGraph.error}
-		                            </div>
-		                          ) : (
-		                            <>
-		                              <DataGraph
-		                                value={docGraph.value}
-		                                rootLabel={docRootName || "root"}
-		                                className="flex-1 min-h-0"
-		                                maxDepth={docGraphMaxDepth}
-		                                maxNodes={docGraphMaxNodes}
-		                                defaultExpandDepth={docGraphDefaultExpandDepth}
-		                                expandedPaths={docGraphExpandedPaths}
-		                                onTogglePath={(path) => {
-		                                  setDocGraphExpandedPaths((prev) => {
-		                                    const next = new Set(prev);
-		                                    if (next.has(path)) next.delete(path);
-		                                    else next.add(path);
-		                                    return next;
-		                                  });
-		                                }}
-		                              />
-		                              <div className="flex flex-wrap items-center gap-2 justify-end">
-		                                <div className="flex items-center gap-2">
-		                                  <span className="text-xs font-semibold text-gray-500">Expand</span>
-		                                  <Input
-		                                    type="number"
-		                                    min={0}
-		                                    max={20}
-		                                    value={docGraphDefaultExpandDepth}
-		                                    onChange={(e) => setDocGraphDefaultExpandDepth(Number(e.target.value))}
-		                                    className="w-20"
-		                                  />
-		                                </div>
-		                                <div className="flex items-center gap-2">
-		                                  <span className="text-xs font-semibold text-gray-500">Depth</span>
-		                                  <Input
-		                                    type="number"
-		                                    min={1}
-		                                    max={50}
-		                                    value={docGraphMaxDepth}
-		                                    onChange={(e) => setDocGraphMaxDepth(Number(e.target.value))}
-		                                    className="w-20"
-		                                  />
-		                                </div>
-		                                <div className="flex items-center gap-2">
-		                                  <span className="text-xs font-semibold text-gray-500">Nodes</span>
-		                                  <Input
-		                                    type="number"
-		                                    min={50}
-		                                    max={2000}
-		                                    value={docGraphMaxNodes}
-		                                    onChange={(e) => setDocGraphMaxNodes(Number(e.target.value))}
-		                                    className="w-24"
-		                                  />
-		                                </div>
-		                              </div>
-		                            </>
-		                          )}
-		                        </div>
-		                      </div>
-		                    </div>
-		                  </div>
-		                )}
-
-			              </div>
-			            )}
+            {activeTab === "generate" && (
+              <GeneratorHub
+                docInputFormat={generator.docInputFormat}
+                setDocInputFormat={generator.setDocInputFormat}
+                docInput={generator.docInput}
+                setDocInput={generator.setDocInput}
+                docRootName={generator.docRootName}
+                setDocRootName={generator.setDocRootName}
+                onGenerateDoc={generator.handleGenerateDoc}
+                onRoundTripCheck={generator.handleRoundTripCheck}
+                onExportBundle={generator.handleExportBundle}
+                docOutput={generator.docOutput}
+                docGraph={generator.docGraph}
+                docGraphDefaultExpandDepth={generator.docGraphDefaultExpandDepth}
+                setDocGraphDefaultExpandDepth={generator.setDocGraphDefaultExpandDepth}
+                docGraphRestoreExpandDepth={generator.docGraphRestoreExpandDepth}
+                setDocGraphRestoreExpandDepth={generator.setDocGraphRestoreExpandDepth}
+                setDocGraphExpandedPaths={generator.setDocGraphExpandedPaths}
+                setDocGraphModalOpen={generator.setDocGraphModalOpen}
+                docGraphModalOpen={generator.isDocGraphModalOpen}
+                docGraphMaxDepth={generator.docGraphMaxDepth}
+                setDocGraphMaxDepth={generator.setDocGraphMaxDepth}
+                docGraphMaxNodes={generator.docGraphMaxNodes}
+                setDocGraphMaxNodes={generator.setDocGraphMaxNodes}
+                docGraphExpandedPaths={generator.docGraphExpandedPaths}
+                docSearchPath={generator.docSearchPath}
+                setDocSearchPath={generator.setDocSearchPath}
+                docSchemaOutput={generator.docSchemaOutput}
+                setDocSchemaOutput={generator.setDocSchemaOutput}
+                docOpenApiOutput={generator.docOpenApiOutput}
+                setDocOpenApiOutput={generator.setDocOpenApiOutput}
+                roundTripReport={generator.roundTripReport}
+                languageMap={languageMap}
+              />
+            )}
           </div>
         </div>
       </main>

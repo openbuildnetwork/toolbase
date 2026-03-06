@@ -77,7 +77,7 @@ export const TOOLS: ToolMeta[] = [
     isNew: false,
     isFeatured: true,
     wasmPowered: true,
-    pythonPowered: true,
+    pythonPowered: false,
     status: 'stable',
     addedAt: '2025-01-01',
   },

@@ -1,41 +1,17 @@
-import YAML from "yaml";
-import { XMLValidator } from "fast-xml-parser";
+import { getFormatAdapter } from "./formats";
+import type { ValidationResult } from "./formats/types";
 
-export type ValidationResult = {
-  valid: boolean;
-  errors: string[];
-  warnings: string[];
-};
+export type { ValidationResult } from "./formats/types";
 
 export function validateData(format: "json" | "xml" | "yaml", input: string): ValidationResult {
-  const warnings: string[] = [];
-
   try {
-    if (!input.trim()) {
-      return { valid: false, errors: ["Input is empty."], warnings };
+    const adapter = getFormatAdapter(format);
+    if (!adapter.validate) {
+      return { valid: false, errors: [`Validation is not supported for ${format.toUpperCase()}.`], warnings: [] };
     }
-
-    if (format === "json") {
-      JSON.parse(input);
-      return { valid: true, errors: [], warnings };
-    }
-
-    if (format === "yaml") {
-      YAML.parse(input);
-      return { valid: true, errors: [], warnings };
-    }
-
-    if (format === "xml") {
-      const result = XMLValidator.validate(input);
-      if (result !== true) {
-        return { valid: false, errors: [result.err.msg], warnings };
-      }
-      return { valid: true, errors: [], warnings };
-    }
-
-    return { valid: false, errors: ["Unsupported format"], warnings };
+    return adapter.validate(input);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Validation failed";
-    return { valid: false, errors: [message], warnings };
+    return { valid: false, errors: [message], warnings: [] };
   }
 }

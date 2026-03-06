@@ -26,6 +26,11 @@ Optional full build check:
 npm run build
 ```
 
+Strict Rust/WASM artifact check:
+```bash
+npm run build:strict-wasm
+```
+
 ## Working Rules
 1. Keep route pages thin; move logic into module/shared layers.
 2. Avoid cross-tool coupling.

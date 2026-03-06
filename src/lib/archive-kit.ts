@@ -1,4 +1,5 @@
-export type ArchiveFormat = "zip" | "tar";
+export type ArchiveFormat = "zip" | "tar" | "tgz";
+export type ZipCompressionMode = "store" | "fast" | "best";
 
 export type ArchiveInputFile = {
   name: string;
@@ -12,6 +13,39 @@ export type ArchiveEntry = {
   isDirectory: boolean;
   format: ArchiveFormat;
 };
+
+export type BatchArchiveInput = {
+  sourceName: string;
+  format: ArchiveFormat;
+  bytes: Uint8Array;
+};
+
+export type BatchArchiveEntry = ArchiveEntry & {
+  sourceName: string;
+};
+
+export type CreateArchiveOptions = {
+  zipCompression?: ZipCompressionMode;
+  deterministic?: boolean;
+};
+
+async function gzipBytes(bytes: Uint8Array): Promise<Uint8Array> {
+  if (typeof CompressionStream === "undefined") {
+    throw new Error("GZIP compression requires CompressionStream support in this browser.");
+  }
+  const stream = new Blob([Uint8Array.from(bytes)]).stream().pipeThrough(new CompressionStream("gzip"));
+  const ab = await new Response(stream).arrayBuffer();
+  return new Uint8Array(ab);
+}
+
+async function gunzipBytes(bytes: Uint8Array): Promise<Uint8Array> {
+  if (typeof DecompressionStream === "undefined") {
+    throw new Error("GZIP extraction requires DecompressionStream support in this browser.");
+  }
+  const stream = new Blob([Uint8Array.from(bytes)]).stream().pipeThrough(new DecompressionStream("gzip"));
+  const ab = await new Response(stream).arrayBuffer();
+  return new Uint8Array(ab);
+}
 
 function toUtf8(input: string): Uint8Array {
   return new TextEncoder().encode(input);
@@ -30,6 +64,15 @@ function concatBytes(parts: Uint8Array[]): Uint8Array {
     offset += part.length;
   }
   return out;
+}
+
+async function deflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
+  if (typeof CompressionStream === "undefined") {
+    throw new Error("ZIP deflate compression requires CompressionStream support in this browser.");
+  }
+  const stream = new Blob([Uint8Array.from(bytes)]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+  const ab = await new Response(stream).arrayBuffer();
+  return new Uint8Array(ab);
 }
 
 function readU16(data: Uint8Array, offset: number): number {
@@ -159,27 +202,44 @@ function getZipDataSlice(data: Uint8Array, entry: ZipDirEntry): Uint8Array {
   return data.slice(start, end);
 }
 
-export function createZip(files: ArchiveInputFile[]): Uint8Array {
+function decodeZipEntryData(data: Uint8Array, entry: ZipDirEntry): Promise<Uint8Array> | Uint8Array {
+  const payload = getZipDataSlice(data, entry);
+  if (entry.method === 0) return payload;
+  if (entry.method === 8) return inflateRaw(payload);
+  throw new Error(`Unsupported ZIP compression method ${entry.method} for ${entry.name}.`);
+}
+
+export async function createZip(
+  files: ArchiveInputFile[],
+  options: CreateArchiveOptions = {}
+): Promise<Uint8Array> {
+  const zipCompression = options.zipCompression ?? "store";
+  const ordered = options.deterministic ? [...files].sort((a, b) => a.name.localeCompare(b.name)) : files;
   const localParts: Uint8Array[] = [];
   const centralParts: Uint8Array[] = [];
   let offset = 0;
 
-  for (const file of files) {
+  for (const file of ordered) {
     const name = file.name.replace(/\\/g, "/");
     const nameBytes = toUtf8(name);
-    const body = file.bytes;
-    const crc = crc32(body);
+    const uncompressed = file.bytes;
+    const body =
+      zipCompression === "store"
+        ? uncompressed
+        : await deflateRaw(uncompressed);
+    const method = zipCompression === "store" ? 0 : 8;
+    const crc = crc32(uncompressed);
 
     const localHeader = new Uint8Array(30);
     writeU32(localHeader, 0, 0x04034b50);
     writeU16(localHeader, 4, 20);
     writeU16(localHeader, 6, 0);
-    writeU16(localHeader, 8, 0); // store (no compression)
+    writeU16(localHeader, 8, method);
     writeU16(localHeader, 10, 0);
     writeU16(localHeader, 12, 0);
     writeU32(localHeader, 14, crc);
     writeU32(localHeader, 18, body.length);
-    writeU32(localHeader, 22, body.length);
+    writeU32(localHeader, 22, uncompressed.length);
     writeU16(localHeader, 26, nameBytes.length);
     writeU16(localHeader, 28, 0);
 
@@ -190,12 +250,12 @@ export function createZip(files: ArchiveInputFile[]): Uint8Array {
     writeU16(centralHeader, 4, 20);
     writeU16(centralHeader, 6, 20);
     writeU16(centralHeader, 8, 0);
-    writeU16(centralHeader, 10, 0);
+    writeU16(centralHeader, 10, method);
     writeU16(centralHeader, 12, 0);
     writeU16(centralHeader, 14, 0);
     writeU32(centralHeader, 16, crc);
     writeU32(centralHeader, 20, body.length);
-    writeU32(centralHeader, 24, body.length);
+    writeU32(centralHeader, 24, uncompressed.length);
     writeU16(centralHeader, 28, nameBytes.length);
     writeU16(centralHeader, 30, 0);
     writeU16(centralHeader, 32, 0);
@@ -248,19 +308,19 @@ export async function extractZipEntries(data: Uint8Array): Promise<ArchiveInputF
 
   for (const entry of entries) {
     if (entry.isDirectory) continue;
-    const payload = getZipDataSlice(data, entry);
-    let bytes: Uint8Array;
-    if (entry.method === 0) {
-      bytes = payload;
-    } else if (entry.method === 8) {
-      bytes = await inflateRaw(payload);
-    } else {
-      throw new Error(`Unsupported ZIP compression method ${entry.method} for ${entry.name}.`);
-    }
+    const bytes = await decodeZipEntryData(data, entry);
     out.push({ name: entry.name, bytes });
   }
 
   return out;
+}
+
+export async function extractZipEntry(data: Uint8Array, entryName: string): Promise<ArchiveInputFile> {
+  const entries = parseZipDirectory(data);
+  const found = entries.find((e) => !e.isDirectory && e.name === entryName);
+  if (!found) throw new Error(`ZIP entry not found: ${entryName}`);
+  const bytes = await decodeZipEntryData(data, found);
+  return { name: found.name, bytes };
 }
 
 function padTo512(length: number): number {
@@ -273,7 +333,7 @@ function writeOctal(value: number, width: number): Uint8Array {
   return toUtf8(`${s}\0`);
 }
 
-function createTarHeader(name: string, size: number): Uint8Array {
+function createTarHeader(name: string, size: number, mtimeSec: number): Uint8Array {
   const h = new Uint8Array(512);
   const nameBytes = toUtf8(name);
   if (nameBytes.length > 100) throw new Error(`TAR filename too long: ${name}`);
@@ -282,7 +342,7 @@ function createTarHeader(name: string, size: number): Uint8Array {
   h.set(toUtf8("0000000\0"), 108); // uid
   h.set(toUtf8("0000000\0"), 116); // gid
   h.set(writeOctal(size, 12), 124);
-  h.set(writeOctal(Math.floor(Date.now() / 1000), 12), 136);
+  h.set(writeOctal(mtimeSec, 12), 136);
   h.set(toUtf8("        "), 148); // checksum placeholder
   h[156] = "0".charCodeAt(0); // regular file
   h.set(toUtf8("ustar\0"), 257);
@@ -294,12 +354,14 @@ function createTarHeader(name: string, size: number): Uint8Array {
   return h;
 }
 
-export function createTar(files: ArchiveInputFile[]): Uint8Array {
+export function createTar(files: ArchiveInputFile[], options: CreateArchiveOptions = {}): Uint8Array {
+  const ordered = options.deterministic ? [...files].sort((a, b) => a.name.localeCompare(b.name)) : files;
+  const mtime = options.deterministic ? 0 : Math.floor(Date.now() / 1000);
   const parts: Uint8Array[] = [];
 
-  for (const file of files) {
+  for (const file of ordered) {
     const normalized = file.name.replace(/\\/g, "/");
-    const header = createTarHeader(normalized, file.bytes.length);
+    const header = createTarHeader(normalized, file.bytes.length, mtime);
     parts.push(header, file.bytes);
     const pad = padTo512(file.bytes.length);
     if (pad > 0) parts.push(new Uint8Array(pad));
@@ -308,6 +370,11 @@ export function createTar(files: ArchiveInputFile[]): Uint8Array {
   // End-of-archive: two 512-byte blocks.
   parts.push(new Uint8Array(1024));
   return concatBytes(parts);
+}
+
+export async function createTarGz(files: ArchiveInputFile[], options: CreateArchiveOptions = {}): Promise<Uint8Array> {
+  const tar = createTar(files, options);
+  return gzipBytes(tar);
 }
 
 function parseTarName(block: Uint8Array): string {
@@ -379,14 +446,100 @@ export function extractTarEntries(data: Uint8Array): ArchiveInputFile[] {
   return out;
 }
 
-export function listArchiveEntries(format: ArchiveFormat, data: Uint8Array): ArchiveEntry[] {
-  return format === "zip" ? listZipEntries(data) : listTarEntries(data);
+export function extractTarEntry(data: Uint8Array, entryName: string): ArchiveInputFile {
+  let p = 0;
+
+  while (p + 512 <= data.length) {
+    const header = data.slice(p, p + 512);
+    if (isZeroBlock(header)) break;
+
+    const name = parseTarName(header);
+    const size = parseTarSize(header);
+    const typeFlag = String.fromCharCode(header[156] || 48);
+    const isDirectory = typeFlag === "5" || name.endsWith("/");
+    const contentStart = p + 512;
+    const contentEnd = contentStart + size;
+
+    if (contentEnd > data.length) throw new Error(`Invalid TAR: entry out of bounds (${name}).`);
+    if (!isDirectory && name === entryName) {
+      return { name, bytes: data.slice(contentStart, contentEnd) };
+    }
+
+    p = contentEnd + padTo512(size);
+  }
+
+  throw new Error(`TAR entry not found: ${entryName}`);
 }
 
-export function createArchive(format: ArchiveFormat, files: ArchiveInputFile[]): Uint8Array {
-  return format === "zip" ? createZip(files) : createTar(files);
+export function listArchiveEntries(format: ArchiveFormat, data: Uint8Array): ArchiveEntry[] {
+  if (format === "zip") return listZipEntries(data);
+  if (format === "tar") return listTarEntries(data);
+  throw new Error("Use listArchiveEntriesAsync for tgz format.");
+}
+
+export async function listArchiveEntriesAsync(format: ArchiveFormat, data: Uint8Array): Promise<ArchiveEntry[]> {
+  if (format === "zip") return listZipEntries(data);
+  if (format === "tar") return listTarEntries(data);
+  const tar = await gunzipBytes(data);
+  return listTarEntries(tar).map((entry) => ({ ...entry, format: "tgz" }));
+}
+
+export async function createArchive(
+  format: ArchiveFormat,
+  files: ArchiveInputFile[],
+  options: CreateArchiveOptions = {}
+): Promise<Uint8Array> {
+  if (format === "zip") return createZip(files, options);
+  if (format === "tar") return createTar(files, options);
+  return createTarGz(files, options);
 }
 
 export async function extractArchive(format: ArchiveFormat, data: Uint8Array): Promise<ArchiveInputFile[]> {
-  return format === "zip" ? extractZipEntries(data) : extractTarEntries(data);
+  if (format === "zip") return extractZipEntries(data);
+  if (format === "tar") return extractTarEntries(data);
+  const tar = await gunzipBytes(data);
+  return extractTarEntries(tar);
+}
+
+export async function extractArchiveEntry(
+  format: ArchiveFormat,
+  data: Uint8Array,
+  entryName: string
+): Promise<ArchiveInputFile> {
+  if (format === "zip") return extractZipEntry(data, entryName);
+  if (format === "tar") return extractTarEntry(data, entryName);
+  const tar = await gunzipBytes(data);
+  return extractTarEntry(tar, entryName);
+}
+
+export async function listArchiveEntriesBatch(
+  archives: BatchArchiveInput[]
+): Promise<BatchArchiveEntry[]> {
+  const out: BatchArchiveEntry[] = [];
+  for (const archive of archives) {
+    const entries = await listArchiveEntriesAsync(archive.format, archive.bytes);
+    for (const entry of entries) {
+      out.push({
+        ...entry,
+        sourceName: archive.sourceName,
+      });
+    }
+  }
+  return out;
+}
+
+export async function extractArchivesBatch(
+  archives: BatchArchiveInput[]
+): Promise<ArchiveInputFile[]> {
+  const out: ArchiveInputFile[] = [];
+  for (const archive of archives) {
+    const files = await extractArchive(archive.format, archive.bytes);
+    for (const file of files) {
+      out.push({
+        name: `${archive.sourceName.replace(/\.[^.]+$/, "")}/${file.name}`,
+        bytes: file.bytes,
+      });
+    }
+  }
+  return out;
 }

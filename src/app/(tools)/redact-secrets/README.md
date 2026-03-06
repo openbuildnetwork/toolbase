@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Secret Redact Tool is a privacy-first, client-side application designed to sanitize text and files containing sensitive information. It runs entirely in the browser using WebAssembly (Pyodide), ensuring that your secrets, PII, and sensitive logs never leave your device.
+The Secret Redact Tool is a privacy-first, client-side application designed to sanitize text and files containing sensitive information. It runs entirely in the browser using a Rust + WebAssembly engine, ensuring that your secrets, PII, and sensitive logs never leave your device.
 
 ## Features
 
@@ -21,8 +21,8 @@ The Secret Redact Tool is a privacy-first, client-side application designed to s
 ## Architecture
 
 - **Frontend**: React (Next.js)
-- **Backend**: Python (running in WASM via Pyodide)
-- **Worker**: `redact.worker.ts` handles the Python execution to keep the UI smooth.
+- **Engine**: Rust (compiled to WebAssembly)
+- **Worker**: `redact.worker.ts` executes the WASM redaction engine off the main thread.
 
 ## Usage
 

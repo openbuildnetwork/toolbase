@@ -5,8 +5,9 @@ OmniParse is a browser-only data utility for converting, validating, and documen
 ## What It Does
 
 - Convert: transform between JSON, XML, YAML, and TOML.
-- Validators & Formatters: auto-detect format, validate syntax, beautify/minify, and sort keys.
-- Generator Hub: generate Markdown documentation from a JSON object structure.
+- Validators & Formatters: validate syntax, beautify/minify, sort keys, apply presets, and save recipes.
+- Diff Lab: compare left/right payloads and inspect path-level changes.
+- Generator Hub: generate Markdown docs, schema summary, graph view, and OpenAPI snippet.
 
 ## Convert
 
@@ -28,17 +29,33 @@ Actions:
 - Beautify: pretty-prints the detected format.
 - Minify: compacts JSON (other formats use their standard serializer).
 - Sort Keys: sorts object keys (best for JSON/YAML). Useful for stable diffs and reviews.
+- Presets: `Clean Payload`, `Normalize Keys`, and `API Ready`.
+- Recipes: save and reload formatter recipes in local storage.
+- Pipeline recipes: build step-by-step pipelines (beautify/minify/sort/flatten/convert), then replay them.
+- Fixtures: add validator fixtures, import/export fixture packs (`.json`), and run local pass/fail checks.
 
 Validation:
 - JSON: parses JSON and reports syntax errors.
 - XML: checks for well-formed XML (XSD validation is not supported in the current in-browser implementation).
 - YAML: parses YAML and reports syntax errors.
+- Issue cards: grouped by severity with line/column/path hints and fix suggestions.
+
+## Diff Lab
+
+- Supports JSON, XML, YAML diffing by converting to object graphs first.
+- Reports path-level changes: `added`, `removed`, `changed`, `type`.
+- Helps verify transformation impact before export or downstream ingestion.
 
 ## Generator Hub (Auto-Documentation)
 
 Auto-Documentation:
-- Paste a JSON object and generate a basic Markdown “shape” document (keys and inferred types).
-- This is intended to produce quick human-readable docs for payloads and configs.
+- Use JSON/XML/YAML input to generate:
+  - Markdown documentation
+  - Schema summary
+  - OpenAPI 3 snippet
+  - Interactive graph/tree
+- Export bundle downloads the generated docs/snippets locally.
+- Round-trip check validates fidelity across format conversion cycles.
 
 ## Related Tool
 

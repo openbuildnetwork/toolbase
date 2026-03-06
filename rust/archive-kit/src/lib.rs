@@ -5,6 +5,7 @@ use base64::Engine as _;
 use serde::{Deserialize, Serialize};
 use tar::{Archive as TarArchive, Builder as TarBuilder, Header as TarHeader};
 use wasm_bindgen::prelude::*;
+use zip::AesMode;
 use zip::write::SimpleFileOptions;
 use zip::{CompressionMethod, ZipArchive, ZipWriter};
 
@@ -12,6 +13,17 @@ use zip::{CompressionMethod, ZipArchive, ZipWriter};
 struct InputFile {
     name: String,
     bytes_b64: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct CreateOptions {
+    zip_compression: Option<String>,
+    password: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct ExtractOptions {
+    password: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -43,10 +55,26 @@ fn parse_files_json(files_json: &str) -> Result<Vec<(String, Vec<u8>)>, JsValue>
     Ok(decoded)
 }
 
-fn create_zip(files: &[(String, Vec<u8>)]) -> Result<Vec<u8>, JsValue> {
+fn create_zip(
+    files: &[(String, Vec<u8>)],
+    zip_compression: Option<&str>,
+    password: Option<&str>,
+) -> Result<Vec<u8>, JsValue> {
     let mut out = Cursor::new(Vec::<u8>::new());
     let mut zip = ZipWriter::new(&mut out);
-    let options = SimpleFileOptions::default().compression_method(CompressionMethod::Stored);
+    let mut options = match zip_compression.unwrap_or("store") {
+        "store" => SimpleFileOptions::default().compression_method(CompressionMethod::Stored),
+        "fast" => SimpleFileOptions::default()
+            .compression_method(CompressionMethod::Deflated)
+            .compression_level(Some(1)),
+        "best" => SimpleFileOptions::default()
+            .compression_method(CompressionMethod::Deflated)
+            .compression_level(Some(9)),
+        _ => SimpleFileOptions::default().compression_method(CompressionMethod::Stored),
+    };
+    if let Some(pwd) = password.filter(|p| !p.is_empty()) {
+        options = options.with_aes_encryption(AesMode::Aes256, pwd);
+    }
 
     for (name, bytes) in files {
         zip.start_file(name, options).map_err(to_js_err)?;
@@ -73,10 +101,26 @@ fn create_tar(files: &[(String, Vec<u8>)]) -> Result<Vec<u8>, JsValue> {
 }
 
 #[wasm_bindgen]
-pub fn create_archive_json(format: String, files_json: String) -> Result<String, JsValue> {
+pub fn create_archive_json(
+    format: String,
+    files_json: String,
+    options_json: Option<String>,
+) -> Result<String, JsValue> {
     let files = parse_files_json(&files_json)?;
+    let options = options_json
+        .as_deref()
+        .map(|raw| serde_json::from_str::<CreateOptions>(raw).map_err(to_js_err))
+        .transpose()?
+        .unwrap_or(CreateOptions {
+            zip_compression: Some("store".to_string()),
+            password: None,
+        });
     let bytes = match format.as_str() {
-        "zip" => create_zip(&files)?,
+        "zip" => create_zip(
+            &files,
+            options.zip_compression.as_deref(),
+            options.password.as_deref(),
+        )?,
         "tar" => create_tar(&files)?,
         _ => return Err(JsValue::from_str("Unsupported archive format")),
     };
@@ -132,14 +176,32 @@ pub fn list_archive_json(format: String, archive_bytes_b64: String) -> Result<St
 }
 
 #[wasm_bindgen]
-pub fn extract_archive_json(format: String, archive_bytes_b64: String) -> Result<String, JsValue> {
+pub fn extract_archive_json(
+    format: String,
+    archive_bytes_b64: String,
+    options_json: Option<String>,
+) -> Result<String, JsValue> {
     let bytes = B64.decode(archive_bytes_b64.as_bytes()).map_err(to_js_err)?;
+    let extract_options = options_json
+        .as_deref()
+        .map(|raw| serde_json::from_str::<ExtractOptions>(raw).map_err(to_js_err))
+        .transpose()?
+        .unwrap_or_default();
+    let password = extract_options
+        .password
+        .as_deref()
+        .filter(|p| !p.is_empty())
+        .map(|p| p.as_bytes());
+
     let files = match format.as_str() {
         "zip" => {
             let mut zip = ZipArchive::new(Cursor::new(bytes)).map_err(to_js_err)?;
             let mut out = Vec::<OutputFile>::new();
             for i in 0..zip.len() {
-                let mut file = zip.by_index(i).map_err(to_js_err)?;
+                let mut file = match password {
+                    Some(pwd) => zip.by_index_decrypt(i, pwd).map_err(to_js_err)?,
+                    None => zip.by_index(i).map_err(to_js_err)?,
+                };
                 if file.is_dir() {
                     continue;
                 }
@@ -180,4 +242,3 @@ pub fn extract_archive_json(format: String, archive_bytes_b64: String) -> Result
 
     serde_json::to_string(&files).map_err(to_js_err)
 }
-
