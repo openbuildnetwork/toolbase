@@ -10,10 +10,20 @@ npm install
 npm run dev
 ```
 
+`npm run dev` runs:
+1. Next.js dev server
+2. Python bundle watcher
+3. Rust WASM watcher (when `rust/*` crates exist)
+
 ## Required Checks Before PR
 ```bash
 npm run lint
 npm run type-check
+```
+
+Optional full build check:
+```bash
+npm run build
 ```
 
 ## Working Rules
@@ -26,4 +36,3 @@ npm run type-check
 1. Update docs when architecture or behavior changes.
 2. Use ADRs for structural decisions.
 3. Keep registry metadata accurate and current.
-
