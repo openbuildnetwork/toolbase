@@ -1,0 +1,14 @@
+[build]
+  command = """
+    rustup target add wasm32-unknown-unknown
+    cargo install wasm-pack --locked || true
+    cargo install wasm-bindgen-cli --version 0.2.114 --locked || true
+    npm run build
+  """
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
