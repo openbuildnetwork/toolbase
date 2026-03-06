@@ -106,6 +106,16 @@ Read our [Contributing Guide](CONTRIBUTING.md) to get started. It covers:
 
 ---
 
+## Documentation
+
+Project docs are organized under [`docs/`](./docs/README.md):
+- Architecture and standards
+- Engineering workflow and quality gates
+- Product catalog and operational playbooks
+- Governance links (Code of Conduct, Contributing, Security, License)
+
+---
+
 ## Security
 
 Toolbase's security model is simple: **nothing leaves the browser.** All processing happens in your browser's sandboxed environment using WebAssembly.

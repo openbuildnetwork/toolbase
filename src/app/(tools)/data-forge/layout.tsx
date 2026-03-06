@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { ToolPageTracker } from "@/components/ui/ToolPageTracker";
+import { PrivacyBadge } from "@/components/ui/PrivacyBadge";
 
 export const metadata: Metadata = {
   title: "Data Forge | OBN",
@@ -11,5 +13,11 @@ export default function DataForgeLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      <ToolPageTracker toolId="data-forge" />
+      <PrivacyBadge toolId="data-forge" />
+      {children}
+    </>
+  );
 }
