@@ -1,96 +1,64 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { CopyToClipboard } from "@/components/ui/CopyToClipboard";
-import { ToolSidebar, ToolSidebarItem } from "@/components/ui/ToolSidebar";
+import { ToolSidebar } from "@/components/ui/ToolSidebar";
 import { cn } from "@/lib/utils";
-import { generate, generateMockRows, mockRowsToOutput } from "@/lib/data-forge";
-import type { MockField, MockFieldType } from "@/lib/data-forge";
-import { Layers3, Sparkles, Plus, Trash2 } from "lucide-react";
-
-const mockFieldTypes: MockFieldType[] = [
-  "name",
-  "uuid",
-  "email",
-  "date",
-  "int",
-  "float",
-  "boolean",
-  "string",
-];
-
-const popularEmailDomains = [
-  "gmail.com",
-  "outlook.com",
-  "yahoo.com",
-  "icloud.com",
-  "hotmail.com",
-  "proton.me",
-  "aol.com",
-  "zoho.com",
-  "zohomail.com",
-  "mail.com",
-];
+import type { GenerationProfile, MockFieldType } from "@/lib/data-forge";
+import { FlaskConical, Layers3, Plus, Sparkles, Trash2 } from "lucide-react";
+import { useDataForgeLayout, type DataForgeSection } from "./hooks/use-data-forge-layout";
+import { MOCK_FIELD_TYPES, POPULAR_EMAIL_DOMAINS, useDataForgeFields } from "./hooks/use-data-forge-fields";
+import { useDataForgeBlueprint } from "./hooks/use-data-forge-blueprint";
+import { useDataForgeTesting } from "./hooks/use-data-forge-testing";
 
 export default function DataForgePage() {
-  const sections: ToolSidebarItem[] = useMemo(() => ([
-    { id: "fields", label: "Field Builder", icon: Layers3 },
-    { id: "blueprint", label: "Blueprint Generator", icon: Sparkles },
-  ]), []);
-
-  const [activeSection, setActiveSection] = useState<"fields" | "blueprint">("fields");
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
-  const activeLabel = sections.find(s => s.id === activeSection)?.label || "Data Forge";
-
-  const [fields, setFields] = useState<MockField[]>([
-    { id: "field-1", name: "id", type: "uuid" },
-    { id: "field-2", name: "name", type: "name" },
-    { id: "field-3", name: "email", type: "email" },
-  ]);
-  const [rowCount, setRowCount] = useState(25);
-  const [mockFormat, setMockFormat] = useState<"json" | "xml">("json");
-  const [mockOutput, setMockOutput] = useState("");
-
-  const [blueprintInput, setBlueprintInput] = useState(`{\n  \"kind\": \"branch\",\n  \"properties\": {\n    \"id\": { \"kind\": \"leaf\", \"dataType\": \"uuid\" },\n    \"name\": { \"kind\": \"leaf\", \"dataType\": \"string\", \"constraints\": { \"minLength\": 4, \"maxLength\": 12 } },\n    \"age\": { \"kind\": \"leaf\", \"dataType\": \"number\", \"constraints\": { \"min\": 18, \"max\": 67, \"precision\": 0 } },\n    \"email\": { \"kind\": \"leaf\", \"dataType\": \"string\", \"constraints\": { \"pattern\": \"^[a-z]+\\\\.[a-z]+@gmail\\\\.com$\" } },\n    \"children\": {\n      \"kind\": \"array\",\n      \"constraints\": { \"minItems\": 1, \"maxItems\": 3 },\n      \"items\": {\n        \"kind\": \"branch\",\n        \"properties\": {\n          \"parentId\": { \"kind\": \"leaf\", \"dataType\": \"uuid\", \"constraints\": { \"link\": \"id\" } },\n          \"name\": { \"kind\": \"leaf\", \"dataType\": \"string\" }\n        }\n      }\n    }\n  }\n}`);
-  const [blueprintCount, setBlueprintCount] = useState(5);
-  const [blueprintWithMeta, setBlueprintWithMeta] = useState(false);
-  const [blueprintOutput, setBlueprintOutput] = useState("");
-
-  const addField = () => {
-    setFields((prev) => [
-      ...prev,
-      { id: `field-${prev.length + 1}`, name: `field_${prev.length + 1}`, type: "string" },
-    ]);
-  };
-
-  const updateField = (id: string, patch: Partial<MockField>) => {
-    setFields((prev) => prev.map((field) => (field.id === id ? { ...field, ...patch } : field)));
-  };
-
-  const removeField = (id: string) => {
-    setFields((prev) => prev.filter((field) => field.id !== id));
-  };
-
-  const handleGenerateMock = () => {
-    const rows = generateMockRows(fields, rowCount);
-    setMockOutput(mockRowsToOutput(rows, mockFormat));
-  };
-
-  const handleGenerateBlueprint = () => {
-    try {
-      const blueprint = JSON.parse(blueprintInput);
-      const records = generate(blueprint, blueprintCount, { includeMeta: blueprintWithMeta });
-      setBlueprintOutput(JSON.stringify(records, null, 2));
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Error";
-      setBlueprintOutput("Invalid blueprint: " + message);
-    }
-  };
+  const { sections, activeSection, setActiveSection, isSidebarOpen, setSidebarOpen, activeLabel } = useDataForgeLayout();
+  const {
+    fields,
+    rowCount,
+    setRowCount,
+    mockFormat,
+    setMockFormat,
+    mockOutput,
+    addField,
+    updateField,
+    removeField,
+    handleGenerateMock,
+  } = useDataForgeFields();
+  const {
+    blueprintInput,
+    setBlueprintInput,
+    blueprintCount,
+    setBlueprintCount,
+    blueprintWithMeta,
+    setBlueprintWithMeta,
+    blueprintOutput,
+    handleGenerateBlueprint,
+  } = useDataForgeBlueprint();
+  const {
+    schemaInput,
+    setSchemaInput,
+    schemaCount,
+    setSchemaCount,
+    schemaSeed,
+    setSchemaSeed,
+    schemaProfile,
+    setSchemaProfile,
+    schemaOutput,
+    schemaValidation,
+    fixturePackText,
+    setFixturePackText,
+    fixtureRunOutput,
+    handleGenerateSchemaData,
+    handleExportFixturePack,
+    handleImportFixturePack,
+    handleRunFixturePack,
+  } = useDataForgeTesting();
 
   return (
     <div className="flex h-[calc(100vh-80px)] overflow-hidden bg-[#f7f6f3] relative font-display text-gray-900">
@@ -98,7 +66,7 @@ export default function DataForgePage() {
         title="Data Forge"
         items={sections}
         activeId={activeSection}
-        onSelect={(id) => setActiveSection(id as typeof activeSection)}
+        onSelect={(id) => setActiveSection(id as DataForgeSection)}
         isOpen={isSidebarOpen}
         onToggle={setSidebarOpen}
       />
@@ -148,7 +116,7 @@ export default function DataForgePage() {
                             onChange={(e) => updateField(field.id, { type: e.target.value as MockFieldType })}
                             className="w-44"
                           >
-                            {mockFieldTypes.map((type) => (
+                            {MOCK_FIELD_TYPES.map((type) => (
                               <option key={type} value={type}>{type}</option>
                             ))}
                           </Select>
@@ -216,7 +184,7 @@ export default function DataForgePage() {
                           {field.type === "email" && (
                             <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                               <span className="mr-2">Domains</span>
-                              {popularEmailDomains.map((domain) => {
+                              {POPULAR_EMAIL_DOMAINS.map((domain) => {
                                 const selected = field.constraints?.domains?.includes(domain);
                                 return (
                                   <button
@@ -377,6 +345,91 @@ export default function DataForgePage() {
                     />
                   </div>
                 </div>
+                </div>
+              </Card>
+            )}
+
+            {activeSection === "testing" && (
+              <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
+                <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+                  <div className="flex items-center gap-2">
+                    <FlaskConical className="w-4 h-4 text-sky-700" />
+                    <h3 className="text-sm font-semibold text-gray-900">Testing Studio</h3>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">Schema-first deterministic datasets with profile-based generation and fixture pack workflows.</p>
+                </div>
+                <div className="p-5 space-y-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">Count</span>
+                      <Input type="number" min={1} max={50000} value={schemaCount} onChange={(e) => setSchemaCount(Number(e.target.value))} className="w-24" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">Seed</span>
+                      <Input type="number" value={schemaSeed} onChange={(e) => setSchemaSeed(Number(e.target.value))} className="w-24" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">Profile</span>
+                      <Select value={schemaProfile} onChange={(e) => setSchemaProfile(e.target.value as GenerationProfile)} className="w-48">
+                        <option value="happy_path">happy_path</option>
+                        <option value="edge_cases">edge_cases</option>
+                        <option value="invalid_cases">invalid_cases</option>
+                        <option value="boundary_values">boundary_values</option>
+                        <option value="security_payloads">security_payloads</option>
+                      </Select>
+                    </div>
+                    <div className="ml-auto flex items-center gap-2">
+                      {schemaOutput && <CopyToClipboard text={schemaOutput} showText={false} variant="outline" />}
+                      <Button onClick={handleGenerateSchemaData}>Generate Dataset</Button>
+                    </div>
+                  </div>
+
+                  <div className="grid lg:grid-cols-2 gap-4">
+                    <Textarea
+                      value={schemaInput}
+                      onChange={(e) => setSchemaInput(e.target.value)}
+                      className="min-h-[300px] font-mono text-xs"
+                    />
+                    <Textarea
+                      value={schemaOutput}
+                      readOnly
+                      placeholder="Generated schema-aligned records..."
+                      className="min-h-[300px] font-mono text-xs"
+                    />
+                  </div>
+
+                  {schemaValidation && (
+                    <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3 text-xs text-gray-700">
+                      <div className="font-semibold text-gray-900 mb-1">Validation Summary</div>
+                      <div>Records: {schemaValidation.records}</div>
+                      <div>Valid: {schemaValidation.validRecords}</div>
+                      <div>Invalid: {schemaValidation.invalidRecords}</div>
+                      <div>Errors captured: {schemaValidation.errors.length}</div>
+                    </div>
+                  )}
+
+                  <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">Fixture Packs</div>
+                      <div className="ml-auto flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={handleExportFixturePack}>Export Pack</Button>
+                        <Button variant="outline" size="sm" onClick={handleImportFixturePack}>Import Pack</Button>
+                        <Button variant="outline" size="sm" onClick={handleRunFixturePack}>Run Pack</Button>
+                      </div>
+                    </div>
+                    <Textarea
+                      value={fixturePackText}
+                      onChange={(e) => setFixturePackText(e.target.value)}
+                      placeholder="Fixture pack JSON..."
+                      className="min-h-[180px] font-mono text-xs"
+                    />
+                    <Textarea
+                      value={fixtureRunOutput}
+                      readOnly
+                      placeholder="Fixture run report..."
+                      className="min-h-[180px] font-mono text-xs"
+                    />
+                  </div>
                 </div>
               </Card>
             )}

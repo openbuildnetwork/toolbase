@@ -51,6 +51,28 @@ You get:
 - `count` generated records that follow the blueprint
 - Optional per-node metadata for tree-view tooling (when “Include metadata” is enabled)
 
+### 3) Testing Studio (Schema-First)
+
+Use this when you want deterministic, profile-based test datasets from a JSON Schema.
+
+You define:
+- JSON Schema
+- `count`
+- `seed` (for deterministic output)
+- generation profile
+
+Profiles:
+- `happy_path`
+- `edge_cases`
+- `invalid_cases`
+- `boundary_values`
+- `security_payloads`
+
+You get:
+- Generated records aligned to schema shape
+- Validation summary (`valid/invalid/error count`)
+- Fixture pack workflows (export/import/run)
+
 ## Blueprint Schema
 
 Every blueprint node has a `kind`:
@@ -153,6 +175,11 @@ Field Builder:
 
 Blueprint Generator:
 - JSON output (stringified in the UI)
+
+Testing Studio:
+- Dataset: JSON
+- Fixture pack: JSON
+- Run report: JSON
 
 ## Implementation Notes
 

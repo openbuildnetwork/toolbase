@@ -1,21 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
 import { RedactRequest, RedactResponse } from '@/types/redact';
 
+export type RedactEngineLabel = 'Rust WASM' | 'Unavailable';
+
 // Persistent Worker Singleton
 let workerInstance: Worker | null = null;
-let workerReadyPromise: Promise<boolean> | null = null;
+let workerReadyPromise: Promise<RedactEngineLabel> | null = null;
+let currentEngineLabel: RedactEngineLabel = 'Unavailable';
 
 function getRedactWorker() {
     if (!workerInstance) {
         console.log("Worker Manager: Initializing Redact Worker (Singleton)...");
-        workerInstance = new Worker(new URL('../workers/redact.worker.ts', import.meta.url));
+        workerInstance = new Worker(new URL('../workers/redact.worker.ts', import.meta.url), { type: 'module' });
 
         workerReadyPromise = new Promise((resolve) => {
             const tempListener = (event: MessageEvent) => {
                 if (event.data.type === 'READY') {
+                    currentEngineLabel = event.data.engine === 'Rust WASM' ? 'Rust WASM' : 'Unavailable';
                     console.log("Worker Manager: Redact Worker Ready");
                     workerInstance?.removeEventListener('message', tempListener);
-                    resolve(true);
+                    resolve(currentEngineLabel);
                 }
             };
             workerInstance?.addEventListener('message', tempListener);
@@ -28,14 +32,17 @@ export function useRedactWorker() {
     const [isReady, setIsReady] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [engineLabel, setEngineLabel] = useState<RedactEngineLabel>(currentEngineLabel);
 
     useEffect(() => {
-        // Init or check existing
         const { ready } = getRedactWorker();
 
-        // If already ready, set state immediately
-        ready?.then(() => {
+        ready?.then((engine) => {
+            setEngineLabel(engine);
             setIsReady(true);
+            if (engine !== 'Rust WASM') {
+                setError('Rust WASM engine is unavailable. Build artifacts may be missing.');
+            }
         });
 
     }, []);
@@ -48,6 +55,13 @@ export function useRedactWorker() {
                 return;
             }
 
+            if (engineLabel !== 'Rust WASM') {
+                const unavailableError = new Error('Rust WASM engine is unavailable for Redact Secrets.');
+                setError(unavailableError.message);
+                reject(unavailableError);
+                return;
+            }
+
             setIsLoading(true);
             setError(null);
 
@@ -57,6 +71,9 @@ export function useRedactWorker() {
                 if (type === 'REDACT_RESULT') {
                     worker.removeEventListener('message', handleMessage);
                     setIsLoading(false);
+                    if (event.data.engine === 'Rust WASM' || event.data.engine === 'Unavailable') {
+                        setEngineLabel(event.data.engine);
+                    }
                     resolve(data);
                 } else if (type === 'REDACT_ERROR') {
                     worker.removeEventListener('message', handleMessage);
@@ -69,7 +86,7 @@ export function useRedactWorker() {
             worker.addEventListener('message', handleMessage);
             worker.postMessage({ type: 'REDACT', data: request });
         });
-    }, []);
+    }, [engineLabel]);
 
-    return { redact, isReady, isLoading, error };
+    return { redact, isReady, isLoading, error, engineLabel };
 }
