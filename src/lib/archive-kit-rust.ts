@@ -1,13 +1,21 @@
-import type { ArchiveEntry, ArchiveFormat, ArchiveInputFile } from "@/lib/archive-kit";
+import type {
+  ArchiveEntry,
+  ArchiveFormat,
+  ArchiveInputFile,
+  ZipCompressionMode,
+} from "@/lib/archive-kit";
 
 type ArchiveKitRustApi = {
   default: (wasmUrl?: string | URL | Request) => Promise<unknown>;
-  create_archive_json: (format: string, filesJson: string) => string;
+  create_archive_json: (format: string, filesJson: string, optionsJson?: string) => string;
   list_archive_json: (format: string, archiveBytesB64: string) => string;
-  extract_archive_json: (format: string, archiveBytesB64: string) => string;
+  extract_archive_json: (format: string, archiveBytesB64: string, optionsJson?: string) => string;
 };
 
 let rustApiPromise: Promise<ArchiveKitRustApi | null> | null = null;
+const RUST_REQUIRED =
+  process.env.NEXT_PUBLIC_ARCHIVE_KIT_REQUIRE_RUST === "1" ||
+  process.env.NEXT_PUBLIC_ARCHIVE_KIT_REQUIRE_RUST === "true";
 
 function toBase64(bytes: Uint8Array): string {
   let binary = "";
@@ -49,16 +57,36 @@ export async function isArchiveKitRustAvailable(): Promise<boolean> {
   return !!api;
 }
 
+export function isArchiveKitRustRequired(): boolean {
+  return RUST_REQUIRED;
+}
+
 export async function createArchiveRust(
   format: ArchiveFormat,
-  files: ArchiveInputFile[]
+  files: ArchiveInputFile[],
+  options: { zipCompression?: ZipCompressionMode; password?: string } = {}
 ): Promise<Uint8Array | null> {
   const api = await loadRustApi();
-  if (!api) return null;
+  if (!api) {
+    if (RUST_REQUIRED) throw new Error("Rust WASM engine is required but not available.");
+    return null;
+  }
+  if (format === "tgz") return null;
 
   const payload = files.map((f) => ({ name: f.name, bytes_b64: toBase64(f.bytes) }));
-  const outB64 = api.create_archive_json(format, JSON.stringify(payload));
-  return fromBase64(outB64);
+  try {
+    const outB64 = api.create_archive_json(
+      format,
+      JSON.stringify(payload),
+      JSON.stringify({
+        zip_compression: options.zipCompression ?? "store",
+        password: options.password ?? null,
+      })
+    );
+    return fromBase64(outB64);
+  } catch {
+    return null;
+  }
 }
 
 export async function listArchiveEntriesRust(
@@ -66,9 +94,18 @@ export async function listArchiveEntriesRust(
   bytes: Uint8Array
 ): Promise<ArchiveEntry[] | null> {
   const api = await loadRustApi();
-  if (!api) return null;
+  if (!api) {
+    if (RUST_REQUIRED) throw new Error("Rust WASM engine is required but not available.");
+    return null;
+  }
+  if (format === "tgz") return null;
 
-  const out = api.list_archive_json(format, toBase64(bytes));
+  let out: string;
+  try {
+    out = api.list_archive_json(format, toBase64(bytes));
+  } catch {
+    return null;
+  }
   const parsed = JSON.parse(out) as Array<{
     name: string;
     size: number;
@@ -88,12 +125,28 @@ export async function listArchiveEntriesRust(
 
 export async function extractArchiveRust(
   format: ArchiveFormat,
-  bytes: Uint8Array
+  bytes: Uint8Array,
+  options: { password?: string } = {}
 ): Promise<ArchiveInputFile[] | null> {
   const api = await loadRustApi();
-  if (!api) return null;
+  if (!api) {
+    if (RUST_REQUIRED) throw new Error("Rust WASM engine is required but not available.");
+    return null;
+  }
+  if (format === "tgz") return null;
 
-  const out = api.extract_archive_json(format, toBase64(bytes));
+  let out: string;
+  try {
+    out = api.extract_archive_json(
+      format,
+      toBase64(bytes),
+      JSON.stringify({
+        password: options.password ?? null,
+      })
+    );
+  } catch {
+    return null;
+  }
   const parsed = JSON.parse(out) as Array<{ name: string; bytes_b64: string }>;
 
   return parsed.map((file) => ({
@@ -101,4 +154,3 @@ export async function extractArchiveRust(
     bytes: fromBase64(file.bytes_b64),
   }));
 }
-

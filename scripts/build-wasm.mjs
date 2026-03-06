@@ -40,11 +40,19 @@ function run() {
     const tool = path.basename(crateDir);
     const outDir = path.join("..", "..", "public", "wasm", tool, "pkg");
     console.log(`[wasm] Building ${tool}...`);
-    const res = spawnSync(
+    let res = spawnSync(
       "wasm-pack",
       ["build", crateDir, "--target", "web", "--out-dir", outDir],
       { stdio: "inherit" }
     );
+    if (res.status !== 0) {
+      console.warn(`[wasm] Standard build failed for ${tool}; retrying with --no-opt.`);
+      res = spawnSync(
+        "wasm-pack",
+        ["build", crateDir, "--target", "web", "--out-dir", outDir, "--no-opt"],
+        { stdio: "inherit" }
+      );
+    }
     if (res.status !== 0) {
       console.error(`[wasm] Build failed for ${tool}`);
       return res.status ?? 1;
@@ -56,4 +64,3 @@ function run() {
 }
 
 process.exit(run());
-
