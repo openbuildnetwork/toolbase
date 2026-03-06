@@ -11,6 +11,7 @@ export type { ValidationResult } from "./omni-parse/validators";
 export { formatData } from "./omni-parse/formatters";
 export { validateData } from "./omni-parse/validators";
 export { parseToObject } from "./omni-parse/shared";
+export { getFormatCapabilities } from "./omni-parse/formats";
 
 export function convertFormat(
   inputFormat: DataFormat,
