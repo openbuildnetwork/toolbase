@@ -8,7 +8,7 @@
   "private": true,
   "scripts": {
     "start": "next start",
-    "build:python": "ts-node scripts/build-python-bundler.ts",
+    "build:python": "node scripts/build-python-bundler.mjs",
     "build:archive-kit:wasm": "wasm-pack build rust/archive-kit --target web --out-dir ../../public/wasm/archive-kit/pkg",
     "build:wasm": "node scripts/build-wasm.mjs",
     "watch:python": "nodemon --watch src/python -e py --exec \"npm run build:python\"",

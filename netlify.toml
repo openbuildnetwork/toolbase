@@ -1,8 +1,13 @@
 [build]
   command = """
+    set -e
+    if ! command -v cargo >/dev/null 2>&1; then
+      curl https://sh.rustup.rs -sSf | sh -s -- -y
+    fi
+    . "$HOME/.cargo/env"
     rustup target add wasm32-unknown-unknown
-    cargo install wasm-pack --locked || true
-    cargo install wasm-bindgen-cli --version 0.2.114 --locked || true
+    cargo install wasm-pack --locked
+    cargo install wasm-bindgen-cli --version 0.2.114 --locked
     npm run build
   """
 
@@ -11,4 +16,3 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
