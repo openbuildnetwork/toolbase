@@ -9,9 +9,12 @@
   "scripts": {
     "start": "next start",
     "build:python": "ts-node scripts/build-python-bundler.ts",
+    "build:archive-kit:wasm": "wasm-pack build rust/archive-kit --target web --out-dir ../../public/wasm/archive-kit/pkg",
+    "build:wasm": "node scripts/build-wasm.mjs",
     "watch:python": "nodemon --watch src/python -e py --exec \"npm run build:python\"",
-    "build": "npm run build:python && next build",
-    "dev": "concurrently \"npm run watch:python\" \"next dev\"",
+    "watch:wasm": "nodemon --watch rust -e rs,toml --exec \"npm run build:wasm\"",
+    "build": "npm run build:python && npm run build:wasm && next build",
+    "dev": "concurrently \"npm run watch:python\" \"npm run watch:wasm\" \"next dev\"",
     "lint": "eslint",
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit"

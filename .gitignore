@@ -55,3 +55,9 @@ next-env.d.ts
 # modal
 .gemini/
 .milestones/
+
+# rust / wasm
+/rust/**/target/
+/rust/target/
+/public/wasm/**/pkg/
+!/public/wasm/**/.gitkeep

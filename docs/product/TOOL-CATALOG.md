@@ -15,6 +15,7 @@ This is the product-level inventory of tools and owners.
 10. PasswordX
 11. OmniParse
 12. Data Forge
+13. Archive Kit
 
 ## Source of Truth
 - Runtime tool metadata and route registry:
@@ -25,4 +26,3 @@ Any tool addition, rename, or route change must update:
 1. `src/config/tools.registry.ts`
 2. Tool route under `src/app/(tools)/<tool>`
 3. This catalog and relevant product docs
-
