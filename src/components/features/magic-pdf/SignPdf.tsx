@@ -1,5 +1,14 @@
 'use client';
-
+/**
+ * SignPdf — unified component for the direct tool and pipeline INP.
+ *
+ * Standalone mode  (direct tool):  <SignPdf />
+ *   → Draw/type/upload signature → place on PDF → Apply & Save
+ *
+ * Interaction mode (pipeline INP): <SignPdf files={[pdf]} onConfirm={fn} onCancel={fn} />
+ *   → Pre-seeded with upstream file; same signature UI
+ *   → Confirm serialises placed signatures as JSON config (no execution here)
+ */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileUploader } from '@/components/ui/FileUploader';
@@ -8,6 +17,7 @@ import {
     Download,
     RefreshCw,
     CheckCircle,
+    CheckCheck,
     PenTool,
     Type,
     Upload,
@@ -23,6 +33,10 @@ import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
 import { signPdf } from '@/lib/pdf-actions';
 import { PdfPreview } from '@/components/ui/PdfPreview';
+import type { TIPInteractionProps } from '@/tip/protocol';
+
+export type SignPdfProps = Partial<TIPInteractionProps>;
+
 
 interface SignatureInstance {
     id: string;
@@ -34,8 +48,15 @@ interface SignatureInstance {
     pageIndex: number;
 }
 
-export default function SignPdf() {
-    const [file, setFile] = useState<File | null>(null);
+export default function SignPdf({
+    files: seedFiles,
+    onConfirm,
+    onCancel,
+}: SignPdfProps = {}) {
+    /** true when used inside the pipeline InteractionModal */
+    const isInteractionMode = typeof onConfirm === 'function';
+
+    const [file, setFile] = useState<File | null>(seedFiles?.[0] ?? null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [resultPdfUrl, setResultPdfUrl] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -59,6 +80,7 @@ export default function SignPdf() {
     // Preview area ref for coordinate calculation
     const previewContainerRef = useRef<HTMLDivElement>(null);
 
+    // Auto-reset when file changes
     const handleFileSelected = (files: File[]) => {
         if (files.length > 0) {
             setFile(files[0]);
@@ -67,6 +89,16 @@ export default function SignPdf() {
             setCurrentPage(1);
         }
     };
+
+    // Pre-seed from INP props (runs once on mount if seedFiles provided)
+    useEffect(() => {
+        if (seedFiles?.[0]) {
+            setFile(seedFiles[0]);
+            setSignatures([]);
+            setCurrentPage(1);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Drawing Logic
     const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
@@ -274,6 +306,17 @@ export default function SignPdf() {
         }
     };
 
+    // ── Interaction: confirm placed signatures to the pipeline ────────────────
+    const handleConfirm = () => {
+        if (!file || !onConfirm) return;
+        onConfirm({
+            files: [file],
+            config: {
+                signatures: JSON.stringify(signatures),
+            },
+        });
+    };
+
     return (
         <div className="w-full max-w-7xl mx-auto space-y-8 h-full flex flex-col">
             <AnimatePresence mode="wait">
@@ -465,15 +508,30 @@ export default function SignPdf() {
                             </Card>
 
                             <div className="mt-auto">
-                                <Button
-                                    size="lg"
-                                    className="w-full shadow-lg h-12"
-                                    disabled={signatures.length === 0 || isProcessing}
-                                    isLoading={isProcessing}
-                                    onClick={handleApply}
-                                >
-                                    Apply & Save PDF
-                                </Button>
+                                {isInteractionMode ? (
+                                    <div className="flex gap-2">
+                                        <Button variant="ghost" className="flex-1" onClick={onCancel}>Cancel</Button>
+                                        <Button
+                                            size="lg"
+                                            className="flex-1 shadow-lg h-12 gap-2"
+                                            disabled={signatures.length === 0}
+                                            onClick={handleConfirm}
+                                        >
+                                            <CheckCheck className="w-4 h-4" />
+                                            Confirm ({signatures.length})
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Button
+                                        size="lg"
+                                        className="w-full shadow-lg h-12"
+                                        disabled={signatures.length === 0 || isProcessing}
+                                        isLoading={isProcessing}
+                                        onClick={handleApply}
+                                    >
+                                        Apply &amp; Save PDF
+                                    </Button>
+                                )}
                             </div>
                         </div>
 

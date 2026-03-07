@@ -139,10 +139,10 @@ export function ToolNode({ data }: { data: any }) {
 
                 {/* Status indicator */}
                 <div style={{ flexShrink: 0 }}>
-                    {status === 'running' && (
-                        <Loader2 style={{ width: 15, height: 15, color: '#818cf8', animation: 'spin 1s linear infinite' }} />
+                    {(status === 'running' || data.isPreviewing) && (
+                        <Loader2 style={{ width: 15, height: 15, color: data.isPreviewing ? '#f59e0b' : '#818cf8', animation: 'spin 1s linear infinite' }} />
                     )}
-                    {status === 'complete' && (
+                    {status === 'complete' && !data.isPreviewing && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                             <CheckCircle2 style={{ width: 14, height: 14, color: '#4ade80' }} />
                             <span style={{ fontSize: 10, color: '#4ade80', fontFamily: 'monospace' }}>
@@ -150,7 +150,7 @@ export function ToolNode({ data }: { data: any }) {
                             </span>
                         </div>
                     )}
-                    {status === 'error' && (
+                    {status === 'error' && !data.isPreviewing && (
                         <AlertCircle style={{ width: 15, height: 15, color: '#f87171' }} />
                     )}
                 </div>

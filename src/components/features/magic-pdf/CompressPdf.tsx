@@ -26,7 +26,6 @@ export default function CompressPdf() {
 
     const handleCompress = async () => {
         if (!file) return;
-
         try {
             const outputFiles = await execute([file], { level: compressionLevel });
 

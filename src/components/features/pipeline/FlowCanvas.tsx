@@ -297,14 +297,20 @@ function FlowCanvasBuilder() {
                     : null;
                 if (!interactionTool?.interactable || !interactionTool.getInteractionComponent) return null;
 
-                // Resolve seed files: prefer files from upstream FileInputNodes,
-                // fall back to previously confirmed interactionFiles, then empty.
+                // Resolve seed files: collect outputs from all upstream nodes.
+                // We prefer data.previewFiles (from background execution), then data.interactionFiles, then data.file.
                 const upstreamFiles = edges
                     .filter(e => e.target === interactionNodeId)
                     .map(e => nodes.find(n => n.id === e.source))
                     .filter(Boolean)
-                    .map(n => n?.data.file as File | null)
-                    .filter((f): f is File => !!f);
+                    .map(n => {
+                        const data = n!.data;
+                        if (Array.isArray(data.previewFiles) && data.previewFiles.length > 0) return data.previewFiles as File[];
+                        if (Array.isArray(data.interactionFiles) && data.interactionFiles.length > 0) return data.interactionFiles as File[];
+                        if (data.file instanceof File) return [data.file];
+                        return [];
+                    })
+                    .flat();
 
                 const seedFiles: File[] =
                     upstreamFiles.length > 0
@@ -316,7 +322,7 @@ function FlowCanvasBuilder() {
                         tool={interactionTool}
                         seedFiles={seedFiles}
                         config={(interactionNode?.data.config as Record<string, unknown>) ?? {}}
-                        onConfirm={(result) => {
+                        onConfirm={async (result) => {
                             const hasUpstream = edges.some(e => e.target === interactionNodeId);
 
                             // Standalone mode: user browsed files directly in the modal.
@@ -332,13 +338,9 @@ function FlowCanvasBuilder() {
                                     return {
                                         id: nid,
                                         type: 'fileInput',
-                                        position: {
-                                            x: mx - 290,
-                                            y: my - totalH / 2 + i * gap,
-                                        },
+                                        position: { x: mx - 290, y: my - totalH / 2 + i * gap },
                                         data: {
                                             file,
-                                            // Inject the update callback so user can swap files later
                                             onFileSelect: (f: File | null) => updateNodeData(nid, { file: f }),
                                         },
                                     };
@@ -356,12 +358,43 @@ function FlowCanvasBuilder() {
                                 setEdges(prev => [...prev, ...fileEdges]);
                             }
 
+                            const newConfig = { ...((interactionNode?.data.config as Record<string, unknown>) ?? {}), ...result.config };
+
                             updateNodeData(interactionNodeId, {
                                 interactionFiles: result.files,
                                 interactionDone: true,
-                                ...(result.config ? { config: { ...((interactionNode?.data.config as Record<string, unknown>) ?? {}), ...result.config } } : {}),
+                                isPreviewing: true, // Show loading spinner
+                                ...(result.config ? { config: newConfig } : {}),
                             });
+
+                            // Close modal immediately so user isn't blocked by execution
                             setInteractionNodeId(null);
+
+                            // Run the executor in the background to generate preview data for downstream nodes
+                            if (interactionTool?.getExecutor && result.files.length > 0) {
+                                try {
+                                    const executorFactory = await interactionTool.getExecutor();
+                                    const executor = await executorFactory();
+                                    const { bundleFromFiles } = await import('@/tip/bundle');
+                                    const inputBundle = bundleFromFiles(result.files);
+
+                                    const outputBundle = await executor(inputBundle, newConfig);
+
+                                    const previewFiles = outputBundle.payloads.map(p =>
+                                        new File([p.data], p.meta.filename || 'preview', { type: p.meta.mimeType as string })
+                                    );
+
+                                    updateNodeData(interactionNodeId, {
+                                        isPreviewing: false,
+                                        previewFiles
+                                    });
+                                } catch (err) {
+                                    console.error("Background preview execution failed:", err);
+                                    updateNodeData(interactionNodeId, { isPreviewing: false });
+                                }
+                            } else {
+                                updateNodeData(interactionNodeId, { isPreviewing: false });
+                            }
                         }}
                         onCancel={() => setInteractionNodeId(null)}
                     />
