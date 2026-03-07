@@ -67,6 +67,33 @@ export function useFlowGraph() {
     [nodes]
   );
 
+  const isValidConnection = useCallback((connection: Connection | Edge) => {
+    const sourceNode = nodes.find(n => n.id === connection.source);
+    const targetNode = nodes.find(n => n.id === connection.target);
+    
+    if (!sourceNode || !targetNode) return false;
+
+    let sourceType: TIPContentType | '' = '';
+    if (sourceNode.type === 'fileInput') {
+        sourceType = (sourceNode.data.file as File)?.type as TIPContentType || 'application/octet-stream';
+    } else if (sourceNode.type === 'tool') {
+        const sTool = TIPToolRegistry.get(sourceNode.data.toolId as string);
+        sourceType = sTool?.produces[0] || '';
+    }
+
+    let targetAccepts: TIPContentType[] = [];
+    if (targetNode.type === 'tool') {
+        const tTool = TIPToolRegistry.get(targetNode.data.toolId as string);
+        targetAccepts = tTool?.consumes || [];
+    } else if (targetNode.type === 'output') {
+        // Output node accepts anything
+    }
+
+    return targetNode.type === 'output' || targetAccepts.some(
+        accepted => accepted === sourceType || (sourceType !== '' && canTransform(sourceType as TIPContentType, accepted))
+    );
+  }, [nodes]);
+
   return {
     nodes,
     edges,
@@ -75,5 +102,6 @@ export function useFlowGraph() {
     onNodesChange,
     onEdgesChange,
     onConnect,
+    isValidConnection
   };
 }

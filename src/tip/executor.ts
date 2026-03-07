@@ -69,7 +69,8 @@ export function createPerPayloadTIPExecutor(
         let result: unknown;
         try {
           const formattedKwargs = payloadFormatter(uint8, config);
-          result = await workerClient.execute(actionName, formattedKwargs);
+          // Pass the underlying ArrayBuffer as a transferable to avoid blocking the main thread during structured clone
+          result = await workerClient.execute(actionName, formattedKwargs, [buffer]);
         } catch (err: any) {
            throw new TIPError('EXECUTION_FAILED', `Runtime error in ${actionName}: ${err.message || String(err)}`);
         }
@@ -145,7 +146,9 @@ export function createBatchTIPExecutor(
     try {
       hooks.onProgress(50, `Executing batch operation...`);
       const formattedKwargs = payloadFormatter(buffers, config);
-      result = await workerClient.execute(actionName, formattedKwargs);
+      // Extract the underlying ArrayBuffers from our Uint8Arrays to transfer them
+      const transferables = buffers.map(b => b.buffer as ArrayBuffer);
+      result = await workerClient.execute(actionName, formattedKwargs, transferables);
     } catch (err: any) {
        throw new TIPError('EXECUTION_FAILED', `Runtime error in ${actionName}: ${err.message || String(err)}`);
     }

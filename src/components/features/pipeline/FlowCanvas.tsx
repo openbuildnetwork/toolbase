@@ -18,6 +18,7 @@ import { InspectorPanel } from './InspectorPanel';
 import { PipelineToolbar } from './PipelineToolbar';
 import { InteractionModal } from './InteractionModal';
 import { useFlowGraph } from './hooks/useFlowGraph';
+import { useFlowEngineSync } from './hooks/useFlowEngineSync';
 import { useGraphSerializer } from './hooks/useGraphSerializer';
 
 import { ToolNode } from './nodes/ToolNode';
@@ -45,7 +46,7 @@ function FlowCanvasBuilder() {
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
     const { screenToFlowPosition } = useReactFlow();
 
-    const { nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, onConnect } = useFlowGraph();
+    const { nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, onConnect, isValidConnection } = useFlowGraph();
     const { graphToPipeline } = useGraphSerializer();
     const { state, output, run, cancel, reset: resetEngine } = usePipelineEngine();
     const { save, exportJson } = usePipelines();
@@ -69,90 +70,7 @@ function FlowCanvasBuilder() {
         setNodes(nds => nds.map(n => n.id === nodeId ? { ...n, data: { ...n.data, ...partialData } } : n));
     }, [setNodes]);
 
-    // Sync file-select, download, and INP callbacks into nodes
-    useEffect(() => {
-        setNodes(nds => nds.map(n => {
-            if (n.type === 'fileInput') {
-                return { ...n, data: { ...n.data, onFileSelect: (f: File | null) => updateNodeData(n.id, { file: f }) } };
-            }
-            if (n.type === 'tool') {
-                // Inject INP open callback so ToolNode button can trigger the modal
-                return { ...n, data: { ...n.data, onOpenInteraction: () => setInteractionNodeId(n.id) } };
-            }
-            if (n.type === 'output') {
-                return {
-                    ...n,
-                    data: {
-                        ...n.data,
-                        onDownload: async () => {
-                            if (!output) return;
-                            output.payloads.forEach((payload, i) => {
-                                setTimeout(() => {
-                                    const url = URL.createObjectURL(payload.data);
-                                    const a = document.createElement('a');
-                                    a.href = url;
-                                    a.download = payload.meta.filename;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    document.body.removeChild(a);
-                                    setTimeout(() => URL.revokeObjectURL(url), 100);
-                                }, i * 200);
-                            });
-                        }
-                    }
-                };
-            }
-            return n;
-        }));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [output]);
-
-    // Sync engine state to canvas
-    useEffect(() => {
-        if (state.status === 'idle') return;
-        const orderedSteps = graphToPipeline(nodes, edges);
-        if (!orderedSteps) return;
-
-        setNodes(nds => nds.map(n => {
-            if (n.type === 'fileInput') {
-                const s = state.status === 'running' ? 'running' : state.status === 'complete' ? 'complete' : 'idle';
-                return { ...n, data: { ...n.data, status: s } };
-            }
-            if (n.type === 'tool') {
-                const stepIndex = orderedSteps.findIndex(s => s.id === n.id);
-                if (stepIndex >= 0 && state.steps[stepIndex]) {
-                    const ss = state.steps[stepIndex];
-                    let nextStatus = 'idle';
-                    if (ss.status === 'running') nextStatus = 'running';
-                    if (ss.status === 'complete') nextStatus = 'complete';
-                    if (ss.status === 'error') nextStatus = 'error';
-                    return { ...n, data: { ...n.data, status: nextStatus, durationMs: ss.durationMs, error: ss.error } };
-                }
-            }
-            if (n.type === 'output' && state.status === 'complete') {
-                const totalDurationMs = state.steps.reduce((acc, step) => acc + (step.durationMs || 0), 0);
-                return { ...n, data: { ...n.data, status: 'complete', bundle: output, totalDurationMs } };
-            }
-            return n;
-        }));
-
-        setEdges(eds => eds.map(e => {
-            if (state.status === 'idle' || state.status === 'complete') {
-                return { ...e, data: { ...e.data, isRunning: false } };
-            }
-            let runningEdgeId = '';
-            const runningStepIndex = state.steps.findIndex(s => s.status === 'running');
-            if (runningStepIndex === -1 && state.status === 'running') {
-                const fileNodeId = nodes.find(n => n.type === 'fileInput')?.id;
-                runningEdgeId = eds.find(edge => edge.source === fileNodeId)?.id || '';
-            } else if (runningStepIndex >= 0) {
-                const runningStepId = orderedSteps[runningStepIndex]?.id;
-                runningEdgeId = eds.find(edge => edge.source === runningStepId)?.id || '';
-            }
-            return { ...e, data: { ...e.data, isRunning: e.id === runningEdgeId } };
-        }));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [state, output]);
+    useFlowEngineSync(nodes, edges, setNodes, setEdges, state, output, updateNodeData, graphToPipeline);
 
     const onDragOver = useCallback((event: React.DragEvent) => {
         event.preventDefault();
@@ -185,8 +103,18 @@ function FlowCanvasBuilder() {
         }
     }, [screenToFlowPosition, setNodes]);
 
+    const clearIntermediateMemory = useCallback((nds: Node[]) => {
+        // Blob URLs and file buffers take heavy memory; we clear them from intermediate preview state when running or resetting.
+        return nds.map(n => {
+            if (n.type === 'tool') {
+                return { ...n, data: { ...n.data, status: 'idle', durationMs: 0, error: undefined, previewFiles: undefined } };
+            }
+            return { ...n, data: { ...n.data, status: 'idle', durationMs: 0, error: undefined, bundle: undefined } };
+        });
+    }, []);
+
     const handleRun = useCallback(async () => {
-        setNodes(nds => nds.map(n => ({ ...n, data: { ...n.data, status: 'idle', durationMs: 0, error: undefined, bundle: undefined } })));
+        setNodes(nds => clearIntermediateMemory(nds));
         setEdges(eds => eds.map(e => ({ ...e, data: { ...e.data, isRunning: false } })));
         resetEngine();
         const orderedSteps = graphToPipeline(nodes, edges);
@@ -195,15 +123,15 @@ function FlowCanvasBuilder() {
         const file = fileNode?.data.file;
         if (!file) return;
         await run(orderedSteps, file as File, nodes);
-    }, [nodes, edges, graphToPipeline, run, resetEngine, setNodes, setEdges]);
+    }, [nodes, edges, graphToPipeline, run, resetEngine, setNodes, setEdges, clearIntermediateMemory]);
 
     const handleStop = useCallback(() => { cancel(); }, [cancel]);
 
     const handleReset = useCallback(() => {
         resetEngine();
-        setNodes(nds => nds.map(n => ({ ...n, data: { ...n.data, status: 'idle', error: undefined, bundle: undefined } })));
+        setNodes(nds => clearIntermediateMemory(nds));
         setEdges(eds => eds.map(e => ({ ...e, data: { ...e.data, isRunning: false } })));
-    }, [resetEngine, setNodes, setEdges]);
+    }, [resetEngine, setNodes, setEdges, clearIntermediateMemory]);
 
     const handleSave = useCallback(() => {
         const orderedSteps = graphToPipeline(nodes, edges);
@@ -358,7 +286,7 @@ function FlowCanvasBuilder() {
                                 setEdges(prev => [...prev, ...fileEdges]);
                             }
 
-                            const newConfig = { ...((interactionNode?.data.config as Record<string, unknown>) ?? {}), ...result.config };
+                            const newConfig = { ...((interactionNode?.data.config as Record<string, unknown>) ?? {}), ...result.config } as import('@/tip/protocol').TIPConfig;
 
                             updateNodeData(interactionNodeId, {
                                 interactionFiles: result.files,
@@ -371,14 +299,18 @@ function FlowCanvasBuilder() {
                             setInteractionNodeId(null);
 
                             // Run the executor in the background to generate preview data for downstream nodes
-                            if (interactionTool?.getExecutor && result.files.length > 0) {
+                            if (interactionTool && result.files.length > 0) {
                                 try {
-                                    const executorFactory = await interactionTool.getExecutor();
-                                    const executor = await executorFactory();
                                     const { bundleFromFiles } = await import('@/tip/bundle');
                                     const inputBundle = bundleFromFiles(result.files);
 
-                                    const outputBundle = await executor(inputBundle, newConfig);
+                                    const dummyHooks = {
+                                        onProgress: () => { },
+                                        onLog: () => { },
+                                        signal: new AbortController().signal
+                                    };
+
+                                    const outputBundle = await interactionTool.invoke(inputBundle, newConfig, dummyHooks);
 
                                     const previewFiles = outputBundle.payloads.map(p =>
                                         new File([p.data], p.meta.filename || 'preview', { type: p.meta.mimeType as string })
@@ -408,6 +340,7 @@ function FlowCanvasBuilder() {
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                isValidConnection={isValidConnection}
                 onDrop={onDrop}
                 onDragOver={onDragOver}
                 onSelectionChange={(params) => {

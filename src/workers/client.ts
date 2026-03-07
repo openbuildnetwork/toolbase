@@ -86,8 +86,9 @@ export class WorkerClient {
    *
    * @param action  - Python-side action name (e.g. 'compress', 'to_images')
    * @param payload - Data sent to the worker, translated to Python kwargs
+   * @param transfer - Optional array of Transferable objects to transfer ownership
    */
-  async execute(action: string, payload: Record<string, unknown>): Promise<unknown> {
+  async execute(action: string, payload: Record<string, unknown>, transfer?: Transferable[]): Promise<unknown> {
     await this.init();
 
     if (!this.worker) throw new Error(`${this.workerName} worker unavailable`);
@@ -95,7 +96,7 @@ export class WorkerClient {
     return new Promise((resolve, reject) => {
       const id = crypto.randomUUID();
       this.pending.set(id, { resolve, reject });
-      this.worker!.postMessage({ type: 'EXECUTE', action, data: payload, id });
+      this.worker!.postMessage({ type: 'EXECUTE', action, data: payload, id }, transfer || []);
     });
   }
 }

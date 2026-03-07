@@ -27,3 +27,25 @@ export const redactSecretsWorker = new WorkerClient(
   () => new Worker(new URL('./redact.worker.ts', import.meta.url)),
   'Redact Secrets'
 );
+
+/**
+ * Pre-warm heavy WASM runtimes silently in the background
+ * after the main application has finished loading its initial paint.
+ */
+if (typeof window !== 'undefined') {
+  const preloadWorkers = () => {
+    // Magic PDF takes the longest to compile WASM, boot it first
+    magicPdfWorker.init().catch(console.error);
+    // Boot others sequentially to avoid CPU spikes
+    setTimeout(() => pixelAxeWorker.init().catch(console.error), 2000);
+  };
+
+  if ('requestIdleCallback' in window) {
+    // Wait for the browser to be completely idle
+    (window as any).requestIdleCallback(preloadWorkers, { timeout: 5000 });
+  } else {
+    // Fallback for Safari
+    setTimeout(preloadWorkers, 3000);
+  }
+}
+
