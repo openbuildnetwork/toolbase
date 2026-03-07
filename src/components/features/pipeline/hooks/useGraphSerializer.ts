@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { Node, Edge } from '@xyflow/react';
 import type { PipelineStep, PipelineDefinition } from '@/types/pipeline';
 import { TIPToolRegistry } from '@/tip/registry';
@@ -14,7 +15,7 @@ function getTypeColor(type?: string): string {
 
 export function useGraphSerializer() {
     
-    function graphToPipeline(nodes: Node[], edges: Edge[]): PipelineStep[] | null {
+    const graphToPipeline = useCallback((nodes: Node[], edges: Edge[]): PipelineStep[] | null => {
         // 1. Find the File Input node
         const fileNode = nodes.find(n => n.type === 'fileInput');
         if (!fileNode) return null;
@@ -54,9 +55,9 @@ export function useGraphSerializer() {
         }
 
         return steps;
-    }
+    }, []);
 
-    function pipelineToGraph(pipeline: PipelineDefinition): { nodes: Node[], edges: Edge[] } {
+    const pipelineToGraph = useCallback((pipeline: PipelineDefinition): { nodes: Node[], edges: Edge[] } => {
         const nodes: Node[] = [];
         const edges: Edge[] = [];
 
@@ -118,7 +119,7 @@ export function useGraphSerializer() {
         });
 
         return { nodes, edges };
-    }
+    }, []);
 
     return { graphToPipeline, pipelineToGraph };
 }
