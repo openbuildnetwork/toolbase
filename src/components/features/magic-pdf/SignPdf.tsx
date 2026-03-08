@@ -50,6 +50,7 @@ interface SignatureInstance {
 
 export default function SignPdf({
     files: seedFiles,
+    config,
     onConfirm,
     onCancel,
 }: SignPdfProps = {}) {
@@ -94,8 +95,17 @@ export default function SignPdf({
     useEffect(() => {
         if (seedFiles?.[0]) {
             setFile(seedFiles[0]);
-            setSignatures([]);
             setCurrentPage(1);
+            if (config && config.signatures) {
+                try {
+                    const savedSignatures = JSON.parse(config.signatures as string);
+                    setSignatures(savedSignatures);
+                } catch (e) {
+                    setSignatures([]);
+                }
+            } else {
+                setSignatures([]);
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

@@ -127,7 +127,7 @@ export const TOOLS: ToolMeta[] = [
           const pageOrder = JSON.parse((config.pageOrder as string) || '[]') as number[];
           const operations = JSON.parse((config.operations as string) || '[]');
           const resultBytes = await rearrangePdf(file, pageOrder, operations);
-          const resultFile = new File([resultBytes], `rearranged_${payload.meta.filename ?? 'output.pdf'}`, { type: 'application/pdf' });
+          const resultFile = new File([resultBytes as any], `rearranged_${payload.meta.filename ?? 'output.pdf'}`, { type: 'application/pdf' });
           return bundleFromFile(resultFile);
         };
       }
@@ -263,7 +263,7 @@ export const TOOLS: ToolMeta[] = [
 
           const finalBytes = await pdfDoc.save();
           const resultFile = new File(
-            [finalBytes],
+            [finalBytes as any],
             `signed_${payload.meta.filename ?? 'output.pdf'}`,
             { type: 'application/pdf' }
           );
@@ -278,7 +278,7 @@ export const TOOLS: ToolMeta[] = [
       name: 'PDF to Images',
       description: 'Convert each PDF page to a PNG image. Output is one image per page.',
       consumes: ['application/pdf'],
-      produces: ['image/png'],
+      produces: ['image/png', 'image/jpeg'],
       configSchema: { fields: [
       {
         key: 'dpi',
@@ -291,11 +291,27 @@ export const TOOLS: ToolMeta[] = [
         unit: 'DPI',
         description: 'Higher DPI = sharper images, larger files.',
       },
+      {
+        key: 'format',
+        label: 'Format',
+        type: 'select',
+        default: 'PNG',
+        options: [
+          { label: 'PNG', value: 'PNG' },
+          { label: 'JPEG', value: 'JPEG' },
+        ]
+      }
     ] },
       getExecutor: async () => {
         const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
         const { magicPdfWorker } = await import('@/workers/instances');
-        return createPerPayloadTIPExecutor(magicPdfWorker, 'pdf_to_images', (b, c) => ({ file_bytes: b, image_format: 'png', ...c }), () => 'image/png', 'PDF to Images');
+        return createPerPayloadTIPExecutor(
+          magicPdfWorker,
+          'pdf_to_images',
+          (b, c) => ({ file_bytes: b, format: c.format || 'PNG', ...c }),
+          (p, c) => (c.format === 'JPEG' ? 'image/jpeg' : 'image/png'),
+          'PDF to Images'
+        );
       }
     },
       {
@@ -332,7 +348,7 @@ export const TOOLS: ToolMeta[] = [
       getExecutor: async () => {
         const { createBatchTIPExecutor } = await import('@/tip/executor');
         const { magicPdfWorker } = await import('@/workers/instances');
-        return createBatchTIPExecutor(magicPdfWorker, 'images_to_pdf', (b, c) => ({ files_bytes_list: b, ...c }), () => 'application/pdf', 'Images to PDF', 'images.pdf');
+        return createBatchTIPExecutor(magicPdfWorker, 'images_to_pdf', (b, c) => ({ files_bytes: b, ...c }), () => 'application/pdf', 'Images to PDF', 'images.pdf');
       }
     },
       {

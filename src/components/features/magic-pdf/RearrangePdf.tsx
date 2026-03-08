@@ -45,6 +45,7 @@ interface PageItem {
 
 export default function RearrangePdf({
     files: seedFiles,
+    config,
     onConfirm,
     onCancel,
 }: RearrangePdfProps = {}) {
@@ -66,14 +67,39 @@ export default function RearrangePdf({
         setLoadingThumbnails(true);
         try {
             const pageCount = await getPdfPageCount(selectedFile);
-            const pageItems: PageItem[] = Array.from({ length: pageCount }, (_, i) => ({
-                id: `page-${i}`,
-                index: i,
-                originalIndex: i,
-                thumbnail: null,
-                rotation: 0,
-                deleted: false,
-            }));
+
+            let initialOrder = Array.from({ length: pageCount }, (_, i) => i);
+            let savedOperations: PageOperation[] = [];
+
+            if (config && config.pageOrder) {
+                try { initialOrder = JSON.parse(config.pageOrder as string); } catch (e) { /* ignore */ }
+            }
+            if (config && config.operations) {
+                try { savedOperations = JSON.parse(config.operations as string); } catch (e) { /* ignore */ }
+            }
+
+            const allPagesModel = Array.from({ length: pageCount }, (_, i) => {
+                const op = savedOperations.find(o => o.pageIndex === i);
+                return {
+                    id: `page-${i}`,
+                    index: i,
+                    originalIndex: i,
+                    thumbnail: null,
+                    rotation: op?.rotation ?? 0,
+                    deleted: op?.delete ?? false,
+                };
+            });
+
+            const orderedActivePages = initialOrder
+                .map(originalIdx => allPagesModel.find(p => p.originalIndex === originalIdx))
+                .filter(Boolean) as PageItem[];
+
+            const deletedPagesList = allPagesModel.filter(p => p.deleted);
+            const savedActiveIndices = new Set(initialOrder);
+            const missingActivePages = allPagesModel.filter(p => !p.deleted && !savedActiveIndices.has(p.originalIndex));
+
+            const pageItems = [...orderedActivePages, ...missingActivePages, ...deletedPagesList];
+
             setPages(pageItems);
             // Load thumbnails progressively
             for (let i = 0; i < pageCount; i++) {

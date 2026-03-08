@@ -34,13 +34,34 @@ export type MergePdfProps = Partial<TIPInteractionProps>;
 
 export default function MergePdf({
     files: seedFiles,
+    config,
     onConfirm,
     onCancel,
 }: MergePdfProps = {}) {
     /** true when used as a pipeline INP component */
     const isInteractionMode = typeof onConfirm === 'function';
 
-    const [files, setFiles] = useState<File[]>(seedFiles ?? []);
+    const [files, setFiles] = useState<File[]>(() => {
+        let initial = seedFiles ?? [];
+        if (config && config.fileOrder) {
+            try {
+                const order: string[] = JSON.parse(config.fileOrder as string);
+                const orderedFiles = [];
+                const remaining = [...initial];
+                for (const name of order) {
+                    const idx = remaining.findIndex(f => f.name === name);
+                    if (idx !== -1) {
+                        orderedFiles.push(remaining[idx]);
+                        remaining.splice(idx, 1);
+                    }
+                }
+                initial = [...orderedFiles, ...remaining];
+            } catch (e) {
+                // ignore
+            }
+        }
+        return initial;
+    });
     const { execute, isProcessing, progress, progressMessage } = useTIPTool('magic-pdf/merge');
     const [mergedPdfUrl, setMergedPdfUrl] = useState<string | null>(null);
 
@@ -89,7 +110,10 @@ export default function MergePdf({
     /** Interaction: confirm the chosen file order back to the pipeline */
     const handleConfirm = () => {
         if (files.length < 2 || !onConfirm) return;
-        onConfirm({ files });
+        onConfirm({
+            files,
+            config: { fileOrder: JSON.stringify(files.map(f => f.name)) }
+        });
     };
 
     // ── Shared file card grid ─────────────────────────────────────────────────────
@@ -153,7 +177,7 @@ export default function MergePdf({
             className={isInteractionMode ? 'flex flex-col gap-6 h-full' : 'space-y-6'}
         >
             {/* Toolbar */}
-            <div className="flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center justify-between shrink-0">
                 <h2 className="text-xl font-semibold">
                     {files.length} PDF{files.length !== 1 ? 's' : ''} selected — reorder as needed
                 </h2>
@@ -191,7 +215,7 @@ export default function MergePdf({
             {/* ── Mode-specific action bar ── */}
             {isInteractionMode ? (
                 /* Interaction: confirm / cancel */
-                <div className="flex items-center justify-end gap-3 flex-shrink-0 pt-2 border-t border-gray-100">
+                <div className="flex items-center justify-end gap-3 shrink-0 pt-2 border-t border-gray-100">
                     {files.length < 2 && (
                         <span className="text-sm text-amber-500 mr-auto">Add at least one more PDF to confirm.</span>
                     )}

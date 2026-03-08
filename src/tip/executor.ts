@@ -31,7 +31,14 @@ function extractWorkerResultBytes(result: unknown, toolNameForLogs: string, file
   }
   
   // Try raw array
-  if (Array.isArray(result)) return [new Uint8Array(result as number[])];
+  if (Array.isArray(result)) {
+    // If it's an array of sub-arrays or Uint8Arrays (1-to-N response)
+    if (result.length > 0 && (result[0] instanceof Uint8Array || Array.isArray(result[0]))) {
+      return result.map(item => item instanceof Uint8Array ? item : new Uint8Array(item));
+    }
+    // Otherwise it's a single file represented as an array of numbers
+    return [new Uint8Array(result as number[])];
+  }
   
   throw new TIPError('EXECUTION_FAILED', `${toolNameForLogs} failed for ${filename}`);
 }
@@ -100,8 +107,12 @@ export function createPerPayloadTIPExecutor(
 
           let ext = '';
           if (outFormat === 'image/png') ext = '.png';
+          else if (outFormat === 'image/jpeg') ext = '.jpg';
+          else if (outFormat === 'image/webp') ext = '.webp';
           else if (outFormat === 'application/pdf') ext = '.pdf';
           else if (outFormat === 'text/plain') ext = '.txt';
+          else if (outFormat === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') ext = '.docx';
+          else if (outFormat === 'text/html') ext = '.html';
           else ext = payload.meta.filename.match(/\.[^/.]+$/)?.[0] || '';
 
           return createPayload(blob, outFormat as TIPContentType, `${baseName}${suffix}${ext}`);

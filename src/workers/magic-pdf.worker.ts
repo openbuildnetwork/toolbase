@@ -15,7 +15,7 @@ async function loadPyodideAndPackages() {
         console.log("Worker: Installing pypdf, pillow, and PyMuPDF...");
         await pyodide.loadPackage(["micropip", "lxml"]);
         const micropip = pyodide.pyimport("micropip");
-        await micropip.install(["pypdf", "Pillow", "PyMuPDF", "python-docx"]);
+        await micropip.install(["pypdf", "Pillow", "PyMuPDF", "python-docx", "xhtml2pdf", "reportlab"]);
 
         console.log("Worker: Pyodide loaded, setting up filesystem...");
 

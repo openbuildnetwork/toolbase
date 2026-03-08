@@ -48,7 +48,26 @@ export default function SplitPdf({
 
     // ── Split state ──────────────────────────────────────────────────────────────
     // Split indices = 0-based page indices AFTER which to insert a split
-    const [splitIndices, setSplitIndices] = useState<number[]>([]);
+    const [splitIndices, setSplitIndices] = useState<number[]>(() => {
+        if (seedConfig && seedConfig.pageRanges) {
+            try {
+                const ranges = (seedConfig.pageRanges as string).split(',');
+                const indices: number[] = [];
+                for (let i = 0; i < ranges.length - 1; i++) {
+                    const range = ranges[i];
+                    const parts = range.split('-');
+                    const endPage = parseInt(parts[parts.length - 1], 10);
+                    if (!isNaN(endPage)) {
+                        indices.push(endPage - 1);
+                    }
+                }
+                return indices.sort((a, b) => a - b);
+            } catch (e) {
+                // ignore
+            }
+        }
+        return [];
+    });
 
     // ── Standalone state ─────────────────────────────────────────────────────────
     const { execute, isProcessing, progress, progressMessage } = useTIPTool('magic-pdf/split');
@@ -238,7 +257,7 @@ export default function SplitPdf({
             {/* Sticky toolbar */}
             <div className={cn(
                 'flex items-center justify-between p-4 rounded-xl border border-gray-100 shadow-sm',
-                isInteractionMode ? 'flex-shrink-0' : 'bg-white sticky top-0 z-30'
+                isInteractionMode ? 'shrink-0' : 'bg-white sticky top-0 z-30'
             )}>
                 <div className="flex items-center gap-4">
                     <div className="h-10 w-10 bg-red-50 text-red-600 rounded-lg flex items-center justify-center">
@@ -338,7 +357,7 @@ export default function SplitPdf({
 
             {/* Interaction mode: hint at bottom */}
             {isInteractionMode && splitIndices.length === 0 && numPages > 0 && (
-                <p className="text-xs text-amber-600 text-center flex-shrink-0">
+                <p className="text-xs text-amber-600 text-center shrink-0">
                     Select at least one split point to confirm.
                 </p>
             )}
