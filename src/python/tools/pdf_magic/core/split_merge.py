@@ -7,7 +7,7 @@ def split_pdf(file_bytes, page_ranges):
     Returns a dictionary with a 'data' key containing a list of PDF byte arrays.
     """
     try:
-        doc = fitz.open(stream=file_bytes, filetype="pdf")
+        doc = fitz.open(stream=bytes(file_bytes), filetype="pdf")
         num_pages = len(doc)
 
         # Parse page_ranges "1-3,5,7-9" -> [[0,1,2], [4], [6,7,8]]
@@ -50,7 +50,7 @@ def merge_pdfs(files_bytes):
         result_doc = fitz.open()
         for f_bytes in files_bytes:
             # Open each byte array as a PDF
-            doc = fitz.open(stream=f_bytes, filetype="pdf")
+            doc = fitz.open(stream=bytes(f_bytes), filetype="pdf")
             result_doc.insert_pdf(doc)
             doc.close()
 

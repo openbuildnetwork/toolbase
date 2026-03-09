@@ -127,17 +127,51 @@ User drops file
 User adds node to canvas
     → InspectorPanel reads tool.configSchema.fields
         → renders Quality slider, Format dropdown, etc.
+    → (If interactable: true) User clicks "Configure"
+        → FlowCanvas.tsx recursively resolves upstream files (previewFiles -> interactionFiles -> file)
+        → Provides seed files to interaction component (e.g., SplitPdf.tsx)
+        → Component saves configuration back to the node state
 User clicks "Run Pipeline"
-    → PipelineRunner iterates steps
-        → tool.invoke(bundle, nodeConfig)
-            → same path as above from getExecutor() onwards
+    → PipelineRunner iterates linearly through all nodes
+    → No overrides: Engine always uses the upstream tool's freshly executed TIPBundle
+    → tool.invoke(bundle, nodeConfig)
+        → same path as above from getExecutor() onwards
 ```
 
 The two paths **merge at `tool.invoke()`** — everything below is identical.
 
 ---
 
-## 5. The `configSchema` — Single Source of Truth
+## 5. Interactable Nodes (`interactable: true`)
+
+Some tools (like splitting a PDF or signing a document) cannot be configured purely via sliders and dropdowns; they require visual interaction with the document itself.
+
+For these tools, you can define `interactable: true` and provide a `getInteractionComponent` in the registry:
+
+```typescript
+{
+  id: 'magic-pdf/split',
+  name: 'Split PDF',
+  // ...
+  interactable: true as const,
+  getInteractionComponent: async () => {
+    const { default: SplitPdf } = await import('@/components/features/magic-pdf/SplitPdf');
+    return SplitPdf;
+  },
+  // ...
+}
+```
+
+### The Configuration Lifecycle
+
+1. **Upstream Resolution**: When a user clicks "Configure" on an interactable node in the Pipeline Builder, `FlowCanvas.tsx` recursively searches backward through the edge graph to find a representative file (e.g., the original File Input or a previously completed `previewFile`).
+2. **Visual Configuration**: The user interacts with this "seed" file in the interaction component (e.g., drawing crop lines, selecting page ranges).
+3. **Saving State**: The interaction component saves the chosen configuration (e.g., `pageRanges: '1-3'`) back to the node's `config`. It may also save mocked `interactionFiles` for downstream nodes to preview.
+4. **Execution**: **Crucially, interactable nodes do not override the engine flow during a real run.** When the user clicks "Run Pipeline", the engine passes the strictly evaluated output of the previous step into the tool. The configuration picked by the user (like the crop coordinates) is applied to this new, runtime data.
+
+---
+
+## 6. The `configSchema` — Single Source of Truth
 
 The `configSchema` serves **three purposes simultaneously**:
 
@@ -168,7 +202,7 @@ configSchema: {
 
 ---
 
-## 6. Step-by-Step: Converting an Existing Tool to TIP
+## 7. Step-by-Step: Converting an Existing Tool to TIP
 
 ### Prerequisites
 
@@ -351,7 +385,7 @@ If a field is missing from the inspector, that means it's missing from `configSc
 
 ---
 
-## 7. Real Example: `pixel-axe/compress`
+## 8. Real Example: `pixel-axe/compress`
 
 This is a complete, working TIP implementation you can use as a reference.
 
@@ -517,7 +551,7 @@ export function CompressImage() {
 
 ---
 
-## 8. ConfigSchema Field Reference
+## 9. ConfigSchema Field Reference
 
 Every field in `configSchema.fields` is a `TIPConfigField` object:
 
@@ -545,7 +579,7 @@ Every field in `configSchema.fields` is a `TIPConfigField` object:
 
 ---
 
-## 9. Payload Formatter Rules
+## 10. Payload Formatter Rules
 
 The `payloadFormatter` in `getExecutor` is the **only** place where JS config keys are mapped to Python parameter names.
 
@@ -573,7 +607,7 @@ The `payloadFormatter` in `getExecutor` is the **only** place where JS config ke
 
 ---
 
-## 10. Checklist
+## 11. Checklist
 
 Use this when converting or adding a TIP tool:
 
@@ -610,4 +644,4 @@ Use this when converting or adding a TIP tool:
 
 ---
 
-_Last updated: 2026-03-03_
+_Last updated: 2026-03-10_

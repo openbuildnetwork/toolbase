@@ -8,14 +8,14 @@ async function loadPyodideAndPackages() {
     console.log("Worker: Initializing Pyodide...");
     try {
         const pyodide = await loadPyodide({
-            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.2/full/",
+            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.3/full/",
         });
 
         // Install dependencies
         console.log("Worker: Installing pypdf, pillow, and PyMuPDF...");
         await pyodide.loadPackage(["micropip", "lxml"]);
         const micropip = pyodide.pyimport("micropip");
-        await micropip.install(["pypdf", "Pillow", "PyMuPDF", "python-docx", "xhtml2pdf", "reportlab"]);
+        await micropip.install(["pypdf", "Pillow", "PyMuPDF", "python-docx"]);
 
         console.log("Worker: Pyodide loaded, setting up filesystem...");
 

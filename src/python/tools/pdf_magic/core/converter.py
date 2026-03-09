@@ -51,6 +51,7 @@ def pdf_to_word(file_bytes):
 
 def pdf_to_images(file_bytes, dpi=150, img_format="JPEG"):
     try:
+        file_bytes = bytes(file_bytes)
         doc = fitz.open(stream=file_bytes, filetype="pdf")
         images = []
         for page in doc:

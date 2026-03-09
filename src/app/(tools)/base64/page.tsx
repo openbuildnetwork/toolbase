@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useTIPTool } from '@/hooks/useTIPTool';
+import { useBase64 } from '@/hooks/useBase64Worker';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
@@ -25,16 +25,21 @@ import type { Base64Mode } from '@/types/base64';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Base64Page() {
+    const {
+        process,
+        isReady,
+        isProcessing,
+        result,
+        previewText,
+        isLargeFile,
+        error,
+        downloadResult,
+        reset,
+    } = useBase64();
+
+    // UI State
     const [mode, setMode] = useState<'text' | 'file'>('text');
     const [operation, setOperation] = useState<'encode' | 'decode'>('encode');
-
-    const encodeTool = useTIPTool('base64/encode');
-    const decodeTool = useTIPTool('base64/decode');
-    const activeTool = operation === 'encode' ? encodeTool : decodeTool;
-    const { execute, isProcessing, error, progressMessage } = activeTool;
-    const [resultFile, setResultFile] = useState<File | null>(null);
-    const [previewText, setPreviewText] = useState<string>('');
-    const reset = () => { setResultFile(null); setPreviewText(''); };
     const [inputText, setInputText] = useState('');
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isImage, setIsImage] = useState(false);
@@ -67,48 +72,43 @@ export default function Base64Page() {
                     setDecodedImageUrl(null);
                 }
 
-                const payloadArray: File[] = [];
+                let processMode: Base64Mode;
+                let data: string | number[];
 
                 if (mode === 'text') {
                     const textData = inputData || inputText;
                     if (!textData || typeof textData !== 'string') return;
 
-                    const blob = new Blob([textData], { type: 'text/plain' });
-                    payloadArray.push(new File([blob], "input.txt", { type: 'text/plain' }));
+                    processMode = operation === 'encode' ? 'text_encode' : 'text_decode';
+                    data = textData;
                 } else {
                     if (!selectedFile && !inputData) return;
 
-                    if (inputData) {
-                        const blob = new Blob([inputData as BlobPart], { type: 'application/octet-stream' });
-                        payloadArray.push(new File([blob], "input.bin", { type: 'application/octet-stream' }));
+                    const fileData = inputData || (await selectedFile!.arrayBuffer());
+                    const uint8Array = new Uint8Array(fileData as ArrayBuffer);
+
+                    if (operation === 'encode') {
+                        processMode = 'file_encode';
+                        data = Array.from(uint8Array);
                     } else {
-                        payloadArray.push(selectedFile!);
+                        processMode = 'file_decode';
+                        const decoder = new TextDecoder();
+                        data = decoder.decode(uint8Array);
                     }
                 }
 
-                const outputFiles = await execute(payloadArray, {
-                    urlSafe,
-                    mimeType: addMimeHeader ? mimeType : '',
+                const result = await process({
+                    mode: processMode,
+                    data,
+                    url_safe: urlSafe,
+                    mime_type: addMimeHeader ? mimeType : '',
                 });
-
-                let text = '';
-                if (outputFiles && outputFiles.length > 0) {
-                    const outFile = outputFiles[0];
-                    setResultFile(outFile);
-
-                    if (outFile.size < 1024 * 500) { // 500kb preview limit
-                        text = await outFile.text();
-                        setPreviewText(text);
-                    } else {
-                        setPreviewText('');
-                    }
-                }
 
                 // After processing, check if we decoded an image
                 if (
                     mode === 'text' &&
                     operation === 'decode' &&
-                    outputFiles && outputFiles.length > 0 &&
+                    result.success &&
                     typeof inputText === 'string'
                 ) {
                     const trimmedInput = inputText.trim();
@@ -176,7 +176,7 @@ export default function Base64Page() {
     );
 
     useEffect(() => {
-        if (liveMode && mode === 'text' && inputText) {
+        if (liveMode && mode === 'text' && inputText && isReady) {
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);
             }
@@ -191,7 +191,7 @@ export default function Base64Page() {
                 clearTimeout(debounceTimerRef.current);
             }
         };
-    }, [liveMode, mode, inputText, handleProcess]);
+    }, [liveMode, mode, inputText, isReady, handleProcess]);
 
     // Cleanup image preview on unmount
     useEffect(() => {
@@ -255,21 +255,13 @@ export default function Base64Page() {
     };
 
     const handleDownload = () => {
-        if (!resultFile) return;
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(resultFile);
-
-        let targetName = resultFile.name;
-        if (selectedFile) {
-            const baseFilename = selectedFile.name.replace(/\.[^/.]+$/, '');
-            const extension = operation === 'encode' ? 'txt' : selectedFile.name.split('.').pop() || 'bin';
-            targetName = `${baseFilename}_${operation}.${extension}`;
+        if (mode === 'text') {
+            downloadResult(`base64_${operation}.txt`);
+        } else {
+            const baseFilename = selectedFile?.name.replace(/\.[^/.]+$/, '') || 'file';
+            const extension = operation === 'encode' ? 'txt' : selectedFile?.name.split('.').pop() || 'bin';
+            downloadResult(`${baseFilename}_${operation}.${extension}`);
         }
-
-        link.download = targetName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
     };
 
     return (
@@ -359,6 +351,7 @@ export default function Base64Page() {
                         <Button
                             onClick={() => handleProcess()}
                             disabled={
+                                !isReady ||
                                 isProcessing ||
                                 (mode === 'text' && !inputText) ||
                                 (mode === 'file' && !selectedFile)
@@ -401,7 +394,16 @@ export default function Base64Page() {
                     )}
                 </AnimatePresence>
 
-
+                {/* Loading Banner */}
+                {!isReady && (
+                    <div className="mb-4 flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <Loader2 className="h-5 w-5 text-blue-600 animate-spin shrink-0" />
+                        <div>
+                            <p className="font-semibold text-blue-900 text-sm">Initializing Python Runtime...</p>
+                            <p className="text-xs text-blue-700">This takes a few seconds on first load</p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Main Side-by-Side Layout */}
                 <div className="grid lg:grid-cols-2 gap-4">
@@ -490,6 +492,7 @@ export default function Base64Page() {
                                 <Button
                                     onClick={() => handleProcess()}
                                     disabled={
+                                        !isReady ||
                                         isProcessing ||
                                         (mode === 'text' && !inputText) ||
                                         (mode === 'file' && !selectedFile)
@@ -498,10 +501,15 @@ export default function Base64Page() {
                                     size="lg"
                                     isLoading={isProcessing}
                                 >
-                                    {isProcessing ? (
+                                    {!isReady ? (
                                         <>
                                             <Loader2 className="h-4 w-4 animate-spin" />
-                                            {progressMessage || 'Processing...'}
+                                            Loading...
+                                        </>
+                                    ) : isProcessing ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            Processing...
                                         </>
                                     ) : (
                                         <>
@@ -524,13 +532,13 @@ export default function Base64Page() {
                                 Output
                             </h2>
                             <div className="flex items-center gap-2">
-                                {resultFile && (
+                                {result?.success && (
                                     <>
                                         <span className="text-xs text-gray-500">
-                                            {formatFileSize(resultFile.size || 0)}
+                                            {formatFileSize(result.size || 0)}
                                         </span>
-                                        {previewText && (
-                                            <CopyToClipboard text={previewText} showText={false} />
+                                        {!isLargeFile && typeof result.result === 'string' && (
+                                            <CopyToClipboard text={result.result} showText={false} />
                                         )}
                                         <Button variant="ghost" size="sm" onClick={handleDownload}>
                                             <Download className="h-4 w-4" />
@@ -560,16 +568,22 @@ export default function Base64Page() {
                                         )}
                                     </div>
                                 </div>
-                            ) : resultFile ? (
-                                !previewText && !decodedImageUrl ? (
+                            ) : result?.success ? (
+                                isLargeFile && !decodedImageUrl ? (
                                     <div className="space-y-3">
                                         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                                             <p className="text-sm font-medium text-yellow-900">
-                                                ⚠️ Large File ({formatFileSize(resultFile.size || 0)})
+                                                ⚠️ Large File ({formatFileSize(result.size || 0)})
                                             </p>
                                             <p className="text-xs text-yellow-700 mt-1">
                                                 Too large to display as text. Use download button to save.
                                             </p>
+                                        </div>
+                                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                            <p className="text-xs font-semibold text-gray-500 mb-2">PREVIEW:</p>
+                                            <pre className="text-xs text-gray-700 font-mono overflow-x-auto whitespace-pre-wrap break-all">
+                                                {previewText}
+                                            </pre>
                                         </div>
                                     </div>
                                 ) : (
@@ -597,8 +611,8 @@ export default function Base64Page() {
                                         </div>
                                     ) :
                                         // Check if result is an image (has data URI with image MIME type)
-                                        typeof previewText === 'string' &&
-                                            previewText.startsWith('data:image/') ? (
+                                        typeof result.result === 'string' &&
+                                            result.result.startsWith('data:image/') ? (
                                             <div className="space-y-3">
                                                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                                                     <p className="text-sm font-medium text-green-900">
@@ -612,7 +626,7 @@ export default function Base64Page() {
                                                     <p className="text-xs font-semibold text-gray-500 mb-3">IMAGE PREVIEW:</p>
                                                     <div className="flex justify-center p-4 bg-gray-50 rounded-lg">
                                                         <img
-                                                            src={previewText}
+                                                            src={result.result}
                                                             alt="Encoded"
                                                             className="max-w-full max-h-96 rounded-lg shadow-lg object-contain"
                                                         />

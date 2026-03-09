@@ -15,7 +15,6 @@ import { RedactEditor } from "@/components/features/redact-secrets/RedactEditor"
 import { RedactConfiguration } from "@/components/features/redact-secrets/RedactConfiguration";
 import { RedactOutput } from "@/components/features/redact-secrets/RedactOutput";
 import { RedactStats } from "@/components/features/redact-secrets/RedactStats";
-import { EngineLoader } from "@/components/ui/EngineLoader";
 
 export default function RedactSecretsPage() {
     const {
@@ -72,7 +71,15 @@ export default function RedactSecretsPage() {
                     </div>
                 </header>
 
-                <EngineLoader isReady={isReady} engine="python" />
+                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-full w-fit">
+                    <div className={cn(
+                        "w-2 h-2 rounded-full",
+                        isReady ? "bg-emerald-500 animate-pulse" : "bg-amber-500 animate-pulse"
+                    )} />
+                    <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                        {isReady ? "Running Locally (WASM) - No data leaves your machine" : "Initializing Python Engine... (WASM)"}
+                    </span>
+                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 font-display">
                     {/* Left Column: Editor */}

@@ -314,30 +314,93 @@ export const TOOLS: ToolMeta[] = [
         );
       }
     },
-      {
-      id: 'magic-pdf/html-to-pdf',
-      name: 'HTML to PDF',
-      description: 'Convert an HTML document into a PDF file.',
-      consumes: ['text/html'],
-      produces: ['application/pdf'],
-      configSchema: { fields: [
-      {
-        key: 'pageSize',
-        label: 'Page Size',
-        type: 'select',
-        default: 'A4',
-        options: [
-          { label: 'A4', value: 'A4' },
-          { label: 'Letter', value: 'Letter' },
-          { label: 'Legal', value: 'Legal' },
-        ] }
-      ] },
-      getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { magicPdfWorker } = await import('@/workers/instances');
-        return createPerPayloadTIPExecutor(magicPdfWorker, 'html_to_pdf', (b, c) => ({ file_bytes: b, page_size: c.pageSize, ...c }), () => 'application/pdf', 'HTML to PDF');
-      }
-    },
+    //   {
+    //   id: 'magic-pdf/html-to-pdf',
+    //   name: 'HTML to PDF',
+    //   description: 'Convert an HTML document into a PDF file.',
+    //   consumes: ['text/html'],
+    //   produces: ['application/pdf'],
+    //   configSchema: { fields: [
+    //   {
+    //     key: 'pageSize',
+    //     label: 'Page Size',
+    //     type: 'select',
+    //     default: 'A4',
+    //     options: [
+    //       { label: 'A4', value: 'A4' },
+    //       { label: 'Letter', value: 'Letter' },
+    //       { label: 'Legal', value: 'Legal' },
+    //     ] }
+    //   ] },
+    //   getExecutor: async () => {
+    //     return async (input: import('@/tip/protocol').TIPBundle, config: import('@/tip/protocol').TIPConfig, hooks: import('@/tip/protocol').TIPHooks) => {
+    //       const { createBundle, createPayload } = await import('@/tip/bundle');
+    //       const TIPError = (await import('@/tip/errors')).TIPError;
+          
+    //       let html2pdf: any;
+    //       try {
+    //          html2pdf = (await import('html2pdf.js')).default;
+    //       } catch (e) {
+    //          // Fallback if default is not available
+    //          html2pdf = await import('html2pdf.js');
+    //       }
+
+    //       if (input.payloads.length === 0) {
+    //         throw new TIPError('EMPTY_BUNDLE', 'No data to process');
+    //       }
+
+    //       const outPayloads = [];
+
+    //       for (let i = 0; i < input.payloads.length; i++) {
+    //         const p = input.payloads[i];
+    //         hooks.onProgress(Math.round((i / input.payloads.length) * 100), `Converting ${p.meta.filename}...`);
+            
+    //         const htmlString = await p.data.text();
+            
+    //         // Create a temporary hidden container for rendering
+    //         const container = document.createElement('div');
+    //         container.innerHTML = htmlString;
+    //         // Prevent taking up visual space or affecting layout, but keep at 0,0 for html2canvas to work properly
+    //         container.style.position = 'absolute';
+    //         container.style.left = '0px';
+    //         container.style.top = '0px';
+    //         container.style.opacity = '0';
+    //         container.style.pointerEvents = 'none';
+    //         container.style.zIndex = '-9999';
+    //         // Set a realistic width for web rendering
+    //         container.style.width = '1200px'; 
+    //         container.style.backgroundColor = 'white'; // Ensure background isn't transparent
+    //         document.body.appendChild(container);
+
+    //         // Give a short delay for images/external resources to initially ping/load in the browser
+    //         await new Promise(resolve => setTimeout(resolve, 500));
+
+    //         try {
+    //           const opt = {
+    //             margin: 10,
+    //             filename: 'output.pdf',
+    //             image: { type: 'jpeg', quality: 0.98 },
+    //             html2canvas: { scale: 2, useCORS: true, logging: false },
+    //             jsPDF: { unit: 'mm', format: (config.pageSize as string)?.toLowerCase() || 'a4', orientation: 'portrait' }
+    //           };
+              
+    //           const pdfArrayBuffer = await (html2pdf as any)().set(opt).from(container).output('arraybuffer');
+    //           const pdfBlob = new Blob([pdfArrayBuffer], { type: 'application/pdf' });
+              
+    //           let baseName = p.meta.filename.replace(/\.[^/.]+$/, "");
+    //           outPayloads.push(createPayload(pdfBlob, 'application/pdf', `${baseName}.pdf`));
+    //         } catch (err: any) {
+    //            throw new TIPError('EXECUTION_FAILED', `HTML to PDF failed: ${err.message || String(err)}`);
+    //         } finally {
+    //           document.body.removeChild(container);
+    //         }
+    //       }
+          
+    //       hooks.onProgress(100, 'Done');
+    //       return createBundle(outPayloads, 'application/pdf');
+    //     };
+    //   }
+    // },
       {
       id: 'magic-pdf/images-to-pdf',
       name: 'Images to PDF',
@@ -727,31 +790,6 @@ export const TOOLS: ToolMeta[] = [
     pythonPowered: true,
     status: 'stable',
     addedAt: '2025-01-01',
-    tip: [
-      {
-      id: 'redact-secrets/redact',
-      name: 'Redact Secrets',
-      description: 'Scan and redact secrets, API keys, PII, and sensitive data from text or JSON.',
-      consumes: ['text/plain', 'application/json'],
-      produces: ['text/plain', 'application/json'],
-      configSchema: { fields: [
-      {
-        key: 'maskingStyle',
-        label: 'Masking Style',
-        type: 'select',
-        default: 'partial',
-        options: [
-          { label: 'Partial (show first/last chars)', value: 'partial' },
-          { label: 'Full (replace entirely)',         value: 'full'    },
-          { label: 'Hash (SHA-256 digest)',            value: 'hash'   },
-        ] }
-      ] },
-      getExecutor: async () => {
-        const mod = await import('@/features/redact-secrets/tip/redact.tip');
-        return mod.redactSecretsTool.invoke;
-      }
-    }
-    ]
   },
   {
     id: 'base64',
@@ -769,66 +807,6 @@ export const TOOLS: ToolMeta[] = [
     pythonPowered: false,
     status: 'stable',
     addedAt: '2025-01-01',
-    tip: [
-      {
-      id: 'base64/encode',
-      name: 'Base64 Encode',
-      description: 'Encode binary or text data as a Base64 string.',
-      consumes: ['application/octet-stream', 'text/plain'],
-      produces: ['text/plain'],
-      configSchema: { fields: [
-      {
-        key: 'urlSafe',
-        label: 'URL-Safe Encoding',
-        type: 'boolean',
-        default: false,
-        description: 'Use URL-safe Base64 alphabet (replaces + and / with - and _).',
-      },
-    ] },
-      getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { base64Worker } = await import('@/workers/instances');
-        return createPerPayloadTIPExecutor(
-          base64Worker, 
-          'PROCESS', 
-          (buffer, config) => ({ mode: 'file_encode', data: Array.from(buffer), url_safe: config.urlSafe }),
-          () => 'text/plain', 
-          'Base64 Encode'
-        );
-      }
-    },
-      {
-      id: 'base64/decode',
-      name: 'Base64 Decode',
-      description: 'Decode a Base64 string back to its original binary or text data.',
-      consumes: ['text/plain'],
-      produces: ['application/octet-stream'],
-      configSchema: { fields: [
-      {
-        key: 'urlSafe',
-        label: 'URL-Safe Decoding',
-        type: 'boolean',
-        default: false,
-        description: 'Use URL-safe Base64 alphabet when decoding (- and _ instead of + and /).',
-      },
-    ] },
-      getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { base64Worker } = await import('@/workers/instances');
-        return createPerPayloadTIPExecutor(
-          base64Worker, 
-          'PROCESS', 
-          (buffer, config) => {
-            // Read string from buffer
-            const text = new TextDecoder().decode(buffer);
-            return { mode: 'text_decode', data: text, url_safe: config.urlSafe };
-          },
-          () => 'application/octet-stream', 
-          'Base64 Decode'
-        );
-      }
-    }
-    ]
   },
   {
     id: 'json-to-interface',

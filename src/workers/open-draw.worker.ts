@@ -24,7 +24,7 @@ async function initPyodide(): Promise<PyodideInterface> {
 
         try {
             const py = await loadPyodide({
-                indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.2/full/",
+                indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.3/full/",
             });
 
             console.log("[OpenDraw Worker] Pyodide loaded, setting up filesystem...");

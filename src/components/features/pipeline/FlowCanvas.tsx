@@ -122,7 +122,7 @@ function FlowCanvasBuilder() {
         const fileNode = nodes.find(n => n.type === 'fileInput');
         const file = fileNode?.data.file;
         if (!file) return;
-        await run(orderedSteps, file as File, nodes);
+        await run(orderedSteps, file as File);
     }, [nodes, edges, graphToPipeline, run, resetEngine, setNodes, setEdges, clearIntermediateMemory]);
 
     const handleStop = useCallback(() => { cancel(); }, [cancel]);
@@ -225,20 +225,36 @@ function FlowCanvasBuilder() {
                     : null;
                 if (!interactionTool?.interactable || !interactionTool.getInteractionComponent) return null;
 
-                // Resolve seed files: collect outputs from all upstream nodes.
+                // Resolve seed files: collect outputs from all upstream nodes recursively.
                 // We prefer data.previewFiles (from background execution), then data.interactionFiles, then data.file.
-                const upstreamFiles = edges
-                    .filter(e => e.target === interactionNodeId)
-                    .map(e => nodes.find(n => n.id === e.source))
-                    .filter(Boolean)
-                    .map(n => {
-                        const data = n!.data;
-                        if (Array.isArray(data.previewFiles) && data.previewFiles.length > 0) return data.previewFiles as File[];
-                        if (Array.isArray(data.interactionFiles) && data.interactionFiles.length > 0) return data.interactionFiles as File[];
-                        if (data.file instanceof File) return [data.file];
-                        return [];
-                    })
-                    .flat();
+                const getUpstreamFilesRecursive = (nodeId: string): File[] => {
+                    const parentEdges = edges.filter(e => e.target === nodeId);
+                    const files: File[] = [];
+                    for (const edge of parentEdges) {
+                        const parentNode = nodes.find(n => n.id === edge.source);
+                        if (!parentNode) continue;
+
+                        const data = parentNode.data;
+                        if (Array.isArray(data.previewFiles) && data.previewFiles.length > 0) {
+                            files.push(...(data.previewFiles as File[]));
+                            continue;
+                        }
+                        if (Array.isArray(data.interactionFiles) && data.interactionFiles.length > 0) {
+                            files.push(...(data.interactionFiles as File[]));
+                            continue;
+                        }
+                        if (data.file instanceof File) {
+                            files.push(data.file);
+                            continue;
+                        }
+
+                        // Recurse to find the inherited seed file from further upstream
+                        files.push(...getUpstreamFilesRecursive(parentNode.id));
+                    }
+                    return files;
+                };
+
+                const upstreamFiles = getUpstreamFilesRecursive(interactionNodeId);
 
                 const seedFiles: File[] =
                     upstreamFiles.length > 0
