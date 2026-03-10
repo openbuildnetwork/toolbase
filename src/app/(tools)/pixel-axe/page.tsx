@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { usePixelAxe } from "@/hooks/usePixelAxe";
+
 import { Zap, ShieldCheck, Scaling, Image } from "lucide-react";
 import { ToolSidebar, ToolSidebarItem } from "@/components/ui/ToolSidebar";
 import { AnimatePresence, motion } from "framer-motion";
@@ -14,7 +14,7 @@ import { ResizeImage } from "@/components/features/pixel-axe/ResizeImage";
 import { Steganography } from "@/components/features/pixel-axe/Steganography";
 
 export default function PixelAxePage() {
-    const { isReady, isProcessing, error, compressImage, getImageInfo, resizeImage, hideText, revealText } = usePixelAxe();
+
 
     // Sidebar State
     const [activeTool, setActiveTool] = useState('compress');
@@ -69,12 +69,7 @@ export default function PixelAxePage() {
                                     transition={{ duration: 0.3 }}
                                     className="h-full"
                                 >
-                                    <CompressImage
-                                        compressImage={compressImage}
-                                        getImageInfo={getImageInfo}
-                                        isProcessing={isProcessing}
-                                        isReady={isReady}
-                                    />
+                                    <CompressImage />
                                 </motion.div>
                             )}
 
@@ -87,12 +82,7 @@ export default function PixelAxePage() {
                                     transition={{ duration: 0.3 }}
                                     className="h-full"
                                 >
-                                    <UpscaleImage
-                                        compressImage={compressImage}
-                                        getImageInfo={getImageInfo}
-                                        isProcessing={isProcessing}
-                                        isReady={isReady}
-                                    />
+                                    <UpscaleImage />
                                 </motion.div>
                             )}
                             {activeTool === 'resize' && (
@@ -104,12 +94,7 @@ export default function PixelAxePage() {
                                     transition={{ duration: 0.3 }}
                                     className="h-full"
                                 >
-                                    <ResizeImage
-                                        resizeImage={resizeImage}
-                                        getImageInfo={getImageInfo}
-                                        isProcessing={isProcessing}
-                                        isReady={isReady}
-                                    />
+                                    <ResizeImage />
                                 </motion.div>
                             )}
                             {activeTool === 'stego' && (
@@ -121,13 +106,7 @@ export default function PixelAxePage() {
                                     transition={{ duration: 0.3 }}
                                     className="h-full"
                                 >
-                                    <Steganography
-                                        hideText={hideText}
-                                        revealText={revealText}
-                                        getImageInfo={getImageInfo}
-                                        isProcessing={isProcessing}
-                                        isReady={isReady}
-                                    />
+                                    <Steganography />
                                 </motion.div>
                             )}
                         </AnimatePresence>

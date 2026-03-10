@@ -29,6 +29,405 @@ export const TOOLS: ToolMeta[] = [
     pythonPowered: true,
     status: 'stable',
     addedAt: '2025-01-01',
+    tip: [
+      {
+      id: 'magic-pdf/compress',
+      name: 'Compress PDF',
+      description: 'Reduce PDF file size while preserving quality.',
+      consumes: ['application/pdf'],
+      produces: ['application/pdf'],
+      configSchema: { fields: [
+        {
+          key: 'level',
+          label: 'Compression Level',
+          type: 'select',
+          default: 'recommended',
+          description: 'Extreme: 70-90% smaller (pages → images). Recommended: 40-60%. Less: high quality, smaller reduction.',
+          options: [
+            { label: 'Extreme (70–90% smaller)', value: 'extreme' },
+            { label: 'Recommended (40–60% smaller)', value: 'recommended' },
+            { label: 'Less compression (high quality)', value: 'less' },
+          ],
+        },
+      ] },
+      getExecutor: async () => {
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(magicPdfWorker, 'compress', (b, c) => ({ file_bytes: b, level: c.level ?? 'recommended' }), () => 'application/pdf', 'Compress PDF');
+      }
+    },
+      {
+      id: 'magic-pdf/split',
+      name: 'Split PDF',
+      description: 'Split a PDF into individual pages or custom page ranges.',
+      consumes: ['application/pdf'],
+      produces: ['application/pdf'],
+      configSchema: { fields: [
+      {
+        key: 'pageRanges',
+        label: 'Page Ranges',
+        type: 'string',
+        default: '',
+        description:
+          'Comma-separated ranges e.g. "1-3,5,7-9". Leave blank to split every page.',
+      },
+    ] },
+      // INP: visual page-selector interaction to set split points
+      interactable: true as const,
+      getInteractionComponent: async () => {
+        const { default: SplitPdf } = await import('@/components/features/magic-pdf/SplitPdf');
+        return SplitPdf;
+      },
+      getExecutor: async () => {
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(magicPdfWorker, 'split', (b, c) => ({ file_bytes: b, page_ranges: c.pageRanges || '' }), () => 'application/pdf', 'Split PDF');
+      }
+    },
+      {
+      id: 'magic-pdf/merge',
+      name: 'Merge PDFs',
+      description: 'Merge multiple PDF files into a single PDF document.',
+      consumes: ['application/pdf'],
+      produces: ['application/pdf'],
+      configSchema: { fields: [] },
+      // INP: requires user interaction to set file order before execution
+      interactable: true as const,
+      getInteractionComponent: async () => {
+        const { default: MergePdf } = await import('@/components/features/magic-pdf/MergePdf');
+        return MergePdf;
+      },
+      getExecutor: async () => {
+        const { createBatchTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createBatchTIPExecutor(magicPdfWorker, 'merge', (b, c) => ({ files_bytes: b, ...c }), () => 'application/pdf', 'Merge PDFs', 'merged.pdf');
+      }
+    },
+      {
+      id: 'magic-pdf/rearrange',
+      name: 'Rearrange PDF',
+      description: 'Reorder, rotate, and remove pages from a PDF.',
+      consumes: ['application/pdf'],
+      produces: ['application/pdf'],
+      // No configSchema fields — all config set via the INP visual page picker
+      configSchema: { fields: [] },
+      // INP: visual drag-and-drop page picker
+      interactable: true as const,
+      getInteractionComponent: async () => {
+        const { default: RearrangePdf } = await import('@/components/features/magic-pdf/RearrangePdf');
+        return RearrangePdf;
+      },
+      // Pure pdf-lib executor — no Python WASM needed
+      getExecutor: async () => {
+        return async (input: import('@/tip/protocol').TIPBundle, config: import('@/tip/protocol').TIPConfig) => {
+          const { rearrangePdf } = await import('@/lib/pdf-actions');
+          const { bundleFromFile } = await import('@/tip/bundle');
+          const payload = input.payloads[0];
+          const file = new File([payload.data], payload.meta.filename || 'input.pdf', { type: 'application/pdf' });
+          const pageOrder = JSON.parse((config.pageOrder as string) || '[]') as number[];
+          const operations = JSON.parse((config.operations as string) || '[]');
+          const resultBytes = await rearrangePdf(file, pageOrder, operations);
+          const resultFile = new File([resultBytes as any], `rearranged_${payload.meta.filename ?? 'output.pdf'}`, { type: 'application/pdf' });
+          return bundleFromFile(resultFile);
+        };
+      }
+    },
+      {
+      id: 'magic-pdf/protect',
+      name: 'Protect PDF',
+      description: 'Password-protect a PDF so it requires a password to open.',
+      consumes: ['application/pdf'],
+      produces: ['application/pdf'],
+      configSchema: { fields: [
+        {
+          key: 'password',
+          label: 'User Password',
+          type: 'password',
+          default: '',
+          required: true,
+          description: 'Required to open the PDF.',
+        },
+        {
+          key: 'owner_password',
+          label: 'Owner Password',
+          type: 'password',
+          default: '',
+          description: 'Optional. Allows changing permissions. Defaults to user password if empty.',
+        },
+        {
+          key: 'allowPrinting',
+          label: 'Allow Printing',
+          type: 'boolean',
+          default: true,
+          description: 'Users can print the document.',
+        },
+        {
+          key: 'allowModifying',
+          label: 'Allow Modifying',
+          type: 'boolean',
+          default: false,
+          description: 'Users can edit the document content.',
+        },
+        {
+          key: 'allowCopying',
+          label: 'Allow Copying',
+          type: 'boolean',
+          default: false,
+          description: 'Users can copy text and images.',
+        },
+        {
+          key: 'allowAnnotating',
+          label: 'Allow Annotating',
+          type: 'boolean',
+          default: true,
+          description: 'Users can add comments and annotations.',
+        },
+        {
+          key: 'allowFillingForms',
+          label: 'Allow Filling Forms',
+          type: 'boolean',
+          default: true,
+          description: 'Users can fill in form fields.',
+        },
+      ] },
+      getExecutor: async () => {
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          magicPdfWorker,
+          'protect',
+          (b, c) => ({
+            file_bytes: b,
+            password: c.password,
+            owner_password: c.owner_password || c.password,
+            permissions: JSON.stringify({
+              printing: c.allowPrinting !== false,
+              modifying: c.allowModifying === true,
+              copying: c.allowCopying === true,
+              annotating: c.allowAnnotating !== false,
+              fillingForms: c.allowFillingForms !== false,
+              accessibility: true,
+            }),
+          }),
+          () => 'application/pdf',
+          'Protect PDF'
+        );
+      }
+    },
+
+      {
+      id: 'magic-pdf/sign',
+      name: 'Sign PDF',
+      description: 'Add hand-drawn, typed, or image signatures to a PDF.',
+      consumes: ['application/pdf'],
+      produces: ['application/pdf'],
+      // No configSchema fields — all config set via the INP signature canvas
+      configSchema: { fields: [] },
+      // INP: full signature draw/type/upload + drag-to-place UI
+      interactable: true as const,
+      getInteractionComponent: async () => {
+        const { default: SignPdf } = await import('@/components/features/magic-pdf/SignPdf');
+        return SignPdf;
+      },
+      // Pure pdf-lib executor — no Python WASM needed
+      getExecutor: async () => {
+        return async (input: import('@/tip/protocol').TIPBundle, config: import('@/tip/protocol').TIPConfig) => {
+          const { PDFDocument } = await import('pdf-lib');
+          const { bundleFromFile } = await import('@/tip/bundle');
+          const payload = input.payloads[0];
+          const fileBytes = await payload.data.arrayBuffer();
+          const pdfDoc = await PDFDocument.load(fileBytes);
+          const signatures: Array<{
+            dataUrl: string; x: number; y: number;
+            width: number; height: number; pageIndex: number;
+          }> = JSON.parse((config.signatures as string) || '[]');
+
+          for (const sig of signatures) {
+            const sigImgBytes = await fetch(sig.dataUrl).then(r => r.arrayBuffer());
+            const sigImg = sig.dataUrl.includes('image/png')
+              ? await pdfDoc.embedPng(sigImgBytes)
+              : await pdfDoc.embedJpg(sigImgBytes);
+
+            const pages = pdfDoc.getPages();
+            const page = pages[sig.pageIndex] ?? pages[0];
+            const { width: pW, height: pH } = page.getSize();
+
+            const realX = (sig.x / 100) * pW - ((sig.width / 100) * pW) / 2;
+            const topY = (sig.y / 100) * pH;
+            const realH = (sig.height / 100) * pH;
+            const realW = (sig.width / 100) * pW;
+            const realY = pH - topY - realH / 2;
+
+            page.drawImage(sigImg, { x: realX, y: realY, width: realW, height: realH });
+          }
+
+          const finalBytes = await pdfDoc.save();
+          const resultFile = new File(
+            [finalBytes as any],
+            `signed_${payload.meta.filename ?? 'output.pdf'}`,
+            { type: 'application/pdf' }
+          );
+          return bundleFromFile(resultFile);
+        };
+      }
+    },
+
+      {
+      id: 'magic-pdf/pdf-to-images',
+
+      name: 'PDF to Images',
+      description: 'Convert each PDF page to a PNG image. Output is one image per page.',
+      consumes: ['application/pdf'],
+      produces: ['image/png', 'image/jpeg'],
+      configSchema: { fields: [
+      {
+        key: 'dpi',
+        label: 'Resolution',
+        type: 'number',
+        default: 150,
+        min: 72,
+        max: 600,
+        step: 1,
+        unit: 'DPI',
+        description: 'Higher DPI = sharper images, larger files.',
+      },
+      {
+        key: 'format',
+        label: 'Format',
+        type: 'select',
+        default: 'PNG',
+        options: [
+          { label: 'PNG', value: 'PNG' },
+          { label: 'JPEG', value: 'JPEG' },
+        ]
+      }
+    ] },
+      getExecutor: async () => {
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          magicPdfWorker,
+          'pdf_to_images',
+          (b, c) => ({ file_bytes: b, format: c.format || 'PNG', ...c }),
+          (p, c) => (c.format === 'JPEG' ? 'image/jpeg' : 'image/png'),
+          'PDF to Images'
+        );
+      }
+    },
+    //   {
+    //   id: 'magic-pdf/html-to-pdf',
+    //   name: 'HTML to PDF',
+    //   description: 'Convert an HTML document into a PDF file.',
+    //   consumes: ['text/html'],
+    //   produces: ['application/pdf'],
+    //   configSchema: { fields: [
+    //   {
+    //     key: 'pageSize',
+    //     label: 'Page Size',
+    //     type: 'select',
+    //     default: 'A4',
+    //     options: [
+    //       { label: 'A4', value: 'A4' },
+    //       { label: 'Letter', value: 'Letter' },
+    //       { label: 'Legal', value: 'Legal' },
+    //     ] }
+    //   ] },
+    //   getExecutor: async () => {
+    //     return async (input: import('@/tip/protocol').TIPBundle, config: import('@/tip/protocol').TIPConfig, hooks: import('@/tip/protocol').TIPHooks) => {
+    //       const { createBundle, createPayload } = await import('@/tip/bundle');
+    //       const TIPError = (await import('@/tip/errors')).TIPError;
+          
+    //       let html2pdf: any;
+    //       try {
+    //          html2pdf = (await import('html2pdf.js')).default;
+    //       } catch (e) {
+    //          // Fallback if default is not available
+    //          html2pdf = await import('html2pdf.js');
+    //       }
+
+    //       if (input.payloads.length === 0) {
+    //         throw new TIPError('EMPTY_BUNDLE', 'No data to process');
+    //       }
+
+    //       const outPayloads = [];
+
+    //       for (let i = 0; i < input.payloads.length; i++) {
+    //         const p = input.payloads[i];
+    //         hooks.onProgress(Math.round((i / input.payloads.length) * 100), `Converting ${p.meta.filename}...`);
+            
+    //         const htmlString = await p.data.text();
+            
+    //         // Create a temporary hidden container for rendering
+    //         const container = document.createElement('div');
+    //         container.innerHTML = htmlString;
+    //         // Prevent taking up visual space or affecting layout, but keep at 0,0 for html2canvas to work properly
+    //         container.style.position = 'absolute';
+    //         container.style.left = '0px';
+    //         container.style.top = '0px';
+    //         container.style.opacity = '0';
+    //         container.style.pointerEvents = 'none';
+    //         container.style.zIndex = '-9999';
+    //         // Set a realistic width for web rendering
+    //         container.style.width = '1200px'; 
+    //         container.style.backgroundColor = 'white'; // Ensure background isn't transparent
+    //         document.body.appendChild(container);
+
+    //         // Give a short delay for images/external resources to initially ping/load in the browser
+    //         await new Promise(resolve => setTimeout(resolve, 500));
+
+    //         try {
+    //           const opt = {
+    //             margin: 10,
+    //             filename: 'output.pdf',
+    //             image: { type: 'jpeg', quality: 0.98 },
+    //             html2canvas: { scale: 2, useCORS: true, logging: false },
+    //             jsPDF: { unit: 'mm', format: (config.pageSize as string)?.toLowerCase() || 'a4', orientation: 'portrait' }
+    //           };
+              
+    //           const pdfArrayBuffer = await (html2pdf as any)().set(opt).from(container).output('arraybuffer');
+    //           const pdfBlob = new Blob([pdfArrayBuffer], { type: 'application/pdf' });
+              
+    //           let baseName = p.meta.filename.replace(/\.[^/.]+$/, "");
+    //           outPayloads.push(createPayload(pdfBlob, 'application/pdf', `${baseName}.pdf`));
+    //         } catch (err: any) {
+    //            throw new TIPError('EXECUTION_FAILED', `HTML to PDF failed: ${err.message || String(err)}`);
+    //         } finally {
+    //           document.body.removeChild(container);
+    //         }
+    //       }
+          
+    //       hooks.onProgress(100, 'Done');
+    //       return createBundle(outPayloads, 'application/pdf');
+    //     };
+    //   }
+    // },
+      {
+      id: 'magic-pdf/images-to-pdf',
+      name: 'Images to PDF',
+      description: 'Convert multiple images into a single PDF document.',
+      consumes: ['image/png', 'image/jpeg', 'image/webp'],
+      produces: ['application/pdf'],
+      configSchema: { fields: [] },
+      getExecutor: async () => {
+        const { createBatchTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createBatchTIPExecutor(magicPdfWorker, 'images_to_pdf', (b, c) => ({ files_bytes: b, ...c }), () => 'application/pdf', 'Images to PDF', 'images.pdf');
+      }
+    },
+      {
+      id: 'magic-pdf/pdf-to-word',
+      name: 'PDF to Word',
+      description: 'Convert a PDF into an editable Word Document.',
+      consumes: ['application/pdf'],
+      produces: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+      configSchema: { fields: [] },
+      getExecutor: async () => {
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(magicPdfWorker, 'pdf_to_word', (b, c) => ({ file_bytes: b, ...c }), () => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'PDF to Word');
+      }
+    }
+    ]
   },
   {
     id: 'pixel-axe',
@@ -46,6 +445,317 @@ export const TOOLS: ToolMeta[] = [
     pythonPowered: true,
     status: 'stable',
     addedAt: '2025-01-01',
+    tip: [
+      {
+      id: 'pixel-axe/compress',
+      name: 'Compress Images',
+      description: 'Compress PNG, JPEG, or WebP images to reduce file size.',
+      consumes: ['image/png', 'image/jpeg', 'image/webp'],
+      produces: ['image/png', 'image/jpeg', 'image/webp'],
+      configSchema: { fields: [
+      {
+        key: 'quality',
+        label: 'Quality',
+        type: 'number',
+        default: 80,
+        min: 1,
+        max: 100,
+        step: 1,
+        unit: '%',
+        description: 'Higher = better quality, larger file.',
+      },
+      {
+        key: 'format',
+        label: 'Output Format',
+        type: 'select',
+        default: 'JPEG',
+        options: [
+          { label: 'JPEG', value: 'JPEG' },
+          { label: 'PNG',  value: 'PNG'  },
+          { label: 'WEBP', value: 'WEBP' },
+        ],
+        description: 'Output image format.',
+      },
+      {
+        key: 'resizeFactor',
+        label: 'Image Scale',
+        type: 'number',
+        default: 1.0,
+        min: 0.1,
+        max: 1.0,
+        step: 0.1,
+        unit: '×',
+        description: 'Scale the image before compression (1.0 = original size).',
+      },
+      {
+        key: 'enhance',
+        label: 'Auto Enhance',
+        type: 'boolean',
+        default: false,
+        description: 'Apply subtle auto-enhancement to contrast and sharpness.',
+      },
+      {
+        key: 'stripMetadata',
+        label: 'Strip Metadata',
+        type: 'boolean',
+        default: true,
+        description: 'Remove GPS, camera, and EXIF data from the output image.',
+      },
+    ] },
+      getExecutor: async () => {
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { pixelAxeWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          pixelAxeWorker,
+          'compress',
+          // Explicit mapping: JS camelCase → Python snake_case
+          (buffer, config) => ({
+            image_data:      buffer,
+            quality:         config.quality,
+            format:          config.format,
+            resize_factor:   config.resizeFactor,
+            enhance:         config.enhance,
+            strip_metadata:  config.stripMetadata,
+          }),
+          (payload, config) => (config.format ? `image/${String(config.format).toLowerCase()}` as any : payload.contentType),
+          'Compress Images'
+        );
+      }
+    },
+      {
+      id: 'pixel-axe/resize',
+      name: 'Resize Images',
+      description: 'Resize images to a specific width and height.',
+      consumes: ['image/png', 'image/jpeg', 'image/webp'],
+      produces: ['image/png', 'image/jpeg', 'image/webp'],
+      configSchema: { fields: [
+      {
+        key: 'width',
+        label: 'Width',
+        type: 'number',
+        default: 1920,
+        min: 1,
+        max: 8192,
+        step: 1,
+        unit: 'px',
+      },
+      {
+        key: 'height',
+        label: 'Height',
+        type: 'number',
+        default: 1080,
+        min: 1,
+        max: 8192,
+        step: 1,
+        unit: 'px',
+      },
+      {
+        key: 'quality',
+        label: 'Quality',
+        type: 'number',
+        default: 90,
+        min: 1,
+        max: 100,
+        step: 1,
+        unit: '%',
+      },
+      {
+        key: 'format',
+        label: 'Output Format',
+        type: 'select',
+        default: 'JPEG',
+        options: [
+          { label: 'JPEG', value: 'JPEG' },
+          { label: 'PNG',  value: 'PNG'  },
+          { label: 'WEBP', value: 'WEBP' },
+        ],
+      },
+      {
+        key: 'mode',
+        label: 'Fit Mode',
+        type: 'select',
+        default: 'stretch',
+        options: [
+          { label: 'Stretch (exact fit)', value: 'stretch' },
+          { label: 'Contain (letterbox)', value: 'contain' },
+        ],
+      },
+      {
+        key: 'fillColor',
+        label: 'Fill Color',
+        type: 'string',
+        default: 'transparent',
+        description: 'Background fill color when fit mode is Contain (hex or "transparent").',
+      },
+    ] },
+      getExecutor: async () => {
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { pixelAxeWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          pixelAxeWorker,
+          'resize',
+          // Explicit mapping: JS camelCase → Python snake_case
+          (buffer, config) => ({
+            image_data:  buffer,
+            width:       config.width,
+            height:      config.height,
+            quality:     config.quality,
+            format:      config.format,
+            mode:        config.mode,
+            fill_color:  config.fillColor,
+          }),
+          (payload, config) => (config.format ? `image/${String(config.format).toLowerCase()}` as any : payload.contentType),
+          'Resize Images'
+        );
+      }
+    },
+      {
+      id: 'pixel-axe/upscale',
+      name: 'Upscale Images',
+      description: 'Upscale images to a larger size with quality enhancement. Always outputs PNG.',
+      consumes: ['image/png', 'image/jpeg', 'image/webp'],
+      produces: ['image/png'],
+      configSchema: { fields: [
+      {
+        key: 'resizeFactor',
+        label: 'Scale Factor',
+        type: 'number',
+        default: 2.0,
+        min: 1.0,
+        max: 4.0,
+        step: 0.25,
+        unit: '×',
+        description: 'How much to enlarge the image.',
+      },
+      {
+        key: 'quality',
+        label: 'Quality',
+        type: 'number',
+        default: 90,
+        min: 1,
+        max: 100,
+        step: 1,
+        unit: '%',
+        description: 'Output image quality.',
+      },
+      {
+        key: 'format',
+        label: 'Output Format',
+        type: 'select',
+        default: 'PNG',
+        options: [
+          { label: 'PNG',  value: 'PNG'  },
+          { label: 'JPEG', value: 'JPEG' },
+          { label: 'WEBP', value: 'WEBP' },
+        ],
+        description: 'Output image format (PNG recommended for quality).',
+      },
+      {
+        key: 'denoise',
+        label: 'Reduce Noise',
+        type: 'boolean',
+        default: false,
+        description: 'Apply median filter to smooth grain.',
+      },
+      {
+        key: 'vibrant',
+        label: 'Vibrant Colors',
+        type: 'boolean',
+        default: false,
+        description: 'Boost saturation and contrast for punchier colors.',
+      },
+      {
+        key: 'printDpi',
+        label: 'Print Ready (300 DPI)',
+        type: 'boolean',
+        default: false,
+        description: 'Set output DPI to 300 for print-quality output.',
+      },
+    ] },
+      getExecutor: async () => {
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { pixelAxeWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          pixelAxeWorker,
+          'compress',  // upscale goes through the 'compress' action in main.py (which routes to upscale_image when resize_factor > 1)
+          // Explicit mapping: JS camelCase → Python snake_case
+          (buffer, config) => ({
+            image_data:    buffer,
+            quality:       config.quality,
+            format:        config.format,
+            resize_factor: config.resizeFactor,
+            enhance:       true,            // always true for upscale
+            denoise:       config.denoise,
+            vibrant:       config.vibrant,
+            print_dpi:     config.printDpi,
+          }),
+          (payload, config) => (config.format ? `image/${String(config.format).toLowerCase()}` as any : 'image/png'),
+          'Upscale Images'
+        );
+      }
+    },
+      {
+      id: 'pixel-axe/hide-data',
+      name: 'Hide Data in Image',
+      description: 'Hide a secret text message inside an image using steganography. Optionally encrypt it with a password.',
+      consumes: ['image/png', 'image/jpeg', 'image/webp'],
+      produces: ['image/png'],
+      configSchema: { fields: [
+      {
+        key: 'message',
+        label: 'Secret Message',
+        type: 'string',
+        default: '',
+        required: true,
+      },
+      {
+        key: 'key',
+        label: 'Encryption Key',
+        type: 'string',
+        default: '',
+        description: 'Optional password to encrypt the message.',
+      }
+      ] },
+      getExecutor: async () => {
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { pixelAxeWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          pixelAxeWorker,
+          'hide_text',
+          (buffer, config) => ({ image_data: buffer, ...config }),
+          () => 'image/png',
+          'Hide Data'
+        );
+      }
+    },
+      {
+      id: 'pixel-axe/reveal-data',
+      name: 'Reveal Data from Image',
+      description: 'Extract and decrypt a hidden text message from an image.',
+      consumes: ['image/png', 'image/jpeg', 'image/webp'],
+      produces: ['text/plain'],
+      configSchema: { fields: [
+      {
+        key: 'key',
+        label: 'Decryption Key',
+        type: 'string',
+        default: '',
+        description: 'Password to decrypt the message, if one was used during hiding.',
+      }
+      ] },
+      getExecutor: async () => {
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { pixelAxeWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          pixelAxeWorker,
+          'reveal_text',
+          (buffer, config) => ({ image_data: buffer, ...config }),
+          () => 'text/plain',
+          'Reveal Data'
+        );
+      }
+    }
+    ]
   },
   {
     id: 'data-lens',
@@ -165,6 +875,23 @@ export const TOOLS: ToolMeta[] = [
     pythonPowered: false,
     status: 'beta',
     addedAt: '2025-01-01',
+  },
+  {
+    id: 'pipeline',
+    name: 'Pipeline Builder',
+    description: 'Chain any tools together into an automated workflow. Powered by TIP.',
+    longDescription:
+      'Pipeline Builder lets you chain Toolbase tools together into reusable automated workflows. Compress a PDF, extract images, then compress those — in one click. Powered by the Toolbase Interoperability Protocol (TIP). All processing stays in your browser.',
+    category: 'developer',
+    route: 'pipeline',
+    thumbnail: '/assets/thumbnails/pipeline.png',
+    tags: ['pipeline', 'chain', 'workflow', 'automate', 'tip', 'batch', 'combine'],
+    isNew: true,
+    isFeatured: true,
+    wasmPowered: true,
+    pythonPowered: true,
+    status: 'beta',
+    addedAt: '2026-02-27',
   },
   {
     id: 'passwordx',

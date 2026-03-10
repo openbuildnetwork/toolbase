@@ -9,7 +9,7 @@ async function loadPyodideAndPackages() {
     console.log("Worker: Initializing Pyodide (DataLens)...");
     try {
         const pyodide = await loadPyodide({
-            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.2/full/",
+            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.3/full/",
         });
 
         // Install dependencies

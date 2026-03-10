@@ -14,7 +14,7 @@ import {
     Link as LinkIcon
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
-import { useMagicPdfWorker } from '@/hooks/useMagicPdfWorker';
+import { useTIPTool } from '@/hooks/useTIPTool';
 import { cn } from '@/lib/utils';
 
 export default function HtmlToPdf() {
@@ -23,7 +23,7 @@ export default function HtmlToPdf() {
     const [url, setUrl] = useState('');
     const [resultPdfUrl, setResultPdfUrl] = useState<string | null>(null);
     const [isFetching, setIsFetching] = useState(false);
-    const { processPdf, isProcessing } = useMagicPdfWorker();
+    const { execute, isProcessing, error, progress, progressMessage, tool } = useTIPTool('magic-pdf/html-to-pdf');
 
     const handleFileSelected = (files: File[]) => {
         if (files.length > 0) {
@@ -73,52 +73,17 @@ export default function HtmlToPdf() {
                 filename = urlObj.hostname;
             }
 
-            // Dynamically import html2pdf
-            // @ts-ignore
-            const html2pdf = (await import('html2pdf.js')).default;
+            // Execute through TIP
+            const htmlFile = new File([new Blob([htmlContent], { type: 'text/html' })], `${filename}.html`, { type: 'text/html' });
 
-            // Create a temporary container
-            const container = document.createElement('div');
-            container.innerHTML = htmlContent;
+            setIsFetching(false);
 
-            // Fix relative images to absolute if base URL is known
-            if (mode === 'url') {
-                const baseUrl = new URL(url).origin;
-                const imgs = container.getElementsByTagName('img');
-                for (let i = 0; i < imgs.length; i++) {
-                    const src = imgs[i].getAttribute('src');
-                    if (src && src.startsWith('/')) {
-                        imgs[i].src = baseUrl + src;
-                    }
-                }
-            }
+            const outputFiles = await execute([htmlFile], { pageSize: 'A4' });
 
-            // Style for better PDF rendering
-            container.style.width = '100%';
-            container.style.maxWidth = '800px';
-            container.style.margin = '0 auto';
-            container.style.background = 'white';
-
-
-            // Generate PDF
-            const worker = html2pdf().from(container).set({
-                    margin: 10,
-                    filename: `${filename}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                }).toPdf().get('pdf');
-
-            worker.then((pdf: any) => {
-                const pdfBlob = pdf.output('blob');
-                const pdfUrl = URL.createObjectURL(pdfBlob);
+            if (outputFiles && outputFiles.length > 0) {
+                const pdfUrl = URL.createObjectURL(outputFiles[0]);
                 setResultPdfUrl(pdfUrl);
-                setIsFetching(false);
-            }).catch((err: any) => {
-                console.error(err);
-                alert("Error generating PDF: " + err.message);
-                setIsFetching(false);
-            });
+            }
 
         } catch (error: any) {
             console.error('Conversion failed:', error);
@@ -221,7 +186,7 @@ export default function HtmlToPdf() {
                                 disabled={(mode === 'file' && !file) || (mode === 'url' && !url)}
                             >
                                 <ArrowRightLeft className="w-5 h-5 mr-2" />
-                                Convert to PDF
+                                {isProcessing ? progressMessage || 'Converting...' : 'Convert to PDF'}
                             </Button>
                         </Card>
                     </motion.div>

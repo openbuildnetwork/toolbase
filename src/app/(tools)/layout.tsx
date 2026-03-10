@@ -1,4 +1,5 @@
 import { ToolHomeButton } from "@/components/ui/ToolHomeButton";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 export default function ToolsLayout({
   children,
@@ -8,7 +9,9 @@ export default function ToolsLayout({
   return (
     <>
       <ToolHomeButton />
-      {children}
+      <ErrorBoundary>
+        <main>{children}</main>
+      </ErrorBoundary>
     </>
   );
 }

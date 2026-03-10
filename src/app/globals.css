@@ -4,13 +4,27 @@
   --background: #f5f5f7;
   --foreground: #1c1c1e;
   --primary: #2b8cee;
+  --surface: #ffffff;
+  --surface-secondary: #f5f5f7;
+  --border: rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0f0f0f;
+    --foreground: #f5f5f5;
+    --primary: #47a1ff;
+    --surface: #1c1c1e;
+    --surface-secondary: #2c2c2e;
+    --border: rgba(255, 255, 255, 0.1);
+  }
 }
 
 @theme {
   --color-primary: #2b8cee;
   --color-background-light: #f5f5f7;
   --font-display:
-    "Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto",
+    var(--font-inter), var(--font-geist-sans), "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto",
     "sans-serif";
 }
 
@@ -253,15 +267,16 @@
     animation-name: fade-in;
   }
 
-  .duration-150 {
+  /* Animation duration utilities — prefixed to avoid colliding with Tailwind's transition-duration classes */
+  .anim-duration-150 {
     animation-duration: 150ms;
   }
 
-  .duration-200 {
+  .anim-duration-200 {
     animation-duration: 200ms;
   }
 
-  .duration-300 {
+  .anim-duration-300 {
     animation-duration: 300ms;
   }
 

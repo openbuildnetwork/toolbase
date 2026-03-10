@@ -14,7 +14,7 @@ import {
     Settings2
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
-import { useMagicPdfWorker } from '@/hooks/useMagicPdfWorker';
+import { useTIPTool } from '@/hooks/useTIPTool';
 import { cn } from '@/lib/utils';
 
 export default function PdfToImage() {
@@ -22,7 +22,7 @@ export default function PdfToImage() {
     const [images, setImages] = useState<string[]>([]);
     const [dpi, setDpi] = useState(150);
     const [format, setFormat] = useState<'JPEG' | 'PNG'>('JPEG');
-    const { processPdf, isProcessing } = useMagicPdfWorker();
+    const { execute, isProcessing, error, progress, progressMessage, tool } = useTIPTool('magic-pdf/pdf-to-images');
 
     const handleFileSelected = (files: File[]) => {
         if (files.length > 0) {
@@ -35,12 +35,11 @@ export default function PdfToImage() {
         if (!file) return;
 
         try {
-            const results = await processPdf('pdf_to_images', file, { dpi, format });
+            const outputFiles = await execute([file], { dpi, format, image_format: format.toLowerCase() });
 
-            if (Array.isArray(results)) {
-                const imageUrls = results.map((imgBytes: number[]) => {
-                    const blob = new Blob([new Uint8Array(imgBytes) as any], { type: `image/${format.toLowerCase()}` });
-                    return URL.createObjectURL(blob);
+            if (outputFiles) {
+                const imageUrls = outputFiles.map(f => {
+                    return URL.createObjectURL(f);
                 });
                 setImages(imageUrls);
             }
@@ -160,7 +159,7 @@ export default function PdfToImage() {
                                         isLoading={isProcessing}
                                     >
                                         <ArrowRightLeft className="w-5 h-5 mr-2" />
-                                        Convert to {format} Images
+                                        {isProcessing ? progressMessage || `Converting...` : `Convert to ${format} Images`}
                                     </Button>
                                 </div>
                             )}

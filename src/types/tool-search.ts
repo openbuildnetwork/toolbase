@@ -43,6 +43,35 @@ export interface ToolMeta {
   addedAt: string;
   /** GitHub username of the contributor who built this tool */
   author?: string;
+  /** 
+   * If defined, this tool supports the TIP Protocol and can be chained
+   * in the Pipeline Builder. An array is used because some UI tools
+   * (like Magic PDF) expose multiple distinct TIP-operations.
+   */
+  tip?: {
+    id: string; // e.g. "magic-pdf/compress"
+    name: string;
+    description: string;
+    consumes: import('@/tip').TIPContentType[];
+    produces: import('@/tip').TIPContentType[];
+    configSchema: import('@/tip').TIPConfigSchema;
+    /**
+     * DYNAMIC IMPORT of the execution logic. 
+     * Keeps the registry lightweight.
+     */
+    getExecutor: () => Promise<(input: import('@/tip').TIPBundle, config: import('@/tip').TIPConfig, hooks: import('@/tip').TIPHooks) => Promise<import('@/tip').TIPBundle>>;
+    /**
+     * INP: when true, this operation requires user interaction before execution.
+     * The pipeline ToolNode shows a Configure button and amber indicator.
+     */
+    interactable?: true;
+    /**
+     * INP: lazily loads the interaction component.
+     * Only present when interactable === true.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getInteractionComponent?: () => Promise<(props: import('@/tip').TIPInteractionProps) => any>;
+  }[];
 }
 
 

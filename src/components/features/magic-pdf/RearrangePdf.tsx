@@ -1,6 +1,15 @@
 'use client';
-
-import React, { useState } from 'react';
+/**
+ * RearrangePdf — unified component for the direct tool page and the pipeline INP.
+ *
+ * Standalone mode  (direct tool):   <RearrangePdf />
+ *   → Reorder, rotate, delete pages → apply changes → download
+ *
+ * Interaction mode (pipeline INP):  <RearrangePdf files={[pdf]} onConfirm={fn} onCancel={fn} />
+ *   → Pre-seeded with upstream file, same UI
+ *   → Confirm saves pageOrder+operations as config (no execution here)
+ */
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileUploader } from '@/components/ui/FileUploader';
 import { Button } from '@/components/ui/Button';
@@ -10,6 +19,7 @@ import {
     RotateCw,
     Trash2,
     CheckCircle,
+    CheckCheck,
     Undo2,
     ArrowUpDown,
     X,
@@ -20,6 +30,9 @@ import {
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
 import { rearrangePdf, getPdfPageCount, renderPdfPageToImage, PageOperation } from '@/lib/pdf-actions';
+import type { TIPInteractionProps } from '@/tip/protocol';
+
+export type RearrangePdfProps = Partial<TIPInteractionProps>;
 
 interface PageItem {
     id: string;
@@ -30,8 +43,16 @@ interface PageItem {
     deleted: boolean;
 }
 
-export default function RearrangePdf() {
-    const [file, setFile] = useState<File | null>(null);
+export default function RearrangePdf({
+    files: seedFiles,
+    config,
+    onConfirm,
+    onCancel,
+}: RearrangePdfProps = {}) {
+    /**true when used inside the pipeline InteractionModal */
+    const isInteractionMode = typeof onConfirm === 'function';
+
+    const [file, setFile] = useState<File | null>(seedFiles?.[0] ?? null);
     const [pages, setPages] = useState<PageItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -39,52 +60,74 @@ export default function RearrangePdf() {
     const [loadingThumbnails, setLoadingThumbnails] = useState(false);
     const [previewPageIndex, setPreviewPageIndex] = useState<number | null>(null);
 
-    const handleFileSelected = async (files: File[]) => {
-        if (files.length > 0) {
-            const selectedFile = files[0];
-            setFile(selectedFile);
-            setResultPdfUrl(null);
-            setIsLoading(true);
-            setLoadingThumbnails(true);
+    // ── Load the PDF whenever file changes (covers seedFiles pre-seed and user picks) ──
+    const loadFile = async (selectedFile: File) => {
+        setResultPdfUrl(null);
+        setIsLoading(true);
+        setLoadingThumbnails(true);
+        try {
+            const pageCount = await getPdfPageCount(selectedFile);
 
-            try {
-                const pageCount = await getPdfPageCount(selectedFile);
-                const pageItems: PageItem[] = [];
+            let initialOrder = Array.from({ length: pageCount }, (_, i) => i);
+            let savedOperations: PageOperation[] = [];
 
-                // Initialize pages
-                for (let i = 0; i < pageCount; i++) {
-                    pageItems.push({
-                        id: `page-${i}`,
-                        index: i,
-                        originalIndex: i,
-                        thumbnail: null,
-                        rotation: 0,
-                        deleted: false,
-                    });
-                }
-
-                setPages(pageItems);
-
-                // Load thumbnails asynchronously
-                for (let i = 0; i < pageCount; i++) {
-                    try {
-                        const thumbnail = await renderPdfPageToImage(selectedFile, i, 1.5);
-                        setPages(prev => prev.map(p =>
-                            p.originalIndex === i ? { ...p, thumbnail } : p
-                        ));
-                    } catch (error) {
-                        console.error(`Failed to render page ${i}:`, error);
-                    }
-                }
-
-                setLoadingThumbnails(false);
-            } catch (error) {
-                console.error('Error loading PDF:', error);
-                alert('Failed to load PDF: ' + (error as Error).message);
-            } finally {
-                setIsLoading(false);
+            if (config && config.pageOrder) {
+                try { initialOrder = JSON.parse(config.pageOrder as string); } catch (e) { /* ignore */ }
             }
+            if (config && config.operations) {
+                try { savedOperations = JSON.parse(config.operations as string); } catch (e) { /* ignore */ }
+            }
+
+            const allPagesModel = Array.from({ length: pageCount }, (_, i) => {
+                const op = savedOperations.find(o => o.pageIndex === i);
+                return {
+                    id: `page-${i}`,
+                    index: i,
+                    originalIndex: i,
+                    thumbnail: null,
+                    rotation: op?.rotation ?? 0,
+                    deleted: op?.delete ?? false,
+                };
+            });
+
+            const orderedActivePages = initialOrder
+                .map(originalIdx => allPagesModel.find(p => p.originalIndex === originalIdx))
+                .filter(Boolean) as PageItem[];
+
+            const deletedPagesList = allPagesModel.filter(p => p.deleted);
+            const savedActiveIndices = new Set(initialOrder);
+            const missingActivePages = allPagesModel.filter(p => !p.deleted && !savedActiveIndices.has(p.originalIndex));
+
+            const pageItems = [...orderedActivePages, ...missingActivePages, ...deletedPagesList];
+
+            setPages(pageItems);
+            // Load thumbnails progressively
+            for (let i = 0; i < pageCount; i++) {
+                try {
+                    const thumbnail = await renderPdfPageToImage(selectedFile, i, 1.5);
+                    setPages(prev => prev.map(p => p.originalIndex === i ? { ...p, thumbnail } : p));
+                } catch (err) {
+                    console.error(`Failed to render page ${i}:`, err);
+                }
+            }
+            setLoadingThumbnails(false);
+        } catch (err) {
+            console.error('Error loading PDF:', err);
+        } finally {
+            setIsLoading(false);
         }
+    };
+
+    // Auto-load when file is set (covers seedFiles initial value)
+    useEffect(() => {
+        if (file) loadFile(file);
+        else { setPages([]); setResultPdfUrl(null); }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [file]);
+
+    /** Called by the FileUploader drop zone in standalone mode */
+    const handleFileSelected = (files: File[]) => {
+        if (files.length > 0) setFile(files[0]);
     };
 
     const handleRotatePage = (pageId: string) => {
@@ -125,34 +168,46 @@ export default function RearrangePdf() {
         });
     };
 
+    // ── Standalone: execute rearrangement via pdf-lib ─────────────────────────
     const handleProcess = async () => {
         if (!file) return;
-
         setIsProcessing(true);
-
         try {
-            // Get the new order (excluding deleted pages)
             const activePages = pages.filter(p => !p.deleted);
             const newOrder = activePages.map(p => p.originalIndex);
-
-            // Prepare operations
             const operations: PageOperation[] = pages.map(p => ({
                 pageIndex: p.originalIndex,
                 rotation: p.rotation,
                 delete: p.deleted,
             }));
-
             const resultBytes = await rearrangePdf(file, newOrder, operations);
             const blob = new Blob([resultBytes as any], { type: 'application/pdf' });
-            const url = URL.createObjectURL(blob);
-
-            setResultPdfUrl(url);
-        } catch (error) {
-            console.error('Error processing PDF:', error);
-            alert('Failed to process PDF: ' + (error as Error).message);
+            setResultPdfUrl(URL.createObjectURL(blob));
+        } catch (err) {
+            console.error('Error processing PDF:', err);
+            alert('Failed to process PDF: ' + (err as Error).message);
         } finally {
             setIsProcessing(false);
         }
+    };
+
+    // ── Interaction: confirm page arrangement to the pipeline ──────────────────
+    const handleConfirm = () => {
+        if (!file || !onConfirm) return;
+        const activePages = pages.filter(p => !p.deleted);
+        const newOrder = activePages.map(p => p.originalIndex);
+        const operations: PageOperation[] = pages.map(p => ({
+            pageIndex: p.originalIndex,
+            rotation: p.rotation,
+            delete: p.deleted,
+        }));
+        onConfirm({
+            files: [file],
+            config: {
+                pageOrder: JSON.stringify(newOrder),
+                operations: JSON.stringify(operations),
+            },
+        });
     };
 
     const activePages = pages.filter(p => !p.deleted);
@@ -215,10 +270,20 @@ export default function RearrangePdf() {
                                             Reset All
                                         </Button>
                                     )}
-                                    {!resultPdfUrl && (
+                                    {!resultPdfUrl && !isInteractionMode && (
                                         <Button variant="ghost" onClick={() => setFile(null)}>
                                             Change File
                                         </Button>
+                                    )}
+                                    {/* Mode-specific action */}
+                                    {isInteractionMode && (
+                                        <>
+                                            <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+                                            <Button onClick={handleConfirm} disabled={activePages.length === 0} className="gap-2">
+                                                <CheckCheck className="w-4 h-4" />
+                                                Confirm Arrangement ({activePages.length} pages)
+                                            </Button>
+                                        </>
                                     )}
                                 </div>
                             </div>
@@ -269,15 +334,22 @@ export default function RearrangePdf() {
                                     <div className="flex items-center justify-between mb-6">
                                         <div>
                                             <h4 className="font-semibold text-gray-900">Pages</h4>
-                                            <p className="text-sm text-gray-500">Click and drag pages to reorder</p>
+                                            <p className="text-sm text-gray-500">
+                                                {isInteractionMode
+                                                    ? 'Drag pages to reorder, rotate, or delete.'
+                                                    : 'Click and drag pages to reorder'}
+                                            </p>
                                         </div>
-                                        <Button
-                                            onClick={handleProcess}
-                                            disabled={isProcessing || !hasChanges || activePages.length === 0}
-                                            isLoading={isProcessing}
-                                        >
-                                            {isProcessing ? 'Processing...' : 'Apply Changes'}
-                                        </Button>
+                                        {/* Standalone Apply Changes button */}
+                                        {!isInteractionMode && (
+                                            <Button
+                                                onClick={handleProcess}
+                                                disabled={isProcessing || !hasChanges || activePages.length === 0}
+                                                isLoading={isProcessing}
+                                            >
+                                                {isProcessing ? 'Processing...' : 'Apply Changes'}
+                                            </Button>
+                                        )}
                                     </div>
 
                                     {loadingThumbnails && (

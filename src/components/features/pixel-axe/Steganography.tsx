@@ -8,21 +8,10 @@ import { Lock, Unlock, Download, RefreshCw, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-interface SteganographyProps {
-    hideText: (file: File, text: string, key?: string) => Promise<any>;
-    revealText: (file: File, key?: string) => Promise<any>;
-    getImageInfo: (file: File) => Promise<any>;
-    isProcessing: boolean;
-    isReady: boolean;
-}
+import { useTIPTool } from "@/hooks/useTIPTool";
 
-export function Steganography({
-    hideText,
-    revealText,
-    getImageInfo,
-    isProcessing,
-    isReady
-}: SteganographyProps) {
+
+export function Steganography() {
     const [mode, setMode] = useState<"hide" | "reveal">("hide");
 
     // Hide State
@@ -38,6 +27,12 @@ export function Steganography({
     const [revealedText, setRevealedText] = useState<string | null>(null);
     const [revealKey, setRevealKey] = useState("");
     const [revealPreviewUrl, setRevealPreviewUrl] = useState<string | null>(null);
+
+    // Hooks
+    const hideTool = useTIPTool('pixel-axe/hide-data');
+    const revealTool = useTIPTool('pixel-axe/reveal-data');
+
+    const isProcessing = hideTool.isProcessing || revealTool.isProcessing;
 
     const handleFileSelect = async (file: File | null, type: "hide" | "reveal") => {
         if (!file) return;
@@ -56,11 +51,17 @@ export function Steganography({
     const handleHide = async () => {
         if (!fileToHide || !textToHide) return;
         try {
-            const result = await hideText(fileToHide, textToHide, useEncryption ? secretKey : undefined);
-            // Result is bytes (image)
-            const blob = new Blob([result], { type: "image/png" });
-            const url = URL.createObjectURL(blob);
-            setHiddenResultUrl(url);
+            const config = {
+                message: textToHide,
+                key: useEncryption ? secretKey : ""
+            };
+            const resultFiles = await hideTool.execute([fileToHide], config);
+
+            if (resultFiles && resultFiles.length > 0) {
+                const blob = resultFiles[0];
+                const url = URL.createObjectURL(blob);
+                setHiddenResultUrl(url);
+            }
         } catch (error) {
             console.error(error);
         }
@@ -69,9 +70,16 @@ export function Steganography({
     const handleReveal = async () => {
         if (!fileToReveal) return;
         try {
-            const result = await revealText(fileToReveal, revealKey || undefined);
-            // Result is string
-            setRevealedText(result);
+            const config = {
+                key: revealKey || ""
+            };
+            const resultFiles = await revealTool.execute([fileToReveal], config);
+
+            if (resultFiles && resultFiles.length > 0) {
+                // The TIP bundle returns a text blob
+                const text = await resultFiles[0].text();
+                setRevealedText(text);
+            }
         } catch (error) {
             console.error(error);
             setRevealedText("Error revealing text.");
@@ -150,7 +158,7 @@ export function Steganography({
                                             </>
                                         ) : (
                                             <FileDropZone
-                                                onFileSelected={(files) => handleFileSelect(files, "hide")}
+                                                onFileSelected={(file) => handleFileSelect(file, "hide")}
                                                 accept="image/*"
                                                 className="border-0 h-full w-full"
                                             />
@@ -280,7 +288,7 @@ export function Steganography({
                                         </>
                                     ) : (
                                         <FileDropZone
-                                            onFileSelected={(files) => handleFileSelect(files, "reveal")}
+                                            onFileSelected={(file) => handleFileSelect(file, "reveal")}
                                             accept="image/*"
                                             className="border-0 h-full w-full"
                                         />

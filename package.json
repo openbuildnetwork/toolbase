@@ -16,7 +16,7 @@
     "watch:wasm": "nodemon --watch rust -e rs,toml --exec \"npm run build:wasm\"",
     "build": "npm run build:python && npm run build:wasm && next build",
     "build:strict-wasm": "npm run build:python && npm run build:wasm && npm run check:wasm && next build",
-    "dev": "concurrently \"npm run watch:python\" \"npm run watch:wasm\" \"next dev\"",
+    "dev": "concurrently \"npm run watch:python\" \"npm run watch:wasm\" \"next dev --turbo\"",
     "lint": "eslint",
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit"
@@ -42,7 +42,7 @@
     "next": "16.1.2",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.530",
-    "pyodide": "^0.29.2",
+    "pyodide": "^0.29.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-virtualized-auto-sizer": "^2.0.2",

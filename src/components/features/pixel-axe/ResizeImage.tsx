@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FileDropZone } from "@/components/ui/FileDropZone";
 import { Button } from "@/components/ui/Button";
 import {
     Download, RefreshCw, Zap, Settings2, Lock, Unlock,
-    Smartphone, Monitor, Image as ImageIcon, Layout
-} from "lucide-react"; // Using generic icons
+    Smartphone, Monitor
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatBytes, cn } from "@/lib/utils";
 import { ImagePreview } from "@/components/features/pixel-axe/ImagePreview";
@@ -12,17 +12,9 @@ import { Label } from "@/components/ui/Label";
 import { Input } from "@/components/ui/Input";
 import { Slider } from "@/components/ui/Slider";
 import { ColorPicker } from "@/components/ui/ColorPicker";
+import { useTIPTool } from "@/hooks/useTIPTool";
+import { getImageInfo } from "@/lib/image-utils";
 
-// Fallback if Tabs/Select don't exist in @/components/ui path - usually they do in shadcn setup
-// If not, I'll use standard HTML or simplified UI.
-// But user requested "lock aspect ratio", "export file types".
-
-interface ResizeImageProps {
-    resizeImage: (file: File, options: any) => Promise<any>;
-    getImageInfo: (file: File) => Promise<any>;
-    isProcessing: boolean;
-    isReady: boolean;
-}
 
 const SOCIAL_PRESETS = [
     { id: "ig_post", name: "IG Post", width: 1080, height: 1080, icon: Smartphone },
@@ -32,7 +24,7 @@ const SOCIAL_PRESETS = [
     { id: "yt_thumb", name: "YouTube Thumb", width: 1280, height: 720, icon: Monitor },
 ];
 
-export function ResizeImage({ resizeImage, getImageInfo, isProcessing, isReady }: ResizeImageProps) {
+export function ResizeImage() {
     const [originalFile, setOriginalFile] = useState<File | null>(null);
     const [originalUrl, setOriginalUrl] = useState<string | null>(null);
     const [originalInfo, setOriginalInfo] = useState<any>(null);
@@ -41,16 +33,37 @@ export function ResizeImage({ resizeImage, getImageInfo, isProcessing, isReady }
     const [processedUrl, setProcessedUrl] = useState<string | null>(null);
     const [processedInfo, setProcessedInfo] = useState<any>(null);
 
-    // Settings
+    // Dimension state (local — not schema-driven, changes dynamically based on image)
     const [width, setWidth] = useState(0);
     const [height, setHeight] = useState(0);
     const [lockAspectRatio, setLockAspectRatio] = useState(true);
     const [percentage, setPercentage] = useState(100);
-    const [quality, setQuality] = useState(90);
-    const [format, setFormat] = useState("JPEG");
     const [resizeMode, setResizeMode] = useState("dimensions"); // dimensions | percentage | social
     const [fitMode, setFitMode] = useState<'stretch' | 'contain'>('stretch');
-    const [fillColor, setFillColor] = useState('transparent');
+
+    // Engine Hook — format + fillColor defaults come from the TIP schema
+    const { execute, isProcessing, error, tool } = useTIPTool('pixel-axe/resize');
+    const isReady = true;
+
+    const defaultConfig = useMemo(
+        () => Object.fromEntries(
+            (tool?.configSchema.fields ?? []).map(f => [f.key, f.default])
+        ),
+        [tool]
+    );
+
+    const [config, setConfig] = useState<Record<string, any>>(defaultConfig);
+    const updateConfig = (key: string, value: any) =>
+        setConfig(prev => ({ ...prev, [key]: value }));
+
+    const seededRef = React.useRef(false);
+    useEffect(() => {
+        if (!seededRef.current && Object.keys(defaultConfig).length > 0) {
+            setConfig(defaultConfig);
+            seededRef.current = true;
+        }
+    }, [defaultConfig]);
+
 
     // Cleanup
     useEffect(() => {
@@ -74,18 +87,17 @@ export function ResizeImage({ resizeImage, getImageInfo, isProcessing, isReady }
         setOriginalUrl(URL.createObjectURL(file));
 
         try {
-            const info = await getImageInfo(file) as any;
+            const info = await getImageInfo(file);
             setOriginalInfo(info);
             setAspectRatio(info.width / info.height);
             setWidth(info.width);
             setHeight(info.height);
 
-            // Auto-detect format
-            if (info.format && ["JPEG", "PNG", "WEBP"].includes(info.format)) {
-                setFormat(info.format);
-            } else {
-                setFormat("JPEG");
-            }
+            // Auto-detect format and update config
+            const detectedFormat = info.format && ["JPEG", "PNG", "WEBP"].includes(info.format)
+                ? info.format
+                : "JPEG";
+            setConfig(prev => ({ ...prev, format: detectedFormat }));
         } catch (err) {
             console.error(err);
         }
@@ -116,9 +128,10 @@ export function ResizeImage({ resizeImage, getImageInfo, isProcessing, isReady }
     }, [percentage, resizeMode, originalInfo]);
 
     const handleFillColorChange = (c: string) => {
-        setFillColor(c);
-        if (c === 'transparent' && format === 'JPEG') {
-            setFormat('PNG');
+        updateConfig('fillColor', c);
+        // If transparent fill, JPEG can't support it — switch to PNG
+        if (c === 'transparent' && String(config.format) === 'JPEG') {
+            updateConfig('format', 'PNG');
         }
     };
 
@@ -141,34 +154,31 @@ export function ResizeImage({ resizeImage, getImageInfo, isProcessing, isReady }
         if (!originalFile) return;
 
         try {
-            const result = await resizeImage(originalFile, {
+            const resizeConfig = {
+                ...config,
                 width,
                 height,
-                quality,
-                format,
                 mode: fitMode,
-                fill_color: fillColor
-            });
+                fillColor: config.fillColor,
+            };
 
-            if (typeof result === 'string' && result.startsWith('ERROR:')) {
-                alert(result);
-                return;
+            const outputFiles = await execute([originalFile], resizeConfig);
+
+            if (outputFiles && outputFiles.length > 0) {
+                const blob = outputFiles[0];
+                const url = URL.createObjectURL(blob);
+
+                if (processedUrl) URL.revokeObjectURL(processedUrl);
+                setProcessedUrl(url);
+                setProcessedInfo({
+                    size_bytes: blob.size,
+                    width,
+                    height
+                });
             }
-
-            const blob = new Blob([result as BlobPart], { type: `image/${format.toLowerCase()}` });
-            const url = URL.createObjectURL(blob);
-
-            if (processedUrl) URL.revokeObjectURL(processedUrl);
-            setProcessedUrl(url);
-            setProcessedInfo({
-                size_bytes: blob.size,
-                width,
-                height
-            });
 
         } catch (err) {
             console.error("Resize failed", err);
-            alert("Resize failed");
         }
     };
 
@@ -176,11 +186,12 @@ export function ResizeImage({ resizeImage, getImageInfo, isProcessing, isReady }
         if (!processedUrl) return;
         const link = document.createElement('a');
         link.href = processedUrl;
-        link.download = `resized-image.${format.toLowerCase()}`;
+        link.download = `resized-image.${String(config.format ?? 'jpeg').toLowerCase()}`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     };
+
 
     return (
         <AnimatePresence mode="wait">
@@ -369,7 +380,7 @@ export function ResizeImage({ resizeImage, getImageInfo, isProcessing, isReady }
                                             <div className="space-y-2">
                                                 <Label className="text-xs text-gray-500">Background Color</Label>
                                                 <ColorPicker
-                                                    value={fillColor}
+                                                    value={String(config.fillColor ?? 'transparent')}
                                                     onChange={handleFillColorChange}
                                                     allowTransparent={true}
                                                     className="w-full bg-white p-2 rounded-lg border border-gray-200"
@@ -383,16 +394,16 @@ export function ResizeImage({ resizeImage, getImageInfo, isProcessing, isReady }
                                     <div className="space-y-2">
                                         <div className="flex justify-between">
                                             <Label>Format</Label>
-                                            <span className="text-xs text-gray-400">{format}</span>
+                                            <span className="text-xs text-gray-400">{String(config.format ?? 'JPEG')}</span>
                                         </div>
                                         <div className="flex gap-2">
                                             {['JPEG', 'PNG', 'WEBP'].map(fmt => (
                                                 <button
                                                     key={fmt}
-                                                    onClick={() => setFormat(fmt)}
+                                                    onClick={() => updateConfig('format', fmt)}
                                                     className={cn(
                                                         "flex-1 py-2 text-xs font-bold rounded-lg border transition-all",
-                                                        format === fmt
+                                                        config.format === fmt
                                                             ? "bg-slate-800 text-white border-slate-800"
                                                             : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
                                                     )}
@@ -406,11 +417,11 @@ export function ResizeImage({ resizeImage, getImageInfo, isProcessing, isReady }
                                     <div className="space-y-2">
                                         <div className="flex justify-between">
                                             <Label>Quality</Label>
-                                            <span className="text-sm text-gray-500">{quality}%</span>
+                                            <span className="text-sm text-gray-500">{Number(config.quality ?? 90)}%</span>
                                         </div>
                                         <Slider
-                                            value={quality}
-                                            onChange={(e: any) => setQuality(Number(e.target.value))}
+                                            value={Number(config.quality ?? 90)}
+                                            onChange={(e: any) => updateConfig('quality', Number(e.target.value))}
                                             min={10}
                                             max={100}
                                             step={1}

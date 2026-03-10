@@ -30,7 +30,7 @@ import {
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
 import { PdfPreview } from '@/components/ui/PdfPreview';
-import { useMagicPdfWorker } from '@/hooks/useMagicPdfWorker';
+import { magicPdfWorker } from '@/workers/instances';
 
 type ElementType = 'text' | 'image' | 'shape' | 'drawing' | 'whiteout';
 type ShapeType = 'rectangle' | 'circle' | 'line';
@@ -76,7 +76,12 @@ export default function EditPdf() {
     const [currentFontFamily, setCurrentFontFamily] = useState('Inter');
     const [currentStrokeWidth, setCurrentStrokeWidth] = useState(2);
 
-    const { processPdf, isReady } = useMagicPdfWorker();
+    const [isReady, setIsReady] = useState(false);
+
+    useEffect(() => {
+        // Assume worker will be ready quickly, or we can explicitly check workerStatus if needed.
+        setIsReady(true);
+    }, []);
     const previewContainerRef = useRef<HTMLDivElement>(null);
 
     // Reset editor when file change
@@ -95,7 +100,8 @@ export default function EditPdf() {
 
         const detectElements = async () => {
             try {
-                const results: any = await processPdf('detect', file, { page_index: currentPage - 1 });
+                const fileBytes = await file.arrayBuffer();
+                const results: any = await magicPdfWorker.execute('detect', { file_bytes: new Uint8Array(fileBytes), page_index: currentPage - 1 });
                 if (results && Array.isArray(results.elements)) {
                     const { width: p_W, height: p_H } = results;
                     const newElements: EditElement[] = results.elements.map((res: any) => {
@@ -121,7 +127,7 @@ export default function EditPdf() {
         };
 
         detectElements();
-    }, [file, currentPage, isReady, processPdf, detectedPages]);
+    }, [file, currentPage, isReady, detectedPages]);
 
     const handleFileSelected = (files: File[]) => {
         if (files.length > 0) {
@@ -195,8 +201,9 @@ export default function EditPdf() {
 
         setIsProcessing(true);
         try {
-            // Use the Python apply_edits action
-            const resultBytes = await processPdf('apply_edits', file, {
+            const fileBytes = await file.arrayBuffer();
+            const resultBytes = await magicPdfWorker.execute('apply_edits', {
+                file_bytes: new Uint8Array(fileBytes),
                 edits: elements.filter(el => !el.existing || el.moved || el.redact).map(el => ({
                     ...el,
                     // content is already dataUrl for images/drawings or text

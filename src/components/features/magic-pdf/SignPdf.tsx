@@ -1,5 +1,14 @@
 'use client';
-
+/**
+ * SignPdf — unified component for the direct tool and pipeline INP.
+ *
+ * Standalone mode  (direct tool):  <SignPdf />
+ *   → Draw/type/upload signature → place on PDF → Apply & Save
+ *
+ * Interaction mode (pipeline INP): <SignPdf files={[pdf]} onConfirm={fn} onCancel={fn} />
+ *   → Pre-seeded with upstream file; same signature UI
+ *   → Confirm serialises placed signatures as JSON config (no execution here)
+ */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileUploader } from '@/components/ui/FileUploader';
@@ -8,6 +17,7 @@ import {
     Download,
     RefreshCw,
     CheckCircle,
+    CheckCheck,
     PenTool,
     Type,
     Upload,
@@ -23,6 +33,24 @@ import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
 import { signPdf } from '@/lib/pdf-actions';
 import { PdfPreview } from '@/components/ui/PdfPreview';
+import type { TIPInteractionProps } from '@/tip/protocol';
+
+/**
+ * Converts a data URL to a Uint8Array without any network requests.
+ * Used instead of fetch(dataUrl) to stay fully client-side.
+ */
+function dataUrlToBytes(dataUrl: string): ArrayBuffer {
+    const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+export type SignPdfProps = Partial<TIPInteractionProps>;
+
 
 interface SignatureInstance {
     id: string;
@@ -34,8 +62,16 @@ interface SignatureInstance {
     pageIndex: number;
 }
 
-export default function SignPdf() {
-    const [file, setFile] = useState<File | null>(null);
+export default function SignPdf({
+    files: seedFiles,
+    config,
+    onConfirm,
+    onCancel,
+}: SignPdfProps = {}) {
+    /** true when used inside the pipeline InteractionModal */
+    const isInteractionMode = typeof onConfirm === 'function';
+
+    const [file, setFile] = useState<File | null>(seedFiles?.[0] ?? null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [resultPdfUrl, setResultPdfUrl] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -56,9 +92,22 @@ export default function SignPdf() {
     const [signatureText, setSignatureText] = useState('');
     const [selectedFont, setSelectedFont] = useState('Dancing Script');
 
+    // Lazy-load cursive signature fonts only when in 'type' mode
+    useEffect(() => {
+        if (mode !== 'type') return;
+        const id = 'sign-pdf-cursive-fonts';
+        if (document.getElementById(id)) return;
+        const link = document.createElement('link');
+        link.id = id;
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Alex+Brush&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Pacifico&display=swap';
+        document.head.appendChild(link);
+    }, [mode]);
+
     // Preview area ref for coordinate calculation
     const previewContainerRef = useRef<HTMLDivElement>(null);
 
+    // Auto-reset when file changes
     const handleFileSelected = (files: File[]) => {
         if (files.length > 0) {
             setFile(files[0]);
@@ -67,6 +116,25 @@ export default function SignPdf() {
             setCurrentPage(1);
         }
     };
+
+    // Pre-seed from INP props (runs once on mount if seedFiles provided)
+    useEffect(() => {
+        if (seedFiles?.[0]) {
+            setFile(seedFiles[0]);
+            setCurrentPage(1);
+            if (config && config.signatures) {
+                try {
+                    const savedSignatures = JSON.parse(config.signatures as string);
+                    setSignatures(savedSignatures);
+                } catch (e) {
+                    setSignatures([]);
+                }
+            } else {
+                setSignatures([]);
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Drawing Logic
     const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
@@ -233,7 +301,7 @@ export default function SignPdf() {
             const pdfDoc = await PDFDocument.load(currentFileBytes);
 
             for (const sig of signatures) {
-                const sigImgBytes = await fetch(sig.dataUrl).then(res => res.arrayBuffer());
+                const sigImgBytes = dataUrlToBytes(sig.dataUrl);
                 let sigImg;
                 if (sig.dataUrl.includes('image/png')) {
                     sigImg = await pdfDoc.embedPng(sigImgBytes);
@@ -272,6 +340,17 @@ export default function SignPdf() {
         } finally {
             setIsProcessing(false);
         }
+    };
+
+    // ── Interaction: confirm placed signatures to the pipeline ────────────────
+    const handleConfirm = () => {
+        if (!file || !onConfirm) return;
+        onConfirm({
+            files: [file],
+            config: {
+                signatures: JSON.stringify(signatures),
+            },
+        });
     };
 
     return (
@@ -465,15 +544,30 @@ export default function SignPdf() {
                             </Card>
 
                             <div className="mt-auto">
-                                <Button
-                                    size="lg"
-                                    className="w-full shadow-lg h-12"
-                                    disabled={signatures.length === 0 || isProcessing}
-                                    isLoading={isProcessing}
-                                    onClick={handleApply}
-                                >
-                                    Apply & Save PDF
-                                </Button>
+                                {isInteractionMode ? (
+                                    <div className="flex gap-2">
+                                        <Button variant="ghost" className="flex-1" onClick={onCancel}>Cancel</Button>
+                                        <Button
+                                            size="lg"
+                                            className="flex-1 shadow-lg h-12 gap-2"
+                                            disabled={signatures.length === 0}
+                                            onClick={handleConfirm}
+                                        >
+                                            <CheckCheck className="w-4 h-4" />
+                                            Confirm ({signatures.length})
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Button
+                                        size="lg"
+                                        className="w-full shadow-lg h-12"
+                                        disabled={signatures.length === 0 || isProcessing}
+                                        isLoading={isProcessing}
+                                        onClick={handleApply}
+                                    >
+                                        Apply &amp; Save PDF
+                                    </Button>
+                                )}
                             </div>
                         </div>
 

@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
 import { useRedactWorker } from "@/hooks/useRedactWorker";
-import { createTimer } from "@/lib/performance";
 import { RedactRequest, RedactResponse, ContentType, MaskingStyle } from "@/types/redact";
 
 export function useRedactSecrets() {
@@ -45,14 +44,8 @@ export function useRedactSecrets() {
             },
         };
 
-        const timer = createTimer();
-        timer.start();
-
         try {
             const data = await redact(requestBody);
-            
-            timer.stop('redact-secrets');
-
             setResponse(data);
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Something went wrong during local processing.";

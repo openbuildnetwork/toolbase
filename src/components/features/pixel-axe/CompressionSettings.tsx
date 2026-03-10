@@ -18,6 +18,8 @@ interface CompressionSettingsProps {
     // Compress mode props
     enhance: boolean;
     setEnhance: (val: boolean) => void;
+    stripMetadata?: boolean;
+    setStripMetadata?: (val: boolean) => void;
     // Upscale mode new props
     denoise?: boolean;
     setDenoise?: (val: boolean) => void;
@@ -39,6 +41,8 @@ export function CompressionSettings({
     setResizeFactor,
     enhance,
     setEnhance,
+    stripMetadata,
+    setStripMetadata,
     // Upscale props
     denoise,
     setDenoise,
@@ -191,9 +195,27 @@ export function CompressionSettings({
                     )}
                 </div>
 
-                {/* Strip Metadata - Only for Compress Mode */}
+                {/* Auto Enhance + Strip Metadata — Compress Mode Only */}
                 {mode === 'compress' && (
-                    <div className="pt-4 pb-2 border-t border-gray-100">
+                    <div className="pt-4 pb-2 border-t border-gray-100 space-y-3">
+                        {/* Auto Enhance */}
+                        <div className="flex items-center justify-between group">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-violet-50 transition-colors">
+                                    <Zap className="w-4 h-4 text-gray-500 group-hover:text-violet-500" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium text-gray-700">Auto Enhance</span>
+                                    <span className="text-xs text-gray-400">Boost contrast &amp; sharpness</span>
+                                </div>
+                            </div>
+                            <Switch
+                                checked={enhance}
+                                onChange={(e) => setEnhance(e.target.checked)}
+                            />
+                        </div>
+
+                        {/* Strip Metadata */}
                         <div className="flex items-center justify-between group">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-blue-50 transition-colors">
@@ -201,10 +223,13 @@ export function CompressionSettings({
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-sm font-medium text-gray-700">Strip Metadata</span>
-                                    <span className="text-xs text-gray-400">Remove GPS & Camera data</span>
+                                    <span className="text-xs text-gray-400">Remove GPS &amp; Camera data</span>
                                 </div>
                             </div>
-                            <Switch defaultChecked />
+                            <Switch
+                                checked={stripMetadata ?? true}
+                                onChange={(e) => setStripMetadata?.(e.target.checked)}
+                            />
                         </div>
                     </div>
                 )}

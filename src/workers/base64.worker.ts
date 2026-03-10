@@ -10,7 +10,7 @@ async function initPyodide() {
     console.log("Worker: Initializing Pyodide for Base64 tool...");
     try {
         pyodide = await loadPyodide({
-            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.2/full/",
+            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.3/full/",
         });
         console.log("Worker: Pyodide loaded, setting up filesystem...");
 

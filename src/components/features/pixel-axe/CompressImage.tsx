@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FileDropZone } from "@/components/ui/FileDropZone";
 import { Button } from "@/components/ui/Button";
 import { Download, RefreshCw, Zap, Settings2 } from "lucide-react";
@@ -7,14 +7,11 @@ import { formatBytes, cn } from "@/lib/utils";
 import { ImagePreview } from "@/components/features/pixel-axe/ImagePreview";
 import { CompressionSettings } from "@/components/features/pixel-axe/CompressionSettings";
 
-interface CompressImageProps {
-    compressImage: (file: File, options: any) => Promise<any>;
-    getImageInfo: (file: File) => Promise<any>;
-    isProcessing: boolean;
-    isReady: boolean;
-}
+import { useTIPTool } from "@/hooks/useTIPTool";
+import { getImageInfo } from "@/lib/image-utils";
 
-export function CompressImage({ compressImage, getImageInfo, isProcessing, isReady }: CompressImageProps) {
+
+export function CompressImage() {
     // State
     const [originalFile, setOriginalFile] = useState<File | null>(null);
     const [originalUrl, setOriginalUrl] = useState<string | null>(null);
@@ -23,12 +20,34 @@ export function CompressImage({ compressImage, getImageInfo, isProcessing, isRea
     const [compressedUrl, setCompressedUrl] = useState<string | null>(null);
     const [compressedInfo, setCompressedInfo] = useState<any>(null);
 
-    // Settings
-    const [quality, setQuality] = useState(80);
-    const [format, setFormat] = useState("JPEG");
-    const [resizeFactor, setResizeFactor] = useState(1.0);
-    // Enhance is not used in compression mode, but we need to pass props
-    const [enhance, setEnhance] = useState(false);
+    // Engine Hook — config defaults come directly from the TIP schema.
+    // This keeps the direct tool and the pipeline node in sync automatically.
+    const { execute, isProcessing, error, tool } = useTIPTool('pixel-axe/compress');
+
+    const defaultConfig = useMemo(
+        () => Object.fromEntries(
+            (tool?.configSchema.fields ?? []).map(f => [f.key, f.default])
+        ),
+        [tool]
+    );
+
+    const [config, setConfig] = useState<Record<string, any>>(defaultConfig);
+
+    /** Update a single config field by key */
+    const updateConfig = (key: string, value: any) =>
+        setConfig(prev => ({ ...prev, [key]: value }));
+
+    const isReady = true;
+
+    // Seed config from schema defaults on first mount (handles the case where
+    // `tool` resolves after initial render due to registry lookup timing).
+    const seededRef = React.useRef(false);
+    useEffect(() => {
+        if (!seededRef.current && Object.keys(defaultConfig).length > 0) {
+            setConfig(defaultConfig);
+            seededRef.current = true;
+        }
+    }, [defaultConfig]);
 
     // Cleanup URLs
     useEffect(() => {
@@ -52,18 +71,14 @@ export function CompressImage({ compressImage, getImageInfo, isProcessing, isRea
         setOriginalUrl(URL.createObjectURL(file));
 
         try {
-            const info = await getImageInfo(file) as any;
+            const info = await getImageInfo(file);
             setOriginalInfo(info);
 
-            // Auto-set format to match original if valid
-            if (info.format && ["JPEG", "PNG", "WEBP"].includes(info.format)) {
-                setFormat(info.format);
-            } else {
-                setFormat("JPEG");
-            }
-
-            // Default to 1.0 scale
-            setResizeFactor(1.0);
+            // Auto-set format to match original if valid, otherwise fall back to JPEG
+            const detectedFormat = info.format && ["JPEG", "PNG", "WEBP"].includes(info.format)
+                ? info.format
+                : "JPEG";
+            setConfig(prev => ({ ...prev, format: detectedFormat, resizeFactor: 1.0 }));
 
         } catch (err) {
             console.error("Failed to get image info", err);
@@ -74,24 +89,22 @@ export function CompressImage({ compressImage, getImageInfo, isProcessing, isRea
         if (!originalFile) return;
 
         try {
-            const result = await compressImage(originalFile, {
-                quality,
-                format,
-                resizeFactor,
-                enhance: false // Force false for compression mode
-            });
+            const resultFiles = await execute([originalFile], config);
 
-            const blob = new Blob([result as BlobPart], { type: `image/${format.toLowerCase()}` });
-            const url = URL.createObjectURL(blob);
+            if (resultFiles && resultFiles.length > 0) {
+                const blob = resultFiles[0];
+                const url = URL.createObjectURL(blob);
 
-            if (compressedUrl) URL.revokeObjectURL(compressedUrl);
-            setCompressedUrl(url);
+                if (compressedUrl) URL.revokeObjectURL(compressedUrl);
+                setCompressedUrl(url);
 
-            setCompressedInfo({
-                size_bytes: blob.size,
-                width: originalInfo?.width ? Math.round(originalInfo.width * resizeFactor) : 0,
-                height: originalInfo?.height ? Math.round(originalInfo.height * resizeFactor) : 0,
-            });
+                const resizeFactor = Number(config.resizeFactor ?? 1.0);
+                setCompressedInfo({
+                    size_bytes: blob.size,
+                    width: originalInfo?.width ? Math.round(originalInfo.width * resizeFactor) : 0,
+                    height: originalInfo?.height ? Math.round(originalInfo.height * resizeFactor) : 0,
+                });
+            }
 
         } catch (err) {
             console.error("Compression failed", err);
@@ -102,7 +115,7 @@ export function CompressImage({ compressImage, getImageInfo, isProcessing, isRea
         if (!compressedUrl) return;
         const link = document.createElement('a');
         link.href = compressedUrl;
-        const ext = format.toLowerCase();
+        const ext = String(config.format ?? 'jpeg').toLowerCase();
         link.download = `compressed-image.${ext}`;
         document.body.appendChild(link);
         link.click();
@@ -184,14 +197,16 @@ export function CompressImage({ compressImage, getImageInfo, isProcessing, isRea
 
                             <CompressionSettings
                                 mode="compress"
-                                quality={quality}
-                                setQuality={setQuality}
-                                format={format}
-                                setFormat={setFormat}
-                                resizeFactor={resizeFactor}
-                                setResizeFactor={setResizeFactor}
-                                enhance={enhance}
-                                setEnhance={setEnhance}
+                                quality={Number(config.quality ?? 80)}
+                                setQuality={v => updateConfig('quality', v)}
+                                format={String(config.format ?? 'JPEG')}
+                                setFormat={v => updateConfig('format', v)}
+                                resizeFactor={Number(config.resizeFactor ?? 1.0)}
+                                setResizeFactor={v => updateConfig('resizeFactor', v)}
+                                enhance={Boolean(config.enhance ?? false)}
+                                setEnhance={v => updateConfig('enhance', v)}
+                                stripMetadata={config.stripMetadata !== undefined ? Boolean(config.stripMetadata) : true}
+                                setStripMetadata={v => updateConfig('stripMetadata', v)}
                                 isProcessing={isProcessing}
                             />
                         </div>

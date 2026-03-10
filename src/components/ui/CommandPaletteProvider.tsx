@@ -11,6 +11,8 @@ import React from 'react';
 import { useCommandPalette } from '@/hooks/useCommandPalette';
 import { CommandPalette } from '@/components/ui/CommandPalette';
 import { PerformanceToast } from '@/components/ui/PerformanceToast';
+// TIP tools are now declaratively registered in TOOLS registry.
+
 
 export function CommandPaletteProvider() {
     const palette = useCommandPalette();

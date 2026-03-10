@@ -682,7 +682,7 @@ export default function ArchiveKitPage() {
   });
 
   return (
-    <div className="flex h-[calc(100vh-80px)] overflow-hidden bg-[#f7f6f3] relative font-display text-gray-900">
+    <div className="flex h-screen overflow-hidden bg-[#f7f6f3] relative font-display text-gray-900">
       <ToolSidebar
         title="Archive Kit"
         items={sections}
