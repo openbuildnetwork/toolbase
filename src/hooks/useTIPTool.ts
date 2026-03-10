@@ -39,6 +39,24 @@ export function useTIPTool(toolId: string) {
             return null;
         }
 
+        // Guard against oversized inputs to prevent tab crashes
+        const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB per file
+        const MAX_TOTAL_SIZE = 2 * 1024 * 1024 * 1024; // 2 GB total
+        const totalSize = files.reduce((acc, f) => acc + f.size, 0);
+        const hugeFile = files.find(f => f.size > MAX_FILE_SIZE);
+        if (hugeFile) {
+            const err = new Error(`"${hugeFile.name}" is too large (${(hugeFile.size / 1024 / 1024).toFixed(0)} MB). Maximum file size is 500 MB.`);
+            setError(err.message);
+            if (options.onError) options.onError(err);
+            return null;
+        }
+        if (totalSize > MAX_TOTAL_SIZE) {
+            const err = new Error(`Total input size exceeds 2 GB. Please split your files into smaller batches.`);
+            setError(err.message);
+            if (options.onError) options.onError(err);
+            return null;
+        }
+
         setIsProcessing(true);
         setError(null);
         setProgress(0);
@@ -111,7 +129,7 @@ export function useTIPTool(toolId: string) {
             setIsProcessing(false);
             abortControllerRef.current = null;
         }
-    }, [tool, toolId]);
+    }, [tool]);
 
     const cancel = useCallback(() => {
         if (abortControllerRef.current) {

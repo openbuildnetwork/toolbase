@@ -52,7 +52,7 @@ export interface StepState {
 
 // ─── Pipeline Engine State ────────────────────────────────────────────────────
 
-export type PipelineStatus = 'idle' | 'running' | 'complete' | 'error';
+export type PipelineStatus = 'idle' | 'running' | 'complete' | 'error' | 'cancelled';
 
 export interface PipelineEngineState {
   status: PipelineStatus;

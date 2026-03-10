@@ -15,6 +15,7 @@ import { RedactEditor } from "@/components/features/redact-secrets/RedactEditor"
 import { RedactConfiguration } from "@/components/features/redact-secrets/RedactConfiguration";
 import { RedactOutput } from "@/components/features/redact-secrets/RedactOutput";
 import { RedactStats } from "@/components/features/redact-secrets/RedactStats";
+import { EngineLoader } from "@/components/ui/EngineLoader";
 
 export default function RedactSecretsPage() {
     const {
@@ -35,6 +36,7 @@ export default function RedactSecretsPage() {
         error,
         isLoading,
         isReady,
+        engineLabel,
         handleRedact,
         handleFileUpload,
         clearAll
@@ -71,14 +73,24 @@ export default function RedactSecretsPage() {
                     </div>
                 </header>
 
-                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-full w-fit">
-                    <div className={cn(
-                        "w-2 h-2 rounded-full",
-                        isReady ? "bg-emerald-500 animate-pulse" : "bg-amber-500 animate-pulse"
-                    )} />
-                    <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
-                        {isReady ? "Running Locally (WASM) - No data leaves your machine" : "Initializing Python Engine... (WASM)"}
-                    </span>
+                <EngineLoader isReady={isReady} engine="wasm" />
+                <div
+                    className={cn(
+                        "rounded-2xl border px-4 py-3",
+                        engineLabel === "Rust WASM"
+                            ? "border-sky-200 bg-sky-50/80"
+                            : "border-amber-200 bg-amber-50/80"
+                    )}
+                >
+                    <p className="text-xs font-semibold uppercase tracking-wider text-gray-600">Runtime Engine</p>
+                    <p
+                        className={cn(
+                            "mt-1 text-sm font-semibold",
+                            engineLabel === "Rust WASM" ? "text-sky-700" : "text-amber-700"
+                        )}
+                    >
+                        Engine: {engineLabel}
+                    </p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 font-display">

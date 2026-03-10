@@ -35,6 +35,20 @@ import { signPdf } from '@/lib/pdf-actions';
 import { PdfPreview } from '@/components/ui/PdfPreview';
 import type { TIPInteractionProps } from '@/tip/protocol';
 
+/**
+ * Converts a data URL to a Uint8Array without any network requests.
+ * Used instead of fetch(dataUrl) to stay fully client-side.
+ */
+function dataUrlToBytes(dataUrl: string): ArrayBuffer {
+    const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
 export type SignPdfProps = Partial<TIPInteractionProps>;
 
 
@@ -77,6 +91,18 @@ export default function SignPdf({
     // Type state
     const [signatureText, setSignatureText] = useState('');
     const [selectedFont, setSelectedFont] = useState('Dancing Script');
+
+    // Lazy-load cursive signature fonts only when in 'type' mode
+    useEffect(() => {
+        if (mode !== 'type') return;
+        const id = 'sign-pdf-cursive-fonts';
+        if (document.getElementById(id)) return;
+        const link = document.createElement('link');
+        link.id = id;
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Alex+Brush&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Pacifico&display=swap';
+        document.head.appendChild(link);
+    }, [mode]);
 
     // Preview area ref for coordinate calculation
     const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -275,7 +301,7 @@ export default function SignPdf({
             const pdfDoc = await PDFDocument.load(currentFileBytes);
 
             for (const sig of signatures) {
-                const sigImgBytes = await fetch(sig.dataUrl).then(res => res.arrayBuffer());
+                const sigImgBytes = dataUrlToBytes(sig.dataUrl);
                 let sigImg;
                 if (sig.dataUrl.includes('image/png')) {
                     sigImg = await pdfDoc.embedPng(sigImgBytes);

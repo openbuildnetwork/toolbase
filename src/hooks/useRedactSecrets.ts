@@ -20,7 +20,7 @@ export function useRedactSecrets() {
     const [isInternalLoading, setIsInternalLoading] = useState(false);
 
     // Worker
-    const { redact, isLoading: isWasmLoading, isReady } = useRedactWorker();
+    const { redact, isLoading: isWasmLoading, isReady, engineLabel } = useRedactWorker();
 
     const isLoading = isInternalLoading || isWasmLoading;
 
@@ -47,8 +47,9 @@ export function useRedactSecrets() {
         try {
             const data = await redact(requestBody);
             setResponse(data);
-        } catch (err: any) {
-            setError(err.message || "Something went wrong during local processing.");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Something went wrong during local processing.";
+            setError(message);
             console.error(err);
         } finally {
             setIsInternalLoading(false);
@@ -100,6 +101,7 @@ export function useRedactSecrets() {
         error, setError,
         isLoading,
         isReady,
+        engineLabel,
 
         // Actions
         handleRedact,

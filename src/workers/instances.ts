@@ -42,7 +42,8 @@ if (typeof window !== 'undefined') {
 
   if ('requestIdleCallback' in window) {
     // Wait for the browser to be completely idle
-    (window as any).requestIdleCallback(preloadWorkers, { timeout: 5000 });
+    const ric = window.requestIdleCallback as (cb: () => void, opts?: { timeout: number }) => void;
+    ric(preloadWorkers, { timeout: 5000 });
   } else {
     // Fallback for Safari
     setTimeout(preloadWorkers, 3000);

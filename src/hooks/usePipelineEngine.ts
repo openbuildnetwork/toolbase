@@ -172,8 +172,8 @@ export function usePipelineEngine(): UsePipelineEngineReturn {
     controllerRef.current?.abort();
     setState((prev) => ({
       ...prev,
-      status: 'idle',
-      error: 'Cancelled by user',
+      status: 'cancelled',
+      error: null,
     }));
   }, []);
 
