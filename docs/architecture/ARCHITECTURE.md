@@ -22,6 +22,10 @@ This architecture applies to the full product and all tools equally:
 4. Predictable boundaries between product code and runtime infrastructure.
 5. Incremental migration without breaking existing routes.
 
+## Key References
+1. [Rust and WebAssembly in Toolbase](./RUST-WASM-IN-TOOLBASE.md)
+2. [Migration Plan](./migration-plan.md)
+
 ## Target Package Structure
 ```text
 src/
@@ -104,4 +108,3 @@ Reference: `docs/architecture/standards/error-handling.md`
 3. Visual regression tests for tool shells.
 
 Reference: `docs/architecture/standards/testing-strategy.md`
-
