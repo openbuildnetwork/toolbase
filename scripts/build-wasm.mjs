@@ -21,6 +21,21 @@ function getRustToolDirs() {
     .sort();
 }
 
+function cleanupToolArtifacts(tools) {
+  for (const crateDir of tools) {
+    const localTargetDir = path.join(crateDir, "target");
+    const localLockfile = path.join(crateDir, "Cargo.lock");
+
+    if (fs.existsSync(localTargetDir)) {
+      fs.rmSync(localTargetDir, { recursive: true, force: true });
+    }
+
+    if (fs.existsSync(localLockfile)) {
+      fs.rmSync(localLockfile, { force: true });
+    }
+  }
+}
+
 function run() {
   const tools = getRustToolDirs();
   if (tools.length === 0) {
@@ -35,6 +50,10 @@ function run() {
   }
 
   fs.mkdirSync(PUBLIC_WASM_DIR, { recursive: true });
+  const sharedEnv = {
+    ...process.env,
+    CARGO_TARGET_DIR: path.join(RUST_DIR, "target"),
+  };
 
   for (const crateDir of tools) {
     const tool = path.basename(crateDir);
@@ -43,14 +62,14 @@ function run() {
     let res = spawnSync(
       "wasm-pack",
       ["build", crateDir, "--target", "web", "--out-dir", outDir],
-      { stdio: "inherit" }
+      { stdio: "inherit", env: sharedEnv }
     );
     if (res.status !== 0) {
       console.warn(`[wasm] Standard build failed for ${tool}; retrying with --no-opt.`);
       res = spawnSync(
         "wasm-pack",
         ["build", crateDir, "--target", "web", "--out-dir", outDir, "--no-opt"],
-        { stdio: "inherit" }
+        { stdio: "inherit", env: sharedEnv }
       );
     }
     if (res.status !== 0) {
@@ -58,6 +77,8 @@ function run() {
       return res.status ?? 1;
     }
   }
+
+  cleanupToolArtifacts(tools);
 
   console.log(`[wasm] Built ${tools.length} crate(s) successfully.`);
   return 0;

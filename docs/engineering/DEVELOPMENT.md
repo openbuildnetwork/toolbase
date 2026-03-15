@@ -15,6 +15,12 @@ npm run dev
 2. Python bundle watcher
 3. Rust WASM watcher (when `rust/*` crates exist)
 
+## Rust Workspace Notes
+1. Rust crates live under the shared workspace root at `rust/`.
+2. Generated Cargo build output is standardized into `rust/target/`.
+3. Browser WASM artifacts are generated into `public/wasm/<tool>/pkg/`.
+4. Neither `rust/target/` nor `public/wasm/**/pkg/` should be treated as source code.
+
 ## Required Checks Before PR
 ```bash
 npm run lint

@@ -14,6 +14,7 @@ This folder is the central documentation hub for the full Toolbase product.
 
 ## Architecture
 - [Architecture Overview](./architecture/ARCHITECTURE.md)
+- [Rust and WebAssembly in Toolbase](./architecture/RUST-WASM-IN-TOOLBASE.md)
 - [Migration Plan](./architecture/migration-plan.md)
 - [ADR Template](./architecture/decisions/ADR-TEMPLATE.md)
 - Standards:
@@ -30,4 +31,3 @@ This folder is the central documentation hub for the full Toolbase product.
 - [Release Process](./operations/RELEASE-PROCESS.md)
 - [Support and Triage](./operations/SUPPORT-TRIAGE.md)
 - [Incident Response](./operations/INCIDENT-RESPONSE.md)
-
