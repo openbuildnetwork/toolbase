@@ -48,21 +48,11 @@ function FlowCanvasBuilder() {
 
     const { nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, onConnect, isValidConnection } = useFlowGraph();
     const { graphToPipeline } = useGraphSerializer();
-    const { state, output, run, cancel, reset: resetEngine } = usePipelineEngine();
+    const { state, output, run, cancel, reset: resetEngine, isPaused, pause, resume } = usePipelineEngine();
     const { save, exportJson } = usePipelines();
 
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [interactionNodeId, setInteractionNodeId] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (nodes.length === 0) {
-            setNodes([
-                { id: 'node-file', type: 'fileInput', position: { x: 140, y: 240 }, data: { status: 'idle', file: null } },
-                { id: 'node-out', type: 'output', position: { x: 680, y: 240 }, data: { status: 'idle' } }
-            ]);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const selectedNode = useMemo(() => nodes.find(n => n.id === selectedNodeId) || null, [nodes, selectedNodeId]);
 
@@ -70,7 +60,7 @@ function FlowCanvasBuilder() {
         setNodes(nds => nds.map(n => n.id === nodeId ? { ...n, data: { ...n.data, ...partialData } } : n));
     }, [setNodes]);
 
-    useFlowEngineSync(nodes, edges, setNodes, setEdges, state, output, updateNodeData, graphToPipeline);
+    useFlowEngineSync(nodes, edges, setNodes, setEdges, state, output, graphToPipeline);
 
     const onDragOver = useCallback((event: React.DragEvent) => {
         event.preventDefault();
@@ -207,10 +197,13 @@ function FlowCanvasBuilder() {
             <PipelineToolbar
                 onRun={handleRun}
                 onStop={handleStop}
+                onPause={pause}
+                onResume={resume}
                 onReset={handleReset}
                 onSave={handleSave}
                 onExport={handleExport}
                 isRunning={state.status === 'running'}
+                isPaused={isPaused}
                 canRun={canRun}
             />
 

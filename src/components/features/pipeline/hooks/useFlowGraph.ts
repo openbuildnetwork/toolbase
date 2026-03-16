@@ -14,7 +14,10 @@ import { canTransform } from '@/tip/transformers';
 import type { TIPContentType } from '@/tip/protocol';
 
 export function useFlowGraph() {
-  const [nodes, setNodes] = useState<Node[]>([]);
+  const [nodes, setNodes] = useState<Node[]>([
+    { id: 'node-file', type: 'fileInput', position: { x: 140, y: 240 }, data: { status: 'idle', file: null } },
+    { id: 'node-out', type: 'output', position: { x: 680, y: 240 }, data: { status: 'idle' } }
+  ]);
   const [edges, setEdges] = useState<Edge[]>([]);
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {

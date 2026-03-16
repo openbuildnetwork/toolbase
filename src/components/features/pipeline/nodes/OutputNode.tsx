@@ -10,6 +10,22 @@ export function OutputNode({ data }: { data: any }) {
 
     const isComplete = status === 'complete' && !!bundle;
 
+    const handleDownload = () => {
+        if (!bundle) return;
+        bundle.payloads.forEach((payload: any, i: number) => {
+            setTimeout(() => {
+                const url = URL.createObjectURL(payload.data);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = payload.meta.filename || `output-${i}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 100);
+            }, i * 200);
+        });
+    };
+
     return (
         <div style={{
             width: 220,
@@ -100,7 +116,7 @@ export function OutputNode({ data }: { data: any }) {
 
                     {/* Download button */}
                     <button
-                        onClick={data.onDownload}
+                        onClick={handleDownload}
                         style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                             width: '100%',
@@ -141,3 +157,4 @@ export function OutputNode({ data }: { data: any }) {
         </div>
     );
 }
+

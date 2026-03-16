@@ -1,7 +1,7 @@
 import React from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { TIPToolRegistry } from '@/tip/registry';
-import { Loader2, CheckCircle2, AlertCircle, Settings2 } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Settings2, PauseCircle } from 'lucide-react';
 import Image from 'next/image';
 
 export function getTypeColor(type: string): string {
@@ -45,12 +45,14 @@ export function ToolNode({ data }: { data: any }) {
     const outColor = getTypeColor(tool.produces[0] || '');
 
     const borderColor = status === 'running' ? 'rgba(99,102,241,0.7)' :
+        status === 'paused' ? 'rgba(251,191,36,0.7)' :
         status === 'complete' ? 'rgba(34,197,94,0.5)' :
             status === 'error' ? 'rgba(239,68,68,0.5)' :
                 needsConfig ? 'rgba(251,191,36,0.45)' :
                     'rgba(255,255,255,0.07)';
 
     const shadowColor = status === 'running' ? 'rgba(99,102,241,0.25)' :
+        status === 'paused' ? 'rgba(251,191,36,0.25)' :
         status === 'complete' ? 'rgba(34,197,94,0.15)' :
             status === 'error' ? 'rgba(239,68,68,0.15)' :
                 needsConfig ? 'rgba(251,191,36,0.12)' :
@@ -58,6 +60,7 @@ export function ToolNode({ data }: { data: any }) {
 
     const bg = status === 'complete' ? 'linear-gradient(145deg, #0d1f14 0%, #0f1a10 100%)' :
         status === 'error' ? 'linear-gradient(145deg, #1f0d0d 0%, #1a0f0f 100%)' :
+        status === 'paused' ? 'linear-gradient(145deg, #1f1b0d 0%, #1a150f 100%)' :
             status === 'running' ? 'linear-gradient(145deg, #0d1020 0%, #0f1028 100%)' :
                 'linear-gradient(145deg, #161618 0%, #111113 100%)';
 
@@ -141,6 +144,9 @@ export function ToolNode({ data }: { data: any }) {
                 <div style={{ flexShrink: 0 }}>
                     {(status === 'running' || data.isPreviewing) && (
                         <Loader2 style={{ width: 15, height: 15, color: data.isPreviewing ? '#f59e0b' : '#818cf8', animation: 'spin 1s linear infinite' }} />
+                    )}
+                    {status === 'paused' && !data.isPreviewing && (
+                        <PauseCircle style={{ width: 15, height: 15, color: '#f59e0b' }} />
                     )}
                     {status === 'complete' && !data.isPreviewing && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>

@@ -1,14 +1,17 @@
 import React from 'react';
-import { Play, Square, RotateCcw, Save, Download, Minus, Plus, Maximize2 } from 'lucide-react';
+import { Play, Square, RotateCcw, Save, Download, Minus, Plus, Maximize2, Pause } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
 
 interface PipelineToolbarProps {
     onRun: () => void;
     onStop: () => void;
+    onPause: () => void;
+    onResume: () => void;
     onReset: () => void;
     onSave: () => void;
     onExport: () => void;
     isRunning: boolean;
+    isPaused: boolean;
     canRun: boolean;
 }
 
@@ -18,10 +21,13 @@ interface PipelineToolbarProps {
 export function PipelineToolbar({
     onRun,
     onStop,
+    onPause,
+    onResume,
     onReset,
     onSave,
     onExport,
     isRunning,
+    isPaused,
     canRun,
 }: PipelineToolbarProps) {
     const { zoomIn, zoomOut, fitView } = useReactFlow();
@@ -88,7 +94,7 @@ export function PipelineToolbar({
             boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.05) inset',
         }}>
             {/* Run / Stop primary button */}
-            {isRunning ? (
+            {(isRunning || isPaused) ? (
                 <button
                     onClick={onStop}
                     style={{
@@ -129,6 +135,39 @@ export function PipelineToolbar({
                 >
                     <Play style={{ width: 11, height: 11, fill: 'currentColor' }} />
                     Run Pipeline
+                </button>
+            )}
+
+            {/* Pause / Resume button */}
+            {(isRunning || isPaused) && (
+                <button
+                    onClick={isPaused ? onResume : onPause}
+                    style={{
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        padding: '6px 14px',
+                        background: 'rgba(255,255,255,0.08)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: 9,
+                        color: '#ccc',
+                        fontSize: 12, fontWeight: 700,
+                        cursor: 'pointer',
+                        letterSpacing: '0.03em',
+                        transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+                >
+                    {isPaused ? (
+                        <>
+                            <Play style={{ width: 11, height: 11, fill: 'currentColor' }} />
+                            Resume
+                        </>
+                    ) : (
+                        <>
+                            <Pause style={{ width: 11, height: 11, fill: 'currentColor' }} />
+                            Pause
+                        </>
+                    )}
                 </button>
             )}
 

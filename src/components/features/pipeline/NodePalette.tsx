@@ -72,11 +72,13 @@ function PaletteToolCard({
     onDragStart,
     dimmed = false,
     compatible = false,
+    priority = false,
 }: {
     tool: ReturnType<typeof TIPToolRegistry.getAll>[0];
     onDragStart: (e: React.DragEvent) => void;
     dimmed?: boolean;
     compatible?: boolean;
+    priority?: boolean;
 }) {
     const thumbnail = getThumbnail(tool.id);
     const category = getCategoryFromId(tool.id);
@@ -115,7 +117,14 @@ function PaletteToolCard({
                     flexShrink: 0, position: 'relative',
                     background: '#1a1a1e',
                 }}>
-                    <Image src={thumbnail} alt={tool.name} fill style={{ objectFit: 'cover' }} sizes="32px" />
+                    <Image
+                        src={thumbnail}
+                        alt={tool.name}
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        sizes="32px"
+                        priority={priority}
+                    />
                 </div>
             ) : (
                 <div style={{
@@ -485,11 +494,12 @@ export function NodePalette({
                                     <Zap style={{ width: 9, height: 9 }} />
                                     Compatible ({compatibleTools.length})
                                 </div>
-                                {compatibleTools.map(tool => (
+                                {compatibleTools.map((tool, i) => (
                                     <PaletteToolCard
                                         key={tool.id}
                                         tool={tool}
                                         compatible
+                                        priority={i < 4}
                                         onDragStart={(e) => onDragStart(e, 'tool', tool.id)}
                                     />
                                 ))}
@@ -525,11 +535,12 @@ export function NodePalette({
                                 }}>
                                     All Tools
                                 </div>
-                                {otherTools.map(tool => (
+                                {otherTools.map((tool, i) => (
                                     <PaletteToolCard
                                         key={tool.id}
                                         tool={tool}
                                         dimmed
+                                        priority={!activeFilter && i < 4}
                                         onDragStart={(e) => onDragStart(e, 'tool', tool.id)}
                                     />
                                 ))}
@@ -573,10 +584,11 @@ export function NodePalette({
                             return (
                                 <div key={cat} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                                     <SectionHeader label={meta.label} color={meta.color} />
-                                    {catTools.map(tool => (
+                                    {catTools.map((tool, i) => (
                                         <PaletteToolCard
                                             key={tool.id}
                                             tool={tool}
+                                            priority={i < 2} // First few in each category
                                             onDragStart={(e) => onDragStart(e, 'tool', tool.id)}
                                         />
                                     ))}

@@ -10,43 +10,8 @@ export function useFlowEngineSync(
     setEdges: (update: (eds: Edge[]) => Edge[]) => void,
     state: PipelineEngineState,
     output: TIPBundle | null,
-    updateNodeData: (nodeId: string, partialData: any) => void,
     graphToPipeline: (nodes: Node[], edges: Edge[]) => PipelineStep[] | null
 ) {
-    // Sync file-select, download, and INP callbacks into nodes
-    useEffect(() => {
-        setNodes(nds => nds.map(n => {
-            if (n.type === 'fileInput') {
-                return { ...n, data: { ...n.data, onFileSelect: (f: File | null) => updateNodeData(n.id, { file: f }) } };
-            }
-            if (n.type === 'output') {
-                return {
-                    ...n,
-                    data: {
-                        ...n.data,
-                        onDownload: async () => {
-                            if (!output) return;
-                            output.payloads.forEach((payload, i) => {
-                                setTimeout(() => {
-                                    const url = URL.createObjectURL(payload.data);
-                                    const a = document.createElement('a');
-                                    a.href = url;
-                                    a.download = payload.meta.filename;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    document.body.removeChild(a);
-                                    setTimeout(() => URL.revokeObjectURL(url), 100);
-                                }, i * 200);
-                            });
-                        }
-                    }
-                };
-            }
-            return n;
-        }));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [output, setNodes, updateNodeData]);
-
     // Sync engine state to canvas
     useEffect(() => {
         if (state.status === 'idle') return;
@@ -56,6 +21,7 @@ export function useFlowEngineSync(
         setNodes(nds => nds.map(n => {
             if (n.type === 'fileInput') {
                 const s = state.status === 'running' ? 'running' : state.status === 'complete' ? 'complete' : 'idle';
+                if (n.data.status === s) return n;
                 return { ...n, data: { ...n.data, status: s } };
             }
             if (n.type === 'tool') {
@@ -64,21 +30,29 @@ export function useFlowEngineSync(
                     const ss = state.steps[stepIndex];
                     let nextStatus = 'idle';
                     if (ss.status === 'running') nextStatus = 'running';
+                    if (ss.status === 'paused') nextStatus = 'paused';
                     if (ss.status === 'complete') nextStatus = 'complete';
                     if (ss.status === 'error') nextStatus = 'error';
+
+                    if (n.data.status === nextStatus && n.data.durationMs === ss.durationMs && n.data.error === ss.error) {
+                         return n;
+                    }
                     return { ...n, data: { ...n.data, status: nextStatus, durationMs: ss.durationMs, error: ss.error } };
                 }
             }
             if (n.type === 'output' && state.status === 'complete') {
                 const totalDurationMs = state.steps.reduce((acc, step) => acc + (step.durationMs || 0), 0);
+                if (n.data.status === 'complete' && n.data.bundle === output) return n;
                 return { ...n, data: { ...n.data, status: 'complete', bundle: output, totalDurationMs } };
             }
             return n;
         }));
 
-        setEdges(eds => eds.map(e => {
-            if (state.status === 'idle' || state.status === 'complete') {
-                return { ...e, data: { ...e.data, isRunning: false } };
+        setEdges(eds => {
+            const isDone = state.status === 'idle' || state.status === 'complete' || state.status === 'cancelled' || state.status === 'error' || state.status === 'paused';
+            if (isDone) {
+                if (eds.every(e => !e.data?.isRunning)) return eds;
+                return eds.map(e => ({ ...e, data: { ...e.data, isRunning: false } }));
             }
             let runningEdgeId = '';
             const runningStepIndex = state.steps.findIndex(s => s.status === 'running');
@@ -89,8 +63,12 @@ export function useFlowEngineSync(
                 const runningStepId = orderedSteps[runningStepIndex]?.id;
                 runningEdgeId = eds.find(edge => edge.source === runningStepId)?.id || '';
             }
-            return { ...e, data: { ...e.data, isRunning: e.id === runningEdgeId } };
-        }));
+            
+            const hasChange = eds.some(e => (e.id === runningEdgeId) !== !!e.data?.isRunning);
+            if (!hasChange) return eds;
+
+            return eds.map(e => ({ ...e, data: { ...e.data, isRunning: e.id === runningEdgeId } }));
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state, output, setNodes, setEdges, graphToPipeline]);
 }

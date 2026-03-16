@@ -8,6 +8,7 @@
 
 import { TIP_VERSION } from './version';
 import type { TIPBundle, TIPContentType, TIPPayload } from './protocol';
+import { TIPError } from './errors';
 
 /**
  * Create a TIPPayload from a Blob.
@@ -91,11 +92,12 @@ export function bundleFromFiles(files: File[]): TIPBundle {
  * Extract the single Blob from a bundle that must contain exactly one payload.
  * Throws if the bundle has zero or more than one payload.
  *
- * @throws Error if bundle.payloads.length !== 1
+ * @throws TIPError with code 'EMPTY_BUNDLE' if bundle.payloads.length !== 1
  */
 export function unwrapSingle(bundle: TIPBundle): Blob {
   if (bundle.payloads.length !== 1) {
-    throw new Error(
+    throw new TIPError(
+      'EMPTY_BUNDLE',
       `Expected single payload, got ${bundle.payloads.length}`
     );
   }

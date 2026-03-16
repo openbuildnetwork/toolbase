@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Node, Edge } from '@xyflow/react';
 import type { PipelineStep, PipelineDefinition } from '@/types/pipeline';
 import { TIPToolRegistry } from '@/tip/registry';
@@ -121,5 +121,5 @@ export function useGraphSerializer() {
         return { nodes, edges };
     }, []);
 
-    return { graphToPipeline, pipelineToGraph };
+    return useMemo(() => ({ graphToPipeline, pipelineToGraph }), [graphToPipeline, pipelineToGraph]);
 }

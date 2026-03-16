@@ -19,7 +19,7 @@ import { executeTIPPipeline } from '@/tip/engine';
 import { bundleFromFile, bundleFromFiles } from '@/tip/bundle';
 import type { TIPBundle } from '@/tip/protocol';
 import type { TIPPipelineStep } from '@/tip/engine';
-import type { TIPError } from '@/tip/errors';
+import { TIPError } from '@/tip/errors';
 import type { PipelineEngineState, StepState, PipelineStep } from '@/types/pipeline';
 import type { Node } from '@xyflow/react';
 
@@ -62,10 +62,14 @@ const IDLE_STATE: PipelineEngineState = {
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
-export function usePipelineEngine(): UsePipelineEngineReturn {
+export function usePipelineEngine(): UsePipelineEngineReturn & { isPaused: boolean; pause: () => void; resume: () => void } {
   const [state, setState] = useState<PipelineEngineState>(IDLE_STATE);
   const [output, setOutput] = useState<TIPBundle | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
+  
+  const isPausedRef = useRef(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const resumeResolverRef = useRef<(() => void) | null>(null);
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -89,6 +93,11 @@ export function usePipelineEngine(): UsePipelineEngineReturn {
       const controller = new AbortController();
       controllerRef.current = controller;
 
+      // Reset pause state
+      isPausedRef.current = false;
+      setIsPaused(false);
+      resumeResolverRef.current = null;
+
       // Seed initial state
       const stepStates = makeInitialStepStates(steps.length);
       setState({
@@ -102,9 +111,6 @@ export function usePipelineEngine(): UsePipelineEngineReturn {
       // Build the initial bundle from the FileInputNode file
       const initialBundle = bundleFromFile(file);
 
-      // Removed interactionBundleMap since TIPEngine now executes strictly linearly
-
-
       // Map PipelineStep (UI type) → TIPPipelineStep (engine type)
       const engineSteps: TIPPipelineStep[] = steps.map((s) => ({
         toolId: s.toolId,
@@ -117,23 +123,31 @@ export function usePipelineEngine(): UsePipelineEngineReturn {
           initialBundle,
           {
             onStepStart: (i, _toolId) => {
-              setState((prev) => ({
-                ...prev,
-                currentStepIndex: i,
-                steps: prev.steps.map((s, idx) =>
-                  idx === i ? { ...s, status: 'running', progress: 0 } : s
-                ),
-              }));
+              if (controller.signal.aborted) return;
+              setState((prev) => {
+                if (prev.status === 'paused') return prev; // Don't override pause
+                return {
+                  ...prev,
+                  currentStepIndex: i,
+                  steps: prev.steps.map((s, idx) =>
+                    idx === i ? { ...s, status: 'running', progress: 0 } : s
+                  ),
+                };
+              });
             },
 
             onStepProgress: (i, percent, message) => {
-              updateStep(i, {
-                progress: percent,
-                message: message ?? '',
+              if (controller.signal.aborted) return;
+              setState((prev) => {
+                const steps = [...prev.steps];
+                if (steps[i].status === 'paused') return prev; // Don't override step pause
+                steps[i] = { ...steps[i], progress: percent, message: message ?? '' };
+                return { ...prev, steps };
               });
             },
 
             onStepComplete: (i, _toolId, durationMs) => {
+              if (controller.signal.aborted) return;
               updateStep(i, {
                 status: 'complete',
                 progress: 100,
@@ -143,36 +157,91 @@ export function usePipelineEngine(): UsePipelineEngineReturn {
             },
 
             onStepError: (i, _toolId, error) => {
+              if (controller.signal.aborted) return;
               updateStep(i, {
                 status: 'error',
                 error: error.message,
               });
             },
           },
-          controller.signal
+          controller.signal,
+          async (i) => {
+            // Aggressive Pause Check
+            if (isPausedRef.current) {
+              setState((prev) => ({
+                ...prev,
+                status: 'paused',
+                steps: prev.steps.map((s, idx) =>
+                  idx === i ? { ...s, status: 'paused' } : s
+                ),
+              }));
+
+              await new Promise<void>((resolve) => {
+                resumeResolverRef.current = resolve;
+              });
+            }
+          }
         );
+
+        if (controller.signal.aborted) return;
 
         setOutput(result);
         setState((prev) => ({ ...prev, status: 'complete', error: null }));
       } catch (err) {
+        if (controller.signal.aborted) return;
+        
         const tipError = err as TIPError;
+        const isCancelled = tipError?.code === 'CANCELLED';
+
         setState((prev) => ({
           ...prev,
-          status: 'error',
-          error: tipError.message ?? 'Pipeline failed',
+          status: isCancelled ? 'cancelled' : 'error',
+          steps: prev.steps.map((s) =>
+            s.status === 'running' ? { ...s, status: isCancelled ? 'idle' : 'error' } : s
+          ),
+          error: isCancelled ? null : (tipError?.message ?? 'Pipeline failed'),
         }));
       }
     },
     [updateStep]
   );
 
+  // ── pause/resume ─────────────────────────────────────────────────────────────
+
+  const pause = useCallback(() => {
+    if (state.status !== 'running') return;
+    isPausedRef.current = true;
+    setIsPaused(true);
+    setState(prev => ({ ...prev, status: 'paused' }));
+  }, [state.status]);
+
+  const resume = useCallback(() => {
+    if (state.status !== 'paused') return;
+    isPausedRef.current = false;
+    setIsPaused(false);
+    setState(prev => ({ ...prev, status: 'running' }));
+    if (resumeResolverRef.current) {
+      resumeResolverRef.current();
+      resumeResolverRef.current = null;
+    }
+  }, [state.status]);
+
   // ── cancel ────────────────────────────────────────────────────────────────────
 
   const cancel = useCallback(() => {
     controllerRef.current?.abort();
+    setIsPaused(false);
+    isPausedRef.current = false;
+    if (resumeResolverRef.current) {
+        resumeResolverRef.current();
+        resumeResolverRef.current = null;
+    }
     setState((prev) => ({
       ...prev,
       status: 'cancelled',
+      steps: prev.steps.map((s) =>
+        s.status === 'running' ? { ...s, status: 'idle' } : s
+      ),
       error: null,
     }));
   }, []);
@@ -182,9 +251,11 @@ export function usePipelineEngine(): UsePipelineEngineReturn {
   const reset = useCallback(() => {
     controllerRef.current?.abort();
     controllerRef.current = null;
+    setIsPaused(false);
+    isPausedRef.current = false;
     setState(IDLE_STATE);
     setOutput(null);
   }, []);
 
-  return { state, output, run, cancel, reset };
+  return { state, output, run, cancel, reset, isPaused, pause, resume };
 }

@@ -87,15 +87,36 @@ export class WorkerClient {
    * @param action  - Python-side action name (e.g. 'compress', 'to_images')
    * @param payload - Data sent to the worker, translated to Python kwargs
    * @param transfer - Optional array of Transferable objects to transfer ownership
+   * @param signal  - Optional AbortSignal to cancel waiting for the worker result
    */
-  async execute(action: string, payload: Record<string, unknown>, transfer?: Transferable[]): Promise<unknown> {
+  async execute(action: string, payload: Record<string, unknown>, transfer?: Transferable[], signal?: AbortSignal): Promise<unknown> {
+    if (signal?.aborted) throw new Error('CANCELLED');
+    
     await this.init();
 
     if (!this.worker) throw new Error(`${this.workerName} worker unavailable`);
 
     return new Promise((resolve, reject) => {
       const id = crypto.randomUUID();
-      this.pending.set(id, { resolve, reject });
+      
+      const onAbort = () => {
+        this.pending.delete(id);
+        reject(new Error('CANCELLED'));
+      };
+      
+      if (signal) signal.addEventListener('abort', onAbort, { once: true });
+
+      this.pending.set(id, { 
+        resolve: (val) => {
+          if (signal) signal.removeEventListener('abort', onAbort);
+          resolve(val);
+        }, 
+        reject: (err) => {
+          if (signal) signal.removeEventListener('abort', onAbort);
+          reject(err);
+        } 
+      });
+      
       this.worker!.postMessage({ type: 'EXECUTE', action, data: payload, id }, transfer || []);
     });
   }
