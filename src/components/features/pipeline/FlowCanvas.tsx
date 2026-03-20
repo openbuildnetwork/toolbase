@@ -23,6 +23,8 @@ import { useFlowEngineSync } from './hooks/useFlowEngineSync';
 import { useUndoRedo } from './hooks/useUndoRedo';
 import { useGraphSerializer } from './hooks/useGraphSerializer';
 import { SavedPipelinesModal } from './SavedPipelinesModal';
+import { FilePreviewModal } from '@/components/ui/FilePreviewModal';
+import type { TIPPayload } from '@/tip/protocol';
 
 import { ToolNode } from './nodes/ToolNode';
 import { FileInputNode } from './nodes/FileInputNode';
@@ -70,6 +72,7 @@ const TIPConnectionLine = ({ fromX, fromY, toX, toY, connectionStatus }: Connect
 
 function FlowCanvasBuilder() {
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
+    const clipboard = useRef<{ nodes: any[], edges: any[] } | null>(null);
     const { screenToFlowPosition, fitView } = useReactFlow();
 
     const { nodes, edges, setNodes, setEdges, onNodesChange: baseOnNodesChange, onEdgesChange, onConnect: baseOnConnect, isValidConnection } = useFlowGraph();
@@ -106,6 +109,7 @@ function FlowCanvasBuilder() {
     const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
     const [currentPipelineId, setCurrentPipelineId] = useState<string | null>(null);
     const [currentPipelineName, setCurrentPipelineName] = useState<string | null>(null);
+    const [previewFile, setPreviewFile] = useState<File | TIPPayload | null>(null);
 
     useFlowEngineSync(nodes, edges, setNodes, setEdges, state, output, graphToPipeline);
 
@@ -131,6 +135,16 @@ function FlowCanvasBuilder() {
                     data: {
                         ...n.data,
                         onFileSelect: (f: File | null) => updateNodeData(n.id, { file: f, status: 'idle' }),
+                        onPreview: (f: any) => setPreviewFile(f),
+                    }
+                };
+            }
+            if (n.type === 'output') {
+                return {
+                    ...n,
+                    data: {
+                        ...n.data,
+                        onPreview: (p: any) => setPreviewFile(p),
                     }
                 };
             }
@@ -216,6 +230,110 @@ function FlowCanvasBuilder() {
         });
     }, []);
 
+    const onCopy = useCallback(() => {
+        const selectedNodes = nodes.filter(n => n.selected);
+        if (selectedNodes.length === 0) return;
+
+        const selectedEdges = edges.filter(e =>
+            selectedNodes.some(n => n.id === e.source) && selectedNodes.some(n => n.id === e.target)
+        );
+        clipboard.current = { nodes: JSON.parse(JSON.stringify(selectedNodes)), edges: JSON.parse(JSON.stringify(selectedEdges)) };
+    }, [nodes, edges]);
+
+    const onPaste = useCallback(() => {
+        if (!clipboard.current) return;
+
+        const idMap = new Map<string, string>();
+        const offset = 40;
+
+        const newNodes = clipboard.current.nodes
+            .filter(n => n.type !== 'fileInput' && n.type !== 'output')
+            .map(n => {
+                const newId = `node-${n.type}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+                idMap.set(n.id, newId);
+                return {
+                    ...n,
+                    id: newId,
+                    position: { x: n.position.x + offset, y: n.position.y + offset },
+                    selected: true,
+                };
+            });
+
+        const newEdges = clipboard.current.edges
+            .filter(e => idMap.has(e.source) && idMap.has(e.target))
+            .map(e => ({
+                ...e,
+                id: `edge-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+                source: idMap.get(e.source)!,
+                target: idMap.get(e.target)!,
+                selected: true,
+            }));
+
+        setNodes(nds => nds.map(n => ({ ...n, selected: false })).concat(injectNodeCallbacks(newNodes)));
+        setEdges(eds => eds.map(e => ({ ...e, selected: false })).concat(newEdges));
+        setTimeout(takeSnapshot, 0);
+    }, [injectNodeCallbacks, setNodes, setEdges, takeSnapshot]);
+
+    const onDuplicate = useCallback(() => {
+        const selectedNodes = nodes.filter(n => n.selected);
+        if (selectedNodes.length === 0) return;
+
+        const selectedEdges = edges.filter(e =>
+            selectedNodes.some(n => n.id === e.source) && selectedNodes.some(n => n.id === e.target)
+        );
+
+        const idMap = new Map<string, string>();
+        const offset = 40;
+
+        const newNodes = selectedNodes
+            .filter(n => n.type !== 'fileInput' && n.type !== 'output')
+            .map(n => {
+                const newId = `node-${n.type}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+                idMap.set(n.id, newId);
+                return {
+                    ...n,
+                    id: newId,
+                    position: { x: n.position.x + offset, y: n.position.y + offset },
+                    selected: true,
+                };
+            });
+
+        const newEdges = selectedEdges
+            .filter(e => idMap.has(e.source) && idMap.has(e.target))
+            .map(e => ({
+                ...e,
+                id: `edge-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+                source: idMap.get(e.source)!,
+                target: idMap.get(e.target)!,
+                selected: true,
+            }));
+
+        setNodes(nds => nds.map(n => ({ ...n, selected: false })).concat(injectNodeCallbacks(newNodes)));
+        setEdges(eds => eds.map(e => ({ ...e, selected: false })).concat(newEdges));
+        setTimeout(takeSnapshot, 0);
+    }, [nodes, edges, injectNodeCallbacks, setNodes, setEdges, takeSnapshot]);
+
+    useEffect(() => {
+        const handleKeys = (e: KeyboardEvent) => {
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+                e.preventDefault();
+                onCopy();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+                e.preventDefault();
+                onPaste();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+                e.preventDefault();
+                onDuplicate();
+            }
+        };
+        window.addEventListener('keydown', handleKeys);
+        return () => window.removeEventListener('keydown', handleKeys);
+    }, [onCopy, onPaste, onDuplicate]);
+
     // ── Autosave ────────────────────────────────────────────────────────────────
 
     useEffect(() => {
@@ -288,10 +406,10 @@ function FlowCanvasBuilder() {
     const handleStop = useCallback(() => { cancel(); }, [cancel]);
 
     const handleReset = useCallback(() => {
-        setNodes([
+        setNodes(injectNodeCallbacks([
             { id: 'node-file', type: 'fileInput', position: { x: 140, y: 240 }, data: { status: 'idle', file: null } },
             { id: 'node-out', type: 'output', position: { x: 680, y: 240 }, data: { status: 'idle' } }
-        ]);
+        ]));
         setEdges([]);
         resetEngine();
         localStorage.removeItem('toolbase:pipeline-draft');
@@ -698,6 +816,13 @@ function FlowCanvasBuilder() {
                         @keyframes spin { to { transform: rotate(360deg); } }
                     `}</style>
                 </div>
+            )}
+            {/* Global File Preview Modal */}
+            {previewFile && (
+                <FilePreviewModal
+                    file={previewFile}
+                    onClose={() => setPreviewFile(null)}
+                />
             )}
         </div>
     );

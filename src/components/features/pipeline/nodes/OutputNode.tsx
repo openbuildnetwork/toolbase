@@ -1,5 +1,6 @@
+import React, { useState, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { Download, PackageCheck, Sparkles } from 'lucide-react';
+import { Download, PackageCheck, Sparkles, FileText, Eye } from 'lucide-react';
 
 /**
  * OutputNode — The pipeline terminal node that shows results and allows file download.
@@ -7,6 +8,22 @@ import { Download, PackageCheck, Sparkles } from 'lucide-react';
 export function OutputNode({ data }: { data: any }) {
     const bundle = data.bundle;
     const status = data.status || 'idle';
+    const [resultPreviews, setResultPreviews] = useState<{ url: string; payload: any }[]>([]);
+
+    useEffect(() => {
+        if (bundle && bundle.payloads && bundle.payloads.length > 0) {
+            const results = bundle.payloads
+                .filter((p: any) => p.meta.contentType?.startsWith('image/'))
+                .slice(0, 3)
+                .map((p: any) => ({
+                    url: URL.createObjectURL(p.data),
+                    payload: p
+                }));
+            setResultPreviews(results);
+            return () => results.forEach((r: any) => URL.revokeObjectURL(r.url));
+        }
+        setResultPreviews([]);
+    }, [bundle]);
 
     const isComplete = status === 'complete' && !!bundle;
 
@@ -79,6 +96,48 @@ export function OutputNode({ data }: { data: any }) {
             {/* Content */}
             {isComplete ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {/* Result Previews */}
+                    {resultPreviews.length > 0 && (
+                        <div style={{
+                            display: 'flex',
+                            gap: 6,
+                            marginBottom: 4,
+                            height: 44,
+                        }}>
+                            {resultPreviews.map((item, i) => (
+                                <div 
+                                    key={i} 
+                                    className="group"
+                                    style={{
+                                        position: 'relative',
+                                        flex: 1,
+                                        borderRadius: 6,
+                                        overflow: 'hidden',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        background: '#000',
+                                        cursor: 'pointer',
+                                    }}
+                                    onClick={() => data.onPreview?.(item.payload)}
+                                >
+                                    <img src={item.url} alt={`Result ${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    
+                                    {/* Preview Overlay */}
+                                    <div className="opacity-0 group-hover:opacity-100" style={{
+                                        position: 'absolute',
+                                        inset: 0,
+                                        background: 'rgba(0,0,0,0.4)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'opacity 0.2s ease',
+                                    }}>
+                                        <Eye style={{ width: 12, height: 12, color: '#34d399' }} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
                     {/* Stats */}
                     <div style={{
                         background: 'rgba(52,211,153,0.06)',
@@ -137,6 +196,23 @@ export function OutputNode({ data }: { data: any }) {
                         Download Results
                     </button>
                 </div>
+            ) : status === 'running' ? (
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    padding: '24px 10px',
+                    border: '1px dashed rgba(52,211,153,0.2)',
+                    borderRadius: 9,
+                    background: 'rgba(52,211,153,0.03)',
+                }}>
+                    <Sparkles style={{ width: 22, height: 22, color: '#34d399', opacity: 0.6 }} />
+                    <span style={{ fontSize: 10.5, color: '#34d399', textAlign: 'center', fontWeight: 500 }}>
+                        Synthesizing results...
+                    </span>
+                </div>
             ) : (
                 <div style={{
                     display: 'flex',
@@ -157,4 +233,3 @@ export function OutputNode({ data }: { data: any }) {
         </div>
     );
 }
-

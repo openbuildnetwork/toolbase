@@ -93,13 +93,13 @@ export const PdfPreview = ({
     }
 
     return (
-        <div className={cn('relative flex items-center justify-center overflow-hidden bg-white/50', className)}>
+        <div className={cn('relative flex items-center justify-center bg-white/50', className)}>
             {loading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-50/50 backdrop-blur-sm z-10">
                     <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 </div>
             )}
-            <canvas ref={canvasRef} className="shadow-sm max-w-full h-auto" />
+            <canvas ref={canvasRef} className="shadow-2xl border border-gray-200" />
         </div>
     );
 };

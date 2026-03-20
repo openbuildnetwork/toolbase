@@ -53,21 +53,43 @@ export function useFlowEngineSync(
                         return { ...n, data: { ...n.data, status: nextStatus, durationMs: ss.durationMs, error: ss.error } };
                     }
                 }
-                if (n.type === 'output' && state.status === 'complete') {
-                    // Guard: only update the output node once per output bundle.
-                    if (syncedOutputRef.current === output) return n;
-                    syncedOutputRef.current = output;
-                    changed = true;
-                    const totalDurationMs = state.steps.reduce((acc, step) => acc + (step.durationMs || 0), 0);
-                    return { ...n, data: { ...n.data, status: 'complete', bundle: output, totalDurationMs } };
+                if (n.type === 'output') {
+                    // Primary signal: if we HAVE an output, the node should be in complete state
+                    if (output) {
+                        if (n.data.bundle === output && n.data.status === 'complete') return n;
+                        changed = true;
+                        const totalDurationMs = state.steps.reduce((acc, step) => acc + (step.durationMs || 0), 0);
+                        return { ...n, data: { ...n.data, status: 'complete', bundle: output, totalDurationMs } };
+                    }
+                    
+                    // Secondary signal: if engine is running, show running status
+                    if (state.status === 'running') {
+                         if (n.data.status === 'running') return n;
+                         changed = true;
+                         return { ...n, data: { ...n.data, status: 'running', bundle: null } };
+                    }
+
+                    // Default: idle
+                    if (state.status === 'idle' || state.status === 'cancelled' || state.status === 'error') {
+                        if (n.data.status === 'idle' && !n.data.bundle) return n;
+                        changed = true;
+                        return { ...n, data: { ...n.data, status: 'idle', bundle: null } };
+                    }
                 }
                 return n;
             });
             return changed ? newNodes : nds;
         });
 
+        // Update the sync ref after the update has been queued
+        if (state.status === 'complete' && output) {
+            syncedOutputRef.current = output;
+        } else if (state.status === 'running') {
+            syncedOutputRef.current = null;
+        }
+
         setEdges(eds => {
-            const isDone = state.status === 'idle' || state.status === 'complete' || state.status === 'cancelled' || state.status === 'error' || state.status === 'paused';
+            const isDone = state.status === 'complete' || state.status === 'cancelled' || state.status === 'error' || state.status === 'paused';
             if (isDone) {
                 if (eds.every(e => !e.data?.isRunning)) return eds;
                 return eds.map(e => ({ ...e, data: { ...e.data, isRunning: false } }));
