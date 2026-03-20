@@ -18,6 +18,7 @@ import { NodePalette, PaletteFilterContext } from './NodePalette';
 import { InspectorPanel } from './InspectorPanel';
 import { PipelineToolbar } from './PipelineToolbar';
 import { InteractionModal } from './InteractionModal';
+import { SavePipelineModal } from './SavePipelineModal';
 import { useFlowGraph } from './hooks/useFlowGraph';
 import { useFlowEngineSync } from './hooks/useFlowEngineSync';
 import { useUndoRedo } from './hooks/useUndoRedo';
@@ -110,8 +111,11 @@ function FlowCanvasBuilder() {
     }, [setNodes]);
 
     const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
+    const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
     const [currentPipelineId, setCurrentPipelineId] = useState<string | null>(null);
     const [currentPipelineName, setCurrentPipelineName] = useState<string | null>(null);
+    const [currentPipelineDescription, setCurrentPipelineDescription] = useState<string | null>(null);
+    const [currentPipelineAuthor, setCurrentPipelineAuthor] = useState<string | null>(null);
     const [previewFile, setPreviewFile] = useState<File | TIPPayload | null>(null);
 
     useFlowEngineSync(nodes, edges, setNodes, setEdges, state, output, graphToPipeline);
@@ -416,6 +420,8 @@ function FlowCanvasBuilder() {
     }, [nodes, edges, graphToPipeline, run, resetEngine, setNodes, setEdges, clearIntermediateMemory]);
 
     const handleStop = useCallback(() => { cancel(); }, [cancel]);
+    const handlePause = useCallback(() => { pause(); }, [pause]);
+    const handleResume = useCallback(() => { resume(); }, [resume]);
 
     const handleReset = useCallback(() => {
         setNodes(injectNodeCallbacks([
@@ -427,6 +433,8 @@ function FlowCanvasBuilder() {
         localStorage.removeItem('toolbase:pipeline-draft');
         setCurrentPipelineId(null);
         setCurrentPipelineName(null);
+        setCurrentPipelineDescription(null);
+        setCurrentPipelineAuthor(null);
         clearHistory();
     }, [setNodes, setEdges, resetEngine, clearHistory]);
 
@@ -438,17 +446,22 @@ function FlowCanvasBuilder() {
         takeSnapshot();
     }, [takeSnapshot]);
 
-    const handleSave = useCallback(() => {
+    const handleSavePrimary = useCallback(() => {
+        setIsSaveModalOpen(true);
+    }, []);
+
+    const performSave = useCallback((metadata: { name: string; description?: string; author?: string }) => {
         const orderedSteps = graphToPipeline(nodes, edges);
 
         const newId = currentPipelineId || crypto.randomUUID();
-        const newName = currentPipelineName || `Pipeline ${new Date().toLocaleTimeString()}`;
 
         const { nodes: cleanNodes, edges: cleanEdges } = serializeGraph();
 
         const def: PipelineDefinition = {
             id: newId,
-            name: newName,
+            name: metadata.name,
+            description: metadata.description,
+            author: metadata.author,
             steps: orderedSteps || [],
             createdAt: new Date().toISOString(),
             tipVersion: '1.0',
@@ -456,8 +469,11 @@ function FlowCanvasBuilder() {
         };
         save(def);
         setCurrentPipelineId(newId);
-        setCurrentPipelineName(newName);
-    }, [nodes, edges, graphToPipeline, save, currentPipelineId, currentPipelineName, serializeGraph]);
+        setCurrentPipelineName(metadata.name);
+        setCurrentPipelineDescription(metadata.description || null);
+        setCurrentPipelineAuthor(metadata.author || null);
+        setIsSavedModalOpen(true);
+    }, [nodes, edges, graphToPipeline, save, currentPipelineId, serializeGraph]);
 
     const { pipelineToGraph } = useGraphSerializer();
 
@@ -468,6 +484,10 @@ function FlowCanvasBuilder() {
                 const loadedNodes = injectNodeCallbacks(pipeline.ui.nodes);
                 setNodes(() => loadedNodes);
                 setEdges(() => pipeline.ui!.edges || []);
+                setCurrentPipelineId(pipeline.id);
+                setCurrentPipelineName(pipeline.name);
+                setCurrentPipelineDescription(pipeline.description || null);
+                setCurrentPipelineAuthor(pipeline.author || null);
             } else {
                 const { nodes: newNodes, edges: newEdges } = pipelineToGraph(pipeline);
                 setNodes(() => newNodes);
@@ -577,10 +597,10 @@ function FlowCanvasBuilder() {
             <PipelineToolbar
                 onRun={handleRun}
                 onStop={handleStop}
-                onPause={pause}
-                onResume={resume}
+                onPause={handlePause}
+                onResume={handleResume}
                 onReset={handleReset}
-                onSave={handleSave}
+                onSave={handleSavePrimary}
                 onLoad={() => setIsSavedModalOpen(true)}
                 onExport={handleExport}
                 onUndo={undo}
@@ -598,6 +618,17 @@ function FlowCanvasBuilder() {
                     onLoad={handleLoad}
                 />
             )}
+
+            <SavePipelineModal
+                isOpen={isSaveModalOpen}
+                onClose={() => setIsSaveModalOpen(false)}
+                initialData={{
+                    name: currentPipelineName || '',
+                    description: currentPipelineDescription || '',
+                    author: currentPipelineAuthor || ''
+                }}
+                onSave={performSave}
+            />
 
             {/* Floating NodePalette on left */}
             <NodePalette filterContext={paletteFilterContext} />
