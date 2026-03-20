@@ -8,6 +8,7 @@ import {
     ReactFlowProvider,
     BackgroundVariant,
     useReactFlow,
+    ConnectionLineComponentProps,
     Node,
     Edge
 } from '@xyflow/react';
@@ -19,6 +20,7 @@ import { PipelineToolbar } from './PipelineToolbar';
 import { InteractionModal } from './InteractionModal';
 import { useFlowGraph } from './hooks/useFlowGraph';
 import { useFlowEngineSync } from './hooks/useFlowEngineSync';
+import { useUndoRedo } from './hooks/useUndoRedo';
 import { useGraphSerializer } from './hooks/useGraphSerializer';
 import { SavedPipelinesModal } from './SavedPipelinesModal';
 
@@ -44,11 +46,47 @@ const edgeTypes = {
     tip: TIPEdge,
 };
 
+const TIPConnectionLine = ({ fromX, fromY, toX, toY, connectionStatus }: ConnectionLineComponentProps) => {
+    const isInvalid = connectionStatus === 'invalid';
+    const color = isInvalid ? '#ef4444' : '#8b5cf6';
+
+    return (
+        <g>
+            <path
+                fill="none"
+                stroke={color}
+                strokeWidth={2}
+                style={{
+                    transition: 'stroke 0.2s ease',
+                    strokeDasharray: isInvalid ? 'none' : '5,5',
+                    animation: isInvalid ? 'none' : 'dashdraw 0.5s linear infinite',
+                }}
+                d={`M${fromX},${fromY} C${fromX + 50},${fromY} ${toX - 50},${toY} ${toX},${toY}`}
+            />
+            <circle cx={toX} cy={toY} fill="#fff" r={3} strokeWidth={1.5} stroke={color} />
+        </g>
+    );
+};
+
 function FlowCanvasBuilder() {
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
     const { screenToFlowPosition, fitView } = useReactFlow();
 
-    const { nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, onConnect, isValidConnection } = useFlowGraph();
+    const { nodes, edges, setNodes, setEdges, onNodesChange: baseOnNodesChange, onEdgesChange, onConnect: baseOnConnect, isValidConnection } = useFlowGraph();
+    const { undo, redo, takeSnapshot, clearHistory, canUndo, canRedo } = useUndoRedo(nodes, edges, setNodes, setEdges);
+
+    const onNodesChange = useCallback((changes: any) => {
+        baseOnNodesChange(changes);
+        // If it's a removal, take a snapshot after the state update
+        if (changes.some((c: any) => c.type === 'remove')) {
+            setTimeout(takeSnapshot, 0);
+        }
+    }, [baseOnNodesChange, takeSnapshot]);
+
+    const onConnect = useCallback((params: any) => {
+        baseOnConnect(params);
+        setTimeout(takeSnapshot, 0);
+    }, [baseOnConnect, takeSnapshot]);
     const { graphToPipeline } = useGraphSerializer();
     const { state, output, run, cancel, reset: resetEngine, isPaused, pause, resume } = usePipelineEngine();
     const { save, exportJson } = usePipelines();
@@ -70,6 +108,60 @@ function FlowCanvasBuilder() {
     const [currentPipelineName, setCurrentPipelineName] = useState<string | null>(null);
 
     useFlowEngineSync(nodes, edges, setNodes, setEdges, state, output, graphToPipeline);
+
+    const onSelectionChange = useCallback((params: { nodes: Node[] }) => {
+        if (params.nodes.length > 0) setSelectedNodeId(params.nodes[0].id);
+        else setSelectedNodeId(null);
+    }, [setSelectedNodeId]);
+
+    const injectNodeCallbacks = useCallback((nds: Node[]) => {
+        return nds.map(n => {
+            if (n.type === 'tool') {
+                return {
+                    ...n,
+                    data: {
+                        ...n.data,
+                        onOpenInteraction: () => setInteractionNodeId(n.id),
+                    }
+                };
+            }
+            if (n.type === 'fileInput') {
+                return {
+                    ...n,
+                    data: {
+                        ...n.data,
+                        onFileSelect: (f: File | null) => updateNodeData(n.id, { file: f, status: 'idle' }),
+                    }
+                };
+            }
+            return n;
+        });
+    }, [setInteractionNodeId, updateNodeData]);
+
+    const serializeGraph = useCallback(() => {
+        const cleanNodes = nodes.map(n => ({
+            ...n,
+            data: {
+                ...n.data,
+                file: undefined,
+                previewFiles: undefined,
+                interactionFiles: undefined,
+                bundle: undefined,
+                status: 'idle',
+                error: undefined,
+                durationMs: undefined,
+                interactionDone: undefined,
+                isPreviewing: undefined
+            }
+        }));
+
+        const cleanEdges = edges.map(e => ({
+            ...e,
+            data: { ...e.data, isRunning: false, isInvalid: false }
+        }));
+
+        return { nodes: cleanNodes, edges: cleanEdges };
+    }, [nodes, edges]);
 
     const onDragOver = useCallback((event: React.DragEvent) => {
         event.preventDefault();
@@ -103,10 +195,16 @@ function FlowCanvasBuilder() {
                     onOpenInteraction: () => setInteractionNodeId(newNodeId),
                 }
             }));
+            setTimeout(takeSnapshot, 0);
         } else {
-            setNodes(nds => nds.concat({ id: newNodeId, type, position, data: { status: 'idle', file: null } }));
+            const newNode = { id: newNodeId, type, position, data: { status: 'idle', file: null } };
+            setNodes((nds) => {
+                const next = nds.concat(injectNodeCallbacks([newNode]));
+                return next;
+            });
+            setTimeout(takeSnapshot, 0);
         }
-    }, [screenToFlowPosition, setNodes]);
+    }, [screenToFlowPosition, setNodes, takeSnapshot, injectNodeCallbacks]);
 
     const clearIntermediateMemory = useCallback((nds: Node[]) => {
         // Blob URLs and file buffers take heavy memory; we clear them from intermediate preview state when running or resetting.
@@ -117,60 +215,6 @@ function FlowCanvasBuilder() {
             return { ...n, data: { ...n.data, status: 'idle', durationMs: 0, error: undefined, bundle: undefined } };
         });
     }, []);
-
-    const onSelectionChange = useCallback((params: { nodes: Node[] }) => {
-        if (params.nodes.length > 0) setSelectedNodeId(params.nodes[0].id);
-        else setSelectedNodeId(null);
-    }, [setSelectedNodeId]);
-
-    const serializeGraph = useCallback(() => {
-        const cleanNodes = nodes.map(n => ({
-            ...n,
-            data: {
-                ...n.data,
-                file: undefined,
-                previewFiles: undefined,
-                interactionFiles: undefined,
-                bundle: undefined,
-                status: 'idle',
-                error: undefined,
-                durationMs: undefined,
-                interactionDone: undefined,
-                isPreviewing: undefined
-            }
-        }));
-
-        const cleanEdges = edges.map(e => ({
-            ...e,
-            data: { ...e.data, isRunning: false, isInvalid: false }
-        }));
-
-        return { nodes: cleanNodes, edges: cleanEdges };
-    }, [nodes, edges]);
-
-    const injectNodeCallbacks = useCallback((nds: Node[]) => {
-        return nds.map(n => {
-            if (n.type === 'tool') {
-                return {
-                    ...n,
-                    data: {
-                        ...n.data,
-                        onOpenInteraction: () => setInteractionNodeId(n.id)
-                    }
-                };
-            }
-            if (n.type === 'fileInput') {
-                return {
-                    ...n,
-                    data: {
-                        ...n.data,
-                        onFileSelect: (f: File | null) => updateNodeData(n.id, { file: f })
-                    }
-                };
-            }
-            return n;
-        });
-    }, [updateNodeData]);
 
     // ── Autosave ────────────────────────────────────────────────────────────────
 
@@ -244,14 +288,25 @@ function FlowCanvasBuilder() {
     const handleStop = useCallback(() => { cancel(); }, [cancel]);
 
     const handleReset = useCallback(() => {
+        setNodes([
+            { id: 'node-file', type: 'fileInput', position: { x: 140, y: 240 }, data: { status: 'idle', file: null } },
+            { id: 'node-out', type: 'output', position: { x: 680, y: 240 }, data: { status: 'idle' } }
+        ]);
+        setEdges([]);
         resetEngine();
-        setNodes(nds => clearIntermediateMemory(nds));
-        setEdges(eds => eds.map(e => ({ ...e, data: { ...e.data, isRunning: false } })));
-        // Clear draft on reset so the user can truly start fresh on refresh
         localStorage.removeItem('toolbase:pipeline-draft');
         setCurrentPipelineId(null);
         setCurrentPipelineName(null);
-    }, [resetEngine, setNodes, setEdges, clearIntermediateMemory]);
+        clearHistory();
+    }, [setNodes, setEdges, resetEngine, clearHistory]);
+
+    const onNodeDragStop = useCallback(() => {
+        takeSnapshot();
+    }, [takeSnapshot]);
+
+    const onEdgeUpdateEnd = useCallback(() => {
+        takeSnapshot();
+    }, [takeSnapshot]);
 
     const handleSave = useCallback(() => {
         const orderedSteps = graphToPipeline(nodes, edges);
@@ -363,6 +418,30 @@ function FlowCanvasBuilder() {
                 .react-flow__node:focus { outline: none !important; }
                 .react-flow__controls-button { background: rgba(255,255,255,0.05) !important; border-color: rgba(255,255,255,0.1) !important; fill: #888 !important; }
                 .react-flow__controls-button:hover { background: rgba(255,255,255,0.1) !important; fill: #ccc !important; }
+                .react-flow__edge-path { stroke-width: 2.5; stroke: #9ca3af; transition: stroke 0.3s ease, stroke-width 0.2s ease; }
+                .react-flow__edge.selected .react-flow__edge-path { stroke: #8b5cf6; stroke-width: 3.5; }
+                .react-flow__handle { width: 10px; height: 10px; background: #333; border: 2px solid #000; transition: all 0.2s ease; }
+                .react-flow__handle:hover { transform: scale(1.3); background: #8b5cf6; border-color: #fff; }
+                
+                .react-flow__handle-valid {
+                    background: #4ade80 !important;
+                    border-color: #fff !important;
+                    box-shadow: 0 0 12px rgba(74, 222, 128, 0.6);
+                    transform: scale(1.2);
+                }
+                .react-flow__handle-invalid {
+                    background: #ef4444 !important;
+                    border-color: #fff !important;
+                    box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+                    transform: scale(0.9) rotate(45deg);
+                }
+
+                @keyframes dashdraw {
+                    from { stroke-dashoffset: 10; }
+                    to { stroke-dashoffset: 0; }
+                }
+
+                .react-flow__controls { background: rgba(12,12,14,0.9); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; overflow: hidden; backdrop-filter: blur(10px); }
             `}</style>
             {/* Floating toolbar at top-center */}
             <PipelineToolbar
@@ -374,6 +453,10 @@ function FlowCanvasBuilder() {
                 onSave={handleSave}
                 onLoad={() => setIsSavedModalOpen(true)}
                 onExport={handleExport}
+                onUndo={undo}
+                onRedo={redo}
+                canUndo={canUndo}
+                canRedo={canRedo}
                 isRunning={state.status === 'running'}
                 isPaused={isPaused}
                 canRun={canRun}
@@ -528,6 +611,8 @@ function FlowCanvasBuilder() {
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                onNodeDragStop={onNodeDragStop}
+                connectionLineComponent={TIPConnectionLine}
                 isValidConnection={isValidConnection}
                 onDrop={onDrop}
                 onDragOver={onDragOver}

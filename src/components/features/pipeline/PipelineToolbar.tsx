@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Square, RotateCcw, Save, Download, Minus, Plus, Maximize2, Pause, Folder } from 'lucide-react';
+import { Play, Square, RotateCcw, Save, Download, Minus, Plus, Maximize2, Pause, Folder, Undo, Redo } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
 import { useAnyWorkerWarming } from '@/workers/instances';
 
@@ -12,6 +12,10 @@ interface PipelineToolbarProps {
     onSave: () => void;
     onLoad: () => void;
     onExport: () => void;
+    onUndo: () => void;
+    onRedo: () => void;
+    canUndo: boolean;
+    canRedo: boolean;
     isRunning: boolean;
     isPaused: boolean;
     canRun: boolean;
@@ -29,6 +33,10 @@ export function PipelineToolbar({
     onSave,
     onLoad,
     onExport,
+    onUndo,
+    onRedo,
+    canUndo,
+    canRedo,
     isRunning,
     isPaused,
     canRun,
@@ -175,6 +183,11 @@ export function PipelineToolbar({
                     )}
                 </button>
             )}
+
+            {divider}
+            
+            {iconBtn(onUndo, <Undo style={{ width: 14, height: 14 }} />, 'Undo (Ctrl+Z)', !canUndo)}
+            {iconBtn(onRedo, <Redo style={{ width: 14, height: 14 }} />, 'Redo (Ctrl+Y)', !canRedo)}
 
             {divider}
 
