@@ -20,6 +20,7 @@ import { InteractionModal } from './InteractionModal';
 import { useFlowGraph } from './hooks/useFlowGraph';
 import { useFlowEngineSync } from './hooks/useFlowEngineSync';
 import { useGraphSerializer } from './hooks/useGraphSerializer';
+import { SavedPipelinesModal } from './SavedPipelinesModal';
 
 import { ToolNode } from './nodes/ToolNode';
 import { FileInputNode } from './nodes/FileInputNode';
@@ -54,6 +55,10 @@ function FlowCanvasBuilder() {
 
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [interactionNodeId, setInteractionNodeId] = useState<string | null>(null);
+
+    const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
+    const [currentPipelineId, setCurrentPipelineId] = useState<string | null>(null);
+    const [currentPipelineName, setCurrentPipelineName] = useState<string | null>(null);
 
     const selectedNode = useMemo(() => nodes.find(n => n.id === selectedNodeId) || null, [nodes, selectedNodeId]);
 
@@ -132,26 +137,113 @@ function FlowCanvasBuilder() {
 
     const handleSave = useCallback(() => {
         const orderedSteps = graphToPipeline(nodes, edges);
-        if (!orderedSteps) return;
+
+        const newId = currentPipelineId || crypto.randomUUID();
+        const newName = currentPipelineName || `Pipeline ${new Date().toLocaleTimeString()}`;
+
+        // Strip blobs and runtime state so the saved JSON is small and valid
+        const cleanNodes = nodes.map(n => ({
+            ...n,
+            data: {
+                ...n.data,
+                file: undefined,
+                previewFiles: undefined,
+                interactionFiles: undefined,
+                bundle: undefined,
+                status: 'idle',
+                error: undefined,
+                durationMs: undefined,
+                interactionDone: undefined,
+                isPreviewing: undefined
+            }
+        }));
+
+        const cleanEdges = edges.map(e => ({
+            ...e,
+            data: { ...e.data, isRunning: false, isInvalid: false }
+        }));
+
         const def: PipelineDefinition = {
-            id: crypto.randomUUID(),
-            name: `Pipeline ${new Date().toLocaleTimeString()}`,
-            steps: orderedSteps,
+            id: newId,
+            name: newName,
+            steps: orderedSteps || [],
             createdAt: new Date().toISOString(),
             tipVersion: '1.0',
+            ui: { nodes: cleanNodes, edges: cleanEdges },
         };
         save(def);
-    }, [nodes, edges, graphToPipeline, save]);
+        setCurrentPipelineId(newId);
+        setCurrentPipelineName(newName);
+    }, [nodes, edges, graphToPipeline, save, currentPipelineId, currentPipelineName]);
+
+    const { pipelineToGraph } = useGraphSerializer();
+
+    const handleLoad = useCallback((pipeline: PipelineDefinition) => {
+        try {
+            if (pipeline.ui && pipeline.ui.nodes) {
+                const loadedNodes = pipeline.ui.nodes.map(n => {
+                    if (n.type === 'tool') {
+                        return {
+                            ...n,
+                            data: {
+                                ...n.data,
+                                onOpenInteraction: () => setInteractionNodeId(n.id)
+                            }
+                        };
+                    }
+                    if (n.type === 'fileInput') {
+                        return {
+                            ...n,
+                            data: {
+                                ...n.data,
+                                onFileSelect: (f: File | null) => updateNodeData(n.id, { file: f })
+                            }
+                        };
+                    }
+                    return n;
+                });
+                setNodes(() => loadedNodes);
+                setEdges(() => pipeline.ui!.edges || []);
+            } else {
+                const { nodes: newNodes, edges: newEdges } = pipelineToGraph(pipeline);
+                setNodes(() => newNodes);
+                setEdges(() => newEdges);
+            }
+            setCurrentPipelineId(pipeline.id);
+            setCurrentPipelineName(pipeline.name);
+            setIsSavedModalOpen(false);
+        } catch (err) {
+            console.error('Failed to load pipeline:', err);
+        }
+    }, [pipelineToGraph, setNodes, setEdges]);
 
     const handleExport = useCallback(() => {
         const orderedSteps = graphToPipeline(nodes, edges);
-        if (!orderedSteps) return;
+
+        const cleanNodes = nodes.map(n => ({
+            ...n,
+            data: {
+                ...n.data,
+                file: undefined,
+                previewFiles: undefined,
+                interactionFiles: undefined,
+                bundle: undefined,
+                status: 'idle'
+            }
+        }));
+
+        const cleanEdges = edges.map(e => ({
+            ...e,
+            data: { ...e.data, isRunning: false, isInvalid: false }
+        }));
+
         const def: PipelineDefinition = {
             id: crypto.randomUUID(),
             name: `Pipeline ${new Date().toLocaleTimeString()}`,
-            steps: orderedSteps,
+            steps: orderedSteps || [],
             createdAt: new Date().toISOString(),
             tipVersion: '1.0',
+            ui: { nodes: cleanNodes, edges: cleanEdges },
         };
         exportJson(def);
     }, [nodes, edges, graphToPipeline, exportJson]);
@@ -208,11 +300,19 @@ function FlowCanvasBuilder() {
                 onResume={resume}
                 onReset={handleReset}
                 onSave={handleSave}
+                onLoad={() => setIsSavedModalOpen(true)}
                 onExport={handleExport}
                 isRunning={state.status === 'running'}
                 isPaused={isPaused}
                 canRun={canRun}
             />
+
+            {isSavedModalOpen && (
+                <SavedPipelinesModal
+                    onClose={() => setIsSavedModalOpen(false)}
+                    onLoad={handleLoad}
+                />
+            )}
 
             {/* Floating NodePalette on left */}
             <NodePalette filterContext={paletteFilterContext} />

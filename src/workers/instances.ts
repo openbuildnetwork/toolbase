@@ -70,22 +70,54 @@ export function workerForTool(toolId: string): WorkerClient | null {
  */
 if (typeof window !== 'undefined') {
   const preloadWorkers = () => {
-    // 1st — Magic PDF (heaviest: PyMuPDF + Pillow + pypdf)
     magicPdfWorker.init().catch(console.error);
-    // 2nd — Pixel Axe (Pillow + numpy)
     setTimeout(() => pixelAxeWorker.init().catch(console.error), 2000);
-    // 3rd — Data Lens (pandas + openpyxl — large)
     setTimeout(() => dataLensWorker.init().catch(console.error), 4000);
-    // 4th — Open Draw (networkx — smaller)
     setTimeout(() => openDrawWorker.init().catch(console.error), 6000);
   };
 
   if ('requestIdleCallback' in window) {
-    // Wait for the browser to be completely idle before starting pre-warm
     const ric = window.requestIdleCallback as (cb: () => void, opts?: { timeout: number }) => void;
     ric(preloadWorkers, { timeout: 5000 });
   } else {
-    // Fallback for Safari / older browsers
     setTimeout(preloadWorkers, 3000);
   }
+}
+
+import { useEffect, useState } from 'react';
+
+/**
+ * Returns true if ANY active Python worker is currently in the 'warming' state.
+ * Useful for disabling global UI actions (like saving) during boot.
+ */
+export function useAnyWorkerWarming(): boolean {
+  const allWorkers = [magicPdfWorker, pixelAxeWorker, dataLensWorker, openDrawWorker, base64Worker, redactSecretsWorker];
+  
+  const checkWarming = () => allWorkers.some(w => w.readyState === 'warming');
+  const [isWarming, setIsWarming] = useState(checkWarming);
+
+  useEffect(() => {
+    // Initial check
+    setIsWarming(checkWarming());
+
+    // Subscription cleanup functions
+    const cleanups = allWorkers.map(worker => {
+      const prevCallback = worker.onReadyStateChange;
+      worker.onReadyStateChange = (state, msg) => {
+        setIsWarming(checkWarming());
+        prevCallback?.(state, msg);
+      };
+
+      return () => {
+        if (worker.onReadyStateChange !== prevCallback) {
+            // Restore exact previous callback avoiding memory leak chain
+            worker.onReadyStateChange = prevCallback;
+        }
+      };
+    });
+
+    return () => cleanups.forEach(clean => clean());
+  }, []);
+
+  return isWarming;
 }

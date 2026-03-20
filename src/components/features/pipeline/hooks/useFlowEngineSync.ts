@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Node, Edge } from '@xyflow/react';
 import type { PipelineEngineState, PipelineStep } from '@/types/pipeline';
 import type { TIPBundle } from '@/tip/protocol';
@@ -12,41 +12,59 @@ export function useFlowEngineSync(
     output: TIPBundle | null,
     graphToPipeline: (nodes: Node[], edges: Edge[]) => PipelineStep[] | null
 ) {
+    /**
+     * Track the last output bundle we have already synced to the output node.
+     * This prevents the infinite loop caused by `n.data.bundle === output`
+     * always being false when `output` is a new object reference per render.
+     * Using a ref means we compare by identity across renders without adding
+     * `output` as a reactive dependency that retriggers the effect.
+     */
+    const syncedOutputRef = useRef<TIPBundle | null>(null);
+
     // Sync engine state to canvas
     useEffect(() => {
         if (state.status === 'idle') return;
         const orderedSteps = graphToPipeline(nodes, edges);
         if (!orderedSteps) return;
 
-        setNodes(nds => nds.map(n => {
-            if (n.type === 'fileInput') {
-                const s = state.status === 'running' ? 'running' : state.status === 'complete' ? 'complete' : 'idle';
-                if (n.data.status === s) return n;
-                return { ...n, data: { ...n.data, status: s } };
-            }
-            if (n.type === 'tool') {
-                const stepIndex = orderedSteps.findIndex(s => s.id === n.id);
-                if (stepIndex >= 0 && state.steps[stepIndex]) {
-                    const ss = state.steps[stepIndex];
-                    let nextStatus = 'idle';
-                    if (ss.status === 'running') nextStatus = 'running';
-                    if (ss.status === 'paused') nextStatus = 'paused';
-                    if (ss.status === 'complete') nextStatus = 'complete';
-                    if (ss.status === 'error') nextStatus = 'error';
-
-                    if (n.data.status === nextStatus && n.data.durationMs === ss.durationMs && n.data.error === ss.error) {
-                         return n;
-                    }
-                    return { ...n, data: { ...n.data, status: nextStatus, durationMs: ss.durationMs, error: ss.error } };
+        setNodes(nds => {
+            let changed = false;
+            const newNodes = nds.map(n => {
+                if (n.type === 'fileInput') {
+                    const s = state.status === 'running' ? 'running' : state.status === 'complete' ? 'complete' : 'idle';
+                    if (n.data.status === s) return n;
+                    changed = true;
+                    return { ...n, data: { ...n.data, status: s } };
                 }
-            }
-            if (n.type === 'output' && state.status === 'complete') {
-                const totalDurationMs = state.steps.reduce((acc, step) => acc + (step.durationMs || 0), 0);
-                if (n.data.status === 'complete' && n.data.bundle === output) return n;
-                return { ...n, data: { ...n.data, status: 'complete', bundle: output, totalDurationMs } };
-            }
-            return n;
-        }));
+                if (n.type === 'tool') {
+                    const stepIndex = orderedSteps.findIndex(s => s.id === n.id);
+                    if (stepIndex >= 0 && state.steps[stepIndex]) {
+                        const ss = state.steps[stepIndex];
+                        let nextStatus = 'idle';
+                        if (ss.status === 'running') nextStatus = 'running';
+                        if (ss.status === 'paused') nextStatus = 'paused';
+                        if (ss.status === 'complete') nextStatus = 'complete';
+                        if (ss.status === 'error') nextStatus = 'error';
+
+                        if (n.data.status === nextStatus && n.data.durationMs === ss.durationMs && n.data.error === ss.error) {
+                             return n;
+                        }
+                        changed = true;
+                        return { ...n, data: { ...n.data, status: nextStatus, durationMs: ss.durationMs, error: ss.error } };
+                    }
+                }
+                if (n.type === 'output' && state.status === 'complete') {
+                    // Guard: only update the output node once per output bundle.
+                    if (syncedOutputRef.current === output) return n;
+                    syncedOutputRef.current = output;
+                    changed = true;
+                    const totalDurationMs = state.steps.reduce((acc, step) => acc + (step.durationMs || 0), 0);
+                    return { ...n, data: { ...n.data, status: 'complete', bundle: output, totalDurationMs } };
+                }
+                return n;
+            });
+            return changed ? newNodes : nds;
+        });
 
         setEdges(eds => {
             const isDone = state.status === 'idle' || state.status === 'complete' || state.status === 'cancelled' || state.status === 'error' || state.status === 'paused';

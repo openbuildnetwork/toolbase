@@ -1,6 +1,7 @@
 import React from 'react';
-import { Play, Square, RotateCcw, Save, Download, Minus, Plus, Maximize2, Pause } from 'lucide-react';
+import { Play, Square, RotateCcw, Save, Download, Minus, Plus, Maximize2, Pause, Folder } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
+import { useAnyWorkerWarming } from '@/workers/instances';
 
 interface PipelineToolbarProps {
     onRun: () => void;
@@ -9,6 +10,7 @@ interface PipelineToolbarProps {
     onResume: () => void;
     onReset: () => void;
     onSave: () => void;
+    onLoad: () => void;
     onExport: () => void;
     isRunning: boolean;
     isPaused: boolean;
@@ -25,6 +27,7 @@ export function PipelineToolbar({
     onResume,
     onReset,
     onSave,
+    onLoad,
     onExport,
     isRunning,
     isPaused,
@@ -75,6 +78,8 @@ export function PipelineToolbar({
             {icon}
         </button>
     );
+
+    const isWarming = useAnyWorkerWarming();
 
     return (
         <div style={{
@@ -174,7 +179,8 @@ export function PipelineToolbar({
             {divider}
 
             {iconBtn(onReset, <RotateCcw style={{ width: 14, height: 14 }} />, 'Reset execution')}
-            {iconBtn(onSave, <Save style={{ width: 14, height: 14 }} />, 'Save pipeline')}
+            {iconBtn(onLoad, <Folder style={{ width: 14, height: 14 }} />, 'Load pipeline')}
+            {iconBtn(onSave, <Save style={{ width: 14, height: 14 }} />, isWarming ? 'Library loading... please wait' : 'Save pipeline', isWarming)}
             {iconBtn(onExport, <Download style={{ width: 14, height: 14 }} />, 'Export JSON')}
 
             {divider}
