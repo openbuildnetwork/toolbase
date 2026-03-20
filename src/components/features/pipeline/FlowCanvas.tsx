@@ -46,7 +46,7 @@ const edgeTypes = {
 
 function FlowCanvasBuilder() {
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
-    const { screenToFlowPosition } = useReactFlow();
+    const { screenToFlowPosition, fitView } = useReactFlow();
 
     const { nodes, edges, setNodes, setEdges, onNodesChange, onEdgesChange, onConnect, isValidConnection } = useFlowGraph();
     const { graphToPipeline } = useGraphSerializer();
@@ -56,15 +56,18 @@ function FlowCanvasBuilder() {
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [interactionNodeId, setInteractionNodeId] = useState<string | null>(null);
 
-    const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
-    const [currentPipelineId, setCurrentPipelineId] = useState<string | null>(null);
-    const [currentPipelineName, setCurrentPipelineName] = useState<string | null>(null);
+    const hasRecovered = useRef(false);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
 
     const selectedNode = useMemo(() => nodes.find(n => n.id === selectedNodeId) || null, [nodes, selectedNodeId]);
 
     const updateNodeData = useCallback((nodeId: string, partialData: any) => {
         setNodes(nds => nds.map(n => n.id === nodeId ? { ...n, data: { ...n.data, ...partialData } } : n));
     }, [setNodes]);
+
+    const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
+    const [currentPipelineId, setCurrentPipelineId] = useState<string | null>(null);
+    const [currentPipelineName, setCurrentPipelineName] = useState<string | null>(null);
 
     useFlowEngineSync(nodes, edges, setNodes, setEdges, state, output, graphToPipeline);
 
@@ -115,33 +118,12 @@ function FlowCanvasBuilder() {
         });
     }, []);
 
-    const handleRun = useCallback(async () => {
-        setNodes(nds => clearIntermediateMemory(nds));
-        setEdges(eds => eds.map(e => ({ ...e, data: { ...e.data, isRunning: false } })));
-        resetEngine();
-        const orderedSteps = graphToPipeline(nodes, edges);
-        if (!orderedSteps) return;
-        const fileNode = nodes.find(n => n.type === 'fileInput');
-        const file = fileNode?.data.file;
-        if (!file) return;
-        await run(orderedSteps, file as File);
-    }, [nodes, edges, graphToPipeline, run, resetEngine, setNodes, setEdges, clearIntermediateMemory]);
+    const onSelectionChange = useCallback((params: { nodes: Node[] }) => {
+        if (params.nodes.length > 0) setSelectedNodeId(params.nodes[0].id);
+        else setSelectedNodeId(null);
+    }, [setSelectedNodeId]);
 
-    const handleStop = useCallback(() => { cancel(); }, [cancel]);
-
-    const handleReset = useCallback(() => {
-        resetEngine();
-        setNodes(nds => clearIntermediateMemory(nds));
-        setEdges(eds => eds.map(e => ({ ...e, data: { ...e.data, isRunning: false } })));
-    }, [resetEngine, setNodes, setEdges, clearIntermediateMemory]);
-
-    const handleSave = useCallback(() => {
-        const orderedSteps = graphToPipeline(nodes, edges);
-
-        const newId = currentPipelineId || crypto.randomUUID();
-        const newName = currentPipelineName || `Pipeline ${new Date().toLocaleTimeString()}`;
-
-        // Strip blobs and runtime state so the saved JSON is small and valid
+    const serializeGraph = useCallback(() => {
         const cleanNodes = nodes.map(n => ({
             ...n,
             data: {
@@ -163,6 +145,122 @@ function FlowCanvasBuilder() {
             data: { ...e.data, isRunning: false, isInvalid: false }
         }));
 
+        return { nodes: cleanNodes, edges: cleanEdges };
+    }, [nodes, edges]);
+
+    const injectNodeCallbacks = useCallback((nds: Node[]) => {
+        return nds.map(n => {
+            if (n.type === 'tool') {
+                return {
+                    ...n,
+                    data: {
+                        ...n.data,
+                        onOpenInteraction: () => setInteractionNodeId(n.id)
+                    }
+                };
+            }
+            if (n.type === 'fileInput') {
+                return {
+                    ...n,
+                    data: {
+                        ...n.data,
+                        onFileSelect: (f: File | null) => updateNodeData(n.id, { file: f })
+                    }
+                };
+            }
+            return n;
+        });
+    }, [updateNodeData]);
+
+    // ── Autosave ────────────────────────────────────────────────────────────────
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const { nodes: cleanNodes, edges: cleanEdges } = serializeGraph();
+            const draft = {
+                nodes: cleanNodes,
+                edges: cleanEdges,
+                pipelineId: currentPipelineId,
+                pipelineName: currentPipelineName
+            };
+            try {
+                localStorage.setItem('toolbase:pipeline-draft', JSON.stringify(draft));
+            } catch (e) {
+                console.warn('[Autosave] Failed to write draft to localStorage', e);
+            }
+        }, 1200); // 1.2s debounce to avoid hammering LS during drag
+        return () => clearTimeout(timer);
+    }, [nodes, edges, currentPipelineId, currentPipelineName, serializeGraph]);
+
+    // ── Recovery ────────────────────────────────────────────────────────────────
+
+    useEffect(() => {
+        if (hasRecovered.current) return;
+        hasRecovered.current = true;
+        
+        const raw = localStorage.getItem('toolbase:pipeline-draft');
+        if (!raw) {
+            setIsInitialLoading(false);
+            return;
+        }
+
+        try {
+            const draft = JSON.parse(raw);
+            if (draft.nodes && draft.nodes.length > 0) {
+                // We use baseSetNodes directly to avoid any callback-hell instability
+                const restoredNodes = injectNodeCallbacks(draft.nodes);
+                setNodes(() => restoredNodes);
+                setEdges(() => draft.edges || []);
+                
+                if (draft.pipelineId) setCurrentPipelineId(draft.pipelineId);
+                if (draft.pipelineName) setCurrentPipelineName(draft.pipelineName);
+                
+                // fitView handled by a one-off timeout
+                setTimeout(() => {
+                    fitView({ duration: 800, padding: 0.2 });
+                    setIsInitialLoading(false);
+                }, 400);
+            } else {
+                setIsInitialLoading(false);
+            }
+        } catch (e) {
+            console.error('[Recovery] Failed to restore pipeline draft:', e);
+            setIsInitialLoading(false);
+        }
+    }, [setNodes, setEdges, setCurrentPipelineId, setCurrentPipelineName, injectNodeCallbacks, fitView]);
+
+    const handleRun = useCallback(async () => {
+        setNodes(nds => clearIntermediateMemory(nds));
+        setEdges(eds => eds.map(e => ({ ...e, data: { ...e.data, isRunning: false } })));
+        resetEngine();
+        const orderedSteps = graphToPipeline(nodes, edges);
+        if (!orderedSteps) return;
+        const fileNode = nodes.find(n => n.type === 'fileInput');
+        const file = fileNode?.data.file;
+        if (!file) return;
+        await run(orderedSteps, file as File);
+    }, [nodes, edges, graphToPipeline, run, resetEngine, setNodes, setEdges, clearIntermediateMemory]);
+
+    const handleStop = useCallback(() => { cancel(); }, [cancel]);
+
+    const handleReset = useCallback(() => {
+        resetEngine();
+        setNodes(nds => clearIntermediateMemory(nds));
+        setEdges(eds => eds.map(e => ({ ...e, data: { ...e.data, isRunning: false } })));
+        // Clear draft on reset so the user can truly start fresh on refresh
+        localStorage.removeItem('toolbase:pipeline-draft');
+        setCurrentPipelineId(null);
+        setCurrentPipelineName(null);
+    }, [resetEngine, setNodes, setEdges, clearIntermediateMemory]);
+
+    const handleSave = useCallback(() => {
+        const orderedSteps = graphToPipeline(nodes, edges);
+
+        const newId = currentPipelineId || crypto.randomUUID();
+        const newName = currentPipelineName || `Pipeline ${new Date().toLocaleTimeString()}`;
+
+        const { nodes: cleanNodes, edges: cleanEdges } = serializeGraph();
+
         const def: PipelineDefinition = {
             id: newId,
             name: newName,
@@ -174,68 +272,42 @@ function FlowCanvasBuilder() {
         save(def);
         setCurrentPipelineId(newId);
         setCurrentPipelineName(newName);
-    }, [nodes, edges, graphToPipeline, save, currentPipelineId, currentPipelineName]);
+    }, [nodes, edges, graphToPipeline, save, currentPipelineId, currentPipelineName, serializeGraph]);
 
     const { pipelineToGraph } = useGraphSerializer();
 
     const handleLoad = useCallback((pipeline: PipelineDefinition) => {
         try {
+            setIsInitialLoading(true);
             if (pipeline.ui && pipeline.ui.nodes) {
-                const loadedNodes = pipeline.ui.nodes.map(n => {
-                    if (n.type === 'tool') {
-                        return {
-                            ...n,
-                            data: {
-                                ...n.data,
-                                onOpenInteraction: () => setInteractionNodeId(n.id)
-                            }
-                        };
-                    }
-                    if (n.type === 'fileInput') {
-                        return {
-                            ...n,
-                            data: {
-                                ...n.data,
-                                onFileSelect: (f: File | null) => updateNodeData(n.id, { file: f })
-                            }
-                        };
-                    }
-                    return n;
-                });
+                const loadedNodes = injectNodeCallbacks(pipeline.ui.nodes);
                 setNodes(() => loadedNodes);
                 setEdges(() => pipeline.ui!.edges || []);
             } else {
                 const { nodes: newNodes, edges: newEdges } = pipelineToGraph(pipeline);
                 setNodes(() => newNodes);
                 setEdges(() => newEdges);
+                setIsInitialLoading(false);
             }
             setCurrentPipelineId(pipeline.id);
             setCurrentPipelineName(pipeline.name);
             setIsSavedModalOpen(false);
+
+            // Center view after layout settles
+            setTimeout(() => {
+                fitView({ duration: 800, padding: 0.2 });
+                setIsInitialLoading(false);
+            }, 400);
         } catch (err) {
             console.error('Failed to load pipeline:', err);
+            setIsInitialLoading(false);
         }
-    }, [pipelineToGraph, setNodes, setEdges]);
+    }, [pipelineToGraph, setNodes, setEdges, injectNodeCallbacks, fitView]);
 
     const handleExport = useCallback(() => {
         const orderedSteps = graphToPipeline(nodes, edges);
+        const { nodes: cleanNodes, edges: cleanEdges } = serializeGraph();
 
-        const cleanNodes = nodes.map(n => ({
-            ...n,
-            data: {
-                ...n.data,
-                file: undefined,
-                previewFiles: undefined,
-                interactionFiles: undefined,
-                bundle: undefined,
-                status: 'idle'
-            }
-        }));
-
-        const cleanEdges = edges.map(e => ({
-            ...e,
-            data: { ...e.data, isRunning: false, isInvalid: false }
-        }));
 
         const def: PipelineDefinition = {
             id: crypto.randomUUID(),
@@ -272,7 +344,7 @@ function FlowCanvasBuilder() {
             return { kind: 'file', mimeType: uploadedFile.type };
         }
         return { kind: 'none' };
-    }, [selectedNode, fileNode]);
+    }, [selectedNode?.id, selectedNode?.data?.toolId, fileNode?.data?.file?.type]);
 
     return (
         <div style={{
@@ -459,17 +531,13 @@ function FlowCanvasBuilder() {
                 isValidConnection={isValidConnection}
                 onDrop={onDrop}
                 onDragOver={onDragOver}
-                onSelectionChange={(params) => {
-                    if (params.nodes.length > 0) setSelectedNodeId(params.nodes[0].id);
-                    else setSelectedNodeId(null);
-                }}
+                onSelectionChange={onSelectionChange}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes as any}
                 connectionMode={ConnectionMode.Loose}
                 defaultEdgeOptions={{ type: 'tip', animated: false }}
                 snapToGrid={true}
                 snapGrid={[20, 20]}
-                fitView
                 minZoom={0.15}
                 maxZoom={2.5}
                 deleteKeyCode={['Backspace', 'Delete']}
@@ -516,6 +584,36 @@ function FlowCanvasBuilder() {
 
             {/* Floating InspectorPanel on right */}
             <InspectorPanel selectedNode={selectedNode} updateNodeData={updateNodeData} />
+            {/* Loading Overlay */}
+            {isInitialLoading && (
+                <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 100,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#0b0b0d',
+                    transition: 'opacity 0.5s ease',
+                }}>
+                    <div style={{
+                        width: 32,
+                        height: 32,
+                        border: '2px solid rgba(139, 92, 246, 0.1)',
+                        borderTopColor: '#8b5cf6',
+                        borderRadius: '50%',
+                        animation: 'spin 0.8s linear infinite',
+                        marginBottom: 16,
+                    }} />
+                    <div style={{ color: '#8b5cf6', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', opacity: 0.8 }}>
+                        Warming Pipeline...
+                    </div>
+                    <style>{`
+                        @keyframes spin { to { transform: rotate(360deg); } }
+                    `}</style>
+                </div>
+            )}
         </div>
     );
 }
