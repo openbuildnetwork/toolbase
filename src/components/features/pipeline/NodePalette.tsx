@@ -4,7 +4,7 @@ import { TIPToolRegistry } from '@/tip/registry';
 import type { TIPContentType } from '@/tip/protocol';
 import {
     Search, Upload, PackageCheck, ChevronLeft, ChevronRight,
-    X, GripHorizontal, Zap, Filter,
+    X, GripHorizontal, Zap, Filter, ShieldCheck
 } from 'lucide-react';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -167,20 +167,21 @@ function PaletteToolCard({
 
 /** Special node card (File Input / Output) */
 function SpecialNodeCard({
-    icon, label, subtitle, color, nodeType, onDragStart,
+    icon, label, subtitle, color, nodeType, toolId, onDragStart,
 }: {
     icon: React.ReactNode;
     label: string;
     subtitle: string;
     color: string;
     nodeType: string;
-    onDragStart: (e: React.DragEvent, type: string) => void;
+    toolId?: string;
+    onDragStart: (e: React.DragEvent, type: string, toolId?: string) => void;
 }) {
     const [hovered, setHovered] = useState(false);
     return (
         <div
             draggable
-            onDragStart={(e) => onDragStart(e, nodeType)}
+            onDragStart={(e) => onDragStart(e, nodeType, toolId)}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             style={{
@@ -574,6 +575,15 @@ export function NodePalette({
                                     subtitle="Terminal / download"
                                     color="#34d399"
                                     nodeType="output"
+                                    onDragStart={onDragStart}
+                                />
+                                <SpecialNodeCard
+                                    icon={<ShieldCheck style={{ width: 14, height: 14, color: '#fbbf24' }} />}
+                                    label="Human Review"
+                                    subtitle="Manual approval gate"
+                                    color="#fbbf24"
+                                    nodeType="humanReview"
+                                    toolId="system/human-review"
                                     onDragStart={onDragStart}
                                 />
                             </div>

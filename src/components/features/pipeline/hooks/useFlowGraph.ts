@@ -39,13 +39,13 @@ export function useFlowGraph() {
         let sourceType: TIPContentType | '' = '';
         if (sourceNode.type === 'fileInput') {
            sourceType = (sourceNode.data.file as File)?.type as TIPContentType || 'application/octet-stream';
-        } else if (sourceNode.type === 'tool') {
+        } else if (sourceNode.type === 'tool' || sourceNode.type === 'humanReview') {
            const sTool = TIPToolRegistry.get(sourceNode.data.toolId as string);
            sourceType = sTool?.produces[0] || '';
         }
 
         let targetAccepts: TIPContentType[] = [];
-        if (targetNode.type === 'tool') {
+        if (targetNode.type === 'tool' || targetNode.type === 'humanReview') {
            const tTool = TIPToolRegistry.get(targetNode.data.toolId as string);
            targetAccepts = tTool?.consumes || [];
         } else if (targetNode.type === 'output') {
@@ -79,13 +79,13 @@ export function useFlowGraph() {
     let sourceType: TIPContentType | '' = '';
     if (sourceNode.type === 'fileInput') {
         sourceType = (sourceNode.data.file as File)?.type as TIPContentType || 'application/octet-stream';
-    } else if (sourceNode.type === 'tool') {
+    } else if (sourceNode.type === 'tool' || sourceNode.type === 'humanReview') {
         const sTool = TIPToolRegistry.get(sourceNode.data.toolId as string);
         sourceType = sTool?.produces[0] || '';
     }
 
     let targetAccepts: TIPContentType[] = [];
-    if (targetNode.type === 'tool') {
+    if (targetNode.type === 'tool' || targetNode.type === 'humanReview') {
         const tTool = TIPToolRegistry.get(targetNode.data.toolId as string);
         targetAccepts = tTool?.consumes || [];
     } else if (targetNode.type === 'output') {

@@ -29,12 +29,14 @@ import type { TIPPayload } from '@/tip/protocol';
 import { ToolNode } from './nodes/ToolNode';
 import { FileInputNode } from './nodes/FileInputNode';
 import { OutputNode } from './nodes/OutputNode';
+import { HumanReviewNode } from './nodes/HumanReviewNode';
 import { TIPEdge } from './edges/TIPEdge';
 
 import { usePipelineEngine } from '@/hooks/usePipelineEngine';
 import { usePipelines } from '@/hooks/usePipelines';
 import { TIPToolRegistry } from '@/tip/registry';
 import { workerForTool } from '@/workers/instances';
+import { ReviewSync } from '@/lib/review-sync';
 
 import { PipelineDefinition } from '@/types/pipeline';
 
@@ -42,6 +44,7 @@ const nodeTypes = {
     tool: ToolNode,
     fileInput: FileInputNode,
     output: OutputNode,
+    humanReview: HumanReviewNode,
 };
 
 const edgeTypes = {
@@ -120,7 +123,7 @@ function FlowCanvasBuilder() {
 
     const injectNodeCallbacks = useCallback((nds: Node[]) => {
         return nds.map(n => {
-            if (n.type === 'tool') {
+            if (n.type === 'tool' || n.type === 'humanReview') {
                 return {
                     ...n,
                     data: {
@@ -145,6 +148,15 @@ function FlowCanvasBuilder() {
                     data: {
                         ...n.data,
                         onPreview: (p: any) => setPreviewFile(p),
+                    }
+                };
+            }
+            if (n.type === 'humanReview') {
+                return {
+                    ...n,
+                    data: {
+                        ...n.data,
+                        onOpenInteraction: () => setInteractionNodeId(n.id),
                     }
                 };
             }
@@ -190,7 +202,7 @@ function FlowCanvasBuilder() {
         const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
         const newNodeId = `node-${type}-${Date.now()}`;
 
-        if (type === 'tool') {
+        if (type === 'tool' || type === 'humanReview') {
             const toolId = event.dataTransfer.getData('application/toolId');
             const tool = TIPToolRegistry.get(toolId);
             if (!tool) return;
@@ -628,11 +640,23 @@ function FlowCanvasBuilder() {
                 };
 
                 const upstreamFiles = getUpstreamFilesRecursive(interactionNodeId);
+                let seedFiles: File[] = upstreamFiles;
 
-                const seedFiles: File[] =
-                    upstreamFiles.length > 0
-                        ? upstreamFiles
-                        : (interactionNode?.data.interactionFiles as File[] | undefined) ?? [];
+                // SPECIAL CASE: Human Review during a LIVE RUN.
+                // If ReviewSync has a pending bundle for this node, it means execution is paused 
+                // exactly at this node. We must use THAT live data for the preview.
+                if (interactionNode?.type === 'humanReview') {
+                    const pendingInput = ReviewSync.getPendingInput(interactionNodeId);
+                    if (pendingInput && pendingInput.payloads.length > 0) {
+                        seedFiles = pendingInput.payloads.map(p => 
+                            new File([p.data], p.meta.filename || 'review-file', { type: p.meta.mimeType as string })
+                        );
+                    }
+                }
+
+                if (seedFiles.length === 0) {
+                    seedFiles = (interactionNode?.data.interactionFiles as File[] | undefined) ?? [];
+                }
 
                 return (
                     <InteractionModal
@@ -640,6 +664,14 @@ function FlowCanvasBuilder() {
                         seedFiles={seedFiles}
                         config={(interactionNode?.data.config as Record<string, unknown>) ?? {}}
                         onConfirm={async (result) => {
+                            // 1. If this is a Human Review node, always resolve via ReviewSync.
+                            //    We don't want to fall through to normal tool configuration logic.
+                            if (interactionNode?.type === 'humanReview') {
+                                ReviewSync.resolveReview(interactionNode.id, true);
+                                setInteractionNodeId(null);
+                                return;
+                            }
+
                             const hasUpstream = edges.some(e => e.target === interactionNodeId);
 
                             // Standalone mode: user browsed files directly in the modal.
@@ -675,7 +707,8 @@ function FlowCanvasBuilder() {
                                 setEdges(prev => [...prev, ...fileEdges]);
                             }
 
-                            const newConfig = { ...((interactionNode?.data.config as Record<string, unknown>) ?? {}), ...result.config } as import('@/tip/protocol').TIPConfig;
+                            const currentConfig = (interactionNode?.data.config as Record<string, unknown>) ?? {};
+                            const newConfig = { ...currentConfig, ...result.config } as any;
 
                             updateNodeData(interactionNodeId, {
                                 interactionFiles: result.files,
@@ -717,7 +750,15 @@ function FlowCanvasBuilder() {
                                 updateNodeData(interactionNodeId, { isPreviewing: false });
                             }
                         }}
-                        onCancel={() => setInteractionNodeId(null)}
+                        onCancel={() => {
+                            // 1. If this is a Human Review node, always resolve via ReviewSync (as rejection).
+                            if (interactionNode?.type === 'humanReview') {
+                                ReviewSync.resolveReview(interactionNode.id, false);
+                                setInteractionNodeId(null);
+                                return;
+                            }
+                            setInteractionNodeId(null);
+                        }}
                     />
                 );
             })()}

@@ -36,7 +36,7 @@ export function useFlowEngineSync(
                     changed = true;
                     return { ...n, data: { ...n.data, status: s } };
                 }
-                if (n.type === 'tool') {
+                if (n.type === 'tool' || n.type === 'humanReview') {
                     const stepIndex = orderedSteps.findIndex(s => s.id === n.id);
                     if (stepIndex >= 0 && state.steps[stepIndex]) {
                         const ss = state.steps[stepIndex];
