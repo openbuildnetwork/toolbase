@@ -29,6 +29,7 @@ import { TIPEdge } from './edges/TIPEdge';
 import { usePipelineEngine } from '@/hooks/usePipelineEngine';
 import { usePipelines } from '@/hooks/usePipelines';
 import { TIPToolRegistry } from '@/tip/registry';
+import { workerForTool } from '@/workers/instances';
 
 import { PipelineDefinition } from '@/types/pipeline';
 
@@ -80,6 +81,12 @@ function FlowCanvasBuilder() {
             const tool = TIPToolRegistry.get(toolId);
             if (!tool) return;
             const config = Object.fromEntries(tool.configSchema.fields.map(f => [f.key, f.default]));
+
+            // Phase 2: Node-aware pre-warm — start booting the WASM runtime immediately
+            // on node drop, before the user clicks Run. WorkerClient.init() is idempotent:
+            // if idle pre-warm already started this resolves to the same in-flight promise.
+            workerForTool(toolId)?.init().catch(() => {});
+
             setNodes(nds => nds.concat({
                 id: newNodeId, type, position,
                 data: {
