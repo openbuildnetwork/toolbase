@@ -64,7 +64,7 @@ Whether you're compressing a PDF, analyzing a dataset, redacting secrets from co
 
 ### Use it online
 
-Visit **[toolbase.app](https://toolbase.in)** — no install needed.
+Visit **[toolbase.in](https://toolbase.in)** — no install needed.
 
 ### Run locally
 
