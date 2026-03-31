@@ -285,7 +285,7 @@ function FlowCanvasBuilder() {
                 selected: true,
             }));
 
-        setNodes(nds => nds.map(n => ({ ...n, selected: false })).concat(injectNodeCallbacks(newNodes)));
+        setNodes(nds => (nds.map(n => ({ ...n, selected: false })) as Node[]).concat(injectNodeCallbacks(newNodes)));
         setEdges(eds => eds.map(e => ({ ...e, selected: false })).concat(newEdges));
         setTimeout(takeSnapshot, 0);
     }, [injectNodeCallbacks, setNodes, setEdges, takeSnapshot]);
@@ -324,7 +324,7 @@ function FlowCanvasBuilder() {
                 selected: true,
             }));
 
-        setNodes(nds => nds.map(n => ({ ...n, selected: false })).concat(injectNodeCallbacks(newNodes)));
+        setNodes(nds => (nds.map(n => ({ ...n, selected: false })) as Node[]).concat(injectNodeCallbacks(newNodes)));
         setEdges(eds => eds.map(e => ({ ...e, selected: false })).concat(newEdges));
         setTimeout(takeSnapshot, 0);
     }, [nodes, edges, injectNodeCallbacks, setNodes, setEdges, takeSnapshot]);
@@ -549,7 +549,7 @@ function FlowCanvasBuilder() {
             return { kind: 'file', mimeType: uploadedFile.type };
         }
         return { kind: 'none' };
-    }, [selectedNode?.id, selectedNode?.data?.toolId, fileNode?.data?.file?.type]);
+    }, [selectedNode?.id, selectedNode?.data?.toolId, (fileNode?.data?.file as any)?.type]);
 
     return (
         <div style={{

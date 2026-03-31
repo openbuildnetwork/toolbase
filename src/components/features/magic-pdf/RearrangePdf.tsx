@@ -479,7 +479,7 @@ const DraggableGrid = ({ pages, onReorder, onRotate, onDelete, onPreview }: Drag
     };
 
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
             {pages.map((page, index) => (
                 <div
                     key={page.id}
@@ -490,11 +490,22 @@ const DraggableGrid = ({ pages, onReorder, onRotate, onDelete, onPreview }: Drag
                     onDragEnd={handleDragEnd}
                     onDrop={handleDrop}
                     className={cn(
-                        "transition-all duration-200 relative",
-                        draggedIndex === index && "opacity-30 scale-95",
-                        overIndex === index && draggedIndex !== null && draggedIndex !== index && "ring-4 ring-primary/50 scale-105"
+                        "relative group perspective-1000",
+                        "transition-all duration-300 ease-out",
+                        "touch-manipulation"
                     )}
+                    style={{
+                        transform: draggedIndex === index
+                            ? 'scale(0.95) rotate(2deg)'
+                            : overIndex === index && draggedIndex !== null && draggedIndex !== index
+                                ? 'scale(1.05) rotate(-1deg)'
+                                : 'scale(1) rotate(0deg)'
+                    }}
                 >
+                    {/* Drop zone indicator */}
+                    {overIndex === index && draggedIndex !== null && draggedIndex !== index && (
+                        <div className="absolute -inset-1 bg-gradient-to-r from-purple-400 via-violet-400 to-purple-400 rounded-2xl opacity-60 animate-pulse blur-sm -z-10" />
+                    )}
                     <PageCard
                         page={page}
                         onRotate={() => onRotate(page.id)}
@@ -521,42 +532,86 @@ const PageCard = ({ page, onRotate, onDelete, onPreview, isDeleted = false, isDr
     return (
         <div
             className={cn(
-                "group relative bg-white rounded-xl border-2 transition-all duration-200 overflow-hidden select-none",
+                "group relative bg-white rounded-2xl overflow-hidden select-none touch-none",
+                "transition-all duration-300 ease-out",
+                "border-2",
                 isDeleted
-                    ? "border-red-200 opacity-50"
-                    : "border-gray-200 hover:border-primary/40 hover:shadow-lg",
-                !isDeleted && "cursor-move active:cursor-grabbing",
-                isDragging && "shadow-2xl"
+                    ? "border-red-200 opacity-50 grayscale"
+                    : cn(
+                        "border-gray-200/80",
+                        "hover:border-purple-300 hover:shadow-xl hover:shadow-purple-500/10",
+                        "active:shadow-2xl active:scale-105"
+                    ),
+                !isDeleted && "cursor-grab active:cursor-grabbing",
+                isDragging && "shadow-2xl shadow-purple-500/30 ring-4 ring-purple-400/50 z-50"
             )}
         >
-            {/* Page Number Badge */}
-            <div className="absolute top-2 right-2 z-10 pointer-events-none">
-                <div className="bg-black/70 text-white text-xs font-bold px-2 py-1 rounded-md">
+            {/* Gradient overlay on hover */}
+            {!isDeleted && (
+                <div className="absolute inset-0 bg-gradient-to-t from-purple-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-0" />
+            )}
+
+            {/* Page Number Badge with gradient */}
+            <div className="absolute top-2.5 right-2.5 z-20 pointer-events-none">
+                <div className={cn(
+                    "px-2.5 py-1.5 rounded-xl font-bold text-xs shadow-lg backdrop-blur-sm",
+                    "bg-gradient-to-br from-gray-900/90 to-gray-800/90 text-white",
+                    "transition-transform duration-300 group-hover:scale-110"
+                )}>
                     {page.originalIndex + 1}
                 </div>
             </div>
 
-            {/* Thumbnail */}
+            {/* Rotation indicator badge */}
+            {page.rotation !== 0 && !isDeleted && (
+                <div className="absolute top-2.5 left-2.5 z-20 pointer-events-none">
+                    <div className="px-2 py-1 rounded-lg bg-purple-500/90 text-white text-[10px] font-semibold shadow-md backdrop-blur-sm flex items-center gap-1">
+                        <RotateCw className="w-3 h-3" />
+                        {page.rotation}°
+                    </div>
+                </div>
+            )}
+
+            {/* Thumbnail container with glass effect */}
             <div
-                className="aspect-[1/1.414] bg-gray-100 flex items-center justify-center overflow-hidden pointer-events-none"
+                className={cn(
+                    "aspect-[1/1.414] flex items-center justify-center overflow-hidden pointer-events-none relative",
+                    isDeleted ? "bg-red-50" : "bg-gradient-to-br from-gray-50 to-white"
+                )}
                 style={{ transform: `rotate(${page.rotation}deg)` }}
             >
+                {/* Inner shadow border */}
+                <div className="absolute inset-0 ring-1 ring-inset ring-gray-200/50 rounded-none" />
+
                 {page.thumbnail ? (
                     <img
                         src={page.thumbnail}
                         alt={`Page ${page.originalIndex + 1}`}
-                        className="w-full h-full object-contain"
+                        className={cn(
+                            "w-full h-full object-contain transition-transform duration-300",
+                            "group-hover:scale-105"
+                        )}
                         draggable={false}
                     />
                 ) : (
-                    <div className="w-8 h-8 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="w-10 h-10 border-3 border-purple-200 border-t-purple-500 rounded-full animate-spin" />
+                        <span className="text-xs text-gray-400 font-medium">Loading...</span>
+                    </div>
                 )}
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons with frosted glass background */}
             {!isDeleted && (
-                <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/80 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
-                    <div className="flex gap-2 justify-center">
+                <div className="absolute bottom-0 left-0 right-0 z-20">
+                    <div className={cn(
+                        "flex items-center justify-center gap-1.5 p-2.5",
+                        "bg-gradient-to-t from-black/80 via-black/60 to-transparent",
+                        "backdrop-blur-md",
+                        "opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0",
+                        "transition-all duration-300 ease-out",
+                        "pointer-events-none group-hover:pointer-events-auto"
+                    )}>
                         {onPreview && (
                             <button
                                 onClick={(e) => {
@@ -566,10 +621,15 @@ const PageCard = ({ page, onRotate, onDelete, onPreview, isDeleted = false, isDr
                                 }}
                                 draggable={false}
                                 onDragStart={(e) => e.preventDefault()}
-                                className="p-2 bg-white/90 hover:bg-blue-50 rounded-lg transition-colors pointer-events-auto group/preview"
+                                className={cn(
+                                    "p-2.5 rounded-xl transition-all duration-200",
+                                    "bg-white/90 hover:bg-blue-500 hover:text-white hover:shadow-lg hover:shadow-blue-500/30",
+                                    "hover:scale-110 active:scale-95",
+                                    "pointer-events-auto"
+                                )}
                                 title="Preview page"
                             >
-                                <Eye className="w-4 h-4 text-gray-700 group-hover/preview:text-blue-600" />
+                                <Eye className="w-4 h-4" />
                             </button>
                         )}
                         <button
@@ -580,10 +640,15 @@ const PageCard = ({ page, onRotate, onDelete, onPreview, isDeleted = false, isDr
                             }}
                             draggable={false}
                             onDragStart={(e) => e.preventDefault()}
-                            className="p-2 bg-white/90 hover:bg-white rounded-lg transition-colors pointer-events-auto"
+                            className={cn(
+                                "p-2.5 rounded-xl transition-all duration-200",
+                                "bg-white/90 hover:bg-purple-500 hover:text-white hover:shadow-lg hover:shadow-purple-500/30",
+                                "hover:scale-110 active:scale-95",
+                                "pointer-events-auto"
+                            )}
                             title="Rotate 90°"
                         >
-                            <RotateCw className="w-4 h-4 text-gray-700" />
+                            <RotateCw className="w-4 h-4" />
                         </button>
                         <button
                             onClick={(e) => {
@@ -593,11 +658,26 @@ const PageCard = ({ page, onRotate, onDelete, onPreview, isDeleted = false, isDr
                             }}
                             draggable={false}
                             onDragStart={(e) => e.preventDefault()}
-                            className="p-2 bg-white/90 hover:bg-red-50 rounded-lg transition-colors group/delete pointer-events-auto"
+                            className={cn(
+                                "p-2.5 rounded-xl transition-all duration-200",
+                                "bg-white/90 hover:bg-red-500 hover:text-white hover:shadow-lg hover:shadow-red-500/30",
+                                "hover:scale-110 active:scale-95",
+                                "pointer-events-auto"
+                            )}
                             title="Delete page"
                         >
-                            <Trash2 className="w-4 h-4 text-gray-700 group-hover/delete:text-red-600" />
+                            <Trash2 className="w-4 h-4" />
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Drag handle indicator - subtle grip lines at top */}
+            {!isDeleted && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="flex flex-col gap-1">
+                        <div className="w-8 h-1 bg-gray-400/30 rounded-full" />
+                        <div className="w-8 h-1 bg-gray-400/30 rounded-full" />
                     </div>
                 </div>
             )}
