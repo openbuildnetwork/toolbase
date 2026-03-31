@@ -399,8 +399,8 @@ export default function Base64Page() {
                     <div className="mb-4 flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                         <Loader2 className="h-5 w-5 text-blue-600 animate-spin shrink-0" />
                         <div>
-                            <p className="font-semibold text-blue-900 text-sm">Initializing Python Runtime...</p>
-                            <p className="text-xs text-blue-700">This takes a few seconds on first load</p>
+                            <p className="font-semibold text-blue-900 text-sm">Initializing Tool...</p>
+                            <p className="text-xs text-blue-700">Almost there</p>
                         </div>
                     </div>
                 )}
