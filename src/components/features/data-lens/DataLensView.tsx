@@ -288,7 +288,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                                 {schemas.length > 0 && (
                                     <Button
                                         onClick={() => fileInputRef.current?.click()}
-                                        size="xs"
+                                        size="md"
                                         variant="outline"
                                         className="gap-1.5 border-indigo-100 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 text-[10px] h-7 px-2 font-bold"
                                         title="Import more files (max 10)"
