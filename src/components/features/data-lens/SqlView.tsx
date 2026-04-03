@@ -58,6 +58,87 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
         </div>
     );
 
+    // Keep schemas in a ref so the Monaco provider always has the latest data
+    const schemasRef = React.useRef<TableSchema[]>(schemas);
+    React.useEffect(() => {
+        schemasRef.current = schemas;
+    }, [schemas]);
+
+    const handleEditorMount = (editor: any, monaco: any) => {
+        // Register completion item provider for SQL
+        monaco.languages.registerCompletionItemProvider('sql', {
+            provideCompletionItems: (model: any, position: any) => {
+                const suggestions: any[] = [];
+                const currentSchemas = schemasRef.current;
+
+                // 1. Table Names (from current schemas)
+                currentSchemas.forEach(s => {
+                    suggestions.push({
+                        label: s.table_name,
+                        kind: monaco.languages.CompletionItemKind.Variable,
+                        insertText: s.table_name,
+                        detail: `Table (${s.rows} rows, ${s.columns.length} columns)`,
+                        range: {
+                            startLineNumber: position.lineNumber,
+                            endLineNumber: position.lineNumber,
+                            startColumn: position.column - 1,
+                            endColumn: position.column
+                        }
+                    });
+                });
+
+                // 2. Column Names (unique across all tables)
+                const allCols = Array.from(new Set(currentSchemas.flatMap(s => s.columns.map(c => c.name))));
+                allCols.forEach(col => {
+                    suggestions.push({
+                        label: col,
+                        kind: monaco.languages.CompletionItemKind.Field,
+                        insertText: col,
+                        detail: 'Column Name',
+                        sortText: 'z' // Move to bottom to avoid cluttering variables
+                    });
+                });
+
+                // 3. SQL Keywords & Snippets
+                const keywords = [
+                    'SELECT', 'FROM', 'WHERE', 'GROUP BY', 'ORDER BY', 'LIMIT', 
+                    'JOIN', 'LEFT JOIN', 'INNER JOIN', 'ON', 'AS', 'AND', 'OR', 
+                    'COUNT', 'AVG', 'SUM', 'MAX', 'MIN', 'CREATE TABLE', 'INSERT INTO',
+                    'UPDATE', 'SET', 'DELETE', 'DROP TABLE', 'ALTER TABLE'
+                ];
+                
+                keywords.forEach(kw => {
+                    suggestions.push({
+                        label: kw,
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: kw,
+                        detail: 'SQL Keyword'
+                    });
+                });
+
+                // 4. Common Snippets
+                suggestions.push(
+                    {
+                        label: 'SELECT * FROM',
+                        kind: monaco.languages.CompletionItemKind.Snippet,
+                        insertText: 'SELECT * FROM ${1:table_name} LIMIT 100;',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                        detail: 'Basic selection snippet'
+                    },
+                    {
+                        label: 'CREATE TABLE',
+                        kind: monaco.languages.CompletionItemKind.Snippet,
+                        insertText: 'CREATE TABLE ${1:new_table} AS\nSELECT * FROM ${2:old_table}\nWHERE ${3:condition};',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                        detail: 'Create new table from selection'
+                    }
+                );
+
+                return { suggestions };
+            }
+        });
+    };
+
     return (
         <div className="h-full flex flex-col p-6 gap-6 bg-gray-50/50 relative overflow-hidden">
             <div className="flex-1 min-h-0 flex flex-col bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
@@ -88,6 +169,7 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
                         defaultLanguage="sql"
                         value={sqlQuery}
                         onChange={(val) => setSqlQuery(val || '')}
+                        onMount={handleEditorMount}
                         theme="vs"
                         options={{
                             minimap: { enabled: false },
@@ -97,6 +179,8 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
                             scrollBeyondLastLine: false,
                             lineNumbers: 'on',
                             renderLineHighlight: 'all',
+                            suggestOnTriggerCharacters: true,
+                            quickSuggestions: true,
                         }}
                     />
                 </div>

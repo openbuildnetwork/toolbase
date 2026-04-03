@@ -158,6 +158,9 @@ export function useDataLens(): UseDataLensResult {
             const res = await sendMessage('run_sql', { query });
             if (res && res.success) {
                 setQueryResult(res);
+                if (res.schemas_updated) {
+                    await refreshSchemas();
+                }
             } else {
                 setError(res?.error || 'Unknown error');
             }
