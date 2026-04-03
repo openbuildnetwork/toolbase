@@ -83,7 +83,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
 
                 if (lastTableName) {
                     setActiveTable(lastTableName);
-                    const sql = `SELECT * FROM ${lastTableName} LIMIT 100`;
+                    const sql = `SELECT * FROM "${lastTableName}" LIMIT 100`;
                     setSqlQuery(sql);
                     await selectTableData(lastTableName);
                     setActiveTab('data');
@@ -145,7 +145,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
 
     const handleApplyFilters = useCallback(async (conditions: any[]) => {
         if (!activeTable) return;
-        let query = `SELECT * FROM ${activeTable}`;
+        let query = `SELECT * FROM "${activeTable}"`;
 
         if (conditions.length > 0) {
             const clauses: string[] = [];
@@ -200,6 +200,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
 
         setSqlQuery(query);
         await runSql(query);
+        setActiveTab('results');
     }, [activeTable, runSql]);
 
     const selectTable = useCallback(async (tableName: string) => {
@@ -418,18 +419,18 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                             )}
                             {tableData.length > 0 && (
                                 <div className="flex items-center gap-2">
-                                    <Button 
-                                        onClick={() => handleExport('csv')} 
-                                        variant="outline" 
-                                        size="sm" 
+                                    <Button
+                                        onClick={() => handleExport('csv')}
+                                        variant="outline"
+                                        size="sm"
                                         className="gap-2 bg-emerald-50/50 border-emerald-200/50 text-emerald-700 hover:bg-emerald-100/80 hover:border-emerald-300/50 backdrop-blur-sm transition-all font-semibold shadow-xs"
                                     >
                                         <FileText className="w-4 h-4 text-emerald-500" /> Export as CSV
                                     </Button>
-                                    <Button 
-                                        onClick={() => handleExport('json')} 
-                                        variant="outline" 
-                                        size="sm" 
+                                    <Button
+                                        onClick={() => handleExport('json')}
+                                        variant="outline"
+                                        size="sm"
                                         className="gap-2 bg-amber-50/50 border-amber-200/50 text-amber-700 hover:bg-amber-100/80 hover:border-amber-300/50 backdrop-blur-sm transition-all font-semibold shadow-xs"
                                     >
                                         <FileJson className="w-4 h-4 text-amber-500" /> Export as JSON
@@ -460,7 +461,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                                     tableData={tableData}
                                     currentColumns={currentColumns}
                                     activeSchema={undefined} // No schema for results
-                                    onApplyFilters={() => {}} // No filters for results
+                                    onApplyFilters={() => { }} // No filters for results
                                     onSwitchToSql={() => setActiveTab('sql')}
                                     onSwitchToPython={() => setActiveTab('python')}
                                     title="Query Result"
@@ -545,16 +546,16 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                                     <div className="flex items-center gap-1 p-1 bg-gray-50/50 rounded-xl border border-gray-200 backdrop-blur-sm">
                                         <button
                                             onClick={() => setChartDataSource('table')}
-                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${chartDataSource === 'table' 
-                                                ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5' 
+                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${chartDataSource === 'table'
+                                                ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5'
                                                 : 'text-gray-400 hover:text-gray-600'}`}
                                         >
                                             Raw Table
                                         </button>
                                         <button
                                             onClick={() => setChartDataSource('results')}
-                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${chartDataSource === 'results' 
-                                                ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5' 
+                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${chartDataSource === 'results'
+                                                ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5'
                                                 : 'text-gray-400 hover:text-gray-600'}`}
                                         >
                                             Query Results

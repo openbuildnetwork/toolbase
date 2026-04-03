@@ -61,7 +61,9 @@ def run_sql(data):
 
         # Detect the type of query
         query_lower = query.lower()
-        is_select = query_lower.startswith(("select", "with", "show", "describe", "explain", "pragma"))
+        is_select = query_lower.startswith(
+            ("select", "with", "show", "describe", "explain", "pragma")
+        )
 
         if is_select:
             # For data fetching (queries with results)
@@ -77,32 +79,32 @@ def run_sql(data):
             # For data modification (DDL/DML)
             conn.execute(query)
             conn.commit()
-            
+
             # SYNC BACK: Detect all existing tables in SQLite memory
             cursor = conn.cursor()
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
             sqlite_tables = [row[0] for row in cursor.fetchall()]
-            
+
             updated_tables = []
             for table_name in sqlite_tables:
                 # Skip internal internal tables
                 if table_name.startswith("sqlite_"):
                     continue
                 # Read table back into DataFrame and update DATA_STORE
-                new_df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
+                new_df = pd.read_sql_query(f'SELECT * FROM "{table_name}"', conn)
                 DATA_STORE[table_name] = new_df
                 updated_tables.append(table_name)
-                
+
             # Handle dropped tables: remove from DATA_STORE if not in sqlite_tables
             for name in list(DATA_STORE.keys()):
                 if name not in sqlite_tables:
                     del DATA_STORE[name]
-            
+
             conn.close()
             return {
                 "success": True,
                 "message": f"Operation successful. Tables updated: {', '.join(updated_tables)}",
-                "schemas_updated": True
+                "schemas_updated": True,
             }
 
     except Exception as e:

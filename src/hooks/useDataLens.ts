@@ -258,7 +258,7 @@ export function useDataLens(): UseDataLensResult {
 
     const selectTableData = useCallback(async (tableName: string) => {
         try {
-            const res = await sendMessage('run_sql', { query: `SELECT * FROM ${tableName} LIMIT 1000` });
+            const res = await sendMessage('run_sql', { query: `SELECT * FROM "${tableName}" LIMIT 1000` });
             if (res.success) {
                 setTableResult(res);
             } else {
