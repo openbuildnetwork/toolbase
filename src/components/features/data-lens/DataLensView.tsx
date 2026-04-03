@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import {
     LayoutGrid, Braces, Code2, Terminal, BarChart3, Upload,
     Loader2, FileText, FileJson, AlertCircle, X,
-    ScanSearch, PanelLeft, PanelLeftClose, Database, FileSpreadsheet, Trash2, Info
+    ScanSearch, PanelLeft, PanelLeftClose, Database, FileSpreadsheet, Trash2, Info, Plus
 } from "lucide-react";
 import Image from "next/image";
 import { SqlView } from "./SqlView";
@@ -20,8 +20,9 @@ import { DataView } from "./DataView";
 // ============================================================================
 
 export default function DataLensView() {
-    const { isReady, isProcessing, error, schemas, queryResult, tableResult, loadFile, runSql, runPython, deleteTable, clearQueryResult, getRawJson, selectTableData } = useDataLens();
+    const { isReady, isProcessing, error, schemas, queryResult, tableResult, loadFile, runSql, runPython, deleteTable, clearAllTables, clearQueryResult, getRawJson, selectTableData } = useDataLens();
     const [activeTab, setActiveTab] = useState<"data" | "results" | "json" | "sql" | "python" | "charts">("data");
+    const [chartDataSource, setChartDataSource] = useState<"table" | "results">("table");
     const [sqlQuery, setSqlQuery] = useState("SELECT * FROM table_name LIMIT 100;");
     const [pythonCode, setPythonCode] = useState(`# Available: pd (pandas), np (numpy)
 # All loaded tables are available as variables
@@ -55,9 +56,9 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
     }, [activeTable]);
 
     // Transform data for table
-    const isResultView = activeTab === 'results';
-    const currentData = isResultView ? (queryResult?.data || []) : (tableResult?.data || []);
-    const currentColumns = isResultView ? (queryResult?.columns || []) : (tableResult?.columns || []);
+    const showResults = activeTab === 'results' || (activeTab === 'charts' && chartDataSource === 'results');
+    const currentData = showResults ? (queryResult?.data || []) : (tableResult?.data || []);
+    const currentColumns = showResults ? (queryResult?.columns || []) : (tableResult?.columns || []);
     const tableData = useMemo(() => {
         if (!currentData.length || !currentColumns.length) return [];
         if (!Array.isArray(currentData[0])) return currentData;
@@ -69,18 +70,29 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
     }, [currentData, currentColumns]);
 
     const handleFileUpload = useCallback(async (files: File[]) => {
-        if (files.length > 0) {
+        const fileList = files.slice(0, 10);
+        if (fileList.length > 0) {
             try {
-                const res = await loadFile(files[0]);
-                if (res?.table_name) {
-                    setActiveTable(res.table_name);
-                    const sql = `SELECT * FROM ${res.table_name} LIMIT 100`;
+                let lastTableName = '';
+                for (const file of fileList) {
+                    const res = await loadFile(file);
+                    if (res?.success && res.table_name) {
+                        lastTableName = res.table_name;
+                    }
+                }
+
+                if (lastTableName) {
+                    setActiveTable(lastTableName);
+                    const sql = `SELECT * FROM ${lastTableName} LIMIT 100`;
                     setSqlQuery(sql);
+                    await selectTableData(lastTableName);
                     setActiveTab('data');
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error('DataLensView: handleFileUpload error:', e);
+            }
         }
-    }, [loadFile, runSql]);
+    }, [loadFile, selectTableData]);
 
     const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -275,13 +287,16 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                                     <span className="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full font-medium">{schemas.length}</span>
                                 </div>
                                 {schemas.length > 0 && (
-                                    <button
+                                    <Button
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="p-1.5 rounded-md hover:bg-indigo-50 text-gray-400 hover:text-indigo-600 transition-colors opacity-0 group-hover/header:opacity-100"
-                                        title="Import new file"
+                                        size="xs"
+                                        variant="outline"
+                                        className="gap-1.5 border-indigo-100 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 text-[10px] h-7 px-2 font-bold"
+                                        title="Import more files (max 10)"
                                     >
-                                        <Upload className="w-3.5 h-3.5" />
-                                    </button>
+                                        <Plus className="w-3 h-3" />
+                                        Import Files
+                                    </Button>
                                 )}
                             </div>
                         )}
@@ -334,7 +349,17 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
 
                     {/* Help Area */}
                     {!sidebarCollapsed && (
-                        <div className="p-4 border-t border-gray-100">
+                        <div className="p-4 border-t border-gray-100 flex flex-col gap-3">
+                            {schemas.length > 0 && (
+                                <Button
+                                    onClick={clearAllTables}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="w-full justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 text-xs font-medium px-3 py-2 rounded-xl active:scale-95 transition-all"
+                                >
+                                    <Trash2 className="w-4 h-4" /> Clear All Data
+                                </Button>
+                            )}
                             <div className="p-3 bg-linear-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
                                 <div className="flex items-start gap-2">
                                     <Info className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
@@ -381,16 +406,9 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                                 type="file"
                                 accept=".csv,.json,.xlsx"
                                 onChange={handleFileInputChange}
+                                multiple
                                 className="hidden"
                             />
-                            <Button
-                                onClick={() => fileInputRef.current?.click()}
-                                variant="outline"
-                                size="sm"
-                                className="gap-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300"
-                            >
-                                <Upload className="w-4 h-4" /> Import File
-                            </Button>
 
                             {isProcessing && (
                                 <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-600 text-sm font-medium animate-pulse">
@@ -400,11 +418,21 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                             )}
                             {tableData.length > 0 && (
                                 <div className="flex items-center gap-2">
-                                    <Button onClick={() => handleExport('csv')} variant="outline" size="sm" className="gap-2 border-gray-200 text-gray-600 hover:bg-gray-50">
-                                        <FileText className="w-4 h-4" /> CSV
+                                    <Button 
+                                        onClick={() => handleExport('csv')} 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="gap-2 bg-emerald-50/50 border-emerald-200/50 text-emerald-700 hover:bg-emerald-100/80 hover:border-emerald-300/50 backdrop-blur-sm transition-all font-semibold shadow-xs"
+                                    >
+                                        <FileText className="w-4 h-4 text-emerald-500" /> Export as CSV
                                     </Button>
-                                    <Button onClick={() => handleExport('json')} variant="outline" size="sm" className="gap-2 border-gray-200 text-gray-600 hover:bg-gray-50">
-                                        <FileJson className="w-4 h-4" /> JSON
+                                    <Button 
+                                        onClick={() => handleExport('json')} 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="gap-2 bg-amber-50/50 border-amber-200/50 text-amber-700 hover:bg-amber-100/80 hover:border-amber-300/50 backdrop-blur-sm transition-all font-semibold shadow-xs"
+                                    >
+                                        <FileJson className="w-4 h-4 text-amber-500" /> Export as JSON
                                     </Button>
                                 </div>
                             )}
@@ -506,8 +534,36 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                         )}
 
                         {activeTab === 'charts' && (
-                            <div className="h-full">
-                                <ChartBuilder data={tableData} columns={currentColumns} />
+                            <div className="h-full flex flex-col bg-white">
+                                <div className="px-6 py-3 border-b border-gray-100 flex items-center justify-between bg-white shadow-xs z-10">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+                                            <BarChart3 className="w-4 h-4 text-indigo-600" />
+                                        </div>
+                                        <h3 className="font-bold text-gray-800 text-sm">Chart Builder</h3>
+                                    </div>
+                                    <div className="flex items-center gap-1 p-1 bg-gray-50/50 rounded-xl border border-gray-200 backdrop-blur-sm">
+                                        <button
+                                            onClick={() => setChartDataSource('table')}
+                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${chartDataSource === 'table' 
+                                                ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5' 
+                                                : 'text-gray-400 hover:text-gray-600'}`}
+                                        >
+                                            Raw Table
+                                        </button>
+                                        <button
+                                            onClick={() => setChartDataSource('results')}
+                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${chartDataSource === 'results' 
+                                                ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5' 
+                                                : 'text-gray-400 hover:text-gray-600'}`}
+                                        >
+                                            Query Results
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="flex-1 min-h-0">
+                                    <ChartBuilder data={tableData} columns={currentColumns} />
+                                </div>
                             </div>
                         )}
                     </div>

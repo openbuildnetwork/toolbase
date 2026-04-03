@@ -31,11 +31,11 @@ export interface UseDataLensResult extends EtlState {
     runPython: (code: string) => Promise<any>;
     refreshSchemas: () => Promise<any>;
     deleteTable: (tableName: string) => Promise<any>;
+    clearAllTables: () => Promise<void>;
     clearQueryResult: () => void;
     getRawJson: (tableName: string) => Promise<any>;
     queryJson: (tableName: string, query: string) => Promise<any>;
     selectTableData: (tableName: string) => Promise<any>;
-    tableResult: QueryResult | null;
 }
 
 // Persistent Worker Singleton
@@ -212,6 +212,20 @@ export function useDataLens(): UseDataLensResult {
         }
     }, [sendMessage]);
 
+    const clearAllTables = useCallback(async () => {
+        setIsProcessing(true);
+        try {
+            await sendMessage('clear_all', {});
+            setSchemas([]);
+            setTableResult(null);
+            setQueryResult(null);
+        } catch (err: any) {
+            setError(err.message || 'Failed to clear tables');
+        } finally {
+            setIsProcessing(false);
+        }
+    }, [sendMessage]);
+
     const clearQueryResult = useCallback(() => {
         setQueryResult(null);
     }, []);
@@ -265,6 +279,7 @@ export function useDataLens(): UseDataLensResult {
         runPython,
         refreshSchemas,
         deleteTable,
+        clearAllTables,
         clearQueryResult,
         getRawJson,
         queryJson,
