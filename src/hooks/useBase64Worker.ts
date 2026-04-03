@@ -142,7 +142,7 @@ export function useBase64(): UseBase64Result {
     }, []);
 
     const isLargeFile = result?.is_large ?? false;
-    const previewText = result?.preview || (typeof result?.result === 'string' ? result.result : '');
+    const previewText = result?.preview ?? (typeof result?.result === 'string' ? result.result : '');
 
     return {
         process,

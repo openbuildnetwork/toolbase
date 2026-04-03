@@ -5,7 +5,7 @@ import type { Base64Request, Base64Response } from "@/types/base64";
  */
 function cleanBase64(s: string): string {
     if (s.startsWith("data:")) {
-        const parts = s.split(",", 1);
+        const parts = s.split(",", 2);
         if (parts.length === 2) {
             s = parts[1];
         }
@@ -108,7 +108,23 @@ function process_data(request: Base64Request): Base64Response {
 
         const size = result.length;
         const is_large = size > 1048576; // 1MB
-        const preview = is_large ? (typeof result === 'string' ? result.substring(0, 1000) + "..." : undefined) : undefined;
+        
+        // Generate preview
+        let preview = "";
+        if (typeof result === 'string') {
+            preview = is_large ? result.substring(0, 1000) + "..." : result;
+        } else if (Array.isArray(result)) {
+            // It's a byte array
+            try {
+                const previewBytes = new Uint8Array(result.slice(0, 1000));
+                preview = new TextDecoder().decode(previewBytes);
+                if (size > 1000) {
+                    preview += "...";
+                }
+            } catch (e) {
+                preview = `[Binary Data: ${size} bytes]`;
+            }
+        }
 
         return {
             success: true,
@@ -118,6 +134,7 @@ function process_data(request: Base64Request): Base64Response {
             original_size,
             is_large
         };
+
     } catch (error: any) {
         return {
             success: false,
