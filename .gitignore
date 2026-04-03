@@ -63,3 +63,6 @@ next-env.d.ts
 !/public/wasm/**/.gitkeep
 /public/wasm/pyodide/
 .cache/
+
+# other
+mocks

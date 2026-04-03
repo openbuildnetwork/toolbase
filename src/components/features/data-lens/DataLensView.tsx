@@ -20,8 +20,8 @@ import { DataView } from "./DataView";
 // ============================================================================
 
 export default function DataLensView() {
-    const { isReady, isProcessing, error, schemas, queryResult, loadFile, runSql, runPython, deleteTable, clearQueryResult, getRawJson } = useDataLens();
-    const [activeTab, setActiveTab] = useState<"data" | "json" | "sql" | "python" | "charts">("data");
+    const { isReady, isProcessing, error, schemas, queryResult, tableResult, loadFile, runSql, runPython, deleteTable, clearQueryResult, getRawJson, selectTableData } = useDataLens();
+    const [activeTab, setActiveTab] = useState<"data" | "results" | "json" | "sql" | "python" | "charts">("data");
     const [sqlQuery, setSqlQuery] = useState("SELECT * FROM table_name LIMIT 100;");
     const [pythonCode, setPythonCode] = useState(`# Available: pd (pandas), np (numpy)
 # All loaded tables are available as variables
@@ -55,8 +55,9 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
     }, [activeTable]);
 
     // Transform data for table
-    const currentData = queryResult?.data || [];
-    const currentColumns = queryResult?.columns || [];
+    const isResultView = activeTab === 'results';
+    const currentData = isResultView ? (queryResult?.data || []) : (tableResult?.data || []);
+    const currentColumns = isResultView ? (queryResult?.columns || []) : (tableResult?.columns || []);
     const tableData = useMemo(() => {
         if (!currentData.length || !currentColumns.length) return [];
         if (!Array.isArray(currentData[0])) return currentData;
@@ -75,7 +76,6 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                     setActiveTable(res.table_name);
                     const sql = `SELECT * FROM ${res.table_name} LIMIT 100`;
                     setSqlQuery(sql);
-                    await runSql(sql);
                     setActiveTab('data');
                 }
             } catch (e) { console.error(e); }
@@ -93,12 +93,12 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
 
     const handleRunSql = useCallback(async () => {
         await runSql(sqlQuery);
-        setActiveTab('data');
+        setActiveTab('results');
     }, [runSql, sqlQuery]);
 
     const handleRunPython = useCallback(async () => {
         await runPython(pythonCode);
-        setActiveTab('data');
+        setActiveTab('results');
     }, [runPython, pythonCode]);
 
     const handleExport = useCallback((format: 'csv' | 'json') => {
@@ -192,11 +192,9 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
 
     const selectTable = useCallback(async (tableName: string) => {
         setActiveTable(tableName);
-        const sql = `SELECT * FROM ${tableName} LIMIT 100`;
-        setSqlQuery(sql);
-        await runSql(sql);
+        await selectTableData(tableName);
         setActiveTab('data');
-    }, [runSql]);
+    }, [selectTableData]);
 
     const handleDeleteTable = useCallback(async (tableName: string, e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent selecting the table when clicking delete
@@ -221,7 +219,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
     // Loading State
     if (!isReady) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
+            <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
                 <div className="text-center space-y-6">
                     <div className="relative">
                         <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto shadow-xl shadow-indigo-500/30">
@@ -242,7 +240,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 text-gray-900">
+        <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50/30 text-gray-900">
             <div className="flex h-screen">
                 {/* SIDEBAR */}
                 <aside className={`flex flex-col border-r border-gray-200 bg-white/80 backdrop-blur-sm transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-72'}`}>
@@ -250,8 +248,8 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                     <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                         {!sidebarCollapsed && (
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-600 to-indigo-800 flex items-center justify-center shadow-lg shadow-indigo-500/20 ring-1 ring-white/20 relative overflow-hidden group">
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 via-purple-600 to-indigo-800 flex items-center justify-center shadow-lg shadow-indigo-500/20 ring-1 ring-white/20 relative overflow-hidden group">
+                                    <div className="absolute inset-0 bg-linear-to-tr from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <ScanSearch className="w-5 h-5 text-white relative z-10" />
                                 </div>
                                 <div>
@@ -268,20 +266,39 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                         </button>
                     </div>
 
-                    {/* Tables */}
+                    {/* Tables Section */}
                     <div className="flex-1 overflow-auto p-4">
                         {!sidebarCollapsed && (
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Tables</span>
-                                <span className="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full font-medium">{schemas.length}</span>
+                            <div className="flex items-center justify-between mb-3 group/header">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Tables</span>
+                                    <span className="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full font-medium">{schemas.length}</span>
+                                </div>
+                                {schemas.length > 0 && (
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="p-1.5 rounded-md hover:bg-indigo-50 text-gray-400 hover:text-indigo-600 transition-colors opacity-0 group-hover/header:opacity-100"
+                                        title="Import new file"
+                                    >
+                                        <Upload className="w-3.5 h-3.5" />
+                                    </button>
+                                )}
                             </div>
                         )}
+
                         {schemas.length === 0 ? (
                             !sidebarCollapsed && (
-                                <div className="text-center py-8 text-gray-400">
+                                <div className="text-center py-8 px-4 text-gray-400">
                                     <Database className="w-10 h-10 mx-auto mb-3 opacity-30" />
                                     <p className="text-sm font-medium text-gray-500">No tables yet</p>
-                                    <p className="text-xs mt-1">Upload a file to get started</p>
+                                    <p className="text-xs mt-1 mb-6">Upload a file to get started</p>
+                                    <Button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        size="sm"
+                                        className="w-full gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md active:scale-95 transition-transform"
+                                    >
+                                        <Upload className="w-4 h-4" /> Import File
+                                    </Button>
                                 </div>
                             )
                         ) : (
@@ -315,10 +332,10 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                         )}
                     </div>
 
-                    {/* Help */}
+                    {/* Help Area */}
                     {!sidebarCollapsed && (
                         <div className="p-4 border-t border-gray-100">
-                            <div className="p-3 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+                            <div className="p-3 bg-linear-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
                                 <div className="flex items-start gap-2">
                                     <Info className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
                                     <div className="text-xs text-gray-600">
@@ -338,6 +355,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                         <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl">
                             {[
                                 { id: 'data', icon: LayoutGrid, label: 'Table' },
+                                { id: 'results', icon: Database, label: 'Results' },
                                 { id: 'json', icon: Braces, label: 'JSON' },
                                 { id: 'sql', icon: Code2, label: 'SQL Query' },
                                 { id: 'python', icon: Terminal, label: 'Python' },
@@ -358,7 +376,6 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                         </div>
 
                         <div className="flex items-center gap-3">
-                            {/* Hidden file input */}
                             <input
                                 ref={fileInputRef}
                                 type="file"
@@ -366,8 +383,6 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                                 onChange={handleFileInputChange}
                                 className="hidden"
                             />
-
-                            {/* Import Button */}
                             <Button
                                 onClick={() => fileInputRef.current?.click()}
                                 variant="outline"
@@ -409,9 +424,22 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                         </div>
                     )}
 
-                    {/* Content */}
+                    {/* Content Section */}
                     <div className="flex-1 overflow-hidden">
-                        {/* DATA TAB */}
+                        {activeTab === 'results' && (
+                            <div className="h-full flex flex-col bg-white">
+                                <DataView
+                                    tableData={tableData}
+                                    currentColumns={currentColumns}
+                                    activeSchema={undefined} // No schema for results
+                                    onApplyFilters={() => {}} // No filters for results
+                                    onSwitchToSql={() => setActiveTab('sql')}
+                                    onSwitchToPython={() => setActiveTab('python')}
+                                    title="Query Result"
+                                />
+                            </div>
+                        )}
+
                         {activeTab === 'data' && (
                             <div className="h-full flex flex-col bg-white">
                                 <DataView
@@ -425,7 +453,6 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                             </div>
                         )}
 
-                        {/* JSON TAB */}
                         {activeTab === 'json' && (
                             <div className="h-full flex flex-col bg-white">
                                 {jsonLoading ? (
@@ -436,7 +463,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                                 ) : rawJsonData ? (
                                     <JsonTreeViewer data={rawJsonData} />
                                 ) : (
-                                    <div className="flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-purple-50/30">
+                                    <div className="flex-1 flex flex-col items-center justify-center bg-linear-to-br from-gray-50 to-purple-50/30">
                                         <div className="w-32 h-32 rounded-3xl bg-white border border-gray-200 shadow-xl flex items-center justify-center mb-8">
                                             <Braces className="w-16 h-16 text-gray-300" />
                                         </div>
@@ -458,7 +485,6 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                             </div>
                         )}
 
-                        {/* SQL TAB */}
                         {activeTab === 'sql' && (
                             <SqlView
                                 sqlQuery={sqlQuery}
@@ -469,7 +495,6 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                             />
                         )}
 
-                        {/* PYTHON TAB */}
                         {activeTab === 'python' && (
                             <PythonView
                                 pythonCode={pythonCode}
@@ -480,7 +505,6 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                             />
                         )}
 
-                        {/* CHARTS TAB */}
                         {activeTab === 'charts' && (
                             <div className="h-full">
                                 <ChartBuilder data={tableData} columns={currentColumns} />

@@ -7,6 +7,7 @@ export interface EtlState {
     error: string | null;
     schemas: TableSchema[];
     queryResult: QueryResult | null;
+    tableResult: QueryResult | null;
 }
 
 export interface TableSchema {
@@ -33,6 +34,8 @@ export interface UseDataLensResult extends EtlState {
     clearQueryResult: () => void;
     getRawJson: (tableName: string) => Promise<any>;
     queryJson: (tableName: string, query: string) => Promise<any>;
+    selectTableData: (tableName: string) => Promise<any>;
+    tableResult: QueryResult | null;
 }
 
 // Persistent Worker Singleton
@@ -64,6 +67,7 @@ export function useDataLens(): UseDataLensResult {
     const [error, setError] = useState<string | null>(null);
     const [schemas, setSchemas] = useState<TableSchema[]>([]);
     const [queryResult, setQueryResult] = useState<QueryResult | null>(null);
+    const [tableResult, setTableResult] = useState<QueryResult | null>(null);
 
     // Initial load
     useEffect(() => {
@@ -235,12 +239,27 @@ export function useDataLens(): UseDataLensResult {
         }
     }, [sendMessage]);
 
+    const selectTableData = useCallback(async (tableName: string) => {
+        try {
+            const res = await sendMessage('run_sql', { query: `SELECT * FROM ${tableName} LIMIT 1000` });
+            if (res.success) {
+                setTableResult(res);
+            } else {
+                setError(res.error);
+            }
+            return res;
+        } catch (err: any) {
+            setError(err.message);
+        }
+    }, [sendMessage]);
+
     return {
         isReady,
         isProcessing,
         error,
         schemas,
         queryResult,
+        tableResult,
         loadFile,
         runSql,
         runPython,
@@ -248,6 +267,7 @@ export function useDataLens(): UseDataLensResult {
         deleteTable,
         clearQueryResult,
         getRawJson,
-        queryJson
+        queryJson,
+        selectTableData
     };
 }

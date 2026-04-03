@@ -2,6 +2,7 @@ import json
 import sqlite3
 import pandas as pd
 from .state import DATA_STORE
+from .utils import df_to_js
 
 
 def prepare_df_for_sql(df):
@@ -68,12 +69,12 @@ def run_sql(data):
         result_df = pd.read_sql_query(query, conn)
         conn.close()
 
-        # Convert result to dict format for JS
+        # Convert result to dict format for JS using safe serializer
+        js_result = df_to_js(result_df)
+        
         return {
             "success": True,
-            "columns": list(result_df.columns),
-            "data": result_df.values.tolist(),
-            "rowCount": len(result_df),
+            **js_result,
             "json_columns": json_columns,  # Include info about JSON columns
         }
     except Exception as e:

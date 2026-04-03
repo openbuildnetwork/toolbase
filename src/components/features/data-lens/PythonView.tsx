@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Editor } from "@monaco-editor/react";
 import { Button } from "@/components/ui/Button";
-import { Play, Terminal } from "lucide-react";
+import { Play, HelpCircle } from "lucide-react";
 import { TableSchema } from "@/hooks/useDataLens";
+import { HelpPanel } from "./HelpPanel";
 
 interface PythonViewProps {
     pythonCode: string;
@@ -15,6 +16,153 @@ interface PythonViewProps {
 }
 
 export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessing, schemas }: PythonViewProps) {
+    const [isHelpOpen, setIsHelpOpen] = React.useState(false);
+
+    const pythonExamples = [
+        {
+            title: "1. Instant Preview",
+            description: "Check the top rows of an uploaded file using its filename.",
+            code: "result = employees_200.head(10)"
+        },
+        {
+            title: "2. Pandas Filtering",
+            description: "Use standard Pandas syntax to slice your data.",
+            code: "high_earners = employees_200[employees_200['Salary'] > 120000]\nresult = high_earners[['FirstName', 'LastName', 'Salary']]"
+        },
+        {
+            title: "3. Smart Output Detection",
+            description: "No need to set 'result = '. The engine automatically finds new DataFrames!",
+            code: "df = employees_200.copy()\ndf['Full_Name'] = df['FirstName'] + ' ' + df['LastName']\n# DataLens will automatically show 'df'!"
+        },
+        {
+            title: "4. Merging Multiple Files",
+            description: "Join CSV and JSON data effortlessly.",
+            code: "result = pd.merge(\n    employees_200, \n    complex_employees, \n    left_on='EmployeeID', \n    right_on='employeeId'\n)"
+        },
+        {
+            title: "5. Complex Aggregation",
+            description: "Calculate multi-column statistics and sort.",
+            code: "stats = employees_200.groupby('Department').agg({\n    'Salary': ['mean', 'max'],\n    'EmployeeID': 'count'\n})\nresult = stats.sort_values(('Salary', 'mean'), ascending=False)"
+        }
+    ];
+
+    const pythonIntro = (
+        <div className="space-y-4">
+            <div className="space-y-2">
+                <h3 className="text-sm font-bold text-indigo-900">Variables & Naming</h3>
+                <p className="text-xs text-indigo-700/80 leading-relaxed">
+                    Every file you upload is automatically injected as a **Pandas DataFrame** variable. 
+                </p>
+                <div className="flex items-center gap-3 bg-white/50 p-2 rounded-xl border border-indigo-100 italic text-[10px] text-indigo-600">
+                    <span>📄 employees_200.csv</span>
+                    <span className="text-gray-400">➔</span>
+                    <span className="font-mono font-bold">employees_200</span>
+                </div>
+            </div>
+            
+            <div className="space-y-2">
+                <h3 className="text-sm font-bold text-indigo-900">Python Environment</h3>
+                <ul className="text-[10px] text-indigo-700/70 space-y-1 list-disc pl-4">
+                    <li>Built-in: <code className="bg-indigo-100 px-1 rounded">pd</code> (Pandas), <code className="bg-indigo-100 px-1 rounded">np</code> (NumPy)</li>
+                    <li>Automatic Result: The last created DataFrame is auto-detected.</li>
+                    <li>Nested JSON: Arrays are automatically "exploded" into rows.</li>
+                </ul>
+            </div>
+        </div>
+    );
+
+    // Keep schemas in a ref so the Monaco provider always has the latest data
+    // without needing to re-register the provider (which is a global registration)
+    const schemasRef = useRef<TableSchema[]>(schemas);
+    useEffect(() => {
+        schemasRef.current = schemas;
+    }, [schemas]);
+
+    const handleEditorMount = (editor: any, monaco: any) => {
+        // Register completion item provider for Python
+        // This is a global registration for the 'python' language
+        const provider = monaco.languages.registerCompletionItemProvider('python', {
+            provideCompletionItems: (model: any, position: any) => {
+                const suggestions: any[] = [];
+                const currentSchemas = schemasRef.current;
+
+                // 1. Table Names (from current schemas)
+                currentSchemas.forEach(s => {
+                    suggestions.push({
+                        label: s.table_name,
+                        kind: monaco.languages.CompletionItemKind.Variable,
+                        insertText: s.table_name,
+                        detail: `Table (${s.rows} rows, ${s.columns.length} columns)`,
+                        range: {
+                            startLineNumber: position.lineNumber,
+                            endLineNumber: position.lineNumber,
+                            startColumn: position.column - 1,
+                            endColumn: position.column
+                        }
+                    });
+                });
+
+                // 2. Column Names (unique across all tables)
+                const allCols = Array.from(new Set(currentSchemas.flatMap(s => s.columns.map(c => c.name))));
+                allCols.forEach(col => {
+                    suggestions.push({
+                        label: col,
+                        kind: monaco.languages.CompletionItemKind.Field,
+                        insertText: col,
+                        detail: 'Column Name',
+                        sortText: 'z' // Move to bottom to avoid cluttering variables
+                    });
+                });
+
+                // 3. Pandas Boilerplate Snippets
+                suggestions.push(
+                    {
+                        label: 'pd.read_csv',
+                        kind: monaco.languages.CompletionItemKind.Snippet,
+                        insertText: "pd.read_csv('${1:filename}.csv')",
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                        detail: 'Load CSV into DataFrame'
+                    },
+                    {
+                        label: 'groupby',
+                        kind: monaco.languages.CompletionItemKind.Snippet,
+                        insertText: "groupby('${1:column}').agg({'${2:col}': '${3:sum}'})",
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                        detail: 'Group by and aggregate'
+                    },
+                    {
+                        label: 'pd.to_datetime',
+                        kind: monaco.languages.CompletionItemKind.Snippet,
+                        insertText: "pd.to_datetime(${1:df}['${2:column}'])",
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                        detail: 'Convert column to datetime'
+                    },
+                    {
+                        label: 'describe',
+                        kind: monaco.languages.CompletionItemKind.Method,
+                        insertText: 'describe()',
+                        detail: 'Get table statistics'
+                    },
+                    {
+                        label: 'pivot_table',
+                        kind: monaco.languages.CompletionItemKind.Snippet,
+                        insertText: "pivot_table(index='${1:col1}', columns='${2:col2}', values='${3:col3}', aggfunc='${4:sum}')",
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                        detail: 'Create a pivot table'
+                    }
+                );
+
+                return { suggestions };
+            }
+        });
+
+        // The Editor component will call the cleanup returned by onMount if provided,
+        // but it doesn't actually support returning a cleanup from onMount directly.
+        // Instead, we rely on the parent component's lifecycle if needed,
+        // but typically Providers persist. 
+        // For @monaco-editor/react, we can use the monaco instance directly.
+    };
+
     return (
         <div className="h-full flex flex-col p-6 gap-6 bg-gray-50/50">
             <div className="flex-1 min-h-0 flex flex-col bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
@@ -23,9 +171,24 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
                         <span className="text-sm font-semibold text-gray-700">Python Editor</span>
                         <span className="px-2 py-0.5 bg-yellow-50 border border-yellow-200 rounded-md text-[10px] text-yellow-700 font-medium">Pyodide WASM</span>
                     </div>
-                    <Button onClick={onRunPython} disabled={isProcessing} size="sm" className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
-                        <Play className="w-4 h-4" /> Run Script
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button 
+                            onClick={() => setIsHelpOpen(true)}
+                            variant="outline" 
+                            size="sm" 
+                            className="gap-2 border-gray-200 hover:bg-gray-100 text-gray-600"
+                        >
+                            <HelpCircle className="w-4 h-4" /> How to use
+                        </Button>
+                        <Button 
+                            onClick={onRunPython} 
+                            disabled={isProcessing} 
+                            size="sm" 
+                            className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+                        >
+                            <Play className="w-4 h-4" /> Run Script
+                        </Button>
+                    </div>
                 </div>
                 <div className="flex-1">
                     <Editor
@@ -33,6 +196,7 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
                         defaultLanguage="python"
                         value={pythonCode}
                         onChange={(val) => setPythonCode(val || '')}
+                        onMount={handleEditorMount}
                         theme="vs"
                         options={{
                             minimap: { enabled: false },
@@ -42,6 +206,9 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
                             scrollBeyondLastLine: false,
                             lineNumbers: 'on',
                             renderLineHighlight: 'all',
+                            suggestOnTriggerCharacters: true,
+                            quickSuggestions: true,
+                            wordBasedSuggestions: "off", // Reduce noise from generic words
                         }}
                     />
                 </div>
@@ -73,6 +240,14 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
                     </div>
                 </div>
             </div>
+
+            <HelpPanel 
+                isOpen={isHelpOpen} 
+                onClose={() => setIsHelpOpen(false)} 
+                title="Python Help" 
+                introduction={pythonIntro}
+                examples={pythonExamples} 
+            />
         </div>
     );
 }
