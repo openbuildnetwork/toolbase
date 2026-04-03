@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useBase64 } from '@/hooks/useBase64Worker';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { Textarea } from '@/components/ui/Textarea';
 import { Switch } from '@/components/ui/Switch';
 import { Label } from '@/components/ui/Label';
@@ -22,6 +23,14 @@ import {
     ChevronDown,
     Sparkles,
     Eye,
+    Upload,
+    Copy,
+    Check,
+    Type,
+    Binary,
+    Image as ImageIcon,
+    RefreshCw,
+    Trash2,
 } from 'lucide-react';
 import type { Base64Mode } from '@/types/base64';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -267,12 +276,16 @@ export default function Base64Page() {
         <div className="min-h-screen bg-(--background) py-6 px-4">
             <div className="max-w-[1800px] mx-auto">
                 <div className="mb-6 flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold text-(--foreground) mb-2">Base64 Tool</h1>
-                        <p className="text-sm text-(--foreground) opacity-70">
-                            Encode & decode in real-time • 100% private • High-quality previews
-                        </p>
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                            <Binary className="w-7 h-7" />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold tracking-tight text-gray-900 leading-tight">Base64 Converter</h1>
+                            <p className="text-sm text-gray-500 font-medium">Encode or decode text and files instantly</p>
+                        </div>
                     </div>
+                    <ReturnToToolsButton />
                 </div>
 
                 {/* Controls Bar */}

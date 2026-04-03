@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { ToolSidebar, ToolSidebarItem } from "@/components/ui/ToolSidebar";
+import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { cn } from "@/lib/utils";
 import type { DataFormat } from "@/lib/omni-parse";
 import { ConvertStudio } from "@/components/features/omni-parse/ConvertStudio";
@@ -82,6 +83,7 @@ export default function OmniParsePage() {
               <span className="ml-2">{activeToolLabel}</span>
             </div>
           </div>
+          <ReturnToToolsButton />
           <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">

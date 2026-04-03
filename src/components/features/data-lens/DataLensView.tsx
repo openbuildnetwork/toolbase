@@ -5,6 +5,7 @@ import { useDataLens } from "@/hooks/useDataLens";
 import { JsonTreeViewer } from "./JsonTreeViewer";
 import { ChartBuilder } from "./ChartBuilder";
 import { Button } from "@/components/ui/Button";
+import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import {
     LayoutGrid, Braces, Code2, Terminal, BarChart3, Upload,
     Loader2, FileText, FileJson, AlertCircle, X,
@@ -376,7 +377,8 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                 <main className="flex-1 flex flex-col overflow-hidden">
                     {/* Top Bar */}
                     <header className="px-6 py-4 border-b border-gray-200 bg-white/80 backdrop-blur-sm flex items-center justify-between">
-                        <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl">
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl">
                             {[
                                 { id: 'data', icon: LayoutGrid, label: 'Table' },
                                 { id: 'results', icon: Database, label: 'Results' },
@@ -397,6 +399,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                                     {tab.label}
                                 </button>
                             ))}
+                            </div>
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -435,6 +438,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                                     </Button>
                                 </div>
                             )}
+                            <ReturnToToolsButton />
                         </div>
                     </header>
 

@@ -5,6 +5,7 @@ import React from "react";
 import { Play, Square, Timer, Download, Upload, Info, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { Card } from "@/components/ui/Card";
 import { useSpeedTest, TestStage } from "@/hooks/useSpeedTest";
 import { motion, AnimatePresence } from "framer-motion";
@@ -55,6 +56,7 @@ export default function SpeedTestPage() {
                             <p className="text-sm text-gray-500 font-medium">Browser-based connectivity check</p>
                         </div>
                     </div>
+                    <ReturnToToolsButton />
 
                     <div className="flex gap-2">
                         <Button

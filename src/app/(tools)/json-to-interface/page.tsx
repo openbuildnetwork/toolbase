@@ -12,6 +12,7 @@ import {
     AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { Card } from "@/components/ui/Card";
 import { Textarea } from "@/components/ui/Textarea";
 import { Input } from "@/components/ui/Input";
@@ -98,6 +99,7 @@ export default function JsonToInterfacePage() {
                             <p className="text-sm text-gray-500 font-medium">Generate typed models instantly</p>
                         </div>
                     </div>
+                    <ReturnToToolsButton />
 
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="flex flex-col gap-1.5 min-w-[140px]">

@@ -6,6 +6,7 @@ import { Zap, ShieldCheck, Scaling, Image } from "lucide-react";
 import { ToolSidebar, ToolSidebarItem } from "@/components/ui/ToolSidebar";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 
 // Features
 import { CompressImage } from "@/components/features/pixel-axe/CompressImage";
@@ -50,6 +51,7 @@ export default function PixelAxePage() {
                             <span className="ml-2">{activeToolLabel}</span>
                         </div>
                     </div>
+                    <ReturnToToolsButton />
 
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100/50 shadow-sm">
                         <ShieldCheck className="w-3.5 h-3.5" />

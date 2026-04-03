@@ -29,6 +29,7 @@ import {
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { ToolSidebar, ToolSidebarItem } from '@/components/ui/ToolSidebar';
 import { cn } from '@/lib/utils';
 
@@ -77,13 +78,13 @@ const MagicPdf = () => {
       <main className="flex-1 overflow-hidden relative bg-gray-50/30 flex flex-col">
         <header className="h-14 border-b border-gray-200/50 bg-white/50 backdrop-blur-md flex items-center justify-between px-6 transition-all duration-300">
           <div className={cn("flex items-center gap-2 transition-all duration-300", !isSidebarOpen && "pl-12")}>
-            {/* Added padding-left for mobile/collapsed state spacing if needed, but the button is absolute */}
             <div className="flex items-center text-sm text-gray-500">
               <span className="font-semibold text-gray-800 mr-2">Magic PDF</span>
               <span className="text-gray-300">/</span>
               <span className="ml-2">{activeToolLabel}</span>
             </div>
           </div>
+          <ReturnToToolsButton />
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
