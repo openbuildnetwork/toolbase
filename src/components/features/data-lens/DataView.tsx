@@ -17,20 +17,20 @@ interface DataViewProps {
     title?: string;
 }
 
-export function DataView({ 
-    tableData, 
-    currentColumns, 
-    activeSchema, 
-    onApplyFilters, 
-    onSwitchToSql, 
+export function DataView({
+    tableData,
+    currentColumns,
+    activeSchema,
+    onApplyFilters,
+    onSwitchToSql,
     onSwitchToPython,
-    title 
+    title
 }: DataViewProps) {
     if (tableData.length === 0) {
         const isResultEmpty = title === "Query Result" || title === "Analysis Result";
 
         return (
-            <div className="flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-indigo-50/30 p-8">
+            <div className="flex-1 flex flex-col items-center justify-center bg-linear-to-br from-gray-50 to-indigo-50/30 p-8">
                 <div className="w-32 h-32 rounded-3xl bg-white border border-gray-200 shadow-xl flex items-center justify-center mb-8 relative">
                     <TableIcon className="w-16 h-16 text-gray-300" />
                     {isResultEmpty && (
@@ -41,22 +41,22 @@ export function DataView({
                     {isResultEmpty ? "No Data Found" : "Ready to Explore Data"}
                 </h3>
                 <p className="text-gray-500 max-w-sm text-center mb-10 leading-relaxed">
-                    {isResultEmpty 
+                    {isResultEmpty
                         ? "Your query executed successfully but returned zero results. Adjust your filters or try a different query."
                         : "Upload a file from the sidebar, or write a query to start analyzing your data."}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                    <Button 
-                        onClick={onSwitchToSql} 
-                        variant="outline" 
-                        size="lg" 
+                    <Button
+                        onClick={onSwitchToSql}
+                        variant="outline"
+                        size="lg"
                         className="gap-2 bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-indigo-300 hover:text-indigo-600 transition-all shadow-sm rounded-xl px-8"
                     >
                         <Code2 className="w-5 h-5 text-indigo-500" /> {isResultEmpty ? "Refine SQL Query" : "Write SQL Query"}
                     </Button>
-                    <Button 
-                        onClick={onSwitchToPython} 
-                        size="lg" 
+                    <Button
+                        onClick={onSwitchToPython}
+                        size="lg"
                         className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-indigo-200 transition-all rounded-xl px-8"
                     >
                         <Terminal className="w-5 h-5" /> {isResultEmpty ? "Refine Python Code" : "Run Python Code"}

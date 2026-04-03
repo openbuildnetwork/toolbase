@@ -105,12 +105,10 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
 
     const handleRunSql = useCallback(async () => {
         await runSql(sqlQuery);
-        setActiveTab('results');
     }, [runSql, sqlQuery]);
 
     const handleRunPython = useCallback(async () => {
         await runPython(pythonCode);
-        setActiveTab('results');
     }, [runPython, pythonCode]);
 
     const handleExport = useCallback((format: 'csv' | 'json') => {
@@ -521,6 +519,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                                 onRunSql={handleRunSql}
                                 isProcessing={isProcessing}
                                 schemas={schemas}
+                                queryResult={queryResult}
                             />
                         )}
 
@@ -531,6 +530,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                                 onRunPython={handleRunPython}
                                 isProcessing={isProcessing}
                                 schemas={schemas}
+                                queryResult={queryResult}
                             />
                         )}
 

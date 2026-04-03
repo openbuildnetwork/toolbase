@@ -3,9 +3,11 @@
 import React, { useEffect, useRef } from "react";
 import { Editor } from "@monaco-editor/react";
 import { Button } from "@/components/ui/Button";
-import { Play, HelpCircle } from "lucide-react";
+import { Play, HelpCircle, CheckCircle2, ChevronUp, ChevronDown } from "lucide-react";
 import { TableSchema } from "@/hooks/useDataLens";
 import { HelpPanel } from "./HelpPanel";
+import { DataTable } from "./DataTable";
+import { useResizablePanel } from "@/hooks/useResizablePanel";
 
 interface PythonViewProps {
     pythonCode: string;
@@ -13,10 +15,26 @@ interface PythonViewProps {
     onRunPython: () => void;
     isProcessing: boolean;
     schemas: TableSchema[];
+    queryResult?: { data: any[]; columns: string[]; rowCount?: number } | null;
 }
 
-export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessing, schemas }: PythonViewProps) {
+export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessing, schemas, queryResult }: PythonViewProps) {
     const [isHelpOpen, setIsHelpOpen] = React.useState(false);
+    const [resultsPanelCollapsed, setResultsPanelCollapsed] = React.useState(false);
+    const { ratio, isDragging, handleProps, containerRef } = useResizablePanel({ initialRatio: 0.45 });
+
+    // Transform query result data for the DataTable
+    const resultTableData = React.useMemo(() => {
+        if (!queryResult?.data?.length || !queryResult?.columns?.length) return [];
+        if (!Array.isArray(queryResult.data[0])) return queryResult.data;
+        return queryResult.data.map((row: any[]) => {
+            const rowObj: Record<string, any> = {};
+            queryResult.columns.forEach((col, idx) => { rowObj[col] = row[idx]; });
+            return rowObj;
+        });
+    }, [queryResult]);
+
+    const hasResults = resultTableData.length > 0;
 
     const pythonExamples = [
         {
@@ -65,14 +83,13 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
                 <ul className="text-[10px] text-indigo-700/70 space-y-1 list-disc pl-4">
                     <li>Built-in: <code className="bg-indigo-100 px-1 rounded">pd</code> (Pandas), <code className="bg-indigo-100 px-1 rounded">np</code> (NumPy)</li>
                     <li>Automatic Result: The last created DataFrame is auto-detected.</li>
-                    <li>Nested JSON: Arrays are automatically "exploded" into rows.</li>
+                    <li>Nested JSON: Arrays are automatically &quot;exploded&quot; into rows.</li>
                 </ul>
             </div>
         </div>
     );
 
     // Keep schemas in a ref so the Monaco provider always has the latest data
-    // without needing to re-register the provider (which is a global registration)
     const schemasRef = useRef<TableSchema[]>(schemas);
     useEffect(() => {
         schemasRef.current = schemas;
@@ -80,7 +97,6 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
 
     const handleEditorMount = (editor: any, monaco: any) => {
         // Register completion item provider for Python
-        // This is a global registration for the 'python' language
         const provider = monaco.languages.registerCompletionItemProvider('python', {
             provideCompletionItems: (model: any, position: any) => {
                 const suggestions: any[] = [];
@@ -110,7 +126,7 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
                         kind: monaco.languages.CompletionItemKind.Field,
                         insertText: col,
                         detail: 'Column Name',
-                        sortText: 'z' // Move to bottom to avoid cluttering variables
+                        sortText: 'z'
                     });
                 });
 
@@ -155,17 +171,15 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
                 return { suggestions };
             }
         });
-
-        // The Editor component will call the cleanup returned by onMount if provided,
-        // but it doesn't actually support returning a cleanup from onMount directly.
-        // Instead, we rely on the parent component's lifecycle if needed,
-        // but typically Providers persist. 
-        // For @monaco-editor/react, we can use the monaco instance directly.
     };
 
     return (
-        <div className="h-full flex flex-col p-6 gap-6 bg-gray-50/50">
-            <div className="flex-1 min-h-0 flex flex-col bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div ref={containerRef} className="h-full flex flex-col bg-gray-50/50 relative overflow-hidden">
+            {/* Editor Panel */}
+            <div
+                className="flex flex-col bg-white border-b border-gray-200 shadow-sm overflow-hidden"
+                style={hasResults && !resultsPanelCollapsed ? { height: `${ratio * 100}%`, minHeight: 150 } : { flex: 1 }}
+            >
                 <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-gray-50/50">
                     <div className="flex items-center gap-3">
                         <span className="text-sm font-semibold text-gray-700">Python Editor</span>
@@ -190,7 +204,7 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
                         </Button>
                     </div>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-h-0">
                     <Editor
                         height="100%"
                         defaultLanguage="python"
@@ -208,38 +222,79 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
                             renderLineHighlight: 'all',
                             suggestOnTriggerCharacters: true,
                             quickSuggestions: true,
-                            wordBasedSuggestions: "off", // Reduce noise from generic words
+                            wordBasedSuggestions: "off",
                         }}
                     />
                 </div>
             </div>
 
-            {/* Environment Info */}
-            <div className="h-36 grid grid-cols-2 gap-4">
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
-                    <h5 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Available Libraries</h5>
-                    <div className="flex flex-wrap gap-2">
-                        <span className="px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-medium">pandas (pd)</span>
-                        <span className="px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-lg text-xs text-orange-700 font-medium">numpy (np)</span>
-                        <span className="px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700 font-medium">openpyxl</span>
-                    </div>
+            {/* Drag Handle */}
+            {hasResults && !resultsPanelCollapsed && (
+                <div {...handleProps}>
+                    <div className={`w-12 h-1 rounded-full transition-colors ${isDragging ? 'bg-indigo-400' : 'bg-gray-300 group-hover:bg-indigo-400'}`} />
                 </div>
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 overflow-auto">
-                    <h5 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Available Variables</h5>
-                    <div className="text-xs text-gray-600 space-y-1.5">
-                        <div className="flex items-center gap-2">
-                            <code className="text-indigo-600 font-semibold">DATA_STORE</code>
-                            <span className="text-gray-400">— All loaded DataFrames</span>
+            )}
+
+            {/* Inline Results Panel */}
+            {hasResults && (
+                <div className={`flex flex-col bg-white overflow-hidden ${resultsPanelCollapsed ? 'h-auto' : 'flex-1 min-h-[120px]'}`}>
+                    {/* Results Header */}
+                    <div className="flex items-center justify-between px-5 py-2.5 border-b border-gray-100 bg-gray-50/50">
+                        <div className="flex items-center gap-3">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                            <span className="text-sm font-semibold text-gray-700">Results</span>
+                            <span className="text-xs text-gray-400 font-mono bg-gray-100 px-2 py-0.5 rounded-md">
+                                {resultTableData.length} row{resultTableData.length !== 1 ? 's' : ''}
+                            </span>
                         </div>
-                        {schemas.map(s => (
-                            <div key={s.table_name} className="flex items-center gap-2">
-                                <code className="text-indigo-600 font-semibold">{s.table_name}</code>
-                                <span className="text-gray-400">— {s.rows} rows</span>
+                        <button
+                            onClick={() => setResultsPanelCollapsed(!resultsPanelCollapsed)}
+                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                            title={resultsPanelCollapsed ? 'Expand results' : 'Collapse results'}
+                        >
+                            {resultsPanelCollapsed ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </button>
+                    </div>
+                    {/* Results Table */}
+                    {!resultsPanelCollapsed && (
+                        <div className="flex-1 min-h-0 overflow-auto">
+                            <DataTable
+                                data={resultTableData}
+                                columns={queryResult?.columns || []}
+                            />
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Environment Info (shown when no results) */}
+            {!hasResults && (
+                <div className="h-36 grid grid-cols-2 gap-4 p-4 border-t border-gray-200 bg-white">
+                    <div className="bg-gray-50 rounded-2xl border border-gray-200 p-4">
+                        <h5 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Available Libraries</h5>
+                        <div className="flex flex-wrap gap-2">
+                            <span className="px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-medium">pandas (pd)</span>
+                            <span className="px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-lg text-xs text-orange-700 font-medium">numpy (np)</span>
+                            <span className="px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700 font-medium">openpyxl</span>
+                        </div>
+                    </div>
+                    <div className="bg-gray-50 rounded-2xl border border-gray-200 p-4 overflow-auto">
+                        <h5 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Available Variables</h5>
+                        <div className="text-xs text-gray-600 space-y-1.5">
+                            <div className="flex items-center gap-2">
+                                <code className="text-indigo-600 font-semibold">DATA_STORE</code>
+                                <span className="text-gray-400">— All loaded DataFrames</span>
                             </div>
-                        ))}
+                            {schemas.map(s => (
+                                <div key={s.table_name} className="flex items-center gap-2">
+                                    <code className="text-indigo-600 font-semibold">{s.table_name}</code>
+                                    <span className="text-gray-400">— {s.rows} rows</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             <HelpPanel 
                 isOpen={isHelpOpen} 

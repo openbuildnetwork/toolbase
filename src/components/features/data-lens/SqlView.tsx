@@ -3,9 +3,11 @@
 import React from "react";
 import { Editor } from "@monaco-editor/react";
 import { Button } from "@/components/ui/Button";
-import { Play, Database, FileSpreadsheet, HelpCircle } from "lucide-react";
+import { Play, Database, FileSpreadsheet, HelpCircle, ChevronUp, ChevronDown, CheckCircle2, GripHorizontal } from "lucide-react";
 import { TableSchema } from "@/hooks/useDataLens";
 import { HelpPanel } from "./HelpPanel";
+import { DataTable } from "./DataTable";
+import { useResizablePanel } from "@/hooks/useResizablePanel";
 
 interface SqlViewProps {
     sqlQuery: string;
@@ -13,10 +15,26 @@ interface SqlViewProps {
     onRunSql: () => void;
     isProcessing: boolean;
     schemas: TableSchema[];
+    queryResult?: { data: any[]; columns: string[]; rowCount?: number } | null;
 }
 
-export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas }: SqlViewProps) {
+export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas, queryResult }: SqlViewProps) {
     const [isHelpOpen, setIsHelpOpen] = React.useState(false);
+    const [resultsPanelCollapsed, setResultsPanelCollapsed] = React.useState(false);
+    const { ratio, isDragging, handleProps, containerRef } = useResizablePanel({ initialRatio: 0.45 });
+
+    // Transform query result data for the DataTable
+    const resultTableData = React.useMemo(() => {
+        if (!queryResult?.data?.length || !queryResult?.columns?.length) return [];
+        if (!Array.isArray(queryResult.data[0])) return queryResult.data;
+        return queryResult.data.map((row: any[]) => {
+            const rowObj: Record<string, any> = {};
+            queryResult.columns.forEach((col, idx) => { rowObj[col] = row[idx]; });
+            return rowObj;
+        });
+    }, [queryResult]);
+
+    const hasResults = resultTableData.length > 0;
 
     const sqlExamples = [
         {
@@ -140,8 +158,12 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
     };
 
     return (
-        <div className="h-full flex flex-col p-6 gap-6 bg-gray-50/50 relative overflow-hidden">
-            <div className="flex-1 min-h-0 flex flex-col bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div ref={containerRef} className="h-full flex flex-col bg-gray-50/50 relative overflow-hidden">
+            {/* Editor Panel */}
+            <div
+                className="flex flex-col bg-white border-b border-gray-200 shadow-sm overflow-hidden"
+                style={hasResults && !resultsPanelCollapsed ? { height: `${ratio * 100}%`, minHeight: 150 } : { flex: 1 }}
+            >
                 <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-gray-50/50">
                     <span className="text-sm font-semibold text-gray-700">SQL Editor</span>
                     <div className="flex gap-2">
@@ -163,7 +185,7 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
                         </Button>
                     </div>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-h-0">
                     <Editor
                         height="100%"
                         defaultLanguage="sql"
@@ -186,32 +208,73 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
                 </div>
             </div>
 
-            {/* Schema Explorer */}
-            <div className="h-40 bg-white rounded-2xl border border-gray-200 shadow-sm p-5 overflow-auto">
-                <div className="flex items-center gap-2 mb-4">
-                    <Database className="w-4 h-4 text-indigo-500" />
-                    <span className="text-sm font-semibold text-gray-700">Schema Explorer</span>
+            {/* Drag Handle */}
+            {hasResults && !resultsPanelCollapsed && (
+                <div {...handleProps}>
+                    <div className={`w-12 h-1 rounded-full transition-colors ${isDragging ? 'bg-indigo-400' : 'bg-gray-300 group-hover:bg-indigo-400'}`} />
                 </div>
-                <div className="flex flex-wrap gap-4">
-                    {schemas.map(s => (
-                        <div key={s.table_name} className="bg-gray-50 border border-gray-200 rounded-xl p-4 min-w-[200px]">
-                            <div className="font-semibold text-indigo-600 mb-2 flex items-center gap-2">
-                                <FileSpreadsheet className="w-4 h-4" />
-                                {s.table_name}
-                            </div>
-                            <div className="flex flex-wrap gap-1.5">
-                                {s.columns.slice(0, 5).map(c => (
-                                    <span key={c.name} className="px-2 py-0.5 bg-white border border-gray-200 rounded text-[10px] text-gray-600 font-medium">{c.name}</span>
-                                ))}
-                                {s.columns.length > 5 && <span className="px-2 py-0.5 text-[10px] text-gray-400">+{s.columns.length - 5}</span>}
-                            </div>
+            )}
+
+            {/* Inline Results Panel */}
+            {hasResults && (
+                <div className={`flex flex-col bg-white overflow-hidden ${resultsPanelCollapsed ? 'h-auto' : 'flex-1 min-h-[120px]'}`}>
+                    {/* Results Header */}
+                    <div className="flex items-center justify-between px-5 py-2.5 border-b border-gray-100 bg-gray-50/50">
+                        <div className="flex items-center gap-3">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                            <span className="text-sm font-semibold text-gray-700">Results</span>
+                            <span className="text-xs text-gray-400 font-mono bg-gray-100 px-2 py-0.5 rounded-md">
+                                {resultTableData.length} row{resultTableData.length !== 1 ? 's' : ''}
+                            </span>
                         </div>
-                    ))}
-                    {schemas.length === 0 && (
-                        <p className="text-sm text-gray-400">No tables loaded yet. Upload a file to see schema.</p>
+                        <button
+                            onClick={() => setResultsPanelCollapsed(!resultsPanelCollapsed)}
+                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                            title={resultsPanelCollapsed ? 'Expand results' : 'Collapse results'}
+                        >
+                            {resultsPanelCollapsed ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </button>
+                    </div>
+                    {/* Results Table */}
+                    {!resultsPanelCollapsed && (
+                        <div className="flex-1 min-h-0 overflow-auto">
+                            <DataTable
+                                data={resultTableData}
+                                columns={queryResult?.columns || []}
+                            />
+                        </div>
                     )}
                 </div>
-            </div>
+            )}
+
+            {/* Schema Explorer (shown when no results) */}
+            {!hasResults && (
+                <div className="h-40 bg-white border-t border-gray-200 p-5 overflow-auto">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Database className="w-4 h-4 text-indigo-500" />
+                        <span className="text-sm font-semibold text-gray-700">Schema Explorer</span>
+                    </div>
+                    <div className="flex flex-wrap gap-4">
+                        {schemas.map(s => (
+                            <div key={s.table_name} className="bg-gray-50 border border-gray-200 rounded-xl p-4 min-w-[200px]">
+                                <div className="font-semibold text-indigo-600 mb-2 flex items-center gap-2">
+                                    <FileSpreadsheet className="w-4 h-4" />
+                                    {s.table_name}
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {s.columns.slice(0, 5).map(c => (
+                                        <span key={c.name} className="px-2 py-0.5 bg-white border border-gray-200 rounded text-[10px] text-gray-600 font-medium">{c.name}</span>
+                                    ))}
+                                    {s.columns.length > 5 && <span className="px-2 py-0.5 text-[10px] text-gray-400">+{s.columns.length - 5}</span>}
+                                </div>
+                            </div>
+                        ))}
+                        {schemas.length === 0 && (
+                            <p className="text-sm text-gray-400">No tables loaded yet. Upload a file to see schema.</p>
+                        )}
+                    </div>
+                </div>
+            )}
 
             <HelpPanel 
                 isOpen={isHelpOpen} 

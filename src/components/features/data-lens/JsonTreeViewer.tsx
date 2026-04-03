@@ -3,7 +3,8 @@
 import React, { useState, useCallback, useMemo } from "react";
 import {
     ChevronRight, ChevronDown, Braces, Brackets, Hash, Type, ToggleLeft,
-    Calendar, Copy, Check, Search, X, FileJson, AlertCircle
+    Calendar, Copy, Check, Search, X, FileJson, AlertCircle, CheckCircle2,
+    Loader2
 } from "lucide-react";
 
 // ============================================================================
@@ -75,11 +76,17 @@ interface JsonNodeProps {
     defaultExpanded?: boolean;
     searchQuery?: string;
     onPathClick?: (path: string) => void;
+    showToast?: (message: string) => void;
 }
 
-function JsonNode({ keyName, value, path, depth, defaultExpanded = false, searchQuery, onPathClick }: JsonNodeProps) {
+function JsonNode({ keyName, value, path, depth, defaultExpanded = false, searchQuery, onPathClick, showToast }: JsonNodeProps) {
     const [expanded, setExpanded] = useState(defaultExpanded || depth < 2);
     const [copied, setCopied] = useState(false);
+
+    // Sync expansion with parent
+    React.useEffect(() => {
+        setExpanded(defaultExpanded);
+    }, [defaultExpanded]);
 
     const type = getValueType(value);
     const isExpandable = type === 'object' || type === 'array';
@@ -98,15 +105,17 @@ function JsonNode({ keyName, value, path, depth, defaultExpanded = false, search
     const copyPath = useCallback(() => {
         navigator.clipboard.writeText(path);
         setCopied(true);
+        showToast?.("Path copied to clipboard!");
         setTimeout(() => setCopied(false), 1500);
-    }, [path]);
+    }, [path, showToast]);
 
     const copyValue = useCallback(() => {
         const text = isExpandable ? JSON.stringify(value, null, 2) : String(value);
         navigator.clipboard.writeText(text);
         setCopied(true);
+        showToast?.("Value copied to clipboard!");
         setTimeout(() => setCopied(false), 1500);
-    }, [value, isExpandable]);
+    }, [value, isExpandable, showToast]);
 
     return (
         <div className="select-none">
@@ -180,6 +189,7 @@ function JsonNode({ keyName, value, path, depth, defaultExpanded = false, search
                                 depth={depth + 1}
                                 searchQuery={searchQuery}
                                 onPathClick={onPathClick}
+                                showToast={showToast}
                             />
                         ))
                     ) : (
@@ -192,6 +202,7 @@ function JsonNode({ keyName, value, path, depth, defaultExpanded = false, search
                                 depth={depth + 1}
                                 searchQuery={searchQuery}
                                 onPathClick={onPathClick}
+                                showToast={showToast}
                             />
                         ))
                     )}
@@ -208,6 +219,22 @@ function JsonNode({ keyName, value, path, depth, defaultExpanded = false, search
 export function JsonTreeViewer({ data, onPathClick }: JsonTreeViewerProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [expandAll, setExpandAll] = useState(false);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
+
+    const showToast = useCallback((message: string) => {
+        setToast({ message, visible: true });
+        setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 2000);
+    }, []);
+
+    const handleExpandToggle = useCallback(() => {
+        setIsTransitioning(true);
+        // Use timeout to allow the loading state to render before the heavy tree update
+        setTimeout(() => {
+            setExpandAll(prev => !prev);
+            setIsTransitioning(false);
+        }, 100);
+    }, []);
 
     // Parse data if it's a string
     const jsonData = useMemo(() => {
@@ -223,8 +250,9 @@ export function JsonTreeViewer({ data, onPathClick }: JsonTreeViewerProps) {
 
     const handlePathClick = useCallback((path: string) => {
         navigator.clipboard.writeText(path);
+        showToast("Path copied to clipboard!");
         onPathClick?.(path);
-    }, [onPathClick]);
+    }, [onPathClick, showToast]);
 
     if (!jsonData) {
         return (
@@ -276,14 +304,19 @@ export function JsonTreeViewer({ data, onPathClick }: JsonTreeViewerProps) {
                 {/* Actions */}
                 <div className="flex items-center gap-2">
                     <button
-                        onClick={() => setExpandAll(!expandAll)}
-                        className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                        onClick={handleExpandToggle}
+                        disabled={isTransitioning}
+                        className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5 disabled:opacity-50"
                     >
+                        {isTransitioning ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : null}
                         {expandAll ? 'Collapse All' : 'Expand All'}
                     </button>
                     <button
                         onClick={() => {
                             navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
+                            showToast("JSON copied to clipboard!");
                         }}
                         className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5"
                     >
@@ -293,7 +326,17 @@ export function JsonTreeViewer({ data, onPathClick }: JsonTreeViewerProps) {
             </div>
 
             {/* Tree View */}
-            <div className="flex-1 overflow-auto p-4 font-mono text-sm">
+            <div className="relative flex-1 overflow-auto p-4 font-mono text-sm">
+                {isTransitioning && (
+                    <div className="absolute inset-0 z-10 bg-white/50 backdrop-blur-[1px] flex items-center justify-center">
+                        <div className="flex flex-col items-center gap-3 p-4 bg-white rounded-xl shadow-lg border border-gray-100">
+                            <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+                            <span className="text-sm font-medium text-gray-600">
+                                {expandAll ? 'Collapsing...' : 'Expanding...'}
+                            </span>
+                        </div>
+                    </div>
+                )}
                 {Array.isArray(jsonData) ? (
                     jsonData.map((item, index) => (
                         <JsonNode
@@ -305,6 +348,7 @@ export function JsonTreeViewer({ data, onPathClick }: JsonTreeViewerProps) {
                             defaultExpanded={expandAll}
                             searchQuery={searchQuery}
                             onPathClick={handlePathClick}
+                            showToast={showToast}
                         />
                     ))
                 ) : typeof jsonData === 'object' && jsonData !== null ? (
@@ -318,12 +362,21 @@ export function JsonTreeViewer({ data, onPathClick }: JsonTreeViewerProps) {
                             defaultExpanded={expandAll}
                             searchQuery={searchQuery}
                             onPathClick={handlePathClick}
+                            showToast={showToast}
                         />
                     ))
                 ) : (
                     <div className="text-gray-600">{String(jsonData)}</div>
                 )}
             </div>
+
+            {/* Toast Notification */}
+            {toast.visible && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-full shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span className="text-sm font-medium">{toast.message}</span>
+                </div>
+            )}
 
             {/* Quick Help */}
             <div className="px-4 py-2 border-t border-gray-100 bg-gray-50/50 text-xs text-gray-500">
