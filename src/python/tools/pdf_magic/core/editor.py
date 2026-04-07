@@ -14,11 +14,23 @@ def _hex_to_rgb(hex_str):
 def _to_pdf_rect(el, page_width, page_height):
     """
     Helper: Convert percentage-based coordinates to PDF points.
+    Now expects x, y to be top-left.
     """
     w = (el["width"] / 100) * page_width
     h = (el["height"] / 100) * page_height
-    x = (el["x"] / 100) * page_width - w / 2
-    y = (el["y"] / 100) * page_height - h / 2
+    x = (el["x"] / 100) * page_width
+    y = (el["y"] / 100) * page_height
+    
+    # Clamp to page boundaries
+    x = max(0, min(page_width - 1, x))
+    y = max(0, min(page_height - 1, y))
+    w = min(page_width - x, w)
+    h = min(page_height - y, h)
+
+    # Add a small buffer for redaction/masking to ensure full coverage
+    if el.get("type") == "whiteout" or el.get("redact"):
+        return fitz.Rect(x - 1, y - 1, x + w + 1, y + h + 1)
+        
     return fitz.Rect(x, y, x + w, y + h)
 
 def apply_pdf_edits(file_bytes, edits):
@@ -45,41 +57,71 @@ def apply_pdf_edits(file_bytes, edits):
             pW, pH = page.rect.width, page.rect.height
 
             # 1. Handle Existing Content Removal (Redactions)
-            # We process these first so we don't accidentally redact new additions
             for edit in p_list:
                 is_existing = edit.get("existing", False)
                 is_redact = edit.get("redact", False) or edit.get("moved", False)
                 
                 if is_existing and is_redact:
-                    # Use originalRect if available (for precise targeting of moved elements)
                     orig = edit.get("originalRect")
                     if orig:
-                        page.add_redact_annot(orig, fill=(1, 1, 1))
+                        # Add slight padding to mask for extra safety
+                        r = fitz.Rect(orig)
+                        padded_rect = fitz.Rect(r.x0 - 0.5, r.y0 - 0.5, r.x1 + 0.5, r.y1 + 0.5)
+                        page.draw_rect(padded_rect, color=(1, 1, 1), fill=(1, 1, 1), overlay=True)
                 elif edit["type"] == "whiteout":
-                    page.add_redact_annot(_to_pdf_rect(edit, pW, pH), fill=(1, 1, 1))
-
-            # Apply all redactions for this page
-            page.apply_redactions()
+                    page.draw_rect(_to_pdf_rect(edit, pW, pH), color=(1, 1, 1), fill=(1, 1, 1), overlay=True)
 
             # 2. Handle New Additions or Repositioned Content
             for edit in p_list:
-                # Skip if this edit entry was only for redaction
                 if edit.get("redact") and not edit.get("moved"):
                     continue
 
-                # If it's an existing element that hasn't moved, we don't need to redraw it
-                if edit.get("existing") and not edit.get("moved"):
-                    continue
+                if edit.get("existing") and not edit.get("moved") and not edit.get("content_changed"):
+                    # Check if content actually changed if it's "existing"
+                    if edit.get("content") == edit.get("originalContent"):
+                        continue
 
                 rect = _to_pdf_rect(edit, pW, pH)
                 color = _hex_to_rgb(edit.get("color", "#000000"))
 
                 if edit["type"] == "text":
+                    text_content = str(edit.get("content", ""))
+                    f_size = edit.get("fontSize", 12)
+                    
+                    if not isinstance(f_size, (int, float)) or f_size <= 0:
+                        f_size = 12
+
+                    font_family = edit.get("fontFamily", "")
+                    font_to_use = "helv"
+                    
+                    if any(ord(c) > 255 for c in text_content):
+                        font_to_use = "noto"
+                    elif font_family:
+                        normalized = font_family.lower()
+                        if "arial" in normalized or "helvetica" in normalized:
+                            font_to_use = "helv"
+                        elif "times" in normalized:
+                            font_to_use = "tiro"
+                        elif "courier" in normalized:
+                            font_to_use = "cour"
+                        elif "symbol" in normalized:
+                            font_to_use = "symb"
+                        elif "zapf" in normalized:
+                            font_to_use = "zabd"
+                        else:
+                            font_to_use = font_family
+
+                    # Map alignment: left:0, center:1, right:2
+                    align_map = {"left": 0, "center": 1, "right": 2}
+                    align_val = align_map.get(edit.get("textAlign", "left"), 0)
+
                     page.insert_textbox(
                         rect,
-                        edit["content"],
-                        fontsize=edit.get("fontSize", 12),
+                        text_content,
+                        fontsize=f_size,
                         color=color,
+                        fontname=font_to_use,
+                        align=align_val
                     )
                 
                 elif edit["type"] in ["image", "drawing"]:

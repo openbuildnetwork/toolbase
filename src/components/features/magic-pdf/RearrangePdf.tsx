@@ -181,7 +181,7 @@ export default function RearrangePdf({
                 delete: p.deleted,
             }));
             const resultBytes = await rearrangePdf(file, newOrder, operations);
-            const blob = new Blob([resultBytes as any], { type: 'application/pdf' });
+            const blob = new Blob([new Uint8Array(resultBytes as number[])], { type: 'application/pdf' });
             setResultPdfUrl(URL.createObjectURL(blob));
         } catch (err) {
             console.error('Error processing PDF:', err);

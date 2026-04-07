@@ -47,13 +47,16 @@ interface EditElement {
     color?: string;
     fontSize?: number;
     fontFamily?: string;
+    textAlign?: 'left' | 'center' | 'right';
     shapeType?: ShapeType;
     strokeWidth?: number;
     opacity?: number;
     existing?: boolean; // If it's an element detected from the original PDF
+    originalContent?: string; // Track original text content
     originalRect?: [number, number, number, number]; // Coordinates in PDF points
     moved?: boolean;
     redact?: boolean;
+    content_changed?: boolean;
 }
 
 export default function EditPdf() {
@@ -66,15 +69,17 @@ export default function EditPdf() {
 
     // Tools state
     const [activeTool, setActiveTool] = useState<ElementType | 'select'>('select');
+    const [activeShapeType, setActiveShapeType] = useState<ShapeType>('rectangle');
     const [elements, setElements] = useState<EditElement[]>([]);
-    const [activeElementId, setActiveElementId] = useState<string | null>(null);
     const [detectedPages, setDetectedPages] = useState<Set<number>>(new Set());
+    const [activeElementId, setActiveElementId] = useState<string | null>(null);
 
     // Global style state
     const [currentColor, setCurrentColor] = useState('#000000');
     const [currentFontSize, setCurrentFontSize] = useState(16);
     const [currentFontFamily, setCurrentFontFamily] = useState('Inter');
     const [currentStrokeWidth, setCurrentStrokeWidth] = useState(2);
+    const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
     const [isReady, setIsReady] = useState(false);
 
@@ -109,13 +114,18 @@ export default function EditPdf() {
                             id: res.id,
                             type: res.type,
                             content: res.content,
-                            x: ((res.rect[0] + res.rect[2]) / 2 / p_W) * 100,
-                            y: ((res.rect[1] + res.rect[3]) / 2 / p_H) * 100,
-                            width: ((res.rect[2] - res.rect[0]) / p_W) * 100,
-                            height: ((res.rect[3] - res.rect[1]) / p_H) * 100,
+                            originalContent: res.content,
+                            x: res.x,
+                            y: res.y,
+                            width: res.width,
+                            height: res.height,
                             pageIndex: currentPage - 1,
                             existing: true,
-                            originalRect: res.rect
+                            originalRect: res.rect,
+                            fontSize: res.fontSize,
+                            color: res.color,
+                            fontFamily: res.fontFamily,
+                            textAlign: res.textAlign || 'left'
                         };
                     });
                     setElements(prev => [...prev.filter(el => !el.existing || el.pageIndex !== currentPage - 1), ...newElements]);
@@ -129,11 +139,21 @@ export default function EditPdf() {
         detectElements();
     }, [file, currentPage, isReady, detectedPages]);
 
+    // Detect existing elements on the page
+
+
     const handleFileSelected = (files: File[]) => {
         if (files.length > 0) {
             setFile(files[0]);
         }
     };
+
+    const handleCanvasResize = useCallback((w: number, h: number) => {
+        setCanvasSize(prev => {
+            if (prev.width === w && prev.height === h) return prev;
+            return { width: w, height: h };
+        });
+    }, []);
 
     // Add Element Helpers
     const addElement = (type: ElementType, options: Partial<EditElement> = {}) => {
@@ -153,9 +173,41 @@ export default function EditPdf() {
             ...options
         };
 
-        setElements([...elements, newElement]);
+        setElements(prev => [...prev, newElement]);
         setActiveElementId(newElement.id);
         setActiveTool('select');
+    };
+
+    const handleCanvasClick = (e: React.MouseEvent) => {
+        if (activeTool === 'select' || activeTool === 'image') return;
+        
+        const rect = previewContainerRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+        // Check if clicking near an existing element
+        const clickedElement = elements.find(el => 
+            el.pageIndex === currentPage - 1 &&
+            x >= el.x && x <= el.x + el.width &&
+            y >= el.y && y <= el.y + el.height
+        );
+
+        if (clickedElement && activeTool === 'text') {
+            setActiveElementId(clickedElement.id);
+            setActiveTool('select');
+            return;
+        }
+
+        const options: Partial<EditElement> = { x, y };
+        if (activeTool === 'text') {
+            options.content = 'New Text';
+            options.textAlign = 'left';
+        }
+        if (activeTool === 'shape') options.shapeType = activeShapeType;
+
+        addElement(activeTool, options);
     };
 
     const updateElement = (id: string, updates: Partial<EditElement>) => {
@@ -163,8 +215,11 @@ export default function EditPdf() {
             if (el.id === id) {
                 const updated = { ...el, ...updates };
                 // If it's an existing element and coordinates/size changed, mark as moved
-                if (el.existing && (updates.x !== undefined || updates.y !== undefined || updates.width !== undefined || updates.height !== undefined || updates.content !== undefined)) {
+                if (el.existing && (updates.x !== undefined || updates.y !== undefined || updates.width !== undefined || updates.height !== undefined)) {
                     updated.moved = true;
+                }
+                if (el.existing && updates.content !== undefined && updates.content !== el.originalContent) {
+                    updated.content_changed = true;
                 }
                 return updated;
             }
@@ -204,13 +259,13 @@ export default function EditPdf() {
             const fileBytes = await file.arrayBuffer();
             const resultBytes = await magicPdfWorker.execute('apply_edits', {
                 file_bytes: new Uint8Array(fileBytes),
-                edits: elements.filter(el => !el.existing || el.moved || el.redact).map(el => ({
+                edits: elements.filter(el => !el.existing || el.moved || el.redact || el.content_changed).map(el => ({
                     ...el,
                     // content is already dataUrl for images/drawings or text
                 }))
             });
 
-            const blob = new Blob([resultBytes as any], { type: 'application/pdf' });
+            const blob = new Blob([new Uint8Array(resultBytes as number[])], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             setResultPdfUrl(url);
 
@@ -223,6 +278,15 @@ export default function EditPdf() {
     };
 
     const activeElement = elements.find(el => el.id === activeElementId);
+
+    // Sync properties when element is selected
+    useEffect(() => {
+        if (activeElement) {
+            if (activeElement.color) setCurrentColor(activeElement.color);
+            if (activeElement.fontSize) setCurrentFontSize(activeElement.fontSize);
+            if (activeElement.fontFamily) setCurrentFontFamily(activeElement.fontFamily);
+        }
+    }, [activeElementId]);
 
     return (
         <div className="w-full max-w-7xl mx-auto space-y-8 h-full flex flex-col">
@@ -247,10 +311,10 @@ export default function EditPdf() {
                             <Card className="p-3 flex flex-col gap-4">
                                 <div className="grid grid-cols-3 gap-2">
                                     <ToolButton active={activeTool === 'select'} onClick={() => setActiveTool('select')} icon={<MousePointer2 className="w-4 h-4" />} label="Select" />
-                                    <ToolButton active={activeTool === 'text'} onClick={() => addElement('text', { content: 'New Text' })} icon={<Type className="w-4 h-4" />} label="Text" />
-                                    <ToolButton active={activeTool === 'whiteout'} onClick={() => addElement('whiteout')} icon={<Eraser className="w-4 h-4" />} label="Mask" />
-                                    <ToolButton onClick={() => addElement('shape', { shapeType: 'rectangle' })} icon={<Square className="w-4 h-4" />} label="Rect" />
-                                    <ToolButton onClick={() => addElement('shape', { shapeType: 'circle' })} icon={<Circle className="w-4 h-4" />} label="Circle" />
+                                    <ToolButton active={activeTool === 'text'} onClick={() => setActiveTool('text')} icon={<Type className="w-4 h-4" />} label="Text" />
+                                    <ToolButton active={activeTool === 'whiteout'} onClick={() => setActiveTool('whiteout')} icon={<Eraser className="w-4 h-4" />} label="Mask" />
+                                    <ToolButton active={activeTool === 'shape' && activeShapeType === 'rectangle'} onClick={() => { setActiveTool('shape'); setActiveShapeType('rectangle'); }} icon={<Square className="w-4 h-4" />} label="Rect" />
+                                    <ToolButton active={activeTool === 'shape' && activeShapeType === 'circle'} onClick={() => { setActiveTool('shape'); setActiveShapeType('circle'); }} icon={<Circle className="w-4 h-4" />} label="Circle" />
                                     <label className="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-100 cursor-pointer transition-all text-gray-500">
                                         <Upload className="w-4 h-4 mb-1" />
                                         <span className="text-[10px] uppercase font-bold">Image</span>
@@ -281,12 +345,41 @@ export default function EditPdf() {
                                         )}
 
                                         {activeElement?.type === 'text' && (
-                                            <div>
-                                                <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Font Size</label>
-                                                <div className="flex items-center gap-2">
-                                                    <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => updateElement(activeElement.id, { fontSize: Math.max(8, (activeElement.fontSize || 12) - 2) })}><Minus className="w-3 h-3" /></Button>
-                                                    <span className="text-sm font-medium w-8 text-center">{activeElement.fontSize}</span>
-                                                    <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => updateElement(activeElement.id, { fontSize: (activeElement.fontSize || 12) + 2 })}><Plus className="w-3 h-3" /></Button>
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Font Size</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => updateElement(activeElement.id, { fontSize: Math.max(8, (activeElement.fontSize || 12) - 2) })}><Minus className="w-3 h-3" /></Button>
+                                                        <span className="text-sm font-medium w-8 text-center">{activeElement.fontSize}</span>
+                                                        <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => updateElement(activeElement.id, { fontSize: (activeElement.fontSize || 12) + 2 })}><Plus className="w-3 h-3" /></Button>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Alignment</label>
+                                                    <div className="flex bg-gray-100 rounded-lg p-1 w-fit">
+                                                        {(['left', 'center', 'right'] as const).map(align => (
+                                                            <button
+                                                                key={align}
+                                                                className={cn("px-2 py-1 rounded-md text-[10px] uppercase font-bold transition-all", (activeElement.textAlign === align) ? "bg-white text-primary shadow-sm" : "text-gray-400 hover:text-gray-600")}
+                                                                onClick={() => updateElement(activeElement.id, { textAlign: align })}
+                                                            >
+                                                                {align}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Font Family</label>
+                                                    <select 
+                                                        className="w-full h-8 text-xs bg-gray-100 rounded-md px-2 outline-none border-none"
+                                                        value={activeElement.fontFamily || 'Inter'}
+                                                        onChange={(e) => updateElement(activeElement.id, { fontFamily: e.target.value })}
+                                                    >
+                                                        <option value="Inter">Inter (Sans)</option>
+                                                        <option value="Helvetica">Helvetica</option>
+                                                        <option value="Times">Times (Serif)</option>
+                                                        <option value="Courier">Courier (Mono)</option>
+                                                    </select>
                                                 </div>
                                             </div>
                                         )}
@@ -319,11 +412,11 @@ export default function EditPdf() {
                             </div>
 
                             <div className="flex-1 overflow-auto p-12 flex justify-center items-start custom-scrollbar">
-                                <div ref={previewContainerRef} className="relative shadow-2xl transition-all duration-300 transform-gpu" style={{ width: 'fit-content', transform: `scale(${scale})`, transformOrigin: 'top center' }}>
-                                    <PdfPreview file={file} pageNumber={currentPage} onLoadSuccess={setTotalPages} className="rounded-lg overflow-hidden" />
-                                    <div className="absolute inset-0 pointer-events-none z-30">
+                                <div ref={previewContainerRef} className={cn("relative shadow-2xl transition-all duration-300", activeTool !== 'select' && "cursor-crosshair")} style={{ width: canvasSize.width || 'fit-content', height: canvasSize.height || 'auto' }} onClick={handleCanvasClick}>
+                                    <PdfPreview file={file} pageNumber={currentPage} scale={scale} onLoadSuccess={setTotalPages} onResize={handleCanvasResize} className="rounded-lg overflow-hidden" />
+                                    <div className="absolute top-0 left-0 pointer-events-none z-30" style={{ width: canvasSize.width, height: canvasSize.height }}>
                                         {elements.filter(el => el.pageIndex === currentPage - 1).map(el => (
-                                            <EditableElement key={el.id} el={el} active={activeElementId === el.id} onSelect={() => setActiveElementId(el.id)} onUpdate={(updates) => updateElement(el.id, updates)} />
+                                            <EditableElement key={el.id} el={el} scale={scale} active={activeElementId === el.id} onSelect={() => setActiveElementId(el.id)} onUpdate={(updates) => updateElement(el.id, updates)} />
                                         ))}
                                     </div>
                                 </div>
@@ -357,11 +450,16 @@ const ToolButton = ({ active, onClick, icon, label }: { active?: boolean, onClic
     </button>
 );
 
-const EditableElement = ({ el, active, onSelect, onUpdate }: { el: EditElement, active: boolean, onSelect: () => void, onUpdate: (updates: Partial<EditElement>) => void }) => {
+const EditableElement = ({ el, active, onSelect, onUpdate, scale = 1 }: { el: EditElement, active: boolean, onSelect: () => void, onUpdate: (updates: Partial<EditElement>) => void, scale?: number }) => {
     const elRef = useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = useState(false);
-    const [isEditingText, setIsEditingText] = useState(false);
+    const [isEditingText, setIsEditingText] = useState(el.type === 'text' && el.content === 'New Text');
     const [resizeDir, setResizeDir] = useState<string | null>(null);
+
+    const isModified = el.existing && (el.content !== el.originalContent || el.moved);
+    // Always show background for whiteout, modified elements, or when actively editing.
+    // Also show for new text elements.
+    const showBackground = el.type === 'whiteout' || isModified || isEditingText || (!el.existing && el.type === 'text');
 
     if (el.redact) return null;
 
@@ -414,24 +512,24 @@ const EditableElement = ({ el, active, onSelect, onUpdate }: { el: EditElement, 
         <div
             ref={elRef}
             className={cn(
-                "absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto transition-shadow",
-                active ? "z-30 ring-2 ring-primary bg-primary/5" : "z-20",
-                el.existing && "hover:bg-primary/5"
+                "absolute pointer-events-auto transition-all duration-200",
+                active ? "z-30 ring-1 ring-primary bg-primary/5" : "z-20 border border-transparent hover:border-blue-300/30",
+                el.existing && !isModified && !active && "cursor-text"
             )}
             style={{ left: `${el.x}%`, top: `${el.y}%`, width: `${el.width}%`, height: `${el.height}%` }}
             onMouseDown={handleMouseDown}
             onDoubleClick={() => el.type === 'text' && setIsEditingText(true)}
         >
-            <div className={cn("w-full h-full flex items-center justify-center relative", el.type === 'whiteout' && "bg-white shadow-inner")}>
+            <div className={cn("w-full h-full flex items-center relative", showBackground && "bg-white")}>
                 {el.type === 'text' && (
                     isEditingText ?
-                        <textarea autoFocus className="text-center outline-none bg-transparent resize-none w-full" style={{ color: el.color, fontSize: `${el.fontSize}px` }} value={el.content} onChange={e => onUpdate({ content: e.target.value })} onBlur={() => setIsEditingText(false)} /> :
-                        <p style={{ color: el.color, fontSize: `${el.fontSize}px` }} className="text-center wrap-break-word">{el.content}</p>
+                        <textarea autoFocus className="text-left outline-none bg-transparent resize-none w-full h-full p-0 m-0 leading-tight overflow-hidden" style={{ color: el.color || '#000000', fontSize: `${(el.fontSize || 16) * scale}px`, fontFamily: el.fontFamily, textAlign: el.textAlign || 'left' }} value={el.content} onChange={e => { onUpdate({ content: e.target.value }); }} onBlur={() => setIsEditingText(false)} /> :
+                        ((!el.existing || isModified) && <p style={{ color: el.color || '#000000', fontSize: `${(el.fontSize || 16) * scale}px`, fontFamily: el.fontFamily, textAlign: el.textAlign || 'left' }} className="text-left wrap-break-word m-0 p-0 w-full leading-tight">{el.content}</p>)
                 )}
                 {el.type === 'image' && <img src={el.content} className="w-full h-full object-contain pointer-events-none" />}
                 {el.type === 'drawing' && <img src={el.content} className="w-full h-full object-contain pointer-events-none" />}
                 {el.type === 'shape' && (
-                    <div style={{ width: '100%', height: '100%', border: `${el.strokeWidth}px solid ${el.color}`, borderRadius: el.shapeType === 'circle' ? '50%' : '0' }} />
+                    <div style={{ width: '100%', height: '100%', border: `${(el.strokeWidth || 2) * scale}px solid ${el.color}`, borderRadius: el.shapeType === 'circle' ? '50%' : '0' }} />
                 )}
             </div>
             {active && handles.map(h => (
