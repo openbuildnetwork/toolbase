@@ -25,7 +25,9 @@ import {
     MousePointer2,
     Pencil,
     Edit3,
-    Eraser
+    Eraser,
+    FileType,
+    Info
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
@@ -180,15 +182,15 @@ export default function EditPdf() {
 
     const handleCanvasClick = (e: React.MouseEvent) => {
         if (activeTool === 'select' || activeTool === 'image') return;
-        
+
         const rect = previewContainerRef.current?.getBoundingClientRect();
         if (!rect) return;
-        
+
         const x = ((e.clientX - rect.left) / rect.width) * 100;
         const y = ((e.clientY - rect.top) / rect.height) * 100;
 
         // Check if clicking near an existing element
-        const clickedElement = elements.find(el => 
+        const clickedElement = elements.find(el =>
             el.pageIndex === currentPage - 1 &&
             x >= el.x && x <= el.x + el.width &&
             y >= el.y && y <= el.y + el.height
@@ -250,6 +252,8 @@ export default function EditPdf() {
         reader.readAsDataURL(imgFile);
     };
 
+
+
     // Apply & Save via Python
     const handleApply = async () => {
         if (!file || elements.length === 0) return;
@@ -257,15 +261,20 @@ export default function EditPdf() {
         setIsProcessing(true);
         try {
             const fileBytes = await file.arrayBuffer();
-            const resultBytes = await magicPdfWorker.execute('apply_edits', {
+            const resultBytes: any = await magicPdfWorker.execute('apply_edits', {
                 file_bytes: new Uint8Array(fileBytes),
-                edits: elements.filter(el => !el.existing || el.moved || el.redact || el.content_changed).map(el => ({
+                edits: elements.filter(el => !el.existing || el.moved || el.redact || el.content !== el.originalContent).map(el => ({
                     ...el,
                     // content is already dataUrl for images/drawings or text
                 }))
             });
 
-            const blob = new Blob([new Uint8Array(resultBytes as number[])], { type: 'application/pdf' });
+            if (resultBytes && resultBytes.error) {
+                throw new Error(resultBytes.error);
+            }
+
+            // resultBytes is now a copied Uint8Array returned by the worker
+            const blob = new Blob([resultBytes], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             setResultPdfUrl(url);
 
@@ -305,8 +314,19 @@ export default function EditPdf() {
                         </Card>
                     </motion.div>
                 ) : (
-                    <motion.div key="workspace" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col lg:flex-row gap-6 h-[80vh]">
-                        {/* Toolbar */}
+                    <motion.div key="workspace" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 h-[80vh]">
+                        {/* Notice Banner */}
+                        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm shrink-0">
+                            <div className="bg-amber-100 p-1.5 rounded-full shrink-0">
+                                <Info className="w-4 h-4 text-amber-600" />
+                            </div>
+                            <p className="text-[13px] font-medium text-amber-900 leading-snug">
+                                <strong className="font-bold uppercase tracking-wide text-[11px] mr-1">Text Notice:</strong>
+                                Editing currently supports <span className="underline decoration-amber-300">English (Latin)</span> characters only. We are building expanded global language and symbol capabilities right now!
+                            </p>
+                        </div>
+                        <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
+                            {/* Toolbar */}
                         <div className="w-full lg:w-72 flex flex-col gap-4 shrink-0 overflow-y-auto pr-2 custom-scrollbar">
                             <Card className="p-3 flex flex-col gap-4">
                                 <div className="grid grid-cols-3 gap-2">
@@ -315,10 +335,11 @@ export default function EditPdf() {
                                     <ToolButton active={activeTool === 'whiteout'} onClick={() => setActiveTool('whiteout')} icon={<Eraser className="w-4 h-4" />} label="Mask" />
                                     <ToolButton active={activeTool === 'shape' && activeShapeType === 'rectangle'} onClick={() => { setActiveTool('shape'); setActiveShapeType('rectangle'); }} icon={<Square className="w-4 h-4" />} label="Rect" />
                                     <ToolButton active={activeTool === 'shape' && activeShapeType === 'circle'} onClick={() => { setActiveTool('shape'); setActiveShapeType('circle'); }} icon={<Circle className="w-4 h-4" />} label="Circle" />
-                                    <label className="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-100 cursor-pointer transition-all text-gray-500">
-                                        <Upload className="w-4 h-4 mb-1" />
-                                        <span className="text-[10px] uppercase font-bold">Image</span>
-                                        <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                                    <div className="h-6 w-px bg-gray-200 mx-2 hidden sm:block" />
+                                    <label className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer shadow-sm">
+                                        <Upload size={14} />
+                                        <span className="hidden sm:inline">Add Image</span>
+                                        <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                                     </label>
                                 </div>
                             </Card>
@@ -350,7 +371,7 @@ export default function EditPdf() {
                                                     <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Font Size</label>
                                                     <div className="flex items-center gap-2">
                                                         <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => updateElement(activeElement.id, { fontSize: Math.max(8, (activeElement.fontSize || 12) - 2) })}><Minus className="w-3 h-3" /></Button>
-                                                        <span className="text-sm font-medium w-8 text-center">{activeElement.fontSize}</span>
+                                                        <span className="text-sm font-medium w-8 text-center">{Math.round(activeElement.fontSize || 12)}</span>
                                                         <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => updateElement(activeElement.id, { fontSize: (activeElement.fontSize || 12) + 2 })}><Plus className="w-3 h-3" /></Button>
                                                     </div>
                                                 </div>
@@ -376,7 +397,6 @@ export default function EditPdf() {
                                                         onChange={(e) => updateElement(activeElement.id, { fontFamily: e.target.value })}
                                                     >
                                                         <option value="Inter">Inter (Sans)</option>
-                                                        <option value="Helvetica">Helvetica</option>
                                                         <option value="Times">Times (Serif)</option>
                                                         <option value="Courier">Courier (Mono)</option>
                                                     </select>
@@ -435,6 +455,7 @@ export default function EditPdf() {
                                     </motion.div>
                                 </div>
                             )}
+                        </div>
                         </div>
                     </motion.div>
                 )}

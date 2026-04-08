@@ -100,15 +100,21 @@ self.onmessage = async (event: MessageEvent) => {
                 const result = handleRequest(action, pyData);
 
                 let jsResult;
-                if (result && result.toJs) {
+                if (result && typeof result.toJs === 'function') {
                     jsResult = result.toJs();
                 } else {
                     jsResult = result;
                 }
 
+                // If jsResult is a Uint8Array backed by wasm memory, we MUST copy it 
+                // before destroying result, otherwise the buffer becomes detached!
+                if (jsResult instanceof Uint8Array) {
+                    jsResult = new Uint8Array(jsResult);
+                }
+
                 self.postMessage({ type: "RESULT", data: jsResult, id });
 
-                if (result && result.destroy) result.destroy();
+                if (result && typeof result.destroy === 'function') result.destroy();
 
             } finally {
                 pyData.destroy();
