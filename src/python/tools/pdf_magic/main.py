@@ -70,5 +70,8 @@ def handle_request(action, data):
         elif action == "merge":
             return func(data.get("files_bytes", []))
 
+        elif action == "search":
+            return func(file_bytes, data.get("pattern", ""), data.get("mode", "word"))
+
     except Exception as e:
         return {"error": str(e)}

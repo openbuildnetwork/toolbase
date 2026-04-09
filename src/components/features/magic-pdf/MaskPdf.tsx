@@ -108,6 +108,8 @@ export default function MaskPdf() {
     const [batchMode, setBatchMode] = useState<BatchMode>('word');
     const [previewMatches, setPreviewMatches] = useState<EditElement[]>([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [searchStatus, setSearchStatus] = useState<string | null>(null);
+    const [fileBuffer, setFileBuffer] = useState<Uint8Array | null>(null);
     const debouncedQuery = useDebounce(batchQuery, 300);
 
     // Lasso State
@@ -140,11 +142,16 @@ export default function MaskPdf() {
         setRedoStack(prev => prev.slice(0, -1));
     };
 
-    const handleFileSelected = useCallback((files: File[]) => {
+    const handleFileSelected = useCallback(async (files: File[]) => {
         if (files.length > 0) {
-            setFile(files[0]);
+            const selectedFile = files[0];
+            setFile(selectedFile);
             setCurrentPage(1);
             setElements([]);
+            
+            // Pre-calculate buffer to avoid lag during search
+            const buffer = await selectedFile.arrayBuffer();
+            setFileBuffer(new Uint8Array(buffer));
         }
     }, []);
 
@@ -212,45 +219,50 @@ export default function MaskPdf() {
 
     // Batch Search Effect
     useEffect(() => {
-        if (!debouncedQuery || !file) {
-            setPreviewMatches([]);
-            return;
-        }
+        const searchBatch = async () => {
+            if (!fileBuffer || !debouncedQuery || debouncedQuery.length < 2) {
+                setPreviewMatches([]);
+                return;
+            }
 
-        const performSearch = async () => {
             setIsSearching(true);
+            setSearchStatus("Searching document...");
             try {
-                const fileBytes = await file.arrayBuffer();
                 const results: any = await magicPdfWorker.execute('search', {
-                    file_bytes: new Uint8Array(fileBytes),
+                    file_bytes: fileBuffer,
                     pattern: debouncedQuery,
                     mode: batchMode
                 });
 
                 if (results && results.matches) {
+                    setSearchStatus(results.matches.length > 0 ? `Found ${results.matches.length} matches` : "No matches found in this document");
                     const matches: EditElement[] = results.matches.map((m: any, i: number) => ({
-                        id: `preview-${i}`,
+                        id: `match-${i}-${m.pageIndex}`,
                         type: 'whiteout',
                         x: m.x,
                         y: m.y,
                         width: m.width,
                         height: m.height,
-                        pageIndex: m.page_index,
-                        color: '#FBBF24', // Yellow preview
-                        opacity: 0.4,
-                        isPreview: true
+                        pageIndex: m.pageIndex,
+                        isPreview: true,
+                        color: currentColor,
+                        opacity: maskOpacity / 100,
+                        label: showLabel ? '[REDACTED]' : ''
                     }));
                     setPreviewMatches(matches);
+                } else if (results && results.error) {
+                    setSearchStatus(`Error: ${results.error.substring(0, 50)}...`);
+                    console.error("[BatchSearch] Error:", results.error, results.trace);
                 }
-            } catch (err) {
-                console.error('Search failed:', err);
+            } catch (err: any) {
+                setSearchStatus(`Failed to search: ${err?.message || 'Unknown error'}`);
             } finally {
                 setIsSearching(false);
             }
         };
 
-        performSearch();
-    }, [debouncedQuery, batchMode, file]);
+        searchBatch();
+    }, [debouncedQuery, batchMode, fileBuffer]);
 
     const applyBatchMask = () => {
         if (previewMatches.length === 0) return;
@@ -426,8 +438,15 @@ export default function MaskPdf() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <Button variant="outline" size="sm" className="h-9 w-9 p-0 rounded-lg shadow-sm" onClick={undo} disabled={history.length === 0} title="Undo (Ctrl+Z)"><Undo2 className="w-4 h-4" /></Button>
-                                        <Button variant="outline" size="sm" className="h-9 w-9 p-0 rounded-lg shadow-sm" onClick={redo} disabled={redoStack.length === 0} title="Redo (Ctrl+Y)"><Redo2 className="w-4 h-4" /></Button>
+                                        <Button variant="outline" size="sm" className={cn("h-9 px-4 rounded-xl gap-2 font-bold text-[11px] uppercase tracking-tighter shadow-sm transition-all", activeTool === 'whiteout' ? "bg-red-50 text-red-600 border-red-100 ring-4 ring-red-50" : "text-gray-500")} onClick={() => setActiveTool('whiteout')}>
+                                            <Eraser className="w-3.5 h-3.5" /> Manual Mask
+                                        </Button>
+                                        <Button variant="outline" size="sm" className={cn("h-9 px-4 rounded-xl gap-2 font-bold text-[11px] uppercase tracking-tighter shadow-sm transition-all", activeTool === 'select' ? "bg-blue-50 text-blue-600 border-blue-100 ring-4 ring-blue-50" : "text-gray-500")} onClick={() => setActiveTool('select')}>
+                                            <MousePointer2 className="w-3.5 h-3.5" /> Select Mode
+                                        </Button>
+                                        <div className="w-px h-6 bg-gray-200 mx-2" />
+                                        <Button variant="outline" size="sm" className="h-9 w-9 p-0 rounded-lg shadow-sm font-bold" onClick={undo} disabled={history.length === 0} title="Undo (Ctrl+Z)"><Undo2 className="w-4 h-4" /></Button>
+                                        <Button variant="outline" size="sm" className="h-9 w-9 p-0 rounded-lg shadow-sm font-bold" onClick={redo} disabled={redoStack.length === 0} title="Redo (Ctrl+Y)"><Redo2 className="w-4 h-4" /></Button>
                                     </div>
                                 </div>
 
@@ -442,17 +461,17 @@ export default function MaskPdf() {
                                     >
                                         <PdfPreview file={file} pageNumber={currentPage} scale={scale} onLoadSuccess={setTotalPages} onResize={handleCanvasResize} className="rounded-sm overflow-hidden" />
                                         
-                                        {/* Element Overlay Layer */}
-                                        <div className="absolute top-0 left-0 pointer-events-none z-30" style={{ width: canvasSize.width, height: canvasSize.height }}>
+                                        {/* Element Overlay Layer - Now always 100% to ensure visibility */}
+                                        <div className="absolute inset-0 pointer-events-none z-30">
                                             {elements.filter(el => el.pageIndex === currentPage - 1).map(el => (
                                                 <EditableElement key={el.id} el={el} scale={scale} active={activeElementId === el.id} onSelect={() => setActiveElementId(el.id)} onUpdate={(updates) => { recordHistory(); updateElement(el.id, updates); }} />
                                             ))}
                                             
                                             {/* Preview Matches */}
                                             {previewMatches.filter(m => m.pageIndex === currentPage - 1).map(m => (
-                                                <div key={m.id} className="absolute border border-amber-400 bg-amber-400/30 animate-pulse rounded-sm" style={{ left: `${m.x}%`, top: `${m.y}%`, width: `${m.width}%`, height: `${m.height}%` }} />
+                                                <div key={m.id} className="absolute border-2 border-amber-500 bg-amber-400/40 animate-pulse rounded-sm shadow-[0_0_10px_rgba(245,158,11,0.5)]" style={{ left: `${m.x}%`, top: `${m.y}%`, width: `${m.width}%`, height: `${m.height}%` }} />
                                             ))}
-
+                                            
                                             {/* Lasso Preview */}
                                             {lassoStart && lassoEnd && (
                                                 <div className="absolute border-2 border-primary bg-primary/10 border-dashed rounded-sm z-50" style={{ left: `${Math.min(lassoStart.x, lassoEnd.x)}%`, top: `${Math.min(lassoStart.y, lassoEnd.y)}%`, width: `${Math.abs(lassoStart.x - lassoEnd.x)}%`, height: `${Math.abs(lassoStart.y - lassoEnd.y)}%` }} />
@@ -478,19 +497,47 @@ export default function MaskPdf() {
                                                 </button>
                                             ))}
                                         </div>
-                                        <div className="relative">
-                                            <input type="text" placeholder={batchMode === 'regex' ? '/pattern/gi' : "Type to search..."} className="w-full bg-gray-100/50 border-gray-200/50 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none" value={batchQuery} onChange={(e) => setBatchQuery(e.target.value)} />
-                                            {previewMatches.length > 0 && (
-                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-amber-500 text-white font-bold tabular-nums text-[10px] px-2 py-0.5 rounded-full">
-                                                    {previewMatches.length} Matches
-                                                </div>
-                                            )}
+                                        <div className="relative group">
+                                            <input type="text" placeholder={batchMode === 'regex' ? '/pattern/gi' : "Type to find matches..."} className="w-full bg-gray-100/50 border-gray-200/50 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none" value={batchQuery} onChange={(e) => setBatchQuery(e.target.value)} />
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                                {isSearching && <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" />}
+                                                {!isSearching && batchQuery.length >= 2 && (
+                                                    <button onClick={() => setBatchQuery(q => q + ' ')} className="p-1 hover:bg-white rounded-md transition-colors" title="Force refresh">
+                                                        <Search className="w-3 h-3 text-gray-400" />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
+
+                                        {searchStatus && (
+                                            <div className={cn("px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 animate-in fade-in slide-in-from-top-1", 
+                                                searchStatus.startsWith('Error') || searchStatus.startsWith('Failed') ? "bg-red-50 text-red-600" : 
+                                                searchStatus.includes('Found') ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-400")}>
+                                                <div className={cn("w-1.5 h-1.5 rounded-full", 
+                                                    searchStatus.startsWith('Error') || searchStatus.startsWith('Failed') ? "bg-red-500" : 
+                                                    searchStatus.includes('Found') ? "bg-green-500 animate-pulse" : "bg-gray-400")} />
+                                                {searchStatus}
+                                            </div>
+                                        )}
+                                        
+                                        {!debouncedQuery && !previewMatches.length && (
+                                            <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-center space-y-2">
+                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">How it works</p>
+                                                <p className="text-[11px] text-gray-500 leading-relaxed">
+                                                    Type any word above. We'll find all occurrences and highlight them in <span className="text-amber-600 font-bold underline decoration-amber-200 decoration-2 underline-offset-2">yellow</span>.
+                                                </p>
+                                            </div>
+                                        )}
                                         
                                         {previewMatches.length > 0 && (
-                                            <Button className="w-full bg-amber-500 hover:bg-amber-600 border-none shadow-lg shadow-amber-500/20" onClick={applyBatchMask}>
-                                                Apply to All Matches
-                                            </Button>
+                                            <div className="space-y-3 pt-2">
+                                                <Button className="w-full bg-amber-500 hover:bg-amber-600 h-12 rounded-xl border-none shadow-xl shadow-amber-500/20 font-bold gap-2 animate-in slide-in-from-bottom-2 duration-300" onClick={applyBatchMask}>
+                                                    <Eraser className="w-4 h-4" /> Redact {previewMatches.length} Instances
+                                                </Button>
+                                                <Button variant="ghost" size="sm" className="w-full text-gray-400 text-[10px] font-bold uppercase tracking-widest" onClick={() => { setBatchQuery(''); setPreviewMatches([]); }}>
+                                                    Clear Results
+                                                </Button>
+                                            </div>
                                         )}
                                         
                                         <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex gap-3 items-start">
