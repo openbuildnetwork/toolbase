@@ -12,6 +12,7 @@ import PdfToWord from '@/components/features/magic-pdf/PdfToWord';
 import PdfToImage from '@/components/features/magic-pdf/PdfToImage';
 import ImageToPdf from '@/components/features/magic-pdf/ImageToPdf';
 import HtmlToPdf from '@/components/features/magic-pdf/HtmlToPdf';
+import MaskPdf from '@/components/features/magic-pdf/MaskPdf';
 import {
   Merge,
   Scissors,
@@ -24,7 +25,7 @@ import {
   Edit3,
   FileCode,
   FileCode2,
-  Image as ImageIcon,
+  ShieldAlert,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
@@ -44,6 +45,7 @@ const MagicPdf = () => {
     { id: 'protect', label: 'Protect PDF', icon: Lock },
     { id: 'sign', label: 'Sign PDF', icon: PenTool },
     { id: 'edit', label: 'Edit PDF', icon: Edit3, badge: 'Beta' },
+    { id: 'redact', label: 'Redact & Mask', icon: ShieldAlert, badge: 'Beta' },
     { id: 'word', label: 'PDF to Word', icon: FileCode, badge: 'Beta' },
     { id: 'convert', label: 'PDF to Image', icon: Image },
     { id: 'img2pdf', label: 'Image to PDF', icon: Image },
@@ -194,6 +196,19 @@ const MagicPdf = () => {
                 </motion.div>
               )}
 
+              {activeTool === 'redact' && (
+                <motion.div
+                  key="redact"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full"
+                >
+                  <MaskPdf />
+                </motion.div>
+              )}
+
               {activeTool === 'convert' && (
                 <motion.div
                   key="convert"
@@ -233,7 +248,7 @@ const MagicPdf = () => {
                 </motion.div>
               )}
 
-              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'sign' && activeTool !== 'edit' && activeTool !== 'word' && activeTool !== 'convert' && activeTool !== 'img2pdf' && activeTool !== 'html2pdf' && (
+              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'sign' && activeTool !== 'edit' && activeTool !== 'redact' && activeTool !== 'word' && activeTool !== 'convert' && activeTool !== 'img2pdf' && activeTool !== 'html2pdf' && (
                 <motion.div
                   key="placeholder"
                   initial={{ opacity: 0, scale: 0.95 }}

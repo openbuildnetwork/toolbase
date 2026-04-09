@@ -3,7 +3,7 @@ import sys
 # Ensure the local directory is in path for imports
 sys.path.append(".")
 
-from .core import compressor, security, extractor, editor, converter, split_merge
+from .core import compressor, security, extractor, editor, converter, split_merge, masking_logic
 
 # Action Registry
 ACTIONS = {
@@ -17,6 +17,7 @@ ACTIONS = {
     "html_to_pdf": converter.html_to_pdf,
     "split": split_merge.split_pdf,
     "merge": split_merge.merge_pdfs,
+    "search": masking_logic.search_text_spans,
 }
 
 

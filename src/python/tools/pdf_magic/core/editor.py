@@ -137,9 +137,36 @@ def apply_pdf_edits(file_bytes, edits):
                 rect = fitz.Rect(x, y, x + w, y + h)
 
                 color = _hex_to_rgb(get_val(edit, "color", "#000000"))
+                opacity = get_val(edit, "opacity", 1.0)
+
+                # 3. Handle Redactions (Masks) - Using fitz Redaction API for permanent erasure
+                if el_type == "whiteout" or get_val(edit, "is_masked"):
+                    # Add redaction annotation (burns in)
+                    page.add_redact_annot(rect, fill=color)
+                    page.apply_redactions()
+                    
+                    # Add label if present
+                    label = get_val(edit, "label", "")
+                    if label:
+                        # Centered white text on black background usually
+                        text_color = (1, 1, 1) if sum(color)/3 < 0.5 else (0, 0, 0)
+                        # Estimate font size to fit rect
+                        f_size = min(rect.height * 0.6, 10) 
+                        if f_size > 4: # Only draw if it's large enough to see
+                            page.insert_textbox(
+                                rect, 
+                                label, 
+                                fontsize=f_size, 
+                                color=text_color, 
+                                align=1, # center
+                                fontname="helv"
+                            )
+                    continue
 
                 if el_type == "text":
-                    text_rect = fitz.Rect(rect.x0, rect.y0, rect.x1, max(rect.y1, rect.y0 + 1000))
+                    text_rect = fitz.Rect(
+                        rect.x0, rect.y0, rect.x1, max(rect.y1, rect.y0 + 1000)
+                    )
 
                     text_content = str(get_val(edit, "content", ""))
                     f_size = get_val(edit, "fontSize", 12)
@@ -197,7 +224,7 @@ def apply_pdf_edits(file_bytes, edits):
                         page.draw_oval(rect, color=color, width=stroke_width)
 
         output = io.BytesIO()
-        doc.save(output)
+        doc.save(output, garbage=4, deflate=True) # garbage=4 helps clean up deleted objects
 
         # We must return the raw bytes to JS. In the worker we will extract JS Uint8Array
         result = output.getvalue()

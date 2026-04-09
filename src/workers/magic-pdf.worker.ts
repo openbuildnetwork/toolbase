@@ -22,7 +22,7 @@ async function loadPyodideAndPackages() {
         postInitProgress("Installing packages…");
         await pyodide.loadPackage(["micropip", "lxml"]);
         const micropip = pyodide.pyimport("micropip");
-        await micropip.install(["pypdf", "Pillow", "PyMuPDF", "python-docx"]);
+        await micropip.install(["pypdf", "Pillow", "PyMuPDF"], { reinstall: true });
 
         postInitProgress("Preparing tool…");
 

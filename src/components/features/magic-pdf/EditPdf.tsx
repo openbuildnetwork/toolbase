@@ -327,135 +327,135 @@ export default function EditPdf() {
                         </div>
                         <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
                             {/* Toolbar */}
-                        <div className="w-full lg:w-72 flex flex-col gap-4 shrink-0 overflow-y-auto pr-2 custom-scrollbar">
-                            <Card className="p-3 flex flex-col gap-4">
-                                <div className="grid grid-cols-3 gap-2">
-                                    <ToolButton active={activeTool === 'select'} onClick={() => setActiveTool('select')} icon={<MousePointer2 className="w-4 h-4" />} label="Select" />
-                                    <ToolButton active={activeTool === 'text'} onClick={() => setActiveTool('text')} icon={<Type className="w-4 h-4" />} label="Text" />
-                                    <ToolButton active={activeTool === 'whiteout'} onClick={() => setActiveTool('whiteout')} icon={<Eraser className="w-4 h-4" />} label="Mask" />
-                                    <ToolButton active={activeTool === 'shape' && activeShapeType === 'rectangle'} onClick={() => { setActiveTool('shape'); setActiveShapeType('rectangle'); }} icon={<Square className="w-4 h-4" />} label="Rect" />
-                                    <ToolButton active={activeTool === 'shape' && activeShapeType === 'circle'} onClick={() => { setActiveTool('shape'); setActiveShapeType('circle'); }} icon={<Circle className="w-4 h-4" />} label="Circle" />
-                                    <div className="h-6 w-px bg-gray-200 mx-2 hidden sm:block" />
-                                    <label className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer shadow-sm">
-                                        <Upload size={14} />
-                                        <span className="hidden sm:inline">Add Image</span>
-                                        <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                                    </label>
-                                </div>
-                            </Card>
+                            <div className="w-full lg:w-72 flex flex-col gap-4 shrink-0 overflow-y-auto pr-2 custom-scrollbar">
+                                <Card className="p-3 flex flex-col gap-4">
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <ToolButton active={activeTool === 'select'} onClick={() => setActiveTool('select')} icon={<MousePointer2 className="w-4 h-4" />} label="Select" />
+                                        <ToolButton active={activeTool === 'text'} onClick={() => setActiveTool('text')} icon={<Type className="w-4 h-4" />} label="Text" />
+                                        <ToolButton active={activeTool === 'whiteout'} onClick={() => setActiveTool('whiteout')} icon={<Eraser className="w-4 h-4" />} label="Mask" />
+                                        <ToolButton active={activeTool === 'shape' && activeShapeType === 'rectangle'} onClick={() => { setActiveTool('shape'); setActiveShapeType('rectangle'); }} icon={<Square className="w-4 h-4" />} label="Rect" />
+                                        <ToolButton active={activeTool === 'shape' && activeShapeType === 'circle'} onClick={() => { setActiveTool('shape'); setActiveShapeType('circle'); }} icon={<Circle className="w-4 h-4" />} label="Circle" />
+                                        <div className="h-6 w-px bg-gray-200 mx-2 hidden sm:block" />
+                                        <label className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer shadow-sm">
+                                            <Upload size={14} />
+                                            <span className="hidden sm:inline">Add Image</span>
+                                            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                                        </label>
+                                    </div>
+                                </Card>
 
-                            {/* Property Editor */}
-                            {(activeElement || activeTool !== 'select') && (
-                                <Card className="p-4 space-y-4">
-                                    <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">Properties</h4>
-                                    <div className="space-y-3">
-                                        {activeElement?.type !== 'whiteout' && (
-                                            <div>
-                                                <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Color</label>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {['#000000', '#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#FFFFFF'].map(color => (
-                                                        <button
-                                                            key={color}
-                                                            className={cn("w-6 h-6 rounded-full border transition-all", (activeElement?.color === color || currentColor === color) && "ring-2 ring-primary ring-offset-2 scale-110")}
-                                                            style={{ backgroundColor: color }}
-                                                            onClick={() => activeElement ? updateElement(activeElement.id, { color }) : setCurrentColor(color)}
-                                                        />
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {activeElement?.type === 'text' && (
-                                            <div className="space-y-3">
+                                {/* Property Editor */}
+                                {(activeElement || activeTool !== 'select') && (
+                                    <Card className="p-4 space-y-4">
+                                        <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">Properties</h4>
+                                        <div className="space-y-3">
+                                            {activeElement?.type !== 'whiteout' && (
                                                 <div>
-                                                    <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Font Size</label>
-                                                    <div className="flex items-center gap-2">
-                                                        <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => updateElement(activeElement.id, { fontSize: Math.max(8, (activeElement.fontSize || 12) - 2) })}><Minus className="w-3 h-3" /></Button>
-                                                        <span className="text-sm font-medium w-8 text-center">{Math.round(activeElement.fontSize || 12)}</span>
-                                                        <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => updateElement(activeElement.id, { fontSize: (activeElement.fontSize || 12) + 2 })}><Plus className="w-3 h-3" /></Button>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Alignment</label>
-                                                    <div className="flex bg-gray-100 rounded-lg p-1 w-fit">
-                                                        {(['left', 'center', 'right'] as const).map(align => (
+                                                    <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Color</label>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {['#000000', '#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#FFFFFF'].map(color => (
                                                             <button
-                                                                key={align}
-                                                                className={cn("px-2 py-1 rounded-md text-[10px] uppercase font-bold transition-all", (activeElement.textAlign === align) ? "bg-white text-primary shadow-sm" : "text-gray-400 hover:text-gray-600")}
-                                                                onClick={() => updateElement(activeElement.id, { textAlign: align })}
-                                                            >
-                                                                {align}
-                                                            </button>
+                                                                key={color}
+                                                                className={cn("w-6 h-6 rounded-full border transition-all", (activeElement?.color === color || currentColor === color) && "ring-2 ring-primary ring-offset-2 scale-110")}
+                                                                style={{ backgroundColor: color }}
+                                                                onClick={() => activeElement ? updateElement(activeElement.id, { color }) : setCurrentColor(color)}
+                                                            />
                                                         ))}
                                                     </div>
                                                 </div>
-                                                <div>
-                                                    <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Font Family</label>
-                                                    <select 
-                                                        className="w-full h-8 text-xs bg-gray-100 rounded-md px-2 outline-none border-none"
-                                                        value={activeElement.fontFamily || 'Inter'}
-                                                        onChange={(e) => updateElement(activeElement.id, { fontFamily: e.target.value })}
-                                                    >
-                                                        <option value="Inter">Inter (Sans)</option>
-                                                        <option value="Times">Times (Serif)</option>
-                                                        <option value="Courier">Courier (Mono)</option>
-                                                    </select>
+                                            )}
+
+                                            {activeElement?.type === 'text' && (
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Font Size</label>
+                                                        <div className="flex items-center gap-2">
+                                                            <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => updateElement(activeElement.id, { fontSize: Math.max(8, (activeElement.fontSize || 12) - 2) })}><Minus className="w-3 h-3" /></Button>
+                                                            <span className="text-sm font-medium w-8 text-center">{Math.round(activeElement.fontSize || 12)}</span>
+                                                            <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => updateElement(activeElement.id, { fontSize: (activeElement.fontSize || 12) + 2 })}><Plus className="w-3 h-3" /></Button>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Alignment</label>
+                                                        <div className="flex bg-gray-100 rounded-lg p-1 w-fit">
+                                                            {(['left', 'center', 'right'] as const).map(align => (
+                                                                <button
+                                                                    key={align}
+                                                                    className={cn("px-2 py-1 rounded-md text-[10px] uppercase font-bold transition-all", (activeElement.textAlign === align) ? "bg-white text-primary shadow-sm" : "text-gray-400 hover:text-gray-600")}
+                                                                    onClick={() => updateElement(activeElement.id, { textAlign: align })}
+                                                                >
+                                                                    {align}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Font Family</label>
+                                                        <select
+                                                            className="w-full h-8 text-xs bg-gray-100 rounded-md px-2 outline-none border-none"
+                                                            value={activeElement.fontFamily || 'Inter'}
+                                                            onChange={(e) => updateElement(activeElement.id, { fontFamily: e.target.value })}
+                                                        >
+                                                            <option value="Inter">Inter (Sans)</option>
+                                                            <option value="Times">Times (Serif)</option>
+                                                            <option value="Courier">Courier (Mono)</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                    {activeElement && <Button variant="ghost" size="sm" className="w-full text-red-500 hover:bg-red-50" onClick={() => removeElement(activeElement.id)}><Trash2 className="w-3 h-3 mr-2" /> Delete</Button>}
-                                </Card>
-                            )}
-
-                            <div className="mt-auto space-y-3">
-                                <Button className="w-full h-12 shadow-lg" onClick={handleApply} isLoading={isProcessing} disabled={elements.length === 0}>Save PDF Changes</Button>
-                                <Button variant="ghost" className="w-full text-gray-400" onClick={() => setFile(null)}>Cancel</Button>
-                            </div>
-                        </div>
-
-                        {/* Viewport */}
-                        <div className="flex-1 bg-gray-100 rounded-2xl flex flex-col overflow-hidden border border-gray-200 shadow-inner relative">
-                            <div className="h-14 bg-white border-b flex items-center justify-between px-6 z-10 shrink-0">
-                                <div className="flex items-center gap-4">
-                                    <div className="flex bg-gray-100 rounded-lg p-1">
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage <= 1}><ChevronLeft className="w-4 h-4" /></Button>
-                                        <div className="px-3 text-xs font-bold text-gray-600 min-w-[60px] flex items-center justify-center">{currentPage} / {totalPages || '?'}</div>
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}><ChevronRight className="w-4 h-4" /></Button>
-                                    </div>
-                                    <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScale(s => Math.max(0.5, s - 0.1))}><ZoomOut className="w-4 h-4" /></Button>
-                                        <span className="text-[10px] font-bold text-gray-500 w-10 text-center">{Math.round(scale * 100)}%</span>
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScale(s => Math.min(2, s + 0.1))}><ZoomIn className="w-4 h-4" /></Button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex-1 overflow-auto p-12 flex justify-center items-start custom-scrollbar">
-                                <div ref={previewContainerRef} className={cn("relative shadow-2xl transition-all duration-300", activeTool !== 'select' && "cursor-crosshair")} style={{ width: canvasSize.width || 'fit-content', height: canvasSize.height || 'auto' }} onClick={handleCanvasClick}>
-                                    <PdfPreview file={file} pageNumber={currentPage} scale={scale} onLoadSuccess={setTotalPages} onResize={handleCanvasResize} className="rounded-lg overflow-hidden" />
-                                    <div className="absolute top-0 left-0 pointer-events-none z-30" style={{ width: canvasSize.width, height: canvasSize.height }}>
-                                        {elements.filter(el => el.pageIndex === currentPage - 1).map(el => (
-                                            <EditableElement key={el.id} el={el} scale={scale} active={activeElementId === el.id} onSelect={() => setActiveElementId(el.id)} onUpdate={(updates) => updateElement(el.id, updates)} />
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {resultPdfUrl && (
-                                <div className="absolute inset-0 bg-white/95 backdrop-blur-md z-40 flex items-center justify-center p-8">
-                                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md w-full text-center space-y-6">
-                                        <CheckCircle className="w-16 h-16 text-green-600 mx-auto" />
-                                        <h3 className="text-2xl font-bold">PDF Updated!</h3>
-                                        <p className="text-gray-500">Your edits have been applied successfully.</p>
-                                        <div className="flex gap-3">
-                                            <a href={resultPdfUrl} download={`edited_${file.name}`} className="flex-1"><Button className="w-full">Download</Button></a>
-                                            <Button variant="ghost" onClick={() => setResultPdfUrl(null)}>Close</Button>
+                                            )}
                                         </div>
-                                    </motion.div>
+                                        {activeElement && <Button variant="ghost" size="sm" className="w-full text-red-500 hover:bg-red-50" onClick={() => removeElement(activeElement.id)}><Trash2 className="w-3 h-3 mr-2" /> Delete</Button>}
+                                    </Card>
+                                )}
+
+                                <div className="mt-auto space-y-3">
+                                    <Button className="w-full h-12 shadow-lg" onClick={handleApply} isLoading={isProcessing} disabled={elements.length === 0}>Save PDF Changes</Button>
+                                    <Button variant="ghost" className="w-full text-gray-400" onClick={() => setFile(null)}>Cancel</Button>
                                 </div>
-                            )}
-                        </div>
+                            </div>
+
+                            {/* Viewport */}
+                            <div className="flex-1 bg-gray-100 rounded-2xl flex flex-col overflow-hidden border border-gray-200 shadow-inner relative">
+                                <div className="h-14 bg-white border-b flex items-center justify-between px-6 z-10 shrink-0">
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex bg-gray-100 rounded-lg p-1">
+                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage <= 1}><ChevronLeft className="w-4 h-4" /></Button>
+                                            <div className="px-3 text-xs font-bold text-gray-600 min-w-[60px] flex items-center justify-center">{currentPage} / {totalPages || '?'}</div>
+                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}><ChevronRight className="w-4 h-4" /></Button>
+                                        </div>
+                                        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScale(s => Math.max(0.5, s - 0.1))}><ZoomOut className="w-4 h-4" /></Button>
+                                            <span className="text-[10px] font-bold text-gray-500 w-10 text-center">{Math.round(scale * 100)}%</span>
+                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScale(s => Math.min(2, s + 0.1))}><ZoomIn className="w-4 h-4" /></Button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex-1 overflow-auto p-12 flex justify-center items-start custom-scrollbar">
+                                    <div ref={previewContainerRef} className={cn("relative shadow-2xl transition-all duration-300", activeTool !== 'select' && "cursor-crosshair")} style={{ width: canvasSize.width || 'fit-content', height: canvasSize.height || 'auto' }} onClick={handleCanvasClick}>
+                                        <PdfPreview file={file} pageNumber={currentPage} scale={scale} onLoadSuccess={setTotalPages} onResize={handleCanvasResize} className="rounded-lg overflow-hidden" />
+                                        <div className="absolute top-0 left-0 pointer-events-none z-30" style={{ width: canvasSize.width, height: canvasSize.height }}>
+                                            {elements.filter(el => el.pageIndex === currentPage - 1).map(el => (
+                                                <EditableElement key={el.id} el={el} scale={scale} active={activeElementId === el.id} onSelect={() => setActiveElementId(el.id)} onUpdate={(updates) => updateElement(el.id, updates)} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {resultPdfUrl && (
+                                    <div className="absolute inset-0 bg-white/95 backdrop-blur-md z-40 flex items-center justify-center p-8">
+                                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md w-full text-center space-y-6">
+                                            <CheckCircle className="w-16 h-16 text-green-600 mx-auto" />
+                                            <h3 className="text-2xl font-bold">PDF Updated!</h3>
+                                            <p className="text-gray-500">Your edits have been applied successfully.</p>
+                                            <div className="flex gap-3">
+                                                <a href={resultPdfUrl} download={`edited_${file.name}`} className="flex-1"><Button className="w-full">Download</Button></a>
+                                                <Button variant="ghost" onClick={() => setResultPdfUrl(null)}>Close</Button>
+                                            </div>
+                                        </motion.div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </motion.div>
                 )}
