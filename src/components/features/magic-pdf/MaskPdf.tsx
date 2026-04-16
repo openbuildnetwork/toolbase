@@ -738,9 +738,6 @@ const EditableElement = ({ el, active, onSelect, onUpdate, scale = 1 }: { el: Ed
                 {el.type === 'shape' && (
                     <div style={{ width: '100%', height: '100%', border: `${(el.strokeWidth || 2) * scale}px solid ${el.color}`, borderRadius: el.shapeType === 'circle' ? '50%' : '0' }} />
                 )}
-                {el.type === 'whiteout' && (
-                    <div style={{ width: '100%', height: '100%', backgroundColor: el.color || '#000000' }} />
-                )}
             </div>
             {active && handles.map(h => (
                 <div key={h} className={cn("absolute w-2.5 h-2.5 bg-white border border-primary z-40 rounded-full", h === 'nw' && "-top-1 -left-1", h === 'n' && "-top-1 left-1/2 -translate-x-1/2", h === 'ne' && "-top-1 -right-1", h === 'e' && "top-1/2 -right-1 -translate-y-1/2", h === 'se' && "-bottom-1 -right-1", h === 's' && "-bottom-1 left-1/2 -translate-x-1/2", h === 'sw' && "-bottom-1 -left-1", h === 'w' && "top-1/2 -left-1 -translate-y-1/2")} onMouseDown={e => handleResizeStart(e, h)} />
