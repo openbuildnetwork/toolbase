@@ -9,6 +9,7 @@ from .core import compressor, security, extractor, editor, converter, split_merg
 ACTIONS = {
     "compress": compressor.compress_pdf_content,
     "protect": security.protect_pdf,
+    "unlock": security.unlock_pdf,
     "detect": extractor.detect_pdf_elements,
     "apply_edits": editor.apply_pdf_edits,
     "pdf_to_word": converter.pdf_to_word,
@@ -69,6 +70,9 @@ def handle_request(action, data):
 
         elif action == "merge":
             return func(data.get("files_bytes", []))
+
+        elif action == "unlock":
+            return func(file_bytes, data.get("password", ""))
 
         elif action == "search":
             return func(file_bytes, data.get("pattern", ""), data.get("mode", "word"))

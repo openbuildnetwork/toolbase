@@ -217,6 +217,35 @@ export const TOOLS: ToolMeta[] = [
     },
 
       {
+      id: 'magic-pdf/unlock',
+      name: 'Unlock PDF',
+      description: 'Remove password protection from a PDF.',
+      consumes: ['application/pdf'],
+      produces: ['application/pdf'],
+      configSchema: { fields: [
+        {
+          key: 'password',
+          label: 'PDF Password',
+          type: 'password',
+          default: '',
+          required: false,
+          description: 'Password to unlock the PDF.',
+        },
+      ] },
+      getExecutor: async () => {
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          magicPdfWorker,
+          'unlock',
+          (b, c) => ({ file_bytes: b, password: c.password || '' }),
+          () => 'application/pdf',
+          'Unlock PDF'
+        );
+      }
+    },
+
+      {
       id: 'magic-pdf/sign',
       name: 'Sign PDF',
       description: 'Add hand-drawn, typed, or image signatures to a PDF.',

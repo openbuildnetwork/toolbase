@@ -6,6 +6,7 @@ import SplitPdf from '@/components/features/magic-pdf/SplitPdf';
 import CompressPdf from '@/components/features/magic-pdf/CompressPdf';
 import RearrangePdf from '@/components/features/magic-pdf/RearrangePdf';
 import ProtectPdf from '@/components/features/magic-pdf/ProtectPdf';
+import UnlockPdf from '@/components/features/magic-pdf/UnlockPdf';
 import SignPdf from '@/components/features/magic-pdf/SignPdf';
 import EditPdf from '@/components/features/magic-pdf/EditPdf';
 import PdfToWord from '@/components/features/magic-pdf/PdfToWord';
@@ -21,6 +22,7 @@ import {
   FileText,
   ArrowUpDown,
   Lock,
+  Unlock,
   PenTool,
   Edit3,
   FileCode,
@@ -43,6 +45,7 @@ const MagicPdf = () => {
     { id: 'compress', label: 'Compress PDF', icon: Minimize2 },
     { id: 'rearrange', label: 'Rearrange Pages', icon: ArrowUpDown },
     { id: 'protect', label: 'Protect PDF', icon: Lock },
+    { id: 'unlock', label: 'Unlock PDF', icon: Unlock },
     { id: 'sign', label: 'Sign PDF', icon: PenTool },
     { id: 'edit', label: 'Edit PDF', icon: Edit3, badge: 'Beta' },
     { id: 'redact', label: 'Redact & Mask', icon: ShieldAlert, badge: 'Beta' },
@@ -157,6 +160,19 @@ const MagicPdf = () => {
                 </motion.div>
               )}
 
+              {activeTool === 'unlock' && (
+                <motion.div
+                  key="unlock"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full"
+                >
+                  <UnlockPdf />
+                </motion.div>
+              )}
+
               {activeTool === 'sign' && (
                 <motion.div
                   key="sign"
@@ -248,7 +264,7 @@ const MagicPdf = () => {
                 </motion.div>
               )}
 
-              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'sign' && activeTool !== 'edit' && activeTool !== 'redact' && activeTool !== 'word' && activeTool !== 'convert' && activeTool !== 'img2pdf' && activeTool !== 'html2pdf' && (
+              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'unlock' && activeTool !== 'sign' && activeTool !== 'edit' && activeTool !== 'redact' && activeTool !== 'word' && activeTool !== 'convert' && activeTool !== 'img2pdf' && activeTool !== 'html2pdf' && (
                 <motion.div
                   key="placeholder"
                   initial={{ opacity: 0, scale: 0.95 }}
