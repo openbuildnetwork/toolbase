@@ -144,11 +144,13 @@ function process_data(request: Base64Request): Base64Response {
 }
 
 self.onmessage = (event: MessageEvent) => {
-    const { type, data, id } = event.data;
+    const { type, action, data, id } = event.data;
 
-    if (type === "PROCESS") {
+    if (type !== "EXECUTE") return;
+
+    if (action === "process") {
         const result = process_data(data);
-        self.postMessage({ type: "PROCESS_RESULT", data: result, id });
+        self.postMessage({ type: "RESULT", data: result, id });
     }
 };
 
