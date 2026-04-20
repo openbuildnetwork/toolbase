@@ -235,6 +235,40 @@ export const magicPdfConfig: ToolMeta = {
           () => 'application/pdf',
           'Unlock PDF'
         );
+      },
+      interactable: true as const,
+      getInteractionComponent: async () => {
+        const { default: UnlockPdf } = await import('@/components/features/magic-pdf/UnlockPdf');
+        return UnlockPdf;
+      },
+    },
+    {
+      id: 'magic-pdf/mask',
+      name: 'Redact & Mask',
+      description: 'Permanently remove sensitive information, PII, and secrets from your documents.',
+      consumes: ['application/pdf'],
+      produces: ['application/pdf'],
+      configSchema: { fields: [] },
+      interactable: true as const,
+      getInteractionComponent: async () => {
+        const { default: MaskPdf } = await import('@/components/features/magic-pdf/MaskPdf');
+        return MaskPdf;
+      },
+      getExecutor: async () => {
+        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
+        const { magicPdfWorker } = await import('@/workers/instances');
+        return createPerPayloadTIPExecutor(
+          magicPdfWorker,
+          'apply_edits',
+          (b, c) => ({
+            file_bytes: b,
+            edits: (c.edits as any[])?.map(el => ({
+              ...el,
+            })) || []
+          }),
+          () => 'application/pdf',
+          'Redact & Mask'
+        );
       }
     },
     {

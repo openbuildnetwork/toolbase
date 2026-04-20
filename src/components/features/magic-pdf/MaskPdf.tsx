@@ -44,6 +44,10 @@ import { magicPdfWorker } from '@/workers/instances';
 import { ShieldAlert, Fingerprint, Eye, EyeOff } from 'lucide-react';
 import { Slider } from '@/components/ui/Slider';
 import { useDebounce } from '@/hooks/useDebounce';
+import type { TIPInteractionProps } from '@/tip/protocol';
+
+/** Props for MaskPdf — all optional so it works as a bare <MaskPdf /> */
+export type MaskPdfProps = Partial<TIPInteractionProps>;
 
 type ElementType = 'text' | 'image' | 'shape' | 'drawing' | 'whiteout';
 type ShapeType = 'rectangle' | 'circle' | 'line';
@@ -78,8 +82,16 @@ interface EditElement {
 
 type BatchMode = 'word' | 'phrase' | 'regex';
 
-export default function MaskPdf() {
-    const [file, setFile] = useState<File | null>(null);
+export default function MaskPdf({
+    files: seedFiles,
+    config: seedConfig,
+    onConfirm,
+    onCancel,
+}: MaskPdfProps = {}) {
+    /** true when rendered inside the pipeline InteractionModal */
+    const isInteractionMode = typeof onConfirm === 'function';
+
+    const [file, setFile] = useState<File | null>(seedFiles?.[0] ?? null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [resultPdfUrl, setResultPdfUrl] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -89,7 +101,12 @@ export default function MaskPdf() {
     // Tools state
     const [activeTool, setActiveTool] = useState<ElementType | 'select'>('whiteout');
     const [activeShapeType, setActiveShapeType] = useState<ShapeType>('rectangle');
-    const [elements, setElements] = useState<EditElement[]>([]);
+    const [elements, setElements] = useState<EditElement[]>(() => {
+        if (seedConfig && seedConfig.edits) {
+            return seedConfig.edits as EditElement[];
+        }
+        return [];
+    });
     const [detectedPages, setDetectedPages] = useState<Set<number>>(new Set());
     const [activeElementId, setActiveElementId] = useState<string | null>(null);
 
@@ -388,6 +405,14 @@ export default function MaskPdf() {
         }
     };
 
+    const handleConfirm = () => {
+        if (!file || !onConfirm) return;
+        onConfirm({
+            files: [file],
+            config: { edits: elements }
+        });
+    };
+
     const activeElement = elements.find(el => el.id === activeElementId);
 
     // Sync properties when element is selected
@@ -590,10 +615,17 @@ export default function MaskPdf() {
                                 </Card>
 
                                 <div className="mt-auto flex flex-col gap-3">
-                                    <Button className="w-full h-14 shadow-2xl shadow-primary/20 rounded-2xl text-base font-bold tracking-tight" onClick={handleApply} isLoading={isProcessing} disabled={elements.length === 0}>
-                                        <ShieldCheck className="w-5 h-5 mr-2" /> Export Masked PDF
+                                    <Button className="w-full h-14 shadow-2xl shadow-primary/20 rounded-2xl text-base font-bold tracking-tight" onClick={isInteractionMode ? handleConfirm : handleApply} isLoading={isProcessing} disabled={elements.length === 0}>
+                                        {isInteractionMode ? (
+                                            <><CheckCircle className="w-5 h-5 mr-2" /> Confirm Redactions</>
+                                        ) : (
+                                            <><ShieldCheck className="w-5 h-5 mr-2" /> Export Masked PDF</>
+                                        )}
                                     </Button>
-                                    <Button variant="ghost" className="w-full text-gray-400 hover:text-gray-600 rounded-xl" onClick={() => setFile(null)}>Reset & Close</Button>
+                                    <Button variant="ghost" className="w-full text-gray-400 hover:text-gray-600 rounded-xl" onClick={isInteractionMode ? onCancel : () => setFile(null)}>
+                                        {isInteractionMode ? 'Cancel' : 'Reset & Close'}
+                                    </Button>
+                                    {!isInteractionMode && <Button variant="ghost" className="w-full text-gray-400 hover:text-gray-600 rounded-xl" onClick={() => setFile(null)}>Reset & Close</Button>}
                                 </div>
                             </div>
                         </div>

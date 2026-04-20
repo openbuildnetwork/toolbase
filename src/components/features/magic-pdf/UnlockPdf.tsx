@@ -18,10 +18,22 @@ import {
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
 import { useTIPTool } from '@/hooks/useTIPTool';
+import type { TIPInteractionProps } from '@/tip/protocol';
 
-export default function UnlockPdf() {
-    const [file, setFile] = useState<File | null>(null);
-    const [password, setPassword] = useState('');
+/** Props for UnlockPdf — all optional so it works as a bare <UnlockPdf /> */
+export type UnlockPdfProps = Partial<TIPInteractionProps>;
+
+export default function UnlockPdf({
+    files: seedFiles,
+    config: seedConfig,
+    onConfirm,
+    onCancel,
+}: UnlockPdfProps = {}) {
+    /** true when rendered inside the pipeline InteractionModal */
+    const isInteractionMode = typeof onConfirm === 'function';
+
+    const [file, setFile] = useState<File | null>(seedFiles?.[0] ?? null);
+    const [password, setPassword] = useState((seedConfig?.password as string) || '');
     const [showPassword, setShowPassword] = useState(false);
     const [isUnlocking, setIsUnlocking] = useState(false);
     const [unlockedPdfUrl, setUnlockedPdfUrl] = useState<string | null>(null);
@@ -87,6 +99,14 @@ export default function UnlockPdf() {
         } finally {
             setIsUnlocking(false);
         }
+    };
+
+    const handleConfirm = () => {
+        if (!file || !onConfirm) return;
+        onConfirm({
+            files: [file],
+            config: { password }
+        });
     };
 
     return (
@@ -184,7 +204,7 @@ export default function UnlockPdf() {
                         {error && (
                             <Card className="p-6 border-red-200 bg-red-50">
                                 <div className="flex items-start gap-3">
-                                    <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                                    <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
                                     <div>
                                         <h4 className="font-semibold text-red-900 mb-1">Failed to Unlock PDF</h4>
                                         <p className="text-red-700">
@@ -245,14 +265,23 @@ export default function UnlockPdf() {
                                 <div className="mt-8 flex flex-col items-center">
                                     <Button
                                         size="lg"
-                                        onClick={handleUnlock}
+                                        onClick={isInteractionMode ? handleConfirm : handleUnlock}
                                         disabled={isUnlocking || isProcessing || tool?.state === 'warming'}
                                         isLoading={isUnlocking || isProcessing}
                                         className="w-full max-w-xs"
                                     >
-                                        <Unlock className="w-4 h-4 mr-2" />
-                                        {(isUnlocking || isProcessing) ? progressMessage || 'Unlocking...' : tool?.state === 'warming' ? 'Loading Tool...' : 'Unlock PDF'}
+                                        {isInteractionMode ? (
+                                            <><CheckCircle className="w-4 h-4 mr-2" /> Confirm Password</>
+                                        ) : (
+                                            <><Unlock className="w-4 h-4 mr-2" /> {(isUnlocking || isProcessing) ? progressMessage || 'Unlocking...' : tool?.state === 'warming' ? 'Loading Tool...' : 'Unlock PDF'}</>
+                                        )}
                                     </Button>
+
+                                    {isInteractionMode && (
+                                        <Button variant="ghost" className="mt-2" onClick={onCancel}>
+                                            Cancel
+                                        </Button>
+                                    )}
 
                                     {!password && (
                                         <div className="mt-3 flex items-center gap-2 text-sm text-amber-600">
