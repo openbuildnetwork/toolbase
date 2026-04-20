@@ -27,7 +27,9 @@ import {
     Edit3,
     Eraser,
     FileType,
-    Info
+    Info,
+    RotateCw,
+    RotateCcw
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
@@ -53,9 +55,14 @@ interface EditElement {
     shapeType?: ShapeType;
     strokeWidth?: number;
     opacity?: number;
+    rotation?: number; // rotation in degrees
     existing?: boolean; // If it's an element detected from the original PDF
     originalContent?: string; // Track original text content
     originalRect?: [number, number, number, number]; // Coordinates in PDF points
+    originalX?: number; // Original position percentages (before move)
+    originalY?: number;
+    originalWidth?: number;
+    originalHeight?: number;
     moved?: boolean;
     redact?: boolean;
     content_changed?: boolean;
@@ -196,7 +203,8 @@ export default function EditPdf() {
             y >= el.y && y <= el.y + el.height
         );
 
-        if (clickedElement && activeTool === 'text') {
+        // If clicking on an existing element, select it instead of creating a new one
+        if (clickedElement) {
             setActiveElementId(clickedElement.id);
             setActiveTool('select');
             return;
@@ -403,6 +411,37 @@ export default function EditPdf() {
                                                     </div>
                                                 </div>
                                             )}
+
+                                            {activeElement?.type === 'image' && (
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Rotation</label>
+                                                        <div className="flex items-center gap-2">
+                                                            <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => updateElement(activeElement.id, { rotation: ((activeElement.rotation || 0) - 90 + 360) % 360 })}>
+                                                                <RotateCcw className="w-3 h-3" />
+                                                            </Button>
+                                                            <span className="text-sm font-medium w-12 text-center">{activeElement.rotation || 0}°</span>
+                                                            <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => updateElement(activeElement.id, { rotation: ((activeElement.rotation || 0) + 90) % 360 })}>
+                                                                <RotateCw className="w-3 h-3" />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Quick Rotate</label>
+                                                        <div className="flex gap-1">
+                                                            {[0, 90, 180, 270].map(deg => (
+                                                                <button
+                                                                    key={deg}
+                                                                    className={cn("px-2 py-1 rounded text-[10px] font-bold transition-all", (activeElement.rotation || 0) === deg ? "bg-primary text-white" : "bg-gray-100 hover:bg-gray-200")}
+                                                                    onClick={() => updateElement(activeElement.id, { rotation: deg })}
+                                                                >
+                                                                    {deg}°
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                         {activeElement && <Button variant="ghost" size="sm" className="w-full text-red-500 hover:bg-red-50" onClick={() => removeElement(activeElement.id)}><Trash2 className="w-3 h-3 mr-2" /> Delete</Button>}
                                     </Card>
@@ -476,6 +515,7 @@ const EditableElement = ({ el, active, onSelect, onUpdate, scale = 1 }: { el: Ed
     const [isDragging, setIsDragging] = useState(false);
     const [isEditingText, setIsEditingText] = useState(el.type === 'text' && el.content === 'New Text');
     const [resizeDir, setResizeDir] = useState<string | null>(null);
+    const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
     const isModified = el.existing && (el.content !== el.originalContent || el.moved);
     // Always show background for whiteout, modified elements, or when actively editing.
@@ -488,6 +528,17 @@ const EditableElement = ({ el, active, onSelect, onUpdate, scale = 1 }: { el: Ed
         if (isEditingText) return;
         e.stopPropagation();
         onSelect();
+
+        // Calculate the offset from where we clicked within the element
+        if (elRef.current?.parentElement) {
+            const rect = elRef.current.parentElement.getBoundingClientRect();
+            const clickXPercent = ((e.clientX - rect.left) / rect.width) * 100;
+            const clickYPercent = ((e.clientY - rect.top) / rect.height) * 100;
+            setDragOffset({
+                x: clickXPercent - el.x,
+                y: clickYPercent - el.y
+            });
+        }
         setIsDragging(true);
     };
 
@@ -502,7 +553,13 @@ const EditableElement = ({ el, active, onSelect, onUpdate, scale = 1 }: { el: Ed
         const rect = elRef.current.parentElement.getBoundingClientRect();
 
         if (isDragging) {
-            onUpdate({ x: ((e.clientX - rect.left) / rect.width) * 100, y: ((e.clientY - rect.top) / rect.height) * 100 });
+            const newX = ((e.clientX - rect.left) / rect.width) * 100 - dragOffset.x;
+            const newY = ((e.clientY - rect.top) / rect.height) * 100 - dragOffset.y;
+            // Clamp values to keep element within bounds
+            onUpdate({
+                x: Math.max(0, Math.min(100 - el.width, newX)),
+                y: Math.max(0, Math.min(100 - el.height, newY))
+            });
         } else if (resizeDir) {
             const mX = ((e.clientX - rect.left) / rect.width) * 100;
             const mY = ((e.clientY - rect.top) / rect.height) * 100;
@@ -513,7 +570,7 @@ const EditableElement = ({ el, active, onSelect, onUpdate, scale = 1 }: { el: Ed
             if (resizeDir.includes('n')) updates.height = Math.max(1, Math.abs(el.y - mY) * 2);
             onUpdate(updates);
         }
-    }, [isDragging, resizeDir, el.x, el.y, onUpdate]);
+    }, [isDragging, resizeDir, el.x, el.y, el.width, el.height, dragOffset, onUpdate]);
 
     useEffect(() => {
         if (isDragging || resizeDir) {
@@ -547,7 +604,11 @@ const EditableElement = ({ el, active, onSelect, onUpdate, scale = 1 }: { el: Ed
                         <textarea autoFocus className="text-left outline-none bg-transparent resize-none w-full h-full p-0 m-0 leading-tight overflow-hidden" style={{ color: el.color || '#000000', fontSize: `${(el.fontSize || 16) * scale}px`, fontFamily: el.fontFamily, textAlign: el.textAlign || 'left' }} value={el.content} onChange={e => { onUpdate({ content: e.target.value }); }} onBlur={() => setIsEditingText(false)} /> :
                         ((!el.existing || isModified) && <p style={{ color: el.color || '#000000', fontSize: `${(el.fontSize || 16) * scale}px`, fontFamily: el.fontFamily, textAlign: el.textAlign || 'left' }} className="text-left wrap-break-word m-0 p-0 w-full leading-tight">{el.content}</p>)
                 )}
-                {el.type === 'image' && <img src={el.content} className="w-full h-full object-contain pointer-events-none" />}
+                {el.type === 'image' && (
+                    <div className="w-full h-full flex items-center justify-center" style={{ transform: `rotate(${el.rotation || 0}deg)` }}>
+                        <img src={el.content} className="max-w-full max-h-full object-contain pointer-events-none" alt="Uploaded image" />
+                    </div>
+                )}
                 {el.type === 'drawing' && <img src={el.content} className="w-full h-full object-contain pointer-events-none" />}
                 {el.type === 'shape' && (
                     <div style={{ width: '100%', height: '100%', border: `${(el.strokeWidth || 2) * scale}px solid ${el.color}`, borderRadius: el.shapeType === 'circle' ? '50%' : '0' }} />

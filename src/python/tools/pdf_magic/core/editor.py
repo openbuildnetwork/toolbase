@@ -209,7 +209,16 @@ def apply_pdf_edits(file_bytes, edits):
                             img_data = content
 
                         img_bytes = base64.b64decode(img_data)
-                        page.insert_image(rect, stream=img_bytes)
+
+                        # Get rotation angle (default to 0)
+                        rotation = get_val(edit, "rotation", 0)
+
+                        if rotation and rotation != 0:
+                            # For rotated images, we need to handle the transformation
+                            # PyMuPDF uses clockwise rotation, so we convert our rotation
+                            page.insert_image(rect, stream=img_bytes, rotate=rotation)
+                        else:
+                            page.insert_image(rect, stream=img_bytes)
                     except Exception as img_e:
                         print(f"Error inserting image: {img_e}")
                         pass
