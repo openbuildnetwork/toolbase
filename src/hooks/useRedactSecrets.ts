@@ -2,17 +2,25 @@ import { useState, useCallback } from "react";
 import { useRedactWorker } from "@/hooks/useRedactWorker";
 import { RedactRequest, RedactResponse, ContentType, MaskingStyle } from "@/types/redact";
 
-export function useRedactSecrets() {
+export function useRedactSecrets(initial?: {
+    content?: string;
+    contentType?: ContentType;
+    fileName?: string | null;
+    maskingStyle?: MaskingStyle;
+    keys?: string[];
+    literalTexts?: string[];
+    regexPatterns?: string[];
+}) {
     // Input State
-    const [content, setContent] = useState("");
-    const [contentType, setContentType] = useState<ContentType>("text");
-    const [fileName, setFileName] = useState<string | null>(null);
+    const [content, setContent] = useState(initial?.content ?? "");
+    const [contentType, setContentType] = useState<ContentType>(initial?.contentType ?? "text");
+    const [fileName, setFileName] = useState<string | null>(initial?.fileName ?? null);
 
     // Configuration State
-    const [maskingStyle, setMaskingStyle] = useState<MaskingStyle>("partial");
-    const [keys, setKeys] = useState<string[]>([]);
-    const [literalTexts, setLiteralTexts] = useState<string[]>([]);
-    const [regexPatterns, setRegexPatterns] = useState<string[]>([]);
+    const [maskingStyle, setMaskingStyle] = useState<MaskingStyle>(initial?.maskingStyle ?? "partial");
+    const [keys, setKeys] = useState<string[]>(initial?.keys ?? []);
+    const [literalTexts, setLiteralTexts] = useState<string[]>(initial?.literalTexts ?? []);
+    const [regexPatterns, setRegexPatterns] = useState<string[]>(initial?.regexPatterns ?? []);
 
     // Output State
     const [response, setResponse] = useState<RedactResponse | null>(null);

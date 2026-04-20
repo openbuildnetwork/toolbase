@@ -53,6 +53,7 @@ export function workerForTool(toolId: string): WorkerClient | null {
   if (toolId.startsWith('pixel-axe')) return pixelAxeWorker;
   if (toolId.startsWith('data-lens')) return dataLensWorker;
   if (toolId.startsWith('open-draw')) return openDrawWorker;
+  if (toolId.startsWith('redact-secrets')) return redactSecretsWorker;
   return null;
 }
 
