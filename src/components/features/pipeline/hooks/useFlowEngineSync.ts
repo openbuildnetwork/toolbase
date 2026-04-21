@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Node, Edge } from '@xyflow/react';
 import type { PipelineEngineState, PipelineStep } from '@/types/pipeline';
 import type { TIPBundle } from '@/tip/protocol';
@@ -10,42 +10,16 @@ export function useFlowEngineSync(
     setEdges: (update: (eds: Edge[]) => Edge[]) => void,
     state: PipelineEngineState,
     output: TIPBundle | null,
-    updateNodeData: (nodeId: string, partialData: any) => void,
     graphToPipeline: (nodes: Node[], edges: Edge[]) => PipelineStep[] | null
 ) {
-    // Sync file-select, download, and INP callbacks into nodes
-    useEffect(() => {
-        setNodes(nds => nds.map(n => {
-            if (n.type === 'fileInput') {
-                return { ...n, data: { ...n.data, onFileSelect: (f: File | null) => updateNodeData(n.id, { file: f }) } };
-            }
-            if (n.type === 'output') {
-                return {
-                    ...n,
-                    data: {
-                        ...n.data,
-                        onDownload: async () => {
-                            if (!output) return;
-                            output.payloads.forEach((payload, i) => {
-                                setTimeout(() => {
-                                    const url = URL.createObjectURL(payload.data);
-                                    const a = document.createElement('a');
-                                    a.href = url;
-                                    a.download = payload.meta.filename;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    document.body.removeChild(a);
-                                    setTimeout(() => URL.revokeObjectURL(url), 100);
-                                }, i * 200);
-                            });
-                        }
-                    }
-                };
-            }
-            return n;
-        }));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [output, setNodes, updateNodeData]);
+    /**
+     * Track the last output bundle we have already synced to the output node.
+     * This prevents the infinite loop caused by `n.data.bundle === output`
+     * always being false when `output` is a new object reference per render.
+     * Using a ref means we compare by identity across renders without adding
+     * `output` as a reactive dependency that retriggers the effect.
+     */
+    const syncedOutputRef = useRef<TIPBundle | null>(null);
 
     // Sync engine state to canvas
     useEffect(() => {
@@ -53,32 +27,72 @@ export function useFlowEngineSync(
         const orderedSteps = graphToPipeline(nodes, edges);
         if (!orderedSteps) return;
 
-        setNodes(nds => nds.map(n => {
-            if (n.type === 'fileInput') {
-                const s = state.status === 'running' ? 'running' : state.status === 'complete' ? 'complete' : 'idle';
-                return { ...n, data: { ...n.data, status: s } };
-            }
-            if (n.type === 'tool') {
-                const stepIndex = orderedSteps.findIndex(s => s.id === n.id);
-                if (stepIndex >= 0 && state.steps[stepIndex]) {
-                    const ss = state.steps[stepIndex];
-                    let nextStatus = 'idle';
-                    if (ss.status === 'running') nextStatus = 'running';
-                    if (ss.status === 'complete') nextStatus = 'complete';
-                    if (ss.status === 'error') nextStatus = 'error';
-                    return { ...n, data: { ...n.data, status: nextStatus, durationMs: ss.durationMs, error: ss.error } };
+        setNodes(nds => {
+            let changed = false;
+            const newNodes = nds.map(n => {
+                if (n.type === 'fileInput') {
+                    const s = state.status === 'running' ? 'running' : state.status === 'complete' ? 'complete' : 'idle';
+                    if (n.data.status === s) return n;
+                    changed = true;
+                    return { ...n, data: { ...n.data, status: s } };
                 }
-            }
-            if (n.type === 'output' && state.status === 'complete') {
-                const totalDurationMs = state.steps.reduce((acc, step) => acc + (step.durationMs || 0), 0);
-                return { ...n, data: { ...n.data, status: 'complete', bundle: output, totalDurationMs } };
-            }
-            return n;
-        }));
+                if (n.type === 'tool' || n.type === 'humanReview') {
+                    const stepIndex = orderedSteps.findIndex(s => s.id === n.id);
+                    if (stepIndex >= 0 && state.steps[stepIndex]) {
+                        const ss = state.steps[stepIndex];
+                        let nextStatus = 'idle';
+                        if (ss.status === 'running') nextStatus = 'running';
+                        if (ss.status === 'paused') nextStatus = 'paused';
+                        if (ss.status === 'complete') nextStatus = 'complete';
+                        if (ss.status === 'error') nextStatus = 'error';
 
-        setEdges(eds => eds.map(e => {
-            if (state.status === 'idle' || state.status === 'complete') {
-                return { ...e, data: { ...e.data, isRunning: false } };
+                        if (n.data.status === nextStatus && n.data.durationMs === ss.durationMs && n.data.error === ss.error) {
+                             return n;
+                        }
+                        changed = true;
+                        return { ...n, data: { ...n.data, status: nextStatus, durationMs: ss.durationMs, error: ss.error } };
+                    }
+                }
+                if (n.type === 'output') {
+                    // Primary signal: if we HAVE an output, the node should be in complete state
+                    if (output) {
+                        if (n.data.bundle === output && n.data.status === 'complete') return n;
+                        changed = true;
+                        const totalDurationMs = state.steps.reduce((acc, step) => acc + (step.durationMs || 0), 0);
+                        return { ...n, data: { ...n.data, status: 'complete', bundle: output, totalDurationMs } };
+                    }
+                    
+                    // Secondary signal: if engine is running, show running status
+                    if (state.status === 'running') {
+                         if (n.data.status === 'running') return n;
+                         changed = true;
+                         return { ...n, data: { ...n.data, status: 'running', bundle: null } };
+                    }
+
+                    // Default: idle
+                    if (state.status === 'idle' || state.status === 'cancelled' || state.status === 'error') {
+                        if (n.data.status === 'idle' && !n.data.bundle) return n;
+                        changed = true;
+                        return { ...n, data: { ...n.data, status: 'idle', bundle: null } };
+                    }
+                }
+                return n;
+            });
+            return changed ? newNodes : nds;
+        });
+
+        // Update the sync ref after the update has been queued
+        if (state.status === 'complete' && output) {
+            syncedOutputRef.current = output;
+        } else if (state.status === 'running') {
+            syncedOutputRef.current = null;
+        }
+
+        setEdges(eds => {
+            const isDone = state.status === 'complete' || state.status === 'cancelled' || state.status === 'error' || state.status === 'paused';
+            if (isDone) {
+                if (eds.every(e => !e.data?.isRunning)) return eds;
+                return eds.map(e => ({ ...e, data: { ...e.data, isRunning: false } }));
             }
             let runningEdgeId = '';
             const runningStepIndex = state.steps.findIndex(s => s.status === 'running');
@@ -89,8 +103,12 @@ export function useFlowEngineSync(
                 const runningStepId = orderedSteps[runningStepIndex]?.id;
                 runningEdgeId = eds.find(edge => edge.source === runningStepId)?.id || '';
             }
-            return { ...e, data: { ...e.data, isRunning: e.id === runningEdgeId } };
-        }));
+            
+            const hasChange = eds.some(e => (e.id === runningEdgeId) !== !!e.data?.isRunning);
+            if (!hasChange) return eds;
+
+            return eds.map(e => ({ ...e, data: { ...e.data, isRunning: e.id === runningEdgeId } }));
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state, output, setNodes, setEdges, graphToPipeline]);
 }

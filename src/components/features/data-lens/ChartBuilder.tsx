@@ -8,7 +8,7 @@ import {
 } from "recharts";
 import {
     BarChart3, TrendingUp, Activity, PieChart as PieChartIcon,
-    Plus, Trash2, Download, ChevronDown, Sigma
+    Plus, Trash2, ChevronDown, Sigma
 } from "lucide-react";
 
 // ============================================================================
@@ -316,7 +316,7 @@ export function ChartBuilder({ data, columns }: ChartBuilderProps) {
 
     if (!data.length || !columns.length) {
         return (
-            <div className="h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-indigo-50/30">
+            <div className="h-full flex flex-col items-center justify-center bg-linear-to-br from-gray-50 to-indigo-50/30">
                 <div className="w-32 h-32 rounded-3xl bg-white border border-gray-200 shadow-xl flex items-center justify-center mb-8">
                     <BarChart3 className="w-16 h-16 text-gray-300" />
                 </div>
@@ -389,6 +389,19 @@ export function ChartBuilder({ data, columns }: ChartBuilderProps) {
                             <div key={chart.id} className="relative">
                                 {showConfig && (
                                     <div className="mb-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+                                        {/* Chart Title */}
+                                        <div className="mb-3">
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                Chart Title
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={chart.title}
+                                                onChange={(e) => updateChart(chart.id, { title: e.target.value })}
+                                                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300"
+                                                placeholder="Enter chart title..."
+                                            />
+                                        </div>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
                                                 <label className="block text-xs font-medium text-gray-700 mb-1">

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
-import { Upload, FileCheck, X } from 'lucide-react';
+import { Upload, FileCheck, X, FileText, Eye } from 'lucide-react';
 import { getTypeColor } from './ToolNode';
+import { PdfPreview } from '../../../ui/PdfPreview';
 
 /**
  * FileInputNode — The pipeline starting node where a user drops/selects their file.
@@ -11,6 +12,16 @@ import { getTypeColor } from './ToolNode';
  */
 export function FileInputNode({ id, data }: { id: string; data: any }) {
     const { updateNodeData } = useReactFlow();
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (data.file && data.file.type.startsWith('image/')) {
+            const url = URL.createObjectURL(data.file);
+            setPreviewUrl(url);
+            return () => URL.revokeObjectURL(url);
+        }
+        setPreviewUrl(null);
+    }, [data.file]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] ?? null;
@@ -110,6 +121,72 @@ export function FileInputNode({ id, data }: { id: string; data: any }) {
                     borderRadius: 9,
                     padding: '8px 10px',
                 }}>
+                    {/* Preview Image / Icon */}
+                    <div
+                        className="group"
+                        style={{
+                            position: 'relative',
+                            width: '100%',
+                            height: 100,
+                            borderRadius: 6,
+                            overflow: 'hidden',
+                            marginBottom: 8,
+                            background: '#000',
+                            border: '1px solid rgba(255,255,255,0.05)',
+                        }}
+                    >
+                        {previewUrl ? (
+                             <img
+                                src={previewUrl}
+                                alt="Preview"
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                        ) : data.file?.type === 'application/pdf' ? (
+                            <PdfPreview
+                                file={data.file}
+                                scale={0.4}
+                                className="w-full h-full opacity-60"
+                            />
+                        ) : (
+                            <div style={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'rgba(255,255,255,0.02)',
+                            }}>
+                                <FileText style={{ width: 18, height: 18, color: '#444' }} />
+                            </div>
+                        )}
+
+                        {/* View Overlay */}
+                        <div
+                            className="nopan nodrag opacity-0 group-hover:opacity-100"
+                            style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: 'rgba(0,0,0,0.6)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'opacity 0.2s ease',
+                                cursor: 'pointer',
+                            }}
+                            onMouseDown={e => e.stopPropagation()}
+                            onClick={() => data.onPreview?.(data.file)}
+                        >
+                            <div style={{
+                                display: 'flex', alignItems: 'center', gap: 6,
+                                background: '#34d399', color: '#000', padding: '4px 10px',
+                                borderRadius: 6, fontSize: 10, fontWeight: 700
+                            }}>
+                                <Eye style={{ width: 12, height: 12 }} />
+                                PREVIEW
+                            </div>
+                        </div>
+                    </div>
+
                     <div style={{
                         fontSize: 11.5,
                         color: '#e5e7eb',

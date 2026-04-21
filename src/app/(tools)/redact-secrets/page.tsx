@@ -9,6 +9,7 @@ import {
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 
 import { useRedactSecrets } from "@/hooks/useRedactSecrets";
 import { RedactEditor } from "@/components/features/redact-secrets/RedactEditor";
@@ -58,6 +59,7 @@ export default function RedactSecretsPage() {
                             </div>
                         </div>
                     </div>
+                    <ReturnToToolsButton />
                     <div className="flex items-center gap-3">
                         <Button variant="outline" onClick={clearAll} className="bg-white/50 backdrop-blur-md border-gray-200 h-11 px-6 rounded-xl hover:bg-white hover:border-gray-300 transition-all">
                             <Trash2 className="w-4 h-4 mr-2" />

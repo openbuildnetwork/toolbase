@@ -4,20 +4,27 @@ import { PYTHON_FILES } from "@/python/bundles/pixel_axe.bundle";
 
 let pyodideInitPromise: Promise<PyodideInterface> | null = null;
 
+/**
+ * Posts a granular init progress message to the main thread.
+ * WorkerClient listens for these and relays them to any UI subscriber.
+ */
+function postInitProgress(message: string): void {
+    self.postMessage({ type: "INIT_PROGRESS", message });
+}
+
 async function loadPyodideAndPackages() {
-    console.log("Worker: Initializing Pyodide...");
+    postInitProgress("Loading runtime…");
     try {
         const pyodide = await loadPyodide({
             indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.3/full/",
         });
 
-        // Install dependencies
-        console.log("Worker: Installing Pillow and NumPy...");
-        await pyodide.loadPackage(["micropip"]); 
+        postInitProgress("Installing packages…");
+        await pyodide.loadPackage(["micropip"]);
         const micropip = pyodide.pyimport("micropip");
-        await micropip.install(["Pillow", "numpy"]); 
+        await micropip.install(["Pillow", "numpy"]);
 
-        console.log("Worker: Pyodide loaded, setting up filesystem...");
+        postInitProgress("Preparing tool…");
 
         // Setup the virtual filesystem
         for (const [filePath, content] of Object.entries(PYTHON_FILES)) {
@@ -29,7 +36,7 @@ async function loadPyodideAndPackages() {
                 currentPath += (currentPath ? '/' : '') + parts[i];
                 try {
                     pyodide.FS.mkdir(currentPath);
-                } catch (e) {
+                } catch {
                     // Directory might already exist
                 }
             }
@@ -38,15 +45,12 @@ async function loadPyodideAndPackages() {
             pyodide.FS.writeFile(filePath, content as string);
         }
 
-        console.log("Worker: Python files written to virtual FS.");
-
         // Import the main function
         await pyodide.runPythonAsync(`
 import sys
 import os
-print(f"Current CWD: {os.getcwd()}")
+sys.path.append(os.getcwd())
 try:
-    sys.path.append(os.getcwd())
     import tools.pixel_axe.main as compressor_main
     handle_request = compressor_main.handle_request
     print("Python: handle_request imported successfully")
@@ -89,27 +93,24 @@ self.onmessage = async (event: MessageEvent) => {
                 throw new Error("Python function 'handle_request' not found.");
             }
 
-            // Convert input data to Python dict
             const pyData = py.toPy(data);
 
             try {
                 const result = handleRequest(action, pyData);
 
-                // Convert result back to JS
                 let jsResult;
                 if (result && result.toJs) {
-                    jsResult = result.toJs({dict_converter: Object.fromEntries});
+                    jsResult = result.toJs({ dict_converter: Object.fromEntries });
                 } else {
                     jsResult = result;
                 }
 
                 self.postMessage({ type: "RESULT", data: jsResult, id });
 
-                 if (result && result.destroy) result.destroy();
+                if (result && result.destroy) result.destroy();
 
             } finally {
                 pyData.destroy();
-                // py.runPython('import gc; gc.collect()'); 
             }
 
         } catch (error: any) {
@@ -119,4 +120,5 @@ self.onmessage = async (event: MessageEvent) => {
     }
 };
 
+// Start initialization immediately to begin pre-warming as soon as the worker spawns
 getPyodide().catch(console.error);

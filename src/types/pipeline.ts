@@ -33,11 +33,16 @@ export interface PipelineDefinition {
   author?: string;
   /** TIP version this pipeline was built against */
   tipVersion?: string;
+  /** Preserved generic UI state (React Flow nodes and edges) for perfect canvas restoration */
+  ui?: {
+    nodes: any[];
+    edges: any[];
+  }
 }
 
 // ─── Step Execution Status ────────────────────────────────────────────────────
 
-export type StepStatus = 'idle' | 'running' | 'complete' | 'error' | 'skipped';
+export type StepStatus = 'idle' | 'running' | 'complete' | 'error' | 'skipped' | 'paused';
 
 export interface StepState {
   status: StepStatus;
@@ -52,7 +57,7 @@ export interface StepState {
 
 // ─── Pipeline Engine State ────────────────────────────────────────────────────
 
-export type PipelineStatus = 'idle' | 'running' | 'complete' | 'error' | 'cancelled';
+export type PipelineStatus = 'idle' | 'running' | 'complete' | 'error' | 'cancelled' | 'paused';
 
 export interface PipelineEngineState {
   status: PipelineStatus;

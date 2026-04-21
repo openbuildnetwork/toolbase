@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Node, Edge } from '@xyflow/react';
 import type { PipelineStep, PipelineDefinition } from '@/types/pipeline';
 import { TIPToolRegistry } from '@/tip/registry';
@@ -43,11 +43,14 @@ export function useGraphSerializer() {
                 break; // We're done
             }
 
-            if (nextNode.type === 'tool') {
+            if (nextNode.type === 'tool' || nextNode.type === 'humanReview') {
                 steps.push({
                     id: nextNode.id,
                     toolId: nextNode.data.toolId as string,
-                    config: (nextNode.data.config as Record<string, any>) || {},
+                    config: {
+                        ...(nextNode.data.config as Record<string, any> || {}),
+                        __nodeId: nextNode.id,
+                    },
                 });
             }
 
@@ -121,5 +124,5 @@ export function useGraphSerializer() {
         return { nodes, edges };
     }, []);
 
-    return { graphToPipeline, pipelineToGraph };
+    return useMemo(() => ({ graphToPipeline, pipelineToGraph }), [graphToPipeline, pipelineToGraph]);
 }

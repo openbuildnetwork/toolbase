@@ -70,8 +70,17 @@ export function useToolPreferences(): ToolPreferences {
   // Sync across tabs AND same-tab instances
   useEffect(() => {
     const sync = () => {
-      setFavorites(readJSON<string[]>(FAVORITES_KEY, []));
-      setRecents(readJSON<string[]>(RECENTS_KEY, []));
+      const newFavorites = readJSON<string[]>(FAVORITES_KEY, []);
+      const newRecents = readJSON<string[]>(RECENTS_KEY, []);
+      
+      setFavorites(prev => {
+         if (prev.length === newFavorites.length && prev.every((v, i) => v === newFavorites[i])) return prev;
+         return newFavorites;
+      });
+      setRecents(prev => {
+         if (prev.length === newRecents.length && prev.every((v, i) => v === newRecents[i])) return prev;
+         return newRecents;
+      });
     };
 
     window.addEventListener('toolbase:prefs-updated', sync);
@@ -93,6 +102,7 @@ export function useToolPreferences(): ToolPreferences {
       const next = prev.includes(id)
         ? prev.filter((fid) => fid !== id)
         : [...prev, id];
+      if (prev.length === next.length && prev.every((v, i) => v === next[i])) return prev;
       writeJSON(FAVORITES_KEY, next);
       return next;
     });
@@ -106,6 +116,7 @@ export function useToolPreferences(): ToolPreferences {
     setRecents((prev) => {
       const deduplicated = prev.filter((rid) => rid !== id);
       const next = [id, ...deduplicated].slice(0, RECENTS_MAX);
+      if (prev.length === next.length && prev.every((v, i) => v === next[i])) return prev;
       writeJSON(RECENTS_KEY, next);
       return next;
     });
@@ -115,6 +126,7 @@ export function useToolPreferences(): ToolPreferences {
   const removeRecent = useCallback((id: string) => {
     setRecents((prev) => {
       const next = prev.filter((rid) => rid !== id);
+      if (prev.length === next.length) return prev;
       writeJSON(RECENTS_KEY, next);
       return next;
     });
@@ -122,14 +134,20 @@ export function useToolPreferences(): ToolPreferences {
 
   /** Wipe the entire recents list */
   const clearRecents = useCallback(() => {
-    setRecents([]);
-    writeJSON(RECENTS_KEY, []);
+    setRecents(prev => {
+        if (prev.length === 0) return prev;
+        writeJSON(RECENTS_KEY, []);
+        return [];
+    });
   }, []);
 
   /** Wipe the entire favourites list */
   const clearFavorites = useCallback(() => {
-    setFavorites([]);
-    writeJSON(FAVORITES_KEY, []);
+    setFavorites(prev => {
+        if (prev.length === 0) return prev;
+        writeJSON(FAVORITES_KEY, []);
+        return [];
+    });
   }, []);
 
   return { favorites, recents, isFavorite, toggleFavorite, clearFavorites, addRecent, removeRecent, clearRecents };

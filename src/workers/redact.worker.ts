@@ -24,17 +24,17 @@ async function initRustApi(): Promise<RedactSecretsRustApi> {
 }
 
 self.onmessage = async (event: MessageEvent) => {
-  const { type, data, id } = event.data;
+  const { type, action, data, id } = event.data;
 
-  if (type !== "REDACT") return;
+  if (type !== "EXECUTE" || action !== "redact") return;
 
   try {
     const api = await initRustApi();
     const result = JSON.parse(api.redact_json(JSON.stringify(data as RedactRequest))) as RedactResponse;
-    self.postMessage({ type: "REDACT_RESULT", data: result, id, engine: currentEngineLabel });
+    self.postMessage({ type: "RESULT", data: { ...result, result: result.maskedContent }, id, engine: currentEngineLabel });
   } catch (error: unknown) {
     self.postMessage({
-      type: "REDACT_ERROR",
+      type: "ERROR",
       error: error instanceof Error ? error.message : "Rust redaction engine failed",
       id,
       engine: "Unavailable",
