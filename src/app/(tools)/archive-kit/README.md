@@ -1,6 +1,6 @@
 # Archive Kit
 
-Archive Kit is a browser-local archive utility for ZIP and TAR workflows.
+Archive Kit is a browser-local archive utility for ZIP, TAR, and TGZ workflows powered by Rust WebAssembly.
 
 ## Features
 1. Create archives from selected files (`.zip`, `.tar`, `.tgz`).
@@ -25,15 +25,13 @@ All processing runs in the browser. No files are uploaded.
 
 ## Notes
 1. ZIP creation supports `store`, `fast`, and `best` modes.
-2. TypeScript ZIP compression (`fast`/`best`) uses browser deflate stream support.
-3. ZIP extraction supports stored files and deflate entries.
-4. TGZ support uses browser gzip streams.
-5. Archive Kit can use an optional Rust WASM engine when built.
-6. Password-protected ZIP create/extract is supported through Rust WASM (AES mode).
-7. Security checks highlight suspicious paths and duplicate collisions.
-8. Large file ingestion is streamed in the worker (not main-thread whole-buffer reads).
+2. ZIP extraction supports stored files and deflate entries.
+3. Password-protected ZIP create/extract is supported through Rust WASM (AES mode).
+4. Security checks highlight suspicious paths and duplicate collisions.
+5. Large file ingestion is streamed in the worker (not main-thread whole-buffer reads).
+6. TGZ (`tar.gz`) create/list/extract is supported directly by the Rust engine.
 
-## Optional Rust Engine
+## Rust Engine
 Rust source lives in:
 - `rust/archive-kit`
 
@@ -45,12 +43,7 @@ npm run build:archive-kit:wasm
 This generates browser artifacts under:
 - `public/wasm/archive-kit/pkg`
 
-At runtime, the tool auto-detects the Rust engine and falls back to TypeScript if unavailable.
-
-To require Rust in production, set:
-```bash
-NEXT_PUBLIC_ARCHIVE_KIT_REQUIRE_RUST=true
-```
+At runtime, the tool requires the Rust WASM artifacts. If they are missing, Archive Kit reports engine unavailability instead of falling back to TypeScript.
 
 ## Dev Workflow (project-wide)
 `npm run dev` now starts:

@@ -1,13 +1,13 @@
 import {
-  ArchiveFormat,
-  ArchiveInputFile,
-  ZipCompressionMode,
-  createArchive,
-  extractArchive,
-  listArchiveEntriesAsync,
-  listArchiveEntriesBatch,
-  extractArchivesBatch,
+  type ArchiveFormat,
+  type ArchiveInputFile,
+  type ZipCompressionMode,
 } from "@/lib/archive-kit";
+import {
+  createArchiveRust,
+  extractArchiveRust,
+  listArchiveEntriesRust,
+} from "@/lib/archive-kit-rust";
 
 const workerSelf = self as unknown as Worker;
 
@@ -115,7 +115,7 @@ async function materializeArchives(
   progressStart: number,
   progressEnd: number
 ): Promise<Array<{ sourceName: string; format: ArchiveFormat; bytes: Uint8Array }>> {
-  let totalSize = archives.reduce((sum, a) => sum + a.file.size, 0);
+  let totalSize = archives.reduce((sum, archive) => sum + archive.file.size, 0);
   if (totalSize <= 0) totalSize = archives.length;
   let loadedTotal = 0;
   const out: Array<{ sourceName: string; format: ArchiveFormat; bytes: Uint8Array }> = [];
@@ -149,9 +149,8 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
       const { format, files, zipCompression } = msg.payload;
       const stagedFiles = await materializeCreateFiles(id, files, 8, 45);
       postProgress(id, 55, "packing");
-      const bytes = await createArchive(format, stagedFiles, {
+      const bytes = await createArchiveRust(format, stagedFiles, {
         zipCompression,
-        deterministic: msg.payload.deterministic,
       });
       postProgress(id, 100, "done");
       workerSelf.postMessage({ type: "result", id, result: bytes }, [bytes.buffer as ArrayBuffer]);
@@ -161,21 +160,28 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
     if (msg.action === "list") {
       const archives = await materializeArchives(id, msg.payload.archives, 10, 55);
       postProgress(id, 70, "indexing");
-      const result = await listArchiveEntriesBatch(archives);
+      const result = await Promise.all(
+        archives.map(async (archive) => {
+          const entries = await listArchiveEntriesRust(archive.format, archive.bytes);
+          return entries.map((entry) => ({
+            ...entry,
+            sourceName: archive.sourceName,
+          }));
+        })
+      );
       postProgress(id, 100, "done");
-      workerSelf.postMessage({ type: "result", id, result });
+      workerSelf.postMessage({ type: "result", id, result: result.flat() });
       return;
     }
 
     if (msg.action === "extract") {
       const archives = await materializeArchives(id, msg.payload.archives, 8, 45);
       postProgress(id, 55, "extracting");
-      const result =
-        archives.length === 1
-          ? await extractArchive(archives[0].format, archives[0].bytes)
-          : await extractArchivesBatch(archives);
+      const extracted = await Promise.all(
+        archives.map((archive) => extractArchiveRust(archive.format, archive.bytes))
+      );
       postProgress(id, 100, "done");
-      workerSelf.postMessage({ type: "result", id, result });
+      workerSelf.postMessage({ type: "result", id, result: extracted.flat() });
       return;
     }
 
@@ -185,8 +191,8 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
       for (let i = 0; i < archives.length; i++) {
         const archive = archives[i];
         try {
-          const entries = await listArchiveEntriesAsync(archive.format, archive.bytes);
-          await extractArchive(archive.format, archive.bytes);
+          const entries = await listArchiveEntriesRust(archive.format, archive.bytes);
+          await extractArchiveRust(archive.format, archive.bytes);
           reports.push({ sourceName: archive.sourceName, entries: entries.length, ok: true });
         } catch (error: unknown) {
           reports.push({
@@ -201,7 +207,6 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
       }
       postProgress(id, 100, "done");
       workerSelf.postMessage({ type: "result", id, result: reports });
-      return;
     }
   } catch (error: unknown) {
     workerSelf.postMessage({

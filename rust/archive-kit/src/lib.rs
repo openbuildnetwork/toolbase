@@ -2,6 +2,9 @@ use std::io::{Cursor, Read, Write};
 
 use base64::engine::general_purpose::STANDARD as B64;
 use base64::Engine as _;
+use flate2::read::GzDecoder;
+use flate2::write::GzEncoder;
+use flate2::Compression;
 use serde::{Deserialize, Serialize};
 use tar::{Archive as TarArchive, Builder as TarBuilder, Header as TarHeader};
 use wasm_bindgen::prelude::*;
@@ -100,6 +103,61 @@ fn create_tar(files: &[(String, Vec<u8>)]) -> Result<Vec<u8>, JsValue> {
     Ok(out)
 }
 
+fn create_tgz(files: &[(String, Vec<u8>)]) -> Result<Vec<u8>, JsValue> {
+    let tar_bytes = create_tar(files)?;
+    let mut encoder = GzEncoder::new(Vec::<u8>::new(), Compression::default());
+    encoder.write_all(&tar_bytes).map_err(to_js_err)?;
+    encoder.finish().map_err(to_js_err)
+}
+
+fn list_tar_entries_from_reader<R: Read>(reader: R, format: &str) -> Result<Vec<Entry>, JsValue> {
+    let mut out = Vec::<Entry>::new();
+    let mut tar = TarArchive::new(reader);
+    let entries_iter = tar.entries().map_err(to_js_err)?;
+    for item in entries_iter {
+        let entry = item.map_err(to_js_err)?;
+        let path = entry
+            .path()
+            .map_err(to_js_err)?
+            .to_string_lossy()
+            .to_string();
+        let size = entry.size() as usize;
+        let is_directory = entry.header().entry_type().is_dir() || path.ends_with('/');
+        out.push(Entry {
+            name: path,
+            size,
+            compressed_size: size,
+            is_directory,
+            format: format.to_string(),
+        });
+    }
+    Ok(out)
+}
+
+fn extract_tar_files_from_reader<R: Read>(reader: R) -> Result<Vec<OutputFile>, JsValue> {
+    let mut out = Vec::<OutputFile>::new();
+    let mut tar = TarArchive::new(reader);
+    let entries_iter = tar.entries().map_err(to_js_err)?;
+    for item in entries_iter {
+        let mut entry = item.map_err(to_js_err)?;
+        let path = entry
+            .path()
+            .map_err(to_js_err)?
+            .to_string_lossy()
+            .to_string();
+        if entry.header().entry_type().is_dir() || path.ends_with('/') {
+            continue;
+        }
+        let mut buf = Vec::<u8>::new();
+        entry.read_to_end(&mut buf).map_err(to_js_err)?;
+        out.push(OutputFile {
+            name: path,
+            bytes_b64: B64.encode(buf),
+        });
+    }
+    Ok(out)
+}
+
 #[wasm_bindgen]
 pub fn create_archive_json(
     format: String,
@@ -122,6 +180,7 @@ pub fn create_archive_json(
             options.password.as_deref(),
         )?,
         "tar" => create_tar(&files)?,
+        "tgz" => create_tgz(&files)?,
         _ => return Err(JsValue::from_str("Unsupported archive format")),
     };
     Ok(B64.encode(bytes))
@@ -147,28 +206,9 @@ pub fn list_archive_json(format: String, archive_bytes_b64: String) -> Result<St
             out
         }
         "tar" => {
-            let mut out = Vec::<Entry>::new();
-            let mut tar = TarArchive::new(Cursor::new(bytes));
-            let entries_iter = tar.entries().map_err(to_js_err)?;
-            for item in entries_iter {
-                let entry = item.map_err(to_js_err)?;
-                let path = entry
-                    .path()
-                    .map_err(to_js_err)?
-                    .to_string_lossy()
-                    .to_string();
-                let size = entry.size() as usize;
-                let is_directory = entry.header().entry_type().is_dir() || path.ends_with('/');
-                out.push(Entry {
-                    name: path,
-                    size,
-                    compressed_size: size,
-                    is_directory,
-                    format: "tar".to_string(),
-                });
-            }
-            out
+            list_tar_entries_from_reader(Cursor::new(bytes), "tar")?
         }
+        "tgz" => list_tar_entries_from_reader(GzDecoder::new(Cursor::new(bytes)), "tgz")?,
         _ => return Err(JsValue::from_str("Unsupported archive format")),
     };
 
@@ -215,28 +255,9 @@ pub fn extract_archive_json(
             out
         }
         "tar" => {
-            let mut out = Vec::<OutputFile>::new();
-            let mut tar = TarArchive::new(Cursor::new(bytes));
-            let entries_iter = tar.entries().map_err(to_js_err)?;
-            for item in entries_iter {
-                let mut entry = item.map_err(to_js_err)?;
-                let path = entry
-                    .path()
-                    .map_err(to_js_err)?
-                    .to_string_lossy()
-                    .to_string();
-                if entry.header().entry_type().is_dir() || path.ends_with('/') {
-                    continue;
-                }
-                let mut buf = Vec::<u8>::new();
-                entry.read_to_end(&mut buf).map_err(to_js_err)?;
-                out.push(OutputFile {
-                    name: path,
-                    bytes_b64: B64.encode(buf),
-                });
-            }
-            out
+            extract_tar_files_from_reader(Cursor::new(bytes))?
         }
+        "tgz" => extract_tar_files_from_reader(GzDecoder::new(Cursor::new(bytes)))?,
         _ => return Err(JsValue::from_str("Unsupported archive format")),
     };
 

@@ -21,14 +21,12 @@ import {
   ArchiveEntry,
   ArchiveFormat,
   ArchiveInputFile,
-  extractArchiveEntry,
   ZipCompressionMode,
 } from "@/lib/archive-kit";
 import {
   createArchiveRust,
   extractArchiveRust,
   isArchiveKitRustAvailable,
-  isArchiveKitRustRequired,
 } from "@/lib/archive-kit-rust";
 import { useArchiveKitWorker } from "@/hooks/useArchiveKitWorker";
 
@@ -200,7 +198,7 @@ export default function ArchiveKitPage() {
   const [zipPassword, setZipPassword] = useState("");
   const [createStatus, setCreateStatus] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [engineLabel, setEngineLabel] = useState<"Rust WASM" | "TypeScript">("TypeScript");
+  const [engineLabel, setEngineLabel] = useState<"Rust WASM" | "Unavailable">("Unavailable");
   const { run, cancel, isBusy, progress } = useArchiveKitWorker();
 
   const [inspectFormat, setInspectFormat] = useState<ArchiveFormat>("zip");
@@ -241,8 +239,8 @@ export default function ArchiveKitPage() {
     let mounted = true;
     isArchiveKitRustAvailable().then((available) => {
       if (mounted && available) setEngineLabel("Rust WASM");
-      if (mounted && !available && isArchiveKitRustRequired()) {
-        setCreateError("Rust WASM engine is required in this environment, but artifacts are missing.");
+      if (mounted && !available) {
+        setCreateError("Rust WASM engine is unavailable. Build artifacts may be missing.");
       }
     });
     return () => {
@@ -365,14 +363,10 @@ export default function ArchiveKitPage() {
                 bytes: await readFileAsBytesStreaming(file),
               }))
             );
-            const rustArchive = await createArchiveRust(createFormat, payload, {
+            return createArchiveRust(createFormat, payload, {
               zipCompression,
               password: zipPassword.trim(),
             });
-            if (!rustArchive) {
-              throw new Error("Encrypted ZIP requires Rust WASM engine. Enable/archive wasm artifacts first.");
-            }
-            return rustArchive;
           })()
         : await run<Uint8Array>("create", {
             format: createFormat,
@@ -407,12 +401,7 @@ export default function ArchiveKitPage() {
   const handleDownloadAllExtracted = async () => {
     try {
       if (extracted.length === 0) return;
-      const rustArchive = await createArchiveRust("zip", extracted, { zipCompression });
-      const archive = rustArchive ?? (await run<Uint8Array>("create", {
-        format: "zip",
-        files: extracted,
-        zipCompression,
-      }));
+      const archive = await createArchiveRust("zip", extracted, { zipCompression });
       const base = (extractFiles[0]?.name || "extracted").replace(/\.(zip|tar|tgz|tar\.gz)$/i, "");
       downloadBytes(`${base}-extracted.zip`, archive, "application/zip");
     } catch (err: unknown) {
@@ -512,17 +501,11 @@ export default function ArchiveKitPage() {
     try {
       if (inspectFiles.length !== 1) throw new Error("Single-entry actions require one selected archive.");
       const bytes = await readFileAsBytesStreaming(inspectFiles[0]);
-      const file =
-        singleInspectFormat === "zip" && inspectPassword.trim()
-          ? (() => {
-              return extractArchiveRust(singleInspectFormat, bytes, { password: inspectPassword.trim() }).then((all) => {
-                const found = all?.find((item) => item.name === entryName);
-                if (!found) throw new Error(`Entry not found: ${entryName}`);
-                return found;
-              });
-            })()
-          : extractArchiveEntry(singleInspectFormat, bytes, entryName);
-      const resolved = await file;
+      const all = await extractArchiveRust(singleInspectFormat, bytes, {
+        password: inspectPassword.trim() || undefined,
+      });
+      const resolved = all.find((item) => item.name === entryName);
+      if (!resolved) throw new Error(`Entry not found: ${entryName}`);
       downloadBytes(resolved.name.split("/").pop() || resolved.name, resolved.bytes, "application/octet-stream");
     } catch (err: unknown) {
       setInspectError(err instanceof Error ? err.message : "Unable to save entry.");
@@ -539,17 +522,11 @@ export default function ArchiveKitPage() {
       }
       if (inspectFiles.length !== 1) throw new Error("Single-entry actions require one selected archive.");
       const bytes = await readFileAsBytesStreaming(inspectFiles[0]);
-      const file =
-        singleInspectFormat === "zip" && inspectPassword.trim()
-          ? (() => {
-              return extractArchiveRust(singleInspectFormat, bytes, { password: inspectPassword.trim() }).then((all) => {
-                const found = all?.find((item) => item.name === entryName);
-                if (!found) throw new Error(`Entry not found: ${entryName}`);
-                return found;
-              });
-            })()
-          : extractArchiveEntry(singleInspectFormat, bytes, entryName);
-      const resolved = await file;
+      const all = await extractArchiveRust(singleInspectFormat, bytes, {
+        password: inspectPassword.trim() || undefined,
+      });
+      const resolved = all.find((item) => item.name === entryName);
+      if (!resolved) throw new Error(`Entry not found: ${entryName}`);
       const lower = entryName.toLowerCase();
       if (/\.(png|jpg|jpeg|gif|webp|bmp|svg)$/.test(lower)) {
         const mime = lower.endsWith(".svg")
@@ -580,7 +557,6 @@ export default function ArchiveKitPage() {
           setPreviewKind("json");
           return;
         } catch {
-          // fallback below
         }
       }
       if (lower.endsWith(".xml")) {
@@ -619,18 +595,15 @@ export default function ArchiveKitPage() {
       const bytes = await readFileAsBytesStreaming(inspectFiles[0]);
       const selected = Array.from(selectedEntryNames);
       let files: ArchiveInputFile[] = [];
-      if (singleInspectFormat === "zip" && inspectPassword.trim()) {
-        const all = await extractArchiveRust(singleInspectFormat, bytes, { password: inspectPassword.trim() });
-        if (!all) throw new Error("Encrypted ZIP extraction requires Rust WASM engine.");
-        const map = new Map(all.map((f) => [f.name, f]));
-        files = selected.map((name) => {
-          const found = map.get(name);
-          if (!found) throw new Error(`Entry not found: ${name}`);
-          return found;
-        });
-      } else {
-        files = await Promise.all(selected.map((name) => extractArchiveEntry(singleInspectFormat, bytes, name)));
-      }
+      const all = await extractArchiveRust(singleInspectFormat, bytes, {
+        password: inspectPassword.trim() || undefined,
+      });
+      const map = new Map(all.map((f) => [f.name, f]));
+      files = selected.map((name) => {
+        const found = map.get(name);
+        if (!found) throw new Error(`Entry not found: ${name}`);
+        return found;
+      });
       setExtracted(files);
       setExtractStatus(`Extracted ${files.length} selected file(s).`);
     } catch (err: unknown) {
@@ -655,9 +628,7 @@ export default function ArchiveKitPage() {
           throw new Error("Password extraction is supported for ZIP archives only.");
         }
         const bytes = await readFileAsBytesStreaming(extractFiles[0]);
-        const rustFiles = await extractArchiveRust(format, bytes, { password: extractPassword.trim() });
-        if (!rustFiles) throw new Error("Encrypted ZIP extraction requires Rust WASM engine.");
-        files = rustFiles;
+        files = await extractArchiveRust(format, bytes, { password: extractPassword.trim() });
       } else {
         const archives = extractFiles.map((file) => ({
           sourceName: file.name,

@@ -25,7 +25,7 @@ export function useArchiveKitWorker() {
 
   const ensureWorker = useCallback(() => {
     if (workerRef.current) return workerRef.current;
-    const worker = new Worker(new URL("../workers/archive-kit.worker.ts", import.meta.url));
+    const worker = new Worker(new URL("../workers/archive-kit.worker.ts", import.meta.url), { type: "module" });
     worker.onmessage = (event: MessageEvent<WorkerMessage>) => {
       const msg = event.data;
       if (msg.type === "progress") {
@@ -82,4 +82,3 @@ export function useArchiveKitWorker() {
 
   return { run, cancel, isBusy, progress };
 }
-
