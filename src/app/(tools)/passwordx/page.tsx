@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { Slider } from '@/components/ui/Slider';
 import { Input } from '@/components/ui/Input';
 import { Checkbox } from '@/components/ui/Checkbox'; // Assuming this is now created
@@ -87,7 +88,10 @@ export default function PasswordGeneratorPage() {
     }, [generatePassword]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-6 px-4">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-6 px-4 relative">
+            <div className="absolute top-6 right-6">
+                <ReturnToToolsButton />
+            </div>
             <div className="max-w-2xl mx-auto">
                 <div className="mb-8 text-center space-y-4">
                     <div className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-full w-fit mx-auto">

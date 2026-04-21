@@ -78,6 +78,7 @@ export function createPerPayloadTIPExecutor(
           const formattedKwargs = payloadFormatter(uint8, config);
           // Pass the underlying ArrayBuffer as a transferable to avoid blocking the main thread during structured clone
           result = await workerClient.execute(actionName, formattedKwargs, [buffer]);
+          if (hooks.signal.aborted) throw new TIPError('CANCELLED', 'Cancelled after worker execution');
         } catch (err: any) {
            throw new TIPError('EXECUTION_FAILED', `Runtime error in ${actionName}: ${err.message || String(err)}`);
         }
@@ -160,6 +161,7 @@ export function createBatchTIPExecutor(
       // Extract the underlying ArrayBuffers from our Uint8Arrays to transfer them
       const transferables = buffers.map(b => b.buffer as ArrayBuffer);
       result = await workerClient.execute(actionName, formattedKwargs, transferables);
+      if (hooks.signal.aborted) throw new TIPError('CANCELLED', 'Cancelled after worker execution');
     } catch (err: any) {
        throw new TIPError('EXECUTION_FAILED', `Runtime error in ${actionName}: ${err.message || String(err)}`);
     }

@@ -6,12 +6,14 @@ import SplitPdf from '@/components/features/magic-pdf/SplitPdf';
 import CompressPdf from '@/components/features/magic-pdf/CompressPdf';
 import RearrangePdf from '@/components/features/magic-pdf/RearrangePdf';
 import ProtectPdf from '@/components/features/magic-pdf/ProtectPdf';
+import UnlockPdf from '@/components/features/magic-pdf/UnlockPdf';
 import SignPdf from '@/components/features/magic-pdf/SignPdf';
 import EditPdf from '@/components/features/magic-pdf/EditPdf';
 import PdfToWord from '@/components/features/magic-pdf/PdfToWord';
 import PdfToImage from '@/components/features/magic-pdf/PdfToImage';
 import ImageToPdf from '@/components/features/magic-pdf/ImageToPdf';
 import HtmlToPdf from '@/components/features/magic-pdf/HtmlToPdf';
+import MaskPdf from '@/components/features/magic-pdf/MaskPdf';
 import {
   Merge,
   Scissors,
@@ -20,15 +22,17 @@ import {
   FileText,
   ArrowUpDown,
   Lock,
+  Unlock,
   PenTool,
   Edit3,
   FileCode,
   FileCode2,
-  Image as ImageIcon,
+  ShieldAlert,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { ToolSidebar, ToolSidebarItem } from '@/components/ui/ToolSidebar';
 import { cn } from '@/lib/utils';
 
@@ -41,8 +45,10 @@ const MagicPdf = () => {
     { id: 'compress', label: 'Compress PDF', icon: Minimize2 },
     { id: 'rearrange', label: 'Rearrange Pages', icon: ArrowUpDown },
     { id: 'protect', label: 'Protect PDF', icon: Lock },
+    { id: 'unlock', label: 'Unlock PDF', icon: Unlock },
     { id: 'sign', label: 'Sign PDF', icon: PenTool },
     { id: 'edit', label: 'Edit PDF', icon: Edit3, badge: 'Beta' },
+    { id: 'redact', label: 'Redact & Mask', icon: ShieldAlert, badge: 'Beta' },
     { id: 'word', label: 'PDF to Word', icon: FileCode, badge: 'Beta' },
     { id: 'convert', label: 'PDF to Image', icon: Image },
     { id: 'img2pdf', label: 'Image to PDF', icon: Image },
@@ -77,13 +83,13 @@ const MagicPdf = () => {
       <main className="flex-1 overflow-hidden relative bg-gray-50/30 flex flex-col">
         <header className="h-14 border-b border-gray-200/50 bg-white/50 backdrop-blur-md flex items-center justify-between px-6 transition-all duration-300">
           <div className={cn("flex items-center gap-2 transition-all duration-300", !isSidebarOpen && "pl-12")}>
-            {/* Added padding-left for mobile/collapsed state spacing if needed, but the button is absolute */}
             <div className="flex items-center text-sm text-gray-500">
               <span className="font-semibold text-gray-800 mr-2">Magic PDF</span>
               <span className="text-gray-300">/</span>
               <span className="ml-2">{activeToolLabel}</span>
             </div>
           </div>
+          <ReturnToToolsButton />
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
@@ -154,6 +160,19 @@ const MagicPdf = () => {
                 </motion.div>
               )}
 
+              {activeTool === 'unlock' && (
+                <motion.div
+                  key="unlock"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full"
+                >
+                  <UnlockPdf />
+                </motion.div>
+              )}
+
               {activeTool === 'sign' && (
                 <motion.div
                   key="sign"
@@ -190,6 +209,19 @@ const MagicPdf = () => {
                   className="h-full"
                 >
                   <PdfToWord />
+                </motion.div>
+              )}
+
+              {activeTool === 'redact' && (
+                <motion.div
+                  key="redact"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full"
+                >
+                  <MaskPdf />
                 </motion.div>
               )}
 
@@ -232,7 +264,7 @@ const MagicPdf = () => {
                 </motion.div>
               )}
 
-              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'sign' && activeTool !== 'edit' && activeTool !== 'word' && activeTool !== 'convert' && activeTool !== 'img2pdf' && activeTool !== 'html2pdf' && (
+              {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'unlock' && activeTool !== 'sign' && activeTool !== 'edit' && activeTool !== 'redact' && activeTool !== 'word' && activeTool !== 'convert' && activeTool !== 'img2pdf' && activeTool !== 'html2pdf' && (
                 <motion.div
                   key="placeholder"
                   initial={{ opacity: 0, scale: 0.95 }}

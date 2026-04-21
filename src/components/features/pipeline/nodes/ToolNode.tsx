@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { TIPToolRegistry } from '@/tip/registry';
-import { Loader2, CheckCircle2, AlertCircle, Settings2 } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Settings2, PauseCircle, Zap } from 'lucide-react';
 import Image from 'next/image';
+import { useWorkerState } from '@/hooks/useWorkerState';
+import { workerForTool } from '@/workers/instances';
+import type { WorkerReadyState } from '@/workers/client';
 
 export function getTypeColor(type: string): string {
     if (type === 'application/pdf') return '#ef4444';
@@ -32,6 +35,7 @@ export function getToolThumbnail(toolId: string): string | null {
     return TOOL_THUMBNAILS[prefix] ?? null;
 }
 
+
 export function ToolNode({ data }: { data: any }) {
     const tool = TIPToolRegistry.get(data.toolId);
     if (!tool) return null;
@@ -41,16 +45,23 @@ export function ToolNode({ data }: { data: any }) {
     const isInteractable = !!tool.interactable;
     const needsConfig = isInteractable && !data.interactionDone;
 
+    // Phase 3: Subscribe to WASM warm-up state for this node's worker
+    const { readyState, warmMessage } = useWorkerState(data.toolId);
+    const isWarming = readyState === 'warming' && status === 'idle';
+
     const inColor = getTypeColor(tool.consumes[0] || '');
     const outColor = getTypeColor(tool.produces[0] || '');
 
     const borderColor = status === 'running' ? 'rgba(99,102,241,0.7)' :
+        status === 'paused' ? 'rgba(251,191,36,0.7)' :
         status === 'complete' ? 'rgba(34,197,94,0.5)' :
             status === 'error' ? 'rgba(239,68,68,0.5)' :
                 needsConfig ? 'rgba(251,191,36,0.45)' :
-                    'rgba(255,255,255,0.07)';
+                    isWarming ? 'rgba(251,191,36,0.2)' :
+                        'rgba(255,255,255,0.07)';
 
     const shadowColor = status === 'running' ? 'rgba(99,102,241,0.25)' :
+        status === 'paused' ? 'rgba(251,191,36,0.25)' :
         status === 'complete' ? 'rgba(34,197,94,0.15)' :
             status === 'error' ? 'rgba(239,68,68,0.15)' :
                 needsConfig ? 'rgba(251,191,36,0.12)' :
@@ -58,6 +69,7 @@ export function ToolNode({ data }: { data: any }) {
 
     const bg = status === 'complete' ? 'linear-gradient(145deg, #0d1f14 0%, #0f1a10 100%)' :
         status === 'error' ? 'linear-gradient(145deg, #1f0d0d 0%, #1a0f0f 100%)' :
+        status === 'paused' ? 'linear-gradient(145deg, #1f1b0d 0%, #1a150f 100%)' :
             status === 'running' ? 'linear-gradient(145deg, #0d1020 0%, #0f1028 100%)' :
                 'linear-gradient(145deg, #161618 0%, #111113 100%)';
 
@@ -142,6 +154,9 @@ export function ToolNode({ data }: { data: any }) {
                     {(status === 'running' || data.isPreviewing) && (
                         <Loader2 style={{ width: 15, height: 15, color: data.isPreviewing ? '#f59e0b' : '#818cf8', animation: 'spin 1s linear infinite' }} />
                     )}
+                    {status === 'paused' && !data.isPreviewing && (
+                        <PauseCircle style={{ width: 15, height: 15, color: '#f59e0b' }} />
+                    )}
                     {status === 'complete' && !data.isPreviewing && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                             <CheckCircle2 style={{ width: 14, height: 14, color: '#4ade80' }} />
@@ -152,6 +167,12 @@ export function ToolNode({ data }: { data: any }) {
                     )}
                     {status === 'error' && !data.isPreviewing && (
                         <AlertCircle style={{ width: 15, height: 15, color: '#f87171' }} />
+                    )}
+                    {/* Phase 3: Warm-up indicator — visible when WASM is booting in idle state */}
+                    {isWarming && !data.isPreviewing && (
+                        <span title={warmMessage || 'Warming up runtime…'}>
+                            <Zap style={{ width: 13, height: 13, color: '#f59e0b', opacity: 0.7 }} />
+                        </span>
                     )}
                 </div>
             </div>
@@ -172,6 +193,27 @@ export function ToolNode({ data }: { data: any }) {
                     {tool.produces[0]?.split('/')[1]?.toUpperCase() || 'ANY'}
                 </span>
             </div>
+
+            {/* Phase 3: Runtime warm-up status bar — only visible while warming, before run */}
+            {isWarming && warmMessage && (
+                <div style={{
+                    marginTop: 6,
+                    display: 'flex', alignItems: 'center', gap: 5,
+                    background: 'rgba(251,191,36,0.06)',
+                    border: '1px solid rgba(251,191,36,0.1)',
+                    borderRadius: 6, padding: '4px 7px',
+                }}>
+                    <div style={{
+                        width: 6, height: 6, borderRadius: '50%',
+                        background: '#f59e0b',
+                        animation: 'pulse 1.5s ease-in-out infinite',
+                        flexShrink: 0,
+                    }} />
+                    <span style={{ fontSize: 9.5, color: '#d97706', fontFamily: 'monospace', lineHeight: 1 }}>
+                        {warmMessage}
+                    </span>
+                </div>
+            )}
 
             {/* ── Configure button (INP: only for interactable tools) ────────────── */}
             {isInteractable && (

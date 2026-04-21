@@ -72,7 +72,6 @@ function validatePipelineShape(raw: unknown): ImportResult {
 export function usePipelines() {
   const [pipelines, setPipelines] = useState<PipelineDefinition[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -94,16 +93,8 @@ export function usePipelines() {
     if (!isLoaded) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(pipelines));
-      setSaveError(null);
     } catch (e) {
-      const isQuotaError = e instanceof DOMException && (
-        e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED'
-      );
-      const msg = isQuotaError
-        ? 'Storage quota exceeded — pipeline could not be saved. Try removing old pipelines.'
-        : 'Failed to save pipelines to local storage.';
-      setSaveError(msg);
-      console.error('[usePipelines]', msg, e);
+      console.error('[usePipelines] Failed to save pipelines to local storage', e);
     }
   }, [pipelines, isLoaded]);
 
@@ -174,5 +165,5 @@ export function usePipelines() {
     [save]
   );
 
-  return { pipelines, isLoaded, saveError, save, remove, exportJson, importJson };
+  return { pipelines, isLoaded, save, remove, exportJson, importJson };
 }

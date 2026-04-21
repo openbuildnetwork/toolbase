@@ -10,6 +10,7 @@ interface PdfPreviewProps {
     scale?: number;
     onLoadSuccess?: (numPages: number) => void;
     onLoadError?: (error: Error) => void;
+    onResize?: (width: number, height: number) => void;
 }
 
 export const PdfPreview = ({
@@ -20,6 +21,7 @@ export const PdfPreview = ({
     scale = 1,
     onLoadSuccess,
     onLoadError,
+    onResize,
 }: PdfPreviewProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [loading, setLoading] = useState(true);
@@ -27,6 +29,7 @@ export const PdfPreview = ({
 
     useEffect(() => {
         let active = true;
+        let renderTask: any = null;
         setPasswordProtected(false);
 
         const renderPage = async () => {
@@ -58,15 +61,21 @@ export const PdfPreview = ({
 
                 if (canvas) {
                     const context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
+                    
+                    // Only update and trigger onResize if dimensions actually changed
+                    if (canvas.width !== Math.floor(viewport.width) || canvas.height !== Math.floor(viewport.height)) {
+                        canvas.width = Math.floor(viewport.width);
+                        canvas.height = Math.floor(viewport.height);
+                        if (onResize) onResize(canvas.width, canvas.height);
+                    }
 
-                    if (context) {
-                        await page.render({ canvasContext: context, viewport } as any).promise;
+                    if (context && active) {
+                        renderTask = page.render({ canvasContext: context, viewport } as any);
+                        await renderTask.promise;
                     }
                 }
             } catch (error: any) {
-                if (!active) return;
+                if (!active || error?.name === 'RenderingCancelledException') return;
                 // PasswordException — pdf.js throws when the PDF requires a password
                 if (error?.name === 'PasswordException' || error?.message?.toLowerCase().includes('password')) {
                     setPasswordProtected(true);
@@ -80,8 +89,13 @@ export const PdfPreview = ({
         };
 
         renderPage();
-        return () => { active = false; };
-    }, [file, pdfDocument, pageNumber, scale, onLoadSuccess, onLoadError]);
+        return () => { 
+            active = false; 
+            if (renderTask) {
+                renderTask.cancel();
+            }
+        };
+    }, [file, pdfDocument, pageNumber, scale, onLoadSuccess, onLoadError, onResize]);
 
     if (passwordProtected) {
         return (
@@ -93,13 +107,13 @@ export const PdfPreview = ({
     }
 
     return (
-        <div className={cn('relative flex items-center justify-center overflow-hidden bg-white/50', className)}>
+        <div className={cn('relative bg-white/50', className)}>
             {loading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-50/50 backdrop-blur-sm z-10">
                     <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 </div>
             )}
-            <canvas ref={canvasRef} className="shadow-sm max-w-full h-auto" />
+            <canvas ref={canvasRef} className="shadow-2xl border border-gray-200 block" />
         </div>
     );
 };

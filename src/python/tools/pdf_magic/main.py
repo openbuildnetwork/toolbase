@@ -3,12 +3,13 @@ import sys
 # Ensure the local directory is in path for imports
 sys.path.append(".")
 
-from .core import compressor, security, extractor, editor, converter, split_merge
+from .core import compressor, security, extractor, editor, converter, split_merge, masking_logic
 
 # Action Registry
 ACTIONS = {
     "compress": compressor.compress_pdf_content,
     "protect": security.protect_pdf,
+    "unlock": security.unlock_pdf,
     "detect": extractor.detect_pdf_elements,
     "apply_edits": editor.apply_pdf_edits,
     "pdf_to_word": converter.pdf_to_word,
@@ -17,6 +18,7 @@ ACTIONS = {
     "html_to_pdf": converter.html_to_pdf,
     "split": split_merge.split_pdf,
     "merge": split_merge.merge_pdfs,
+    "search": masking_logic.search_text_spans,
 }
 
 
@@ -68,6 +70,12 @@ def handle_request(action, data):
 
         elif action == "merge":
             return func(data.get("files_bytes", []))
+
+        elif action == "unlock":
+            return func(file_bytes, data.get("password", ""))
+
+        elif action == "search":
+            return func(file_bytes, data.get("pattern", ""), data.get("mode", "word"))
 
     except Exception as e:
         return {"error": str(e)}

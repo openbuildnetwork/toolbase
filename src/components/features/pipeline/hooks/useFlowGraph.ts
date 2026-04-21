@@ -14,7 +14,10 @@ import { canTransform } from '@/tip/transformers';
 import type { TIPContentType } from '@/tip/protocol';
 
 export function useFlowGraph() {
-  const [nodes, setNodes] = useState<Node[]>([]);
+  const [nodes, setNodes] = useState<Node[]>([
+    { id: 'node-file', type: 'fileInput', position: { x: 140, y: 240 }, data: { status: 'idle', file: null } },
+    { id: 'node-out', type: 'output', position: { x: 680, y: 240 }, data: { status: 'idle' } }
+  ]);
   const [edges, setEdges] = useState<Edge[]>([]);
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
@@ -36,13 +39,13 @@ export function useFlowGraph() {
         let sourceType: TIPContentType | '' = '';
         if (sourceNode.type === 'fileInput') {
            sourceType = (sourceNode.data.file as File)?.type as TIPContentType || 'application/octet-stream';
-        } else if (sourceNode.type === 'tool') {
+        } else if (sourceNode.type === 'tool' || sourceNode.type === 'humanReview') {
            const sTool = TIPToolRegistry.get(sourceNode.data.toolId as string);
            sourceType = sTool?.produces[0] || '';
         }
 
         let targetAccepts: TIPContentType[] = [];
-        if (targetNode.type === 'tool') {
+        if (targetNode.type === 'tool' || targetNode.type === 'humanReview') {
            const tTool = TIPToolRegistry.get(targetNode.data.toolId as string);
            targetAccepts = tTool?.consumes || [];
         } else if (targetNode.type === 'output') {
@@ -76,13 +79,13 @@ export function useFlowGraph() {
     let sourceType: TIPContentType | '' = '';
     if (sourceNode.type === 'fileInput') {
         sourceType = (sourceNode.data.file as File)?.type as TIPContentType || 'application/octet-stream';
-    } else if (sourceNode.type === 'tool') {
+    } else if (sourceNode.type === 'tool' || sourceNode.type === 'humanReview') {
         const sTool = TIPToolRegistry.get(sourceNode.data.toolId as string);
         sourceType = sTool?.produces[0] || '';
     }
 
     let targetAccepts: TIPContentType[] = [];
-    if (targetNode.type === 'tool') {
+    if (targetNode.type === 'tool' || targetNode.type === 'humanReview') {
         const tTool = TIPToolRegistry.get(targetNode.data.toolId as string);
         targetAccepts = tTool?.consumes || [];
     } else if (targetNode.type === 'output') {

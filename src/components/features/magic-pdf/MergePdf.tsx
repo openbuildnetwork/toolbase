@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useTIPTool } from '@/hooks/useTIPTool';
 import { createTimer } from '@/lib/performance';
+import { cn } from '@/lib/utils';
 import type { TIPInteractionProps } from '@/tip/protocol';
 
 /** Props for MergePdf — all fields optional so it works as a bare <MergePdf /> too */
@@ -119,47 +120,97 @@ export default function MergePdf({
     // ── Shared file card grid ─────────────────────────────────────────────────────
 
     const fileGrid = (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             <AnimatePresence>
                 {files.map((file, index) => (
                     <motion.div
                         key={`${file.name}-${index}`}
                         layout
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.2 }}
+                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                        transition={{ duration: 0.25, type: "spring", stiffness: 300, damping: 25 }}
+                        className="group perspective-1000"
                     >
-                        <Card className="relative group overflow-hidden border border-gray-100/50 hover:shadow-md transition-all h-[240px] flex flex-col">
-                            {/* Order badge */}
-                            <div className="absolute top-2 left-2 z-10 w-6 h-6 rounded-full bg-white/90 border border-gray-200 text-xs font-bold text-gray-700 flex items-center justify-center shadow-sm">
-                                {index + 1}
+                        <Card className={cn(
+                            "relative overflow-hidden transition-all duration-300 ease-out",
+                            "bg-gradient-to-br from-white via-gray-50/40 to-white",
+                            "border-2 border-gray-200/60 hover:border-purple-300/60",
+                            "hover:shadow-xl hover:shadow-purple-500/10",
+                            "h-[260px] flex flex-col"
+                        )}>
+                            {/* Order badge with gradient */}
+                            <div className="absolute top-3 left-3 z-20">
+                                <div className={cn(
+                                    "w-7 h-7 rounded-xl flex items-center justify-center",
+                                    "bg-gradient-to-br from-purple-600 to-violet-600",
+                                    "text-white font-bold text-sm shadow-lg shadow-purple-500/30",
+                                    "transition-transform duration-300 group-hover:scale-110"
+                                )}>
+                                    {index + 1}
+                                </div>
                             </div>
 
-                            {/* Action buttons */}
-                            <div className="absolute top-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 backdrop-blur-sm rounded-full p-1 shadow-sm">
-                                <button onClick={() => moveFile(index, 'up')} disabled={index === 0} className="p-1.5 hover:bg-gray-100 rounded-full disabled:opacity-30" title="Move up">
-                                    <ArrowUp className="w-4 h-4 text-gray-700" />
-                                </button>
-                                <button onClick={() => moveFile(index, 'down')} disabled={index === files.length - 1} className="p-1.5 hover:bg-gray-100 rounded-full disabled:opacity-30" title="Move down">
-                                    <ArrowDown className="w-4 h-4 text-gray-700" />
-                                </button>
-                                <button onClick={() => window.open(URL.createObjectURL(file), '_blank')} className="p-1.5 hover:bg-gray-100 rounded-full" title="Preview">
-                                    <Eye className="w-4 h-4 text-gray-700" />
-                                </button>
-                                <button onClick={() => removeFile(index)} className="p-1.5 hover:bg-red-50 text-red-500 rounded-full" title="Remove">
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
+                            {/* Action buttons with frosted glass */}
+                            <div className="absolute top-3 right-3 z-20 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-white/90 backdrop-blur-md shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                                    <button
+                                        onClick={() => moveFile(index, 'up')}
+                                        disabled={index === 0}
+                                        className="p-2 hover:bg-purple-100 rounded-lg disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
+                                        title="Move up"
+                                    >
+                                        <ArrowUp className="w-4 h-4 text-gray-700 hover:text-purple-600" />
+                                    </button>
+                                    <button
+                                        onClick={() => moveFile(index, 'down')}
+                                        disabled={index === files.length - 1}
+                                        className="p-2 hover:bg-purple-100 rounded-lg disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
+                                        title="Move down"
+                                    >
+                                        <ArrowDown className="w-4 h-4 text-gray-700 hover:text-purple-600" />
+                                    </button>
+                                    <button
+                                        onClick={() => window.open(URL.createObjectURL(file), '_blank')}
+                                        className="p-2 hover:bg-blue-100 rounded-lg transition-all hover:scale-110 active:scale-95"
+                                        title="Preview"
+                                    >
+                                        <Eye className="w-4 h-4 text-gray-700 hover:text-blue-600" />
+                                    </button>
+                                    <button
+                                        onClick={() => removeFile(index)}
+                                        className="p-2 hover:bg-red-100 rounded-lg transition-all hover:scale-110 active:scale-95"
+                                        title="Remove"
+                                    >
+                                        <Trash2 className="w-4 h-4 text-gray-700 hover:text-red-600" />
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="flex-1 bg-gray-50/50 flex items-center justify-center p-4 overflow-hidden">
-                                <PdfPreview file={file} scale={0.6} className="shadow-sm max-h-full object-contain" />
+                            {/* PDF Preview with gradient background */}
+                            <div className="flex-1 bg-gradient-to-br from-gray-50 to-white flex items-center justify-center p-4 overflow-hidden relative">
+                                {/* Subtle grid pattern background */}
+                                <div className="absolute inset-0 opacity-[0.03]" style={{
+                                    backgroundImage: 'radial-gradient(circle at 1px 1px, #000 1px, transparent 0)',
+                                    backgroundSize: '20px 20px'
+                                }} />
+                                <div className="relative z-10 w-full h-full">
+                                    <PdfPreview file={file} scale={0.6} className="shadow-lg max-h-full object-contain transition-transform duration-300 group-hover:scale-105" />
+                                </div>
                             </div>
 
-                            <div className="p-3 bg-white/90 backdrop-blur-sm border-t border-gray-100">
-                                <p className="text-sm font-medium truncate" title={file.name}>{file.name}</p>
-                                <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            {/* File info footer */}
+                            <div className="p-3 bg-gradient-to-r from-white/90 via-gray-50/50 to-white/90 backdrop-blur-sm border-t border-gray-100/60">
+                                <p className="text-sm font-semibold text-gray-900 truncate" title={file.name}>
+                                    {file.name}
+                                </p>
+                                <p className="text-xs text-gray-500 font-medium mt-0.5">
+                                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                                </p>
                             </div>
+
+                            {/* Hover glow effect */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-purple-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                         </Card>
                     </motion.div>
                 ))}

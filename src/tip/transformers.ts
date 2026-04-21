@@ -26,8 +26,9 @@ export interface TIPTransformer {
    * Perform the coercion.
    * Must return a bundle whose contentType === this.to.
    * Must NOT modify the input bundle.
+   * Must respect signal.aborted if provided.
    */
-  transform: (bundle: TIPBundle) => Promise<TIPBundle>;
+  transform: (bundle: TIPBundle, signal?: AbortSignal) => Promise<TIPBundle>;
 }
 
 /** Module-private registry — not exported directly */

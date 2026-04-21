@@ -71,23 +71,61 @@ const QUICK_FILTERS = [
 ];
 
 export function FilterBuilder({ schema, onApply }: FilterBuilderProps) {
-    const [conditions, setConditions] = useState<FilterCondition[]>([]);
+    const [savedFilters, setSavedFilters] = useState<{ name: string, conditions: FilterCondition[] }[]>([]);
     const [isExpanded, setIsExpanded] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
-    const [savedFilters, setSavedFilters] = useState<{ name: string, conditions: FilterCondition[] }[]>([]);
+
+    const getColumnType = useCallback((colName: string): string => {
+        const col = schema?.columns.find(c => c.name === colName);
+        if (!col) return 'string';
+        const type = col.type.toLowerCase();
+        if (type.includes('float') || type.includes('int') || type.includes('number')) return 'number';
+        if (type.includes('bool')) return 'boolean';
+        if (type.includes('date') || type.includes('time')) return 'date';
+        return 'string';
+    }, [schema]);
+
+    const getColumnIcon = useCallback((colName: string) => {
+        const type = getColumnType(colName);
+        switch (type) {
+            case 'number': return <Hash className="w-3 h-3" />;
+            case 'boolean': return <ToggleLeft className="w-3 h-3" />;
+            case 'date': return <Calendar className="w-3 h-3" />;
+            default: return <Type className="w-3 h-3" />;
+        }
+    }, [getColumnType]);
+
+    const [conditions, setConditions] = useState<FilterCondition[]>([]);
 
     const addCondition = useCallback((preset?: { operator: string, value?: string }) => {
         if (!schema?.columns.length) return;
+
+        const defaultColName = schema.columns[0].name;
+        const colType = getColumnType(defaultColName);
+        let operator = preset?.operator || 'contains';
+
+        // Map generic operators to type-specific ones
+        if (operator === 'is_not_empty' && colType === 'number') operator = 'is_not_null';
+        if (operator === 'is_empty' && colType === 'number') operator = 'is_null';
+        if (operator === 'is_not_empty' && colType === 'date') operator = 'is_not_null';
+        if (operator === 'is_empty' && colType === 'date') operator = 'is_null';
+
+        // Ensure operator exists for the type, else use type's first operator
+        const ops = OPERATORS[colType as keyof typeof OPERATORS] || OPERATORS.string;
+        if (!ops.find(o => o.value === operator)) {
+            operator = ops[0].value;
+        }
+
         const newCondition: FilterCondition = {
             id: crypto.randomUUID(),
-            column: schema.columns[0].name,
-            operator: preset?.operator || 'contains',
+            column: defaultColName,
+            operator: operator,
             value: preset?.value || '',
             logic: conditions.length > 0 ? 'AND' : undefined
         };
         setConditions(prev => [...prev, newCondition]);
         setIsExpanded(true);
-    }, [schema, conditions.length]);
+    }, [schema, conditions.length, getColumnType]);
 
     const removeCondition = useCallback((id: string) => {
         setConditions(prev => {
@@ -127,26 +165,6 @@ export function FilterBuilder({ schema, onApply }: FilterBuilderProps) {
         }));
     }, []);
 
-    const getColumnType = useCallback((colName: string): string => {
-        const col = schema?.columns.find(c => c.name === colName);
-        if (!col) return 'string';
-        const type = col.type.toLowerCase();
-        if (type.includes('float') || type.includes('int') || type.includes('number')) return 'number';
-        if (type.includes('bool')) return 'boolean';
-        if (type.includes('date') || type.includes('time')) return 'date';
-        return 'string';
-    }, [schema]);
-
-    const getColumnIcon = useCallback((colName: string) => {
-        const type = getColumnType(colName);
-        switch (type) {
-            case 'number': return <Hash className="w-3 h-3" />;
-            case 'boolean': return <ToggleLeft className="w-3 h-3" />;
-            case 'date': return <Calendar className="w-3 h-3" />;
-            default: return <Type className="w-3 h-3" />;
-        }
-    }, [getColumnType]);
-
     const handleApply = useCallback(() => {
         onApply(conditions.filter(c => {
             // Skip empty value conditions for operators that need values
@@ -185,8 +203,8 @@ export function FilterBuilder({ schema, onApply }: FilterBuilderProps) {
                     <button
                         onClick={() => conditions.length > 0 ? setIsExpanded(!isExpanded) : addCondition()}
                         className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${conditions.length > 0
-                                ? 'bg-indigo-50 text-indigo-600 border border-indigo-200 shadow-sm'
-                                : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 hover:text-gray-900'
+                            ? 'bg-indigo-50 text-indigo-600 border border-indigo-200 shadow-sm'
+                            : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 hover:text-gray-900'
                             }`}
                     >
                         <Filter className="w-4 h-4" />

@@ -163,19 +163,24 @@ export default function SplitPdf({
 
     // ── Shared page selector UI ──────────────────────────────────────────────────
     const pageSelector = (
-        <div className="bg-gray-100/50 p-6 rounded-2xl border border-dashed border-gray-300">
-            <p className="text-center text-sm text-gray-500 mb-6">
+        <div className="bg-gradient-to-b from-gray-50/80 to-white/50 p-4 sm:p-6 rounded-2xl border border-gray-200/60 shadow-sm">
+            <p className="text-center text-sm text-gray-500 mb-4 sm:mb-6 font-medium">
                 {isInteractionMode
-                    ? 'Click the scissors between pages to define split points, then confirm.'
-                    : 'Click the scissors to split the document at that point.'}
+                    ? 'Tap the scissors between pages to set split points, then confirm.'
+                    : 'Tap the scissors to split the document at that point.'}
             </p>
 
-            <div className="flex flex-wrap gap-y-8 gap-x-2 justify-center">
+            <div className="flex flex-wrap gap-y-4 gap-x-1 sm:gap-x-2 justify-center">
                 {Array.from({ length: numPages }).map((_, i) => (
                     <React.Fragment key={i}>
                         <div className="relative group">
-                            <Card className="w-[140px] h-[180px] p-2 flex flex-col items-center gap-2 hover:shadow-md transition-all relative overflow-visible">
-                                <div className="w-full h-full bg-gray-50 rounded border border-gray-100 overflow-hidden relative">
+                            <Card className={cn(
+                                "p-1.5 sm:p-2 flex flex-col items-center gap-1.5 sm:gap-2",
+                                "transition-all duration-200 relative overflow-visible",
+                                "hover:shadow-lg hover:scale-105 hover:border-red-200/50",
+                                "w-[100px] h-[135px] sm:w-[140px] sm:h-[180px]"
+                            )}>
+                                <div className="w-full h-full bg-white rounded-lg border border-gray-100 overflow-hidden relative shadow-sm">
                                     <PdfPreview
                                         pdfDocument={pdfDocument}
                                         pageNumber={i + 1}
@@ -183,30 +188,34 @@ export default function SplitPdf({
                                         className="w-full h-full object-contain"
                                     />
                                 </div>
-                                <span className="text-xs font-medium text-gray-400">Page {i + 1}</span>
+                                <span className="text-[10px] sm:text-xs font-medium text-gray-500 bg-gray-100/80 px-2 py-0.5 rounded-full">
+                                    Page {i + 1}
+                                </span>
                             </Card>
                         </div>
 
                         {/* Split point button between pages */}
                         {i < numPages - 1 && (
-                            <div className="flex flex-col items-center justify-center -mx-1 z-10 w-8">
+                            <div className="flex flex-col items-center justify-center -mx-0.5 sm:-mx-1 z-10">
                                 <button
                                     onClick={() => toggleSplit(i)}
                                     className={cn(
-                                        'w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 border shadow-sm',
+                                        "w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-200 border-2 shadow-sm",
+                                        "active:scale-90 touch-manipulation",
                                         splitIndices.includes(i)
-                                            ? 'bg-red-500 border-red-600 text-white scale-110'
-                                            : 'bg-white border-gray-200 text-gray-300 hover:text-red-400 hover:border-red-200 hover:scale-110'
+                                            ? 'bg-gradient-to-br from-red-500 to-red-600 border-red-700 text-white scale-110 shadow-red-200'
+                                            : 'bg-white border-gray-200 text-gray-300 hover:text-red-500 hover:border-red-300 hover:scale-105 hover:shadow-md'
                                     )}
                                     title="Split here"
+                                    aria-label={`Split after page ${i + 1}`}
                                 >
                                     {splitIndices.includes(i)
-                                        ? <Scissors className="w-4 h-4 transform rotate-90" />
-                                        : <SplitSquareHorizontal className="w-4 h-4 opacity-50 hover:opacity-100" />
+                                        ? <Scissors className="w-3.5 h-3.5 sm:w-4 sm:h-4 transform rotate-90" />
+                                        : <SplitSquareHorizontal className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-50 hover:opacity-100" />
                                     }
                                 </button>
                                 {splitIndices.includes(i) && (
-                                    <div className="h-full w-0.5 bg-red-500/20 absolute -z-10" />
+                                    <div className="h-full w-0.5 bg-gradient-to-b from-red-400/30 via-red-500/40 to-red-400/30 absolute -z-10" />
                                 )}
                             </div>
                         )}
@@ -224,13 +233,15 @@ export default function SplitPdf({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
         >
-            <Card className="p-8">
+            <Card className="p-6 sm:p-8">
                 <div className="text-center mb-8">
-                    <Scissors className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-                    <h2 className="text-2xl font-semibold mb-2">
+                    <div className="w-16 h-16 sm:w-12 sm:h-12 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center shadow-inner">
+                        <Scissors className="w-8 h-8 sm:w-6 sm:h-6 text-red-500" />
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-semibold mb-2 text-gray-900">
                         {isInteractionMode ? 'Select PDF to Split' : 'Split PDF Document'}
                     </h2>
-                    <p className="text-gray-500">
+                    <p className="text-sm sm:text-base text-gray-500 max-w-md mx-auto">
                         {isInteractionMode
                             ? 'Upload the PDF you want to split in the pipeline, then mark the split points.'
                             : 'Extract pages or split your document into multiple files.'}
@@ -240,7 +251,7 @@ export default function SplitPdf({
                     onFilesSelected={handleFileSelected}
                     accept=".pdf,application/pdf"
                     multiple={false}
-                    className="max-w-2xl mx-auto"
+                    className="max-w-full sm:max-w-2xl mx-auto"
                 />
             </Card>
         </motion.div>
@@ -256,56 +267,68 @@ export default function SplitPdf({
         >
             {/* Sticky toolbar */}
             <div className={cn(
-                'flex items-center justify-between p-4 rounded-xl border border-gray-100 shadow-sm',
-                isInteractionMode ? 'shrink-0' : 'bg-white sticky top-0 z-30'
+                'flex items-center justify-between p-3 sm:p-4 rounded-xl border shadow-sm',
+                isInteractionMode ? 'shrink-0 bg-white' : 'bg-white/80 backdrop-blur-md sticky top-0 z-30',
+                isInteractionMode ? 'border-gray-200' : 'border-gray-200/60'
             )}>
-                <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 bg-red-50 text-red-600 rounded-lg flex items-center justify-center">
-                        <Scissors className="w-5 h-5" />
+                <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+                    <div className={cn(
+                        "h-9 w-9 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center shrink-0",
+                        isInteractionMode ? 'bg-red-50 text-red-600' : 'bg-gradient-to-br from-red-50 to-red-100 text-red-600 shadow-sm'
+                    )}>
+                        <Scissors className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <div>
-                        <h3 className="font-medium text-gray-900 truncate max-w-[200px]" title={file?.name}>
+                    <div className="min-w-0 flex-1">
+                        <h3 className="font-medium text-gray-900 truncate text-xs sm:text-sm" title={file?.name}>
                             {file?.name}
                         </h3>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-[10px] sm:text-xs text-gray-500 font-medium whitespace-nowrap">
                             {numPages} Pages · {((file?.size ?? 0) / 1024 / 1024).toFixed(2)} MB
-                            {splitIndices.length > 0 && ` · ${splitIndices.length + 1} segments`}
+                            {splitIndices.length > 0 && <span className="hidden sm:inline text-red-500"> · {splitIndices.length + 1} segments</span>}
                         </p>
                     </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-1.5 sm:gap-2 shrink-0">
                     {!isInteractionMode && (
-                        <Button variant="ghost" onClick={() => setFile(null)}>Change File</Button>
+                        <Button variant="ghost" size="sm" onClick={() => setFile(null)} className="hidden sm:flex">
+                            Change
+                        </Button>
                     )}
 
                     {/* ── Mode-specific action ── */}
                     {isInteractionMode ? (
                         <>
-                            <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+                            <Button variant="ghost" size="sm" onClick={onCancel} className="hidden sm:flex">Cancel</Button>
                             <Button
                                 onClick={handleConfirm}
                                 disabled={splitIndices.length === 0}
-                                className="gap-2"
+                                size="sm"
+                                className="gap-1.5 sm:gap-2"
                             >
-                                <CheckCheck className="w-4 h-4" />
-                                Confirm Split Points ({splitIndices.length + 1} parts)
+                                <CheckCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                <span className="hidden sm:inline">Confirm</span>
+                                <span className="sm:hidden">{splitIndices.length + 1}</span>
                             </Button>
                         </>
                     ) : splitResult.length > 0 ? (
-                        <Button onClick={() => setSplitResult([])} variant="outline">
-                            <RefreshCw className="w-4 h-4 mr-2" /> Reset
+                        <Button onClick={() => setSplitResult([])} variant="outline" size="sm">
+                            <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Reset</span>
                         </Button>
                     ) : (
                         <Button
                             onClick={handleSplit}
                             disabled={splitIndices.length === 0 || isProcessing}
                             isLoading={isProcessing}
+                            size="sm"
+                            className="gap-1.5 sm:gap-2"
                         >
-                            <Scissors className="w-4 h-4 mr-2" />
-                            {isProcessing
-                                ? progressMessage || 'Splitting…'
-                                : `Split PDF (${splitIndices.length + 1} files)`}
+                            <Scissors className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">
+                                {isProcessing ? progressMessage || 'Splitting…' : `Split (${splitIndices.length + 1})`}
+                            </span>
+                            <span className="sm:hidden">{splitIndices.length + 1}</span>
                         </Button>
                     )}
                 </div>
@@ -316,31 +339,77 @@ export default function SplitPdf({
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
                 >
                     {splitResult.map((result, i) => (
-                        <Card key={i} className="p-4 flex items-center justify-between border-green-100 bg-green-50/30">
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center shadow-sm">
-                                    <span className="font-bold text-gray-400 text-lg">{i + 1}</span>
+                        <Card
+                            key={i}
+                            className={cn(
+                                "p-3 sm:p-4 border-2 transition-all duration-200",
+                                "bg-gradient-to-br from-green-50/80 via-green-50/40 to-white",
+                                "border-green-200/60 hover:border-green-300 hover:shadow-md"
+                            )}
+                        >
+                            <div className="flex flex-col gap-2.5">
+                                {/* File info row */}
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                    <div className={cn(
+                                        "h-10 w-10 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
+                                        "bg-white border-2 border-green-200/60"
+                                    )}>
+                                        <span className="font-bold text-green-600 text-base sm:text-lg">{i + 1}</span>
+                                    </div>
+                                    <div className="flex flex-col min-w-0 flex-1">
+                                        <span className="font-semibold text-gray-900 truncate text-sm sm:text-base">{result.name}</span>
+                                        <span className="text-[10px] sm:text-xs text-green-600 font-medium flex items-center gap-1">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                            Ready to download
+                                        </span>
+                                    </div>
                                 </div>
-                                <div className="flex flex-col">
-                                    <span className="font-medium text-gray-900 truncate max-w-[200px]">{result.name}</span>
-                                    <span className="text-xs text-green-600 font-medium">Ready to download</span>
-                                </div>
-                            </div>
-                            <div className="flex gap-2">
-                                <Button size="sm" variant="ghost" onClick={() => window.open(result.url, '_blank')}>
-                                    <Eye className="w-4 h-4" />
-                                </Button>
-                                <a href={result.url} download={result.name}>
-                                    <Button size="sm" variant="outline" className="bg-white hover:bg-green-50 border-green-200 text-green-700">
-                                        <Download className="w-4 h-4 mr-2" /> Download
+
+                                {/* Action buttons */}
+                                <div className="flex items-center gap-2 pt-1 border-t border-green-100/50">
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => window.open(result.url, '_blank')}
+                                        className="flex-1 sm:flex-none text-xs sm:text-sm"
+                                    >
+                                        <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                        <span className="hidden sm:ml-1.5 sm:inline">Preview</span>
                                     </Button>
-                                </a>
+                                    <a href={result.url} download={result.name} className="flex-1 sm:flex-none">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className={cn(
+                                                "w-full sm:w-auto flex-1 sm:flex-none text-xs sm:text-sm font-medium",
+                                                "bg-white hover:bg-green-600 hover:text-white hover:border-green-600",
+                                                "border-green-200 text-green-700 transition-all duration-200"
+                                            )}
+                                        >
+                                            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1.5" />
+                                            <span>Download</span>
+                                        </Button>
+                                    </a>
+                                </div>
                             </div>
                         </Card>
                     ))}
+
+                    {/* Success summary */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="sm:col-span-2 lg:col-span-3"
+                    >
+                        <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-r from-green-500/10 via-green-500/5 to-transparent border border-green-200/40 flex items-center justify-center gap-2 text-green-700">
+                            <span className="text-sm sm:text-base font-medium">
+                                ✓ Successfully split into {splitResult.length} file{splitResult.length > 1 ? 's' : ''}
+                            </span>
+                        </div>
+                    </motion.div>
                 </motion.div>
             )}
 
@@ -366,7 +435,10 @@ export default function SplitPdf({
 
     // ── Root ─────────────────────────────────────────────────────────────────────
     return (
-        <div className={isInteractionMode ? 'w-full h-full flex flex-col' : 'w-full max-w-6xl mx-auto space-y-8 pb-20'}>
+        <div className={cn(
+            isInteractionMode ? 'w-full h-full flex flex-col' : 'w-full max-w-5xl mx-auto pb-8 sm:pb-20',
+            !isInteractionMode && 'px-3 sm:px-0'
+        )}>
             <AnimatePresence mode="wait">
                 {!file ? uploadPrompt : workspace}
             </AnimatePresence>

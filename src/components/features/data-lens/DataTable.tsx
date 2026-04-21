@@ -47,23 +47,6 @@ export function DataTable({ data, columns }: DataTableProps) {
         initialState: { pagination: { pageSize } },
     });
 
-    // Column statistics
-    const columnStats = useMemo(() => {
-        const stats: Record<string, { unique: number; empty: number; type: string }> = {};
-        columns.forEach(col => {
-            const values = data.map(row => row[col]);
-            const unique = new Set(values.filter(v => v != null && v !== '')).size;
-            const empty = values.filter(v => v == null || v === '').length;
-            const sample = values.find(v => v != null && v !== '');
-            let type = 'text';
-            if (typeof sample === 'number') type = 'number';
-            else if (typeof sample === 'boolean') type = 'boolean';
-            else if (sample instanceof Date || (!isNaN(Date.parse(sample)) && /\d{4}-\d{2}/.test(sample))) type = 'date';
-            stats[col] = { unique, empty, type };
-        });
-        return stats;
-    }, [data, columns]);
-
     const copyToClipboard = useCallback((value: string, cellId: string) => {
         navigator.clipboard.writeText(value);
         setCopiedCell(cellId);
@@ -146,9 +129,6 @@ export function DataTable({ data, columns }: DataTableProps) {
                                                 className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                             />
                                             <span className="text-sm text-gray-700 truncate flex-1">{column.id}</span>
-                                            <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
-                                                {columnStats[column.id]?.type}
-                                            </span>
                                         </label>
                                     ))}
                                 </div>
@@ -201,7 +181,6 @@ export function DataTable({ data, columns }: DataTableProps) {
                     <thead className="sticky top-0 z-10">
                         <tr className="bg-gray-50 border-b border-gray-200">
                             {table.getHeaderGroups()[0]?.headers.map(header => {
-                                const stats = columnStats[header.id];
                                 return (
                                     <th
                                         key={header.id}
@@ -219,12 +198,6 @@ export function DataTable({ data, columns }: DataTableProps) {
                                                 {header.column.getIsSorted() === 'asc' && <SortAsc className="w-3.5 h-3.5 text-indigo-500" />}
                                                 {header.column.getIsSorted() === 'desc' && <SortDesc className="w-3.5 h-3.5 text-indigo-500" />}
                                             </div>
-                                            {stats && (
-                                                <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-400">
-                                                    <span>{stats.unique} unique</span>
-                                                    {stats.empty > 0 && <span className="text-amber-500">{stats.empty} empty</span>}
-                                                </div>
-                                            )}
                                         </div>
                                         {header.column.getCanResize() && (
                                             <div

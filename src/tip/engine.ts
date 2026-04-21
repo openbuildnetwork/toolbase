@@ -17,7 +17,8 @@
  * to connect it to React state.
  */
 
-import type { TIPBundle, TIPConfig, TIPHooks } from './protocol';
+import { TIP_CONTENT_TYPES } from './protocol';
+import type { TIPBundle, TIPConfig, TIPHooks, TIPContentType } from './protocol';
 import { TIPToolRegistry } from './registry';
 import { findTransformer } from './transformers';
 import { TIPError } from './errors';
@@ -75,17 +76,26 @@ export async function executeTIPPipeline(
   steps: TIPPipelineStep[],
   initialBundle: TIPBundle,
   engineHooks: TIPEngineHooks,
-  signal: AbortSignal
+  signal: AbortSignal,
+  onPauseCheck?: (index: number) => Promise<void>
 ): Promise<TIPBundle> {
-  let current = initialBundle;
+  let current: TIPBundle | null = initialBundle;
 
   for (let i = 0; i < steps.length; i++) {
+    // ── Pause check ──
+    if (onPauseCheck) {
+        await onPauseCheck(i);
+    }
+
     // ── Cancellation check (before step) ──────────────────────────────────────
     if (signal.aborted) {
       throw new TIPError('CANCELLED', 'Pipeline cancelled by user', i);
     }
 
     const step = steps[i];
+
+    // ── Pause check (pre-resolve) ──
+    if (onPauseCheck) await onPauseCheck(i);
 
     // ── Tool resolution ────────────────────────────────────────────────────────
     const tool = TIPToolRegistry.get(step.toolId);
@@ -99,13 +109,18 @@ export async function executeTIPPipeline(
       );
     }
 
+    // Capture the input for this step and clear the outer reference early
+    // to allow GC of previous steps' data during long-running tool invocations.
+    let input = current!;
+    current = null;
+
     // ── Type compatibility ─────────────────────────────────────────────────────
-    const canConsumeDirect = tool.consumes.includes(current.contentType);
+    const canConsumeDirect = tool.consumes.includes(input.contentType);
 
     // Try to find a transformer for each accepted type the tool declares
     const transformer = !canConsumeDirect
       ? tool.consumes.reduce<ReturnType<typeof findTransformer>>(
-          (found, accepted) => found ?? findTransformer(current.contentType, accepted),
+          (found, accepted) => found ?? findTransformer(input.contentType, accepted),
           undefined
         )
       : undefined;
@@ -113,27 +128,46 @@ export async function executeTIPPipeline(
     if (!canConsumeDirect && !transformer) {
       throw new TIPError(
         'TYPE_MISMATCH',
-        `Tool "${tool.name}" cannot consume "${current.contentType}". ` +
+        `Tool "${tool.name}" cannot consume "${input.contentType}". ` +
           `It accepts: ${tool.consumes.join(', ')}`,
         i,
         step.toolId
       );
     }
 
+    // ── Invocation ────────────────────────────────────────────────────────────
+    if (signal.aborted) throw new TIPError('CANCELLED', 'Pipeline cancelled', i);
+    
+    // ── Pause check (pre-hook) ──
+    if (onPauseCheck) await onPauseCheck(i);
+
+    engineHooks.onStepStart(i, step.toolId);
+    if (signal.aborted) throw new TIPError('CANCELLED', 'Pipeline cancelled', i);
+    
+    const start = performance.now();
+
     // ── Type coercion (if needed) ──────────────────────────────────────────────
     if (transformer) {
-      current = await transformer.transform(current);
-    }
+      // ── Pause check (pre-transform) ──
+      if (onPauseCheck) await onPauseCheck(i);
 
-    // ── Invocation ────────────────────────────────────────────────────────────
-    engineHooks.onStepStart(i, step.toolId);
-    const start = performance.now();
+      input = await transformer.transform(input, signal);
+
+      // ── Pause check (post-transform) ──
+      if (onPauseCheck) await onPauseCheck(i);
+
+      if (signal.aborted) {
+        throw new TIPError('CANCELLED', 'Pipeline cancelled by user', i);
+      }
+    }
 
     /** Per-step hooks — bridge tool progress reports to engine-level hooks */
     const stepHooks: TIPHooks = {
-      onProgress: (percent, message) =>
-        engineHooks.onStepProgress(i, percent, message),
+      onProgress: (percent, message) => {
+        if (!signal.aborted) engineHooks.onStepProgress(i, percent, message);
+      },
       onLog: (message, level) => {
+        if (signal.aborted) return;
         if (level === 'error') console.error(`[TIP][${tool.id}]`, message);
         else if (level === 'warn') console.warn(`[TIP][${tool.id}]`, message);
         else console.log(`[TIP][${tool.id}]`, message);
@@ -142,14 +176,57 @@ export async function executeTIPPipeline(
     };
 
     try {
-      const result = await tool.invoke(current, step.config, stepHooks);
+      // ── Pause check (pre-invoke) ──
+      if (onPauseCheck) await onPauseCheck(i);
+
+      const result = await tool.invoke(input, step.config, stepHooks);
+
+      // ── Pause check (post-invoke) ──
+      if (onPauseCheck) await onPauseCheck(i);
+
+      if (signal.aborted) {
+        throw new TIPError('CANCELLED', 'Pipeline cancelled by user', i);
+      }
+
+      // ── Output Validation ───────────────────────────────────────────────────
+      // Verify the tool produced a content type it explicitly declared.
+      if (!tool.produces.includes(result.contentType)) {
+        throw new TIPError(
+          'EXECUTION_FAILED',
+          `Tool "${tool.name}" produced undeclared content type "${result.contentType}". ` +
+            `Expected one of: ${tool.produces.join(', ')}`,
+          i,
+          step.toolId
+        );
+      }
+
+      // Verify the content type is known to the protocol.
+      if (!TIP_CONTENT_TYPES.includes(result.contentType as any)) {
+        throw new TIPError(
+          'EXECUTION_FAILED',
+          `Tool "${tool.name}" produced unknown content type "${result.contentType}".`,
+          i,
+          step.toolId
+        );
+      }
+
       const durationMs = Math.round(performance.now() - start);
+
+      // Null out input immediately after tool.invoke starts/completes
+      // so it can be GC'd while engineHooks are firing or if the next step is slow.
+      (input as any) = null;
 
       // Stamp the output with producer info before passing to the next step
       current = stampBundle(result, tool.id, durationMs);
 
-      engineHooks.onStepComplete(i, step.toolId, durationMs);
+      if (!signal.aborted) {
+        engineHooks.onStepComplete(i, step.toolId, durationMs);
+      }
     } catch (err) {
+      if (signal.aborted || (err instanceof TIPError && err.code === 'CANCELLED')) {
+          throw err instanceof TIPError ? err : new TIPError('CANCELLED', 'Pipeline cancelled', i);
+      }
+
       const tipError =
         err instanceof TIPError
           ? err
@@ -160,5 +237,5 @@ export async function executeTIPPipeline(
     }
   }
 
-  return current;
+  return current!;
 }
