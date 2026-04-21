@@ -75,7 +75,7 @@ export function useBase64(): UseBase64Result {
                     }
                 } else if (Array.isArray(result.result)) {
                     const uint8Array = new Uint8Array(result.result);
-                    blob = new Blob([uint8Array], { type: 'application/octet-stream' });
+                    blob = new Blob([uint8Array as any], { type: 'application/octet-stream' });
                     if (!downloadFilename.includes('.')) {
                         downloadFilename += '.bin';
                     }

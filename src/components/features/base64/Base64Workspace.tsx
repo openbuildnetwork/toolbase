@@ -186,7 +186,7 @@ export function Base64Workspace({
                         }
 
                         if (detectedMimeType) {
-                            const blob = new Blob([bytes], { type: detectedMimeType });
+                            const blob = new Blob([bytes as any], { type: detectedMimeType });
                             const url = URL.createObjectURL(blob);
                             if (detectedMimeType === 'application/pdf') setDecodedPdfUrl(url);
                             else setDecodedImageUrl(url);

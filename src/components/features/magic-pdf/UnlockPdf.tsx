@@ -16,8 +16,8 @@ import {
     AlertCircle
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
-import { cn } from '@/lib/utils';
 import { useTIPTool } from '@/hooks/useTIPTool';
+import { useWorkerState } from '@/hooks/useWorkerState';
 import type { TIPInteractionProps } from '@/tip/protocol';
 
 /** Props for UnlockPdf — all optional so it works as a bare <UnlockPdf /> */
@@ -39,18 +39,19 @@ export default function UnlockPdf({
     const [unlockedPdfUrl, setUnlockedPdfUrl] = useState<string | null>(null);
 
     const { execute, isProcessing, error, progress, progressMessage, tool } = useTIPTool('magic-pdf/unlock');
+    const { readyState } = useWorkerState('magic-pdf/unlock');
 
     // Show toast when tool is warming
     React.useEffect(() => {
-        if (tool?.state === 'warming') {
+        if (readyState === 'warming') {
             const timer = setTimeout(() => {
-                if (tool?.state === 'warming') {
+                if (readyState === 'warming') {
                     alert('Magic PDF tool is loading for the first time. This may take a few minutes...');
                 }
             }, 5000);
             return () => clearTimeout(timer);
         }
-    }, [tool?.state]);
+    }, [readyState]);
 
     const handleFileSelected = (files: File[]) => {
         if (files.length > 0) {
@@ -66,7 +67,7 @@ export default function UnlockPdf({
             return;
         }
 
-        if (tool?.state === 'warming') {
+        if (readyState === 'warming') {
             alert('Magic PDF tool is still loading. Please wait a moment and try again.');
             return;
         }
@@ -266,14 +267,14 @@ export default function UnlockPdf({
                                     <Button
                                         size="lg"
                                         onClick={isInteractionMode ? handleConfirm : handleUnlock}
-                                        disabled={isUnlocking || isProcessing || tool?.state === 'warming'}
+                                        disabled={isUnlocking || isProcessing || readyState === 'warming'}
                                         isLoading={isUnlocking || isProcessing}
                                         className="w-full max-w-xs"
                                     >
                                         {isInteractionMode ? (
                                             <><CheckCircle className="w-4 h-4 mr-2" /> Confirm Password</>
                                         ) : (
-                                            <><Unlock className="w-4 h-4 mr-2" /> {(isUnlocking || isProcessing) ? progressMessage || 'Unlocking...' : tool?.state === 'warming' ? 'Loading Tool...' : 'Unlock PDF'}</>
+                                            <><Unlock className="w-4 h-4 mr-2" /> {(isUnlocking || isProcessing) ? progressMessage || 'Unlocking...' : readyState === 'warming' ? 'Loading Tool...' : 'Unlock PDF'}</>
                                         )}
                                     </Button>
 

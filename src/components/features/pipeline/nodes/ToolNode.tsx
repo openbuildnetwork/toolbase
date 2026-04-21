@@ -3,6 +3,7 @@ import { Handle, Position } from '@xyflow/react';
 import { TIPToolRegistry } from '@/tip/registry';
 import { Loader2, CheckCircle2, AlertCircle, Settings2, PauseCircle, Zap } from 'lucide-react';
 import Image from 'next/image';
+import { useWorkerState } from '@/hooks/useWorkerState';
 import { workerForTool } from '@/workers/instances';
 import type { WorkerReadyState } from '@/workers/client';
 
@@ -34,41 +35,6 @@ export function getToolThumbnail(toolId: string): string | null {
     return TOOL_THUMBNAILS[prefix] ?? null;
 }
 
-/**
- * Inline hook: subscribes to the WorkerClient readyState for this tool.
- * Shows a "warming up runtime…" indicator while WASM boots, before Run is clicked.
- */
-function useWorkerReadyState(toolId: string): { readyState: WorkerReadyState; warmMessage: string } {
-    const worker = workerForTool(toolId);
-
-    const [ready, setReady] = useState<WorkerReadyState>(() => worker?.readyState ?? 'cold');
-    const [warmMessage, setWarmMessage] = useState('');
-
-    useEffect(() => {
-        if (!worker) {
-            setReady('ready');
-            return;
-        }
-
-        // Sync immediately in case init progressed before this rendered
-        setReady(worker.readyState);
-
-        const prevCallback = worker.onReadyStateChange;
-        worker.onReadyStateChange = (state, message) => {
-            setReady(state);
-            setWarmMessage(message ?? '');
-            prevCallback?.(state, message);
-        };
-
-        return () => {
-            if (worker.onReadyStateChange !== prevCallback) {
-                worker.onReadyStateChange = prevCallback;
-            }
-        };
-    }, [worker]);
-
-    return { readyState: ready, warmMessage };
-}
 
 export function ToolNode({ data }: { data: any }) {
     const tool = TIPToolRegistry.get(data.toolId);
@@ -80,7 +46,7 @@ export function ToolNode({ data }: { data: any }) {
     const needsConfig = isInteractable && !data.interactionDone;
 
     // Phase 3: Subscribe to WASM warm-up state for this node's worker
-    const { readyState, warmMessage } = useWorkerReadyState(data.toolId);
+    const { readyState, warmMessage } = useWorkerState(data.toolId);
     const isWarming = readyState === 'warming' && status === 'idle';
 
     const inColor = getTypeColor(tool.consumes[0] || '');

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useTIPTool } from '@/hooks/useTIPTool';
 import { createTimer } from '@/lib/performance';
+import { cn } from '@/lib/utils';
 import type { TIPInteractionProps } from '@/tip/protocol';
 
 /** Props for MergePdf — all fields optional so it works as a bare <MergePdf /> too */

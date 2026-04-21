@@ -33,7 +33,7 @@ export default function Base64Interactive({
             finalFile = new File([blob], 'base64_result.txt', { type: 'text/plain' });
         } else {
             const uint8 = new Uint8Array(lastResult.result);
-            const blob = new Blob([uint8], { type: 'application/octet-stream' });
+            const blob = new Blob([uint8 as any], { type: 'application/octet-stream' });
             finalFile = new File([blob], 'base64_result.bin', { type: 'application/octet-stream' });
         }
 
