@@ -8,7 +8,8 @@ export type ToolCategory =
   | 'network'
   | 'security'
   | 'drawing'
-  | 'developer';
+  | 'developer'
+  | 'ai';
 
 export type ToolStatus = 'stable' | 'beta' | 'experimental';
 

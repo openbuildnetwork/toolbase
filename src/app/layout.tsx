@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { CommandPaletteProvider } from "../components/ui/CommandPaletteProvider";
+import { AIChatProvider } from "@/hooks/useAIChat";
+import { GlobalAIOverlay } from "@/components/ai/GlobalAIOverlay";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -68,10 +70,15 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
         suppressHydrationWarning
       >
-        {/* Global Header + Cmd+K palette — both managed by the client provider */}
-        <CommandPaletteProvider />
+        <AIChatProvider>
+          {/* Global Header + Cmd+K palette — both managed by the client provider */}
+          <CommandPaletteProvider />
 
-        {children}
+          {children}
+
+          {/* AI Chat Drawer rendered globally */}
+          <GlobalAIOverlay />
+        </AIChatProvider>
       </body>
     </html>
   );

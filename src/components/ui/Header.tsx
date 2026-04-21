@@ -2,13 +2,16 @@
 
 import Link from 'next/link';
 import React from 'react';
-import { Search, Command } from 'lucide-react';
+import { Search, Command, MessageSquare } from 'lucide-react';
+import { useAIChat } from '@/hooks/useAIChat';
 
 interface HeaderProps {
     onOpenPalette?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ onOpenPalette }) => {
+    const { toggleChat } = useAIChat();
+
     return (
         <header className="sticky top-0 z-100 w-full bg-white/70 backdrop-blur-2xl border-b border-black/5 px-6 md:px-20 lg:px-40 py-4">
             <div className="max-w-[1200px] p-2 mx-auto flex items-center justify-between gap-4">
@@ -48,6 +51,15 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette }) => {
                             <Search size={16} className="text-black/50" />
                         </button>
                     )}
+
+                    {/* AI Chat Toggle */}
+                    <button
+                        onClick={toggleChat}
+                        aria-label="Toggle AI Assistant"
+                        className="group relative flex h-9 w-9 items-center justify-center rounded-xl bg-black/4 transition-all duration-150 hover:bg-black/8"
+                    >
+                        <MessageSquare size={17} className="text-black/60 transition-colors group-hover:text-black/80" />
+                    </button>
 
                     <img className="w-6 h-6 cursor-pointer" src="/assets/icons/settings.svg" alt="Settings" />
                 </div>
