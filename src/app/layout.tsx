@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { CommandPaletteProvider } from "../components/ui/CommandPaletteProvider";
+import { ThemeProvider } from "../components/ui/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -68,10 +69,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
         suppressHydrationWarning
       >
-        {/* Global Header + Cmd+K palette — both managed by the client provider */}
-        <CommandPaletteProvider />
+        <ThemeProvider>
+          {/* Global Header + Cmd+K palette — both managed by the client provider */}
+          <CommandPaletteProvider />
 
-        {children}
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

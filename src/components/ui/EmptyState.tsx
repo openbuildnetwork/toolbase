@@ -82,7 +82,7 @@ export function EmptyState({
                 'border-2 border-dashed transition-all duration-200 p-12 text-center min-h-[340px]',
                 isDragging
                     ? 'border-primary/60 bg-primary/5 scale-[1.01]'
-                    : 'border-black/10 bg-black/1.5 hover:border-black/20 hover:bg-black/2.5',
+                    : 'hover:border-[var(--border-medium)]',
                 className
             )}
             onDragOver={handleDragOver}
@@ -95,10 +95,14 @@ export function EmptyState({
                 transition={{ type: 'spring', stiffness: 400, damping: 18 }}
                 className={cn(
                     'w-16 h-16 rounded-2xl flex items-center justify-center',
-                    'bg-white border border-black/8 shadow-[0_4px_16px_rgba(0,0,0,0.06)]',
-                    'text-[#8e8e93]',
+                    'border shadow-[0_4px_16px_var(--shadow-color)]',
                     isDragging && 'text-primary border-primary/30 shadow-[0_4px_20px_rgba(43,140,238,0.15)]'
                 )}
+                style={{
+                    background: 'var(--surface-elevated)',
+                    borderColor: isDragging ? undefined : 'var(--border-subtle)',
+                    color: isDragging ? undefined : 'var(--text-muted)',
+                }}
             >
                 {icon}
             </motion.div>
@@ -107,11 +111,11 @@ export function EmptyState({
             <div className="space-y-2 max-w-xs">
                 <p className={cn(
                     'text-[15px] font-semibold tracking-tight transition-colors',
-                    isDragging ? 'text-primary' : 'text-[#1c1c1e]'
-                )}>
+                )}
+                style={{ color: isDragging ? 'var(--primary)' : 'var(--text-primary)' }}>
                     {isDragging ? 'Release to load' : title}
                 </p>
-                <p className="text-[13px] text-[#8e8e93] leading-relaxed">
+                <p className="text-[13px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                     {description}
                 </p>
             </div>

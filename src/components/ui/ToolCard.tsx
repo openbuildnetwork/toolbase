@@ -48,11 +48,15 @@ const ToolCard: React.FC<ToolCardProps> = ({ title, route, icon, toolId }) => {
                 className={cn(
                     "absolute top-2 right-2 z-20 p-2 rounded-full transition-all duration-300",
                     pinned
-                        ? "opacity-100 bg-black/10 text-black"
-                        : "opacity-0 group-hover/card:opacity-100 bg-white/50 text-black/40 hover:bg-black/10 hover:text-black",
+                        ? "opacity-100"
+                        : "opacity-0 group-hover/card:opacity-100",
                     "backdrop-blur-sm shadow-sm"
                 )}
                 title={pinned ? "Unpin tool" : "Pin to dock"}
+                style={{
+                    background: pinned ? 'var(--surface-active)' : 'var(--surface-hover)',
+                    color: pinned ? 'var(--text-primary)' : 'var(--text-muted)',
+                }}
             >
                 <Pin
                     size={14}
@@ -82,7 +86,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ title, route, icon, toolId }) => {
                         />
                     </motion.div>
                 </div>
-                <p className="text-[13px] font-semibold text-center text-[#3a3a3c] group-hover/card:text-black transition-colors tracking-tight">
+                <p className="text-[13px] font-semibold text-center transition-colors tracking-tight" style={{ color: 'var(--text-secondary)' }}>
                     {title}
                 </p>
             </Link>

@@ -3,18 +3,17 @@ import FooterLink from './FooterLink';
 
 const Footer: React.FC = () => {
     return (
-        <footer className="mt-auto py-12 px-6 border-t border-black/5 bg-black/[0.02]">
-            <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-8">
-                <div className="flex flex-wrap justify-center gap-12 text-[#8e8e93] text-sm font-medium">
-                    <FooterLink href="#" iconUrl="/assets/icons/github-gray.svg">GitHub</FooterLink>
-                    <FooterLink href="#" iconUrl="/assets/icons/docs.svg">Documentation</FooterLink>
-                    <FooterLink href="#" iconUrl="/assets/icons/shield.svg">Privacy</FooterLink>
+        <footer className="py-8 px-6 md:px-20 lg:px-40">
+            <div className="max-w-[700px] mx-auto text-center space-y-4">
+                <div className="flex flex-wrap justify-center gap-12 text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
+                    <a href="https://github.com/nicorithm" className="flex items-center gap-2 hover:opacity-70 transition-opacity">GitHub</a>
+                    <a href="mailto:hello@obn.tools" className="flex items-center gap-2 hover:opacity-70 transition-opacity">Contact</a>
                 </div>
-                <div className="text-center space-y-2">
-                    <p className="text-[#8e8e93] text-[11px] font-bold tracking-[0.1em] uppercase">
-                        Privacy-First Engineering • Local Execution • 100% Open Source
+                <div>
+                    <p className="text-[11px] font-bold tracking-[0.1em] uppercase" style={{ color: 'var(--text-muted)' }}>
+                        Open Build Network 
                     </p>
-                    <p className="text-[#c7c7cc] text-[11px]">Designed for macOS Professionals</p>
+                    <p className="text-[11px]" style={{ color: 'var(--text-faint)' }}>Designed for macOS Professionals</p>
                 </div>
             </div>
         </footer>

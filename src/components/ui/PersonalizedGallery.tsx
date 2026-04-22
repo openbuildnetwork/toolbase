@@ -87,14 +87,18 @@ function MiniCard({ card, index, onRemove, removeLabel }: MiniCardProps) {
                 className={cn(
                     'absolute -top-1.5 -right-1.5 z-10',
                     'w-5 h-5 rounded-full',
-                    'bg-white border border-black/8 shadow-sm',
+                    'border shadow-sm',
                     'flex items-center justify-center',
                     'opacity-0 group-hover/mini:opacity-100',
                     'transition-all duration-150',
                     'hover:bg-red-50 hover:border-red-200'
                 )}
+                style={{
+                    background: 'var(--surface-elevated)',
+                    borderColor: 'var(--border-subtle)',
+                }}
             >
-                <X size={10} className="text-black/50" />
+                <X size={10} style={{ color: 'var(--text-muted)' }} />
             </button>
 
             {/* Card link */}
@@ -114,7 +118,7 @@ function MiniCard({ card, index, onRemove, removeLabel }: MiniCardProps) {
                         )}
                     />
                 </div>
-                <span className="text-[11px] font-semibold text-center text-[#3a3a3c] tracking-tight leading-tight line-clamp-2 w-full px-0.5">
+                <span className="text-[11px] font-semibold text-center tracking-tight leading-tight line-clamp-2 w-full px-0.5" style={{ color: 'var(--text-secondary)' }}>
                     {card.title}
                 </span>
             </Link>
@@ -154,18 +158,18 @@ function SectionLabel({
                 )}
                 aria-expanded={collapsible ? !collapsed : undefined}
             >
-                <span className="text-[#8e8e93] shrink-0">{icon}</span>
-                <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#8e8e93]">
+                <span style={{ color: 'var(--text-muted)' }} className="shrink-0">{icon}</span>
+                <span className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>
                     {label}
                 </span>
-                <span className="text-[11px] font-medium text-[#8e8e93]/60 ml-0.5">
+                <span className="text-[11px] font-medium ml-0.5" style={{ color: 'var(--text-faint)' }}>
                     ({count})
                 </span>
                 {collapsible && (
                     <motion.span
                         animate={{ rotate: collapsed ? -90 : 0 }}
                         transition={{ duration: 0.2 }}
-                        className="ml-1 text-[#8e8e93]/60"
+                        className="ml-1" style={{ color: 'var(--text-faint)' }}
                     >
                         <ChevronDown size={12} />
                     </motion.span>
@@ -179,10 +183,11 @@ function SectionLabel({
                     aria-label={`Clear all ${label.toLowerCase()}`}
                     className={cn(
                         'flex items-center gap-1 px-2 py-1 rounded-lg',
-                        'text-[10px] font-medium text-[#8e8e93] hover:text-red-400',
+                        'text-[10px] font-medium',
                         'hover:bg-red-50 transition-all duration-150',
                         'border border-transparent hover:border-red-100'
                     )}
+                    style={{ color: 'var(--text-muted)' }}
                 >
                     <Trash2 size={10} />
                     <span>Clear</span>
@@ -293,7 +298,7 @@ export function PersonalizedGallery({ allTools }: PersonalizedGalleryProps) {
                             className="overflow-hidden"
                         >
                             <SectionLabel
-                                icon={<Clock size={12} className="text-[#8e8e93]" />}
+                                icon={<Clock size={12} style={{ color: 'var(--text-muted)' }} />}
                                 label="Recently Used"
                                 count={recentCards.length}
                                 collapsible
@@ -341,7 +346,7 @@ export function PersonalizedGallery({ allTools }: PersonalizedGalleryProps) {
                 </AnimatePresence>
 
                 {/* Divider */}
-                <div className="border-t border-black/6" />
+                <div style={{ borderTop: '1px solid var(--border-subtle)' }} />
             </div>
         </section>
     );

@@ -87,7 +87,7 @@ const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery, tools }) => {
             )}
 
             {filteredTools.length === 0 && (
-                <p className="text-[#3a3a3c] mt-8">No tools found for &quot;{searchQuery}&quot;</p>
+                <p className="mt-8" style={{ color: 'var(--text-secondary)' }}>No tools found for &quot;{searchQuery}&quot;</p>
             )}
         </div>
     );

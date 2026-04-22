@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* ── Light theme (default) ──────────────────────────────────────────── */
 :root {
   --background: #f5f5f7;
   --foreground: #1c1c1e;
@@ -7,22 +8,77 @@
   --surface: #ffffff;
   --surface-secondary: #f5f5f7;
   --border: rgba(0, 0, 0, 0.08);
+
+  /* Semantic text tokens */
+  --text-primary: #1c1c1e;
+  --text-secondary: #3a3a3c;
+  --text-tertiary: #636366;
+  --text-muted: #8e8e93;
+  --text-faint: #aeaeb2;
+
+  /* Surface tokens */
+  --surface-hover: rgba(0, 0, 0, 0.03);
+  --surface-active: rgba(0, 0, 0, 0.05);
+  --surface-overlay: rgba(255, 255, 255, 0.85);
+  --surface-elevated: #ffffff;
+
+  /* Border tokens */
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --border-medium: rgba(0, 0, 0, 0.08);
+
+  /* Shadow */
+  --shadow-color: rgba(0, 0, 0, 0.06);
+  --shadow-heavy: rgba(0, 0, 0, 0.18);
+
+  /* Misc */
+  --kbd-bg: rgba(0, 0, 0, 0.05);
+  --input-bg: rgba(255, 255, 255, 0.7);
+  --input-bg-focus: #ffffff;
+  --scrollbar-thumb: rgba(156, 163, 175, 0.3);
+  --scrollbar-thumb-hover: rgba(156, 163, 175, 0.5);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f0f0f;
-    --foreground: #f5f5f5;
-    --primary: #47a1ff;
-    --surface: #1c1c1e;
-    --surface-secondary: #2c2c2e;
-    --border: rgba(255, 255, 255, 0.1);
-  }
+/* ── Dark theme ─────────────────────────────────────────────────────── */
+.dark {
+  --background: #0f0f0f;
+  --foreground: #f5f5f5;
+  --primary: #47a1ff;
+  --surface: #1c1c1e;
+  --surface-secondary: #2c2c2e;
+  --border: rgba(255, 255, 255, 0.1);
+
+  /* Semantic text tokens */
+  --text-primary: #f5f5f5;
+  --text-secondary: #d1d1d6;
+  --text-tertiary: #aeaeb2;
+  --text-muted: #8e8e93;
+  --text-faint: #636366;
+
+  /* Surface tokens */
+  --surface-hover: rgba(255, 255, 255, 0.05);
+  --surface-active: rgba(255, 255, 255, 0.08);
+  --surface-overlay: rgba(28, 28, 30, 0.9);
+  --surface-elevated: #2c2c2e;
+
+  /* Border tokens */
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-medium: rgba(255, 255, 255, 0.1);
+
+  /* Shadow */
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --shadow-heavy: rgba(0, 0, 0, 0.5);
+
+  /* Misc */
+  --kbd-bg: rgba(255, 255, 255, 0.08);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-bg-focus: rgba(255, 255, 255, 0.08);
+  --scrollbar-thumb: rgba(156, 163, 175, 0.25);
+  --scrollbar-thumb-hover: rgba(156, 163, 175, 0.4);
 }
 
 @theme {
-  --color-primary: #2b8cee;
-  --color-background-light: #f5f5f7;
+  --color-primary: var(--primary);
+  --color-background-light: var(--background);
   --color-surface: var(--surface);
   --color-surface-secondary: var(--surface-secondary);
   --color-border-theme: var(--border);
@@ -152,22 +208,23 @@
 
   .macos-button {
     @apply inline-flex items-center justify-center gap-2 px-6 py-2 rounded-lg text-sm font-medium transition-all duration-300;
-    background: linear-gradient(to bottom, #ffffff, #f5f5f7);
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: linear-gradient(to bottom, var(--surface-elevated), var(--surface-secondary));
+    border: 1px solid var(--border-medium);
+    color: var(--text-primary);
     box-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.04),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      0 1px 2px var(--shadow-color),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
   }
 
   .macos-button:hover {
-    @apply brightness-[0.99] border-black/15;
+    border-color: var(--border);
     box-shadow:
-      0 4px 12px rgba(0, 0, 0, 0.05),
-      0 1px 2px rgba(0, 0, 0, 0.04);
+      0 4px 12px var(--shadow-color),
+      0 1px 2px var(--shadow-color);
   }
 
   .macos-button:active {
-    @apply scale-[0.97] brightness-[0.96];
+    @apply scale-[0.97];
     transition-duration: 100ms;
   }
 
@@ -198,13 +255,15 @@
 
   .glass-card {
     background: var(--surface);
-    @apply backdrop-blur-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.06)];
+    @apply backdrop-blur-2xl border shadow-[0_8px_32px_var(--shadow-color)];
+    border-color: var(--border-subtle);
     opacity: 0.8;
   }
 
   .glass-input {
     background: var(--surface-secondary);
-    @apply backdrop-blur-md border border-black/5 rounded-xl transition-all duration-300;
+    @apply backdrop-blur-md border rounded-xl transition-all duration-300;
+    border-color: var(--border-subtle);
     @apply focus:border-primary/30 focus:ring-4 focus:ring-primary/10;
     &:focus {
       background: var(--surface);
@@ -343,12 +402,12 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: rgba(156, 163, 175, 0.3);
+    background: var(--scrollbar-thumb);
     border-radius: 3px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: rgba(156, 163, 175, 0.5);
+    background: var(--scrollbar-thumb-hover);
   }
 
   .scrollbar-track-transparent::-webkit-scrollbar-track {
@@ -356,6 +415,6 @@
   }
 
   .scrollbar-thumb-gray-200::-webkit-scrollbar-thumb {
-    background: rgba(229, 231, 235, 0.8);
+    background: var(--scrollbar-thumb);
   }
 }
