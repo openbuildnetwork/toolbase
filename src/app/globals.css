@@ -270,6 +270,21 @@
     }
   }
 
+  /* Theme-aware logo classes */
+  .theme-logo-light {
+    display: block;
+  }
+  .theme-logo-dark {
+    display: none;
+  }
+
+  .dark .theme-logo-light {
+    display: none !important;
+  }
+  .dark .theme-logo-dark {
+    display: block !important;
+  }
+
   /* OpenDraw Animation Utilities */
   @keyframes slide-in-from-left {
     from {

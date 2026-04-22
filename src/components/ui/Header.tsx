@@ -19,8 +19,9 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette }) => {
             }}
         >
             <div className="max-w-[1200px] p-2 mx-auto flex items-center justify-between gap-4">
-                <Link href="/">
-                    <img className="h-6" src="/assets/images/logo-dark.png" alt="Toolbase logo" />
+                <Link href="/" className="block">
+                    <img className="h-6 theme-logo-dark" src="/assets/images/logo-light.png" alt="Toolbase logo" />
+                    <img className="h-6 theme-logo-light" src="/assets/images/logo-dark.png" alt="Toolbase logo" />
                 </Link>
 
                 <div className="flex items-center gap-3">
