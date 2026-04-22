@@ -7,9 +7,18 @@ import type {
 
 type ArchiveKitRustApi = {
   default: (wasmUrl?: string | URL | Request) => Promise<unknown>;
-  create_archive_json: (format: string, filesJson: string, optionsJson?: string) => string;
+  create_archive_json: (format: string, filesJson: string, options_json?: string) => string;
   list_archive_json: (format: string, archiveBytesB64: string) => string;
-  extract_archive_json: (format: string, archiveBytesB64: string, optionsJson?: string) => string;
+  extract_archive_json: (format: string, archiveBytesB64: string, options_json?: string) => string;
+  create_archive_v2: (
+    format: string,
+    names: string[],
+    all_bytes: Uint8Array,
+    byte_offsets: Uint32Array,
+    options_json?: string
+  ) => Uint8Array;
+  list_archive_v2: (format: string, bytes: Uint8Array) => string;
+  extract_archive_v2: (format: string, bytes: Uint8Array, options_json?: string) => any;
 };
 
 let rustApiPromise: Promise<ArchiveKitRustApi> | null = null;
@@ -34,7 +43,8 @@ function fromBase64(b64: string): Uint8Array {
 function getRuntimeBaseUrl(): string {
   const locationLike = globalThis.location;
   if (!locationLike) {
-    throw new Error("Archive Kit Rust WASM engine is unavailable in this runtime.");
+    // If and when running in Worker without location, we might need a fallback or passed URL
+    return "";
   }
   return locationLike.origin || "";
 }
@@ -69,16 +79,28 @@ export async function createArchiveRust(
 ): Promise<Uint8Array> {
   const api = await loadRustApi();
 
-  const payload = files.map((f) => ({ name: f.name, bytes_b64: toBase64(f.bytes) }));
-  const outB64 = api.create_archive_json(
+  // Optimization: use v2 binary interface to avoid Base64 conversion
+  const names = files.map((f) => f.name);
+  const totalSize = files.reduce((sum, f) => sum + f.bytes.length, 0);
+  const allBytes = new Uint8Array(totalSize);
+  const offsets = new Uint32Array(files.length);
+  let currentOffset = 0;
+  for (let i = 0; i < files.length; i++) {
+    allBytes.set(files[i].bytes, currentOffset);
+    currentOffset += files[i].bytes.length;
+    offsets[i] = currentOffset;
+  }
+
+  return api.create_archive_v2(
     format,
-    JSON.stringify(payload),
+    names,
+    allBytes,
+    offsets,
     JSON.stringify({
       zip_compression: options.zipCompression ?? "store",
       password: options.password ?? null,
     })
   );
-  return fromBase64(outB64);
 }
 
 export async function listArchiveEntriesRust(
@@ -87,7 +109,7 @@ export async function listArchiveEntriesRust(
 ): Promise<ArchiveEntry[]> {
   const api = await loadRustApi();
 
-  const out = api.list_archive_json(format, toBase64(bytes));
+  const out = api.list_archive_v2(format, bytes);
   const parsed = JSON.parse(out) as Array<{
     name: string;
     size: number;
@@ -112,17 +134,20 @@ export async function extractArchiveRust(
 ): Promise<ArchiveInputFile[]> {
   const api = await loadRustApi();
 
-  const out = api.extract_archive_json(
+  const out = api.extract_archive_v2(
     format,
-    toBase64(bytes),
+    bytes,
     JSON.stringify({
       password: options.password ?? null,
     })
   );
-  const parsed = JSON.parse(out) as Array<{ name: string; bytes_b64: string }>;
+  
+  // extract_archive_v2 returns the JSON string directly or as any
+  const parsed = (typeof out === "string" ? JSON.parse(out) : out) as Array<{ name: string; bytes_b64: string }>;
 
   return parsed.map((file) => ({
     name: file.name,
     bytes: fromBase64(file.bytes_b64),
   }));
 }
+

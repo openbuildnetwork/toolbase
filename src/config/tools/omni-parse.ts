@@ -16,4 +16,110 @@ export const omniParseConfig: ToolMeta = {
   pythonPowered: false,
   status: 'beta',
   addedAt: '2025-01-01',
+  tip: [
+    {
+      id: 'omni-parse/beautify',
+      name: 'Beautify',
+      description: 'Format and indent JSON, XML, or YAML for readability.',
+      consumes: ['application/json', 'text/plain'],
+      produces: ['text/plain'],
+      configSchema: {
+        fields: [
+          {
+            key: 'format',
+            label: 'Format',
+            type: 'select',
+            default: 'json',
+            options: [
+              { label: 'JSON', value: 'json' },
+              { label: 'XML', value: 'xml' },
+              { label: 'YAML', value: 'yaml' },
+            ],
+          },
+        ],
+      },
+      getExecutor: async () => {
+        const { createOmniParseTipExecutor } = await import('@/tip/omni-parse-executor');
+        return createOmniParseTipExecutor('beautify');
+      },
+    },
+    {
+      id: 'omni-parse/minify',
+      name: 'Minify',
+      description: 'Remove all whitespace and comments to compress the payload.',
+      consumes: ['application/json', 'text/plain'],
+      produces: ['text/plain'],
+      configSchema: {
+        fields: [
+          {
+            key: 'format',
+            label: 'Format',
+            type: 'select',
+            default: 'json',
+            options: [
+              { label: 'JSON', value: 'json' },
+              { label: 'XML', value: 'xml' },
+              { label: 'YAML', value: 'yaml' },
+            ],
+          },
+        ],
+      },
+      getExecutor: async () => {
+        const { createOmniParseTipExecutor } = await import('@/tip/omni-parse-executor');
+        return createOmniParseTipExecutor('minify');
+      },
+    },
+    {
+      id: 'omni-parse/clean',
+      name: 'Clean Payload',
+      description: 'Recursively remove nulls, undefineds, and empty collections.',
+      consumes: ['application/json', 'text/plain'],
+      produces: ['application/json'],
+      configSchema: {
+        fields: [
+          {
+            key: 'format',
+            label: 'Format',
+            type: 'select',
+            default: 'json',
+            options: [
+              { label: 'JSON', value: 'json' },
+              { label: 'XML', value: 'xml' },
+              { label: 'YAML', value: 'yaml' },
+            ],
+          },
+        ],
+      },
+      getExecutor: async () => {
+        const { createOmniParseTipExecutor } = await import('@/tip/omni-parse-executor');
+        return createOmniParseTipExecutor('clean');
+      },
+    },
+    {
+      id: 'omni-parse/normalize',
+      name: 'Normalize Keys',
+      description: 'Transform all object keys to camelCase for consistency.',
+      consumes: ['application/json', 'text/plain'],
+      produces: ['application/json'],
+      configSchema: {
+        fields: [
+          {
+            key: 'format',
+            label: 'Format',
+            type: 'select',
+            default: 'json',
+            options: [
+              { label: 'JSON', value: 'json' },
+              { label: 'XML', value: 'xml' },
+              { label: 'YAML', value: 'yaml' },
+            ],
+          },
+        ],
+      },
+      getExecutor: async () => {
+        const { createOmniParseTipExecutor } = await import('@/tip/omni-parse-executor');
+        return createOmniParseTipExecutor('normalize');
+      },
+    },
+  ],
 };

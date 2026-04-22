@@ -27,6 +27,7 @@ type CreatePayload = {
   files: WorkerCreateFile[];
   zipCompression?: ZipCompressionMode;
   deterministic?: boolean;
+  password?: string;
 };
 
 type ListPayload = {
@@ -35,10 +36,12 @@ type ListPayload = {
 
 type ExtractPayload = {
   archives: WorkerArchiveInput[];
+  password?: string;
 };
 
 type ValidatePayload = {
   archives: WorkerArchiveInput[];
+  password?: string;
 };
 
 type RequestMessage =
@@ -97,9 +100,8 @@ async function materializeCreateFiles(
 
   return Promise.all(
     files.map(async ({ name, file }) => {
-      const bytes = await readFileAsBytes(file, (loaded, total) => {
-        const fileTotal = total > 0 ? total : 1;
-        const approxLoaded = loadedTotal + Math.min(loaded, fileTotal);
+      const bytes = await readFileAsBytes(file, (loaded) => {
+        const approxLoaded = loadedTotal + loaded;
         const ratio = approxLoaded / totalSize;
         postProgress(id, clampProgress(progressStart + ratio * (progressEnd - progressStart)), "reading");
       });
@@ -121,9 +123,8 @@ async function materializeArchives(
   const out: Array<{ sourceName: string; format: ArchiveFormat; bytes: Uint8Array }> = [];
 
   for (const archive of archives) {
-    const bytes = await readFileAsBytes(archive.file, (loaded, total) => {
-      const fileTotal = total > 0 ? total : 1;
-      const approxLoaded = loadedTotal + Math.min(loaded, fileTotal);
+    const bytes = await readFileAsBytes(archive.file, (loaded) => {
+      const approxLoaded = loadedTotal + loaded;
       const ratio = approxLoaded / totalSize;
       postProgress(id, clampProgress(progressStart + ratio * (progressEnd - progressStart)), "reading");
     });
@@ -146,11 +147,12 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
     postProgress(id, 10, "starting");
 
     if (msg.action === "create") {
-      const { format, files, zipCompression } = msg.payload;
+      const { format, files, zipCompression, password } = msg.payload;
       const stagedFiles = await materializeCreateFiles(id, files, 8, 45);
       postProgress(id, 55, "packing");
       const bytes = await createArchiveRust(format, stagedFiles, {
         zipCompression,
+        password,
       });
       postProgress(id, 100, "done");
       workerSelf.postMessage({ type: "result", id, result: bytes }, [bytes.buffer as ArrayBuffer]);
@@ -176,9 +178,10 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
 
     if (msg.action === "extract") {
       const archives = await materializeArchives(id, msg.payload.archives, 8, 45);
+      const { password } = msg.payload;
       postProgress(id, 55, "extracting");
       const extracted = await Promise.all(
-        archives.map((archive) => extractArchiveRust(archive.format, archive.bytes))
+        archives.map((archive) => extractArchiveRust(archive.format, archive.bytes, { password }))
       );
       postProgress(id, 100, "done");
       workerSelf.postMessage({ type: "result", id, result: extracted.flat() });
@@ -187,12 +190,13 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
 
     if (msg.action === "validate") {
       const archives = await materializeArchives(id, msg.payload.archives, 8, 45);
+      const { password } = msg.payload;
       const reports: Array<{ sourceName: string; entries: number; ok: boolean; error?: string }> = [];
       for (let i = 0; i < archives.length; i++) {
         const archive = archives[i];
         try {
           const entries = await listArchiveEntriesRust(archive.format, archive.bytes);
-          await extractArchiveRust(archive.format, archive.bytes);
+          await extractArchiveRust(archive.format, archive.bytes, { password });
           reports.push({ sourceName: archive.sourceName, entries: entries.length, ok: true });
         } catch (error: unknown) {
           reports.push({
@@ -216,3 +220,4 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
     });
   }
 };
+

@@ -56,8 +56,8 @@ export function DiffLab({
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Left</label>
-                <div className="h-[280px] border border-gray-200 rounded-xl overflow-hidden">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Left (Original)</label>
+                <div className="h-[600px] border border-gray-200 rounded-xl overflow-hidden">
                   <Editor
                     height="100%"
                     defaultLanguage={languageMap[diffFormat]}
@@ -69,8 +69,8 @@ export function DiffLab({
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Right</label>
-                <div className="h-[280px] border border-gray-200 rounded-xl overflow-hidden">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Right (Modified)</label>
+                <div className="h-[600px] border border-gray-200 rounded-xl overflow-hidden">
                   <Editor
                     height="100%"
                     defaultLanguage={languageMap[diffFormat]}
@@ -91,17 +91,29 @@ export function DiffLab({
                   <div className="col-span-3">Left</div>
                   <div className="col-span-4">Right</div>
                 </div>
-                <div className="max-h-[280px] overflow-auto">
+                <div className="max-h-[400px] overflow-auto">
                   {diffEntries.length === 0 ? (
                     <div className="px-3 py-4 text-sm text-gray-500">No differences detected.</div>
-                  ) : diffEntries.map((entry, idx) => (
-                    <div key={`${entry.path}-${idx}`} className="grid grid-cols-12 gap-2 px-3 py-2 border-t border-gray-100 text-sm">
-                      <div className="col-span-1 text-xs font-semibold uppercase text-sky-700">{entry.kind}</div>
-                      <div className="col-span-4 font-mono text-xs truncate">{entry.path}</div>
-                      <div className="col-span-3 truncate">{entry.left}</div>
-                      <div className="col-span-4 truncate">{entry.right}</div>
-                    </div>
-                  ))}
+                  ) : diffEntries.map((entry, idx) => {
+                    const rowStyles = 
+                      entry.kind === "added" ? "bg-emerald-50/70 text-emerald-900 border-emerald-100" :
+                      entry.kind === "removed" ? "bg-rose-50/70 text-rose-900 border-rose-100" :
+                      "bg-amber-50/70 text-amber-900 border-amber-100";
+                    
+                    const kindStyles = 
+                      entry.kind === "added" ? "text-emerald-700" :
+                      entry.kind === "removed" ? "text-rose-700" :
+                      "text-amber-700";
+
+                    return (
+                      <div key={`${entry.path}-${idx}`} className={`grid grid-cols-12 gap-2 px-3 py-2 border-t text-sm ${rowStyles}`}>
+                        <div className={`col-span-1 text-[10px] font-bold uppercase ${kindStyles}`}>{entry.kind}</div>
+                        <div className="col-span-4 font-mono text-[11px] truncate opacity-80">{entry.path}</div>
+                        <div className="col-span-3 truncate font-mono text-xs">{entry.left}</div>
+                        <div className="col-span-4 truncate font-mono text-xs">{entry.right}</div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

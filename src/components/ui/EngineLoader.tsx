@@ -101,7 +101,7 @@ export function EngineLoader({
                             </motion.span>
                         </AnimatePresence>
                         <span className="text-[10px] font-bold tracking-widest text-[#8e8e93] uppercase">
-                            {ENGINE_LABEL[engine]} · 100% Local
+                            100% Local
                         </span>
                     </div>
                 </motion.div>

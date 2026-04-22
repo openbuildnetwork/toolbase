@@ -77,10 +77,18 @@ export const getActiveCategories = (): ToolCategory[] =>
 export const searchToolsFromRegistry = (query: string): ToolMeta[] => {
   const q = query.toLowerCase().trim();
   if (!q) return TOOLS;
-  return TOOLS.filter(
-    (tool) =>
-      tool.name.toLowerCase().includes(q) ||
-      tool.description.toLowerCase().includes(q) ||
-      tool.tags.some((tag) => tag.toLowerCase().includes(q))
-  );
+  const tokens = q.split(/\s+/).filter(Boolean);
+  
+  return TOOLS.filter((tool) => {
+    const searchContent = [
+      tool.name,
+      tool.description,
+      ...tool.tags
+    ].map(s => s.toLowerCase());
+
+    // Every token in the query must match at least one attribute of the tool
+    return tokens.every(token => 
+      searchContent.some(attr => attr.includes(token))
+    );
+  });
 };

@@ -189,6 +189,68 @@ pub fn create_archive_json(
 #[wasm_bindgen]
 pub fn list_archive_json(format: String, archive_bytes_b64: String) -> Result<String, JsValue> {
     let bytes = B64.decode(archive_bytes_b64.as_bytes()).map_err(to_js_err)?;
+    list_archive_v2(format, bytes)
+}
+
+#[wasm_bindgen]
+pub fn extract_archive_json(
+    format: String,
+    archive_bytes_b64: String,
+    options_json: Option<String>,
+) -> Result<String, JsValue> {
+    let bytes = B64.decode(archive_bytes_b64.as_bytes()).map_err(to_js_err)?;
+    let res = extract_archive_v2(format, bytes, options_json)?;
+    // extract_archive_v2 returns a JSON string as JsValue
+    Ok(res.as_string().unwrap_or_default())
+}
+
+#[wasm_bindgen]
+pub fn create_archive_v2(
+    format: String,
+    names: Vec<String>,
+    all_bytes: Vec<u8>,
+    byte_offsets: Vec<u32>, // [end1, end2, end3, ...]
+    options_json: Option<String>,
+) -> Result<Vec<u8>, JsValue> {
+    if names.len() != byte_offsets.len() {
+        return Err(JsValue::from_str("Names and offsets count mismatch"));
+    }
+
+    let options = options_json
+        .as_deref()
+        .map(|raw| serde_json::from_str::<CreateOptions>(raw).map_err(to_js_err))
+        .transpose()?
+        .unwrap_or(CreateOptions {
+            zip_compression: Some("store".to_string()),
+            password: None,
+        });
+
+    let mut staged = Vec::with_capacity(names.len());
+    let mut last_offset = 0;
+    for (i, name) in names.into_iter().enumerate() {
+        let offset = byte_offsets[i] as usize;
+        if offset < last_offset || offset > all_bytes.len() {
+            return Err(JsValue::from_str("Invalid byte offset"));
+        }
+        staged.push((name, all_bytes[last_offset..offset].to_vec()));
+        last_offset = offset;
+    }
+
+    let bytes = match format.as_str() {
+        "zip" => create_zip(
+            &staged,
+            options.zip_compression.as_deref(),
+            options.password.as_deref(),
+        )?,
+        "tar" => create_tar(&staged)?,
+        "tgz" => create_tgz(&staged)?,
+        _ => return Err(JsValue::from_str("Unsupported archive format")),
+    };
+    Ok(bytes)
+}
+
+#[wasm_bindgen]
+pub fn list_archive_v2(format: String, bytes: Vec<u8>) -> Result<String, JsValue> {
     let entries = match format.as_str() {
         "zip" => {
             let mut zip = ZipArchive::new(Cursor::new(bytes)).map_err(to_js_err)?;
@@ -216,12 +278,11 @@ pub fn list_archive_json(format: String, archive_bytes_b64: String) -> Result<St
 }
 
 #[wasm_bindgen]
-pub fn extract_archive_json(
+pub fn extract_archive_v2(
     format: String,
-    archive_bytes_b64: String,
+    archive_bytes: Vec<u8>,
     options_json: Option<String>,
-) -> Result<String, JsValue> {
-    let bytes = B64.decode(archive_bytes_b64.as_bytes()).map_err(to_js_err)?;
+) -> Result<JsValue, JsValue> {
     let extract_options = options_json
         .as_deref()
         .map(|raw| serde_json::from_str::<ExtractOptions>(raw).map_err(to_js_err))
@@ -233,9 +294,9 @@ pub fn extract_archive_json(
         .filter(|p| !p.is_empty())
         .map(|p| p.as_bytes());
 
-    let files = match format.as_str() {
+    match format.as_str() {
         "zip" => {
-            let mut zip = ZipArchive::new(Cursor::new(bytes)).map_err(to_js_err)?;
+            let mut zip = ZipArchive::new(Cursor::new(archive_bytes)).map_err(to_js_err)?;
             let mut out = Vec::<OutputFile>::new();
             for i in 0..zip.len() {
                 let mut file = match password {
@@ -252,14 +313,20 @@ pub fn extract_archive_json(
                     bytes_b64: B64.encode(buf),
                 });
             }
-            out
+            let res = serde_json::to_string(&out).map_err(to_js_err)?;
+            Ok(JsValue::from_str(&res))
         }
         "tar" => {
-            extract_tar_files_from_reader(Cursor::new(bytes))?
+            let files = extract_tar_files_from_reader(Cursor::new(archive_bytes))?;
+            Ok(JsValue::from_str(&serde_json::to_string(&files).map_err(to_js_err)?))
         }
-        "tgz" => extract_tar_files_from_reader(GzDecoder::new(Cursor::new(bytes)))?,
-        _ => return Err(JsValue::from_str("Unsupported archive format")),
-    };
-
-    serde_json::to_string(&files).map_err(to_js_err)
+        "tgz" => {
+            let files = extract_tar_files_from_reader(GzDecoder::new(Cursor::new(archive_bytes)))?;
+            Ok(JsValue::from_str(&serde_json::to_string(&files).map_err(to_js_err)?))
+        }
+        _ => Err(JsValue::from_str("Unsupported archive format")),
+    }
 }
+
+
+

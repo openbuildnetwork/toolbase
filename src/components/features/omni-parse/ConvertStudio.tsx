@@ -79,7 +79,7 @@ export function ConvertStudio({
             <div className="mt-4 grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Input</label>
-                <div className="h-[360px] border border-gray-200 rounded-xl overflow-hidden">
+                <div className="h-[600px] border border-gray-200 rounded-xl overflow-hidden">
                   <Editor
                     height="100%"
                     defaultLanguage={languageMap[inputFormat]}
