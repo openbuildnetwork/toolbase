@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { FileDropZone } from "@/components/ui/FileDropZone";
+import { FileUploader } from "@/components/ui/FileUploader";
 import { Button } from "@/components/ui/Button";
 import {
     Download, RefreshCw, Zap, Settings2, Lock, Unlock,
@@ -212,19 +212,20 @@ export function ResizeImage() {
                         </p>
                     </div>
 
-                    <div className="p-1.5 bg-white rounded-[32px] shadow-2xl shadow-gray-200/50 border border-gray-100 relative">
+                    <div className="relative w-full">
                         {!isReady && (
-                            <div className="absolute inset-0 z-10 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-[32px]">
-                                <RefreshCw className="w-8 h-8 text-cyan-600 animate-spin mb-3" />
-                                <p className="text-gray-500 font-medium">Initializing Engine...</p>
+                            <div className="absolute inset-0 z-10 bg-[var(--surface-overlay)] backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl">
+                                <RefreshCw className="w-8 h-8 text-primary animate-spin mb-3" />
+                                <p className="text-text-muted font-medium">Initializing Engine...</p>
                             </div>
                         )}
-                        <FileDropZone
-                            onFileSelected={(file) => handleFileSelect(file ? [file] : [])}
+                        <FileUploader
+                            onFilesSelected={handleFileSelect}
                             accept="image/png, image/jpeg, image/webp"
+                            multiple={false}
                             className={cn(
-                                "border-2 border-dashed border-gray-200 rounded-[28px] bg-gray-50/50 transition-all duration-300 min-h-[300px]",
-                                isReady ? "hover:bg-cyan-50/50 hover:border-cyan-200 cursor-pointer" : "cursor-wait opacity-50"
+                                "min-h-[300px]",
+                                !isReady && "cursor-wait opacity-50"
                             )}
                             disabled={!isReady || isProcessing}
                         />
@@ -238,8 +239,8 @@ export function ResizeImage() {
                 >
                     {/* Left Panel: Preview */}
                     <div className="lg:col-span-8 flex flex-col h-full gap-4">
-                        <div className="flex-1 bg-white rounded-[32px] shadow-xl shadow-gray-200/50 border border-white p-2">
-                            <div className="w-full h-full rounded-[24px] overflow-hidden bg-gray-50 relative">
+                        <div className="flex-1 bg-[var(--surface-elevated)] rounded-[32px] shadow-xl shadow-black/5 dark:shadow-black/20 border border-[var(--border-subtle)] p-2">
+                            <div className="w-full h-full rounded-[24px] overflow-hidden bg-[var(--surface-overlay)] relative">
                                 <ImagePreview
                                     originalUrl={originalUrl}
                                     compressedUrl={processedUrl}
@@ -252,15 +253,18 @@ export function ResizeImage() {
                         </div>
                     </div>
 
-                    {/* Right Panel: Settings */}
+                    {/* Right Panel: Settings Sidebar */}
                     <div className="lg:col-span-4 flex flex-col gap-6">
-                        <div className="bg-white rounded-[32px] p-6 shadow-xl shadow-gray-200/50 border border-white flex-1">
+                        <div className="bg-[var(--surface-elevated)] rounded-[32px] p-6 shadow-xl shadow-black/5 dark:shadow-black/20 border border-[var(--border-subtle)] flex-1">
                             <div className="space-y-6">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2.5 bg-cyan-50 rounded-xl">
-                                        <Settings2 className="w-5 h-5 text-cyan-700" />
+                                <div className="flex items-center gap-3 mb-8">
+                                    <div className="p-2.5 bg-primary/10 rounded-xl">
+                                        <Settings2 className="w-5 h-5 text-primary" />
                                     </div>
-                                    <h3 className="font-bold text-gray-900">Resize Options</h3>
+                                    <div>
+                                        <h3 className="font-bold text-text-primary">Resize Dimensions</h3>
+                                        <p className="text-xs text-text-muted">Adjust width and height</p>
+                                    </div>
                                 </div>
 
                                 {/* Tabs for Mode */}
@@ -433,19 +437,19 @@ export function ResizeImage() {
                         </div>
 
                         {/* Actions Card */}
-                        <div className="bg-slate-900 rounded-[24px] p-5 shadow-2xl shadow-slate-900/20 text-white space-y-4">
-                            <div className="flex justify-between items-center opacity-80 text-sm">
-                                <span>Output Size</span>
+                        <div className="bg-[var(--surface-secondary)] border border-[var(--border-subtle)] rounded-[24px] p-5 shadow-2xl shadow-black/5 text-text-primary space-y-4">
+                            <div className="flex justify-between items-center opacity-80 text-sm font-medium">
+                                <span>Ready to save?</span>
                                 {processedInfo && (
-                                    <span className="font-mono text-cyan-400">
+                                    <span className="font-mono text-cyan-500">
                                         {formatBytes(processedInfo.size_bytes)}
                                     </span>
                                 )}
                             </div>
                             <Button
                                 onClick={handleResize}
-                                className="w-full bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl h-12 font-bold shadow-lg shadow-cyan-900/20 border-0 mb-3"
-                                disabled={isProcessing}
+                                className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl h-12 font-bold shadow-lg shadow-primary/20 border-0 mb-3"
+                                disabled={isProcessing || !originalFile || width === 0 || height === 0}
                             >
                                 {isProcessing ? (
                                     <>
@@ -462,7 +466,7 @@ export function ResizeImage() {
 
                             <Button
                                 onClick={downloadImage}
-                                className="w-full bg-white text-slate-900 hover:bg-gray-100 rounded-xl h-12 font-bold shadow-none border-0"
+                                className="w-full bg-[var(--surface-overlay)] text-text-primary hover:bg-[var(--surface-elevated)] rounded-xl h-12 font-bold shadow-sm border border-[var(--border-subtle)]"
                                 disabled={!processedUrl}
                             >
                                 <Download className="w-4 h-4 mr-2" />
@@ -470,7 +474,7 @@ export function ResizeImage() {
                             </Button>
                             <button
                                 onClick={() => setOriginalFile(null)}
-                                className="w-full flex items-center justify-center gap-2 text-xs font-medium text-slate-400 hover:text-white transition-colors py-2"
+                                className="w-full flex items-center justify-center gap-2 text-xs font-medium text-text-muted hover:text-text-primary transition-colors py-2"
                             >
                                 <RefreshCw className="w-3 h-3" />
                                 Resize Another

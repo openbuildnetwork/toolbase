@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { FileDropZone } from "@/components/ui/FileDropZone";
+import { FileUploader } from "@/components/ui/FileUploader";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Tabs } from "@/components/ui/Tabs";
@@ -148,7 +148,7 @@ export function Steganography() {
                             <Card>
                                 <CardContent className="p-6 space-y-4">
                                     <h3 className="font-bold text-gray-700">1. Select Image</h3>
-                                    <div className="bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 min-h-[200px] flex flex-col items-center justify-center overflow-hidden relative">
+                                    <div className={cn("min-h-[200px] flex flex-col items-center justify-center overflow-hidden relative w-full", hiddenPreviewUrl ? "bg-[var(--surface-elevated)] rounded-2xl border border-[var(--border-subtle)]" : "")}>
                                         {hiddenPreviewUrl ? (
                                             <>
                                                 <img src={hiddenPreviewUrl} className="absolute inset-0 w-full h-full object-contain p-4" alt="Preview" />
@@ -157,10 +157,11 @@ export function Steganography() {
                                                 </div>
                                             </>
                                         ) : (
-                                            <FileDropZone
-                                                onFileSelected={(file) => handleFileSelect(file, "hide")}
+                                            <FileUploader
+                                                onFilesSelected={(files) => handleFileSelect(files.length > 0 ? files[0] : null, "hide")}
                                                 accept="image/*"
-                                                className="border-0 h-full w-full"
+                                                multiple={false}
+                                                className="h-full w-full border-0"
                                             />
                                         )}
                                     </div>
@@ -276,7 +277,7 @@ export function Steganography() {
                         <Card>
                             <CardContent className="p-8 space-y-6">
                                 <h3 className="text-center font-bold text-gray-700 text-xl">Upload Image to Reveal Message</h3>
-                                <div className="bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 min-h-[300px] flex flex-col items-center justify-center overflow-hidden relative group">
+                                <div className={cn("min-h-[300px] flex flex-col items-center justify-center overflow-hidden relative group w-full", revealPreviewUrl ? "bg-[var(--surface-elevated)] rounded-3xl border border-[var(--border-subtle)]" : "")}>
                                     {revealPreviewUrl ? (
                                         <>
                                             <img src={revealPreviewUrl} className="absolute inset-0 w-full h-full object-contain p-4 transition-opacity group-hover:opacity-50" alt="Preview" />
@@ -287,10 +288,11 @@ export function Steganography() {
                                             </div>
                                         </>
                                     ) : (
-                                        <FileDropZone
-                                            onFileSelected={(file) => handleFileSelect(file, "reveal")}
+                                        <FileUploader
+                                            onFilesSelected={(files) => handleFileSelect(files.length > 0 ? files[0] : null, "reveal")}
                                             accept="image/*"
-                                            className="border-0 h-full w-full"
+                                            multiple={false}
+                                            className="h-full w-full border-0"
                                         />
                                     )}
                                 </div>
