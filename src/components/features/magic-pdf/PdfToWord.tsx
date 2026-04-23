@@ -55,11 +55,11 @@ export default function PdfToWord() {
                     >
                         <Card className="p-8">
                             <div className="text-center mb-8">
-                                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                                    <FileCode className="w-8 h-8 text-blue-600" />
+                                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
+                                    <FileCode className="w-8 h-8 text-primary" />
                                 </div>
                                 <h2 className="text-2xl font-semibold mb-2">PDF to Word</h2>
-                                <p className="text-gray-500">Convert your PDF documents to editable Microsoft Word files.</p>
+                                <p className="text-text-muted">Convert your PDF documents to editable Microsoft Word files.</p>
                             </div>
 
                             {!file ? (
@@ -70,21 +70,21 @@ export default function PdfToWord() {
                                 />
                             ) : (
                                 <div className="space-y-6">
-                                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                    <div className="flex items-center justify-between p-4 bg-surface-secondary rounded-xl border border-border-subtle">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-600">
                                                 <FileText className="w-6 h-6" />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-semibold text-gray-900 truncate max-w-[200px]">{file.name}</p>
-                                                <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                                <p className="text-sm font-semibold text-text-primary truncate max-w-[200px]">{file.name}</p>
+                                                <p className="text-xs text-text-muted">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                                             </div>
                                         </div>
                                         <Button variant="ghost" size="sm" onClick={() => setFile(null)}>Change File</Button>
                                     </div>
 
-                                    <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex gap-3 italic text-sm text-blue-700">
-                                        <div className="bg-blue-100 p-1 h-fit rounded">ℹ️</div>
+                                    <div className="bg-primary/5/50 p-4 rounded-xl border border-blue-100 flex gap-3 italic text-sm text-blue-700">
+                                        <div className="bg-primary/10 p-1 h-fit rounded">ℹ️</div>
                                         <p>The layout and formatting of the original PDF will be preserved as much as possible in the generated Word document.</p>
                                     </div>
 
@@ -108,13 +108,13 @@ export default function PdfToWord() {
                         className="text-center space-y-6"
                     >
                         <Card className="p-12 flex flex-col items-center gap-6">
-                            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                            <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center text-green-500">
                                 <CheckCircle className="w-12 h-12" />
                             </div>
 
                             <div className="space-y-2">
-                                <h3 className="text-2xl font-bold text-gray-900">Conversion Complete!</h3>
-                                <p className="text-gray-500 text-lg">Your PDF has been converted to an editable Word document.</p>
+                                <h3 className="text-2xl font-bold text-text-primary">Conversion Complete!</h3>
+                                <p className="text-text-muted text-lg">Your PDF has been converted to an editable Word document.</p>
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">

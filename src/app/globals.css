@@ -40,36 +40,36 @@
 
 /* ── Dark theme ─────────────────────────────────────────────────────── */
 .dark {
-  --background: #0f0f0f;
+  --background: #000000;
   --foreground: #f5f5f5;
   --primary: #47a1ff;
-  --surface: #1c1c1e;
-  --surface-secondary: #2c2c2e;
-  --border: rgba(255, 255, 255, 0.1);
+  --surface: #0a0a0a;
+  --surface-secondary: #141414;
+  --border: rgba(255, 255, 255, 0.12);
 
   /* Semantic text tokens */
-  --text-primary: #f5f5f5;
-  --text-secondary: #d1d1d6;
-  --text-tertiary: #aeaeb2;
+  --text-primary: #ffffff;
+  --text-secondary: #ebebf5;
+  --text-tertiary: #ebebf599;
   --text-muted: #8e8e93;
   --text-faint: #636366;
 
   /* Surface tokens */
-  --surface-hover: rgba(255, 255, 255, 0.05);
-  --surface-active: rgba(255, 255, 255, 0.08);
-  --surface-overlay: rgba(28, 28, 30, 0.9);
-  --surface-elevated: #2c2c2e;
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --surface-active: rgba(255, 255, 255, 0.12);
+  --surface-overlay: rgba(15, 15, 15, 0.85);
+  --surface-elevated: #1c1c1e;
 
   /* Border tokens */
-  --border-subtle: rgba(255, 255, 255, 0.05);
-  --border-medium: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.12);
 
   /* Shadow */
-  --shadow-color: rgba(0, 0, 0, 0.3);
-  --shadow-heavy: rgba(0, 0, 0, 0.5);
+  --shadow-color: rgba(0, 0, 0, 0.8);
+  --shadow-heavy: rgba(0, 0, 0, 1);
 
   /* Misc */
-  --kbd-bg: rgba(255, 255, 255, 0.08);
+  --kbd-bg: rgba(255, 255, 255, 0.1);
   --input-bg: rgba(255, 255, 255, 0.05);
   --input-bg-focus: rgba(255, 255, 255, 0.08);
   --scrollbar-thumb: rgba(156, 163, 175, 0.25);
@@ -81,7 +81,14 @@
   --color-background-light: var(--background);
   --color-surface: var(--surface);
   --color-surface-secondary: var(--surface-secondary);
+  --color-surface-elevated: var(--surface-elevated);
   --color-border-theme: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-medium: var(--border-medium);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
   --font-display:
     var(--font-inter), var(--font-geist-sans), "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto",
     "sans-serif";

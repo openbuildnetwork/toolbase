@@ -31,7 +31,7 @@ export default function PixelAxePage() {
     const activeToolLabel = tools.find(t => t.id === activeTool)?.label || 'Tool';
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[#FDFDFD] relative">
+        <div className="flex h-screen overflow-hidden bg-[color:var(--background)] relative">
             <ToolSidebar
                 title="Pixel Axe"
                 items={tools}
@@ -42,18 +42,18 @@ export default function PixelAxePage() {
             />
 
             {/* Main Editor Area */}
-            <main className="flex-1 overflow-hidden relative bg-gray-50/30 flex flex-col">
-                <header className="h-14 border-b border-gray-200/50 bg-white/50 backdrop-blur-md flex items-center justify-between px-6 transition-all duration-300">
+            <main className="flex-1 overflow-hidden relative bg-transparent flex flex-col">
+                <header className="h-14 border-b border-[color:var(--border-subtle)] bg-[var(--surface-overlay)] backdrop-blur-md flex items-center justify-between px-6 transition-all duration-300">
                     <div className={cn("flex items-center gap-2 transition-all duration-300", !isSidebarOpen && "pl-12")}>
-                        <div className="flex items-center text-sm text-gray-500">
-                            <span className="font-semibold text-gray-800 mr-2">Pixel Axe</span>
-                            <span className="text-gray-300">/</span>
+                        <div className="flex items-center text-sm text-[color:var(--text-muted)]">
+                            <span className="font-semibold text-[color:var(--text-primary)] mr-2">Pixel Axe</span>
+                            <span className="text-[color:var(--text-muted)]">/</span>
                             <span className="ml-2">{activeToolLabel}</span>
                         </div>
                     </div>
                     <ReturnToToolsButton />
 
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100/50 shadow-sm">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 text-emerald-500 rounded-full border border-emerald-500/20 shadow-sm">
                         <ShieldCheck className="w-3.5 h-3.5" />
                         <span className="text-[10px] font-bold uppercase tracking-wider">Client-Side Secure</span>
                     </div>

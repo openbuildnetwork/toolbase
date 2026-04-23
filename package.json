@@ -13,7 +13,7 @@
     "build:wasm": "node scripts/build-wasm.mjs",
     "check:wasm": "node scripts/check-wasm-artifacts.mjs",
     "watch:python": "nodemon --watch src/python -e py --exec \"npm run build:python\"",
-    "watch:wasm": "nodemon --watch rust -e rs,toml --exec \"npm run build:wasm\"",
+    "watch:wasm": "nodemon --watch rust -e rs,toml --exec \"npm run build:wasm -- --dev\"",
     "build": "npm run build:python && npm run build:wasm && next build",
     "build:strict-wasm": "npm run build:python && npm run build:wasm && npm run check:wasm && next build",
     "dev": "concurrently \"npm run watch:python\" \"npm run watch:wasm\" \"next dev --turbo\"",

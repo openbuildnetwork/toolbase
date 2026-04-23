@@ -55,13 +55,22 @@ function run() {
     CARGO_TARGET_DIR: path.join(RUST_DIR, "target"),
   };
 
+  const args = process.argv.slice(2);
+  const isDev = args.includes("--dev") || process.env.NODE_ENV === "development";
+
   for (const crateDir of tools) {
     const tool = path.basename(crateDir);
     const outDir = path.join("..", "..", "public", "wasm", tool, "pkg");
-    console.log(`[wasm] Building ${tool}...`);
+    console.log(`[wasm] Building ${tool} (dev: ${isDev})...`);
+    
+    const wasmPackArgs = ["build", crateDir, "--target", "web", "--out-dir", outDir];
+    if (isDev) {
+      wasmPackArgs.push("--dev");
+    }
+
     let res = spawnSync(
       "wasm-pack",
-      ["build", crateDir, "--target", "web", "--out-dir", outDir],
+      wasmPackArgs,
       { stdio: "inherit", env: sharedEnv }
     );
     if (res.status !== 0) {

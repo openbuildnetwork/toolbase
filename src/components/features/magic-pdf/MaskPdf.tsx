@@ -165,7 +165,7 @@ export default function MaskPdf({
             setFile(selectedFile);
             setCurrentPage(1);
             setElements([]);
-            
+
             // Pre-calculate buffer to avoid lag during search
             const buffer = await selectedFile.arrayBuffer();
             setFileBuffer(new Uint8Array(buffer));
@@ -429,16 +429,16 @@ export default function MaskPdf({
             <AnimatePresence mode="wait">
                 {!file ? (
                     <motion.div key="upload" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="flex-1 flex flex-col items-center justify-center p-4">
-                        <Card className="max-w-3xl w-full p-12 border-none shadow-2xl bg-white/50 backdrop-blur-xl">
+                        <Card className="max-w-3xl w-full p-12 border-none shadow-2xl bg-surface-elevated/50 backdrop-blur-xl">
                             <div className="text-center mb-10">
                                 <div className="inline-flex items-center justify-center w-20 h-20 bg-red-50 rounded-3xl mb-6 shadow-inner">
                                     <ShieldAlert className="w-10 h-10 text-red-500" />
                                 </div>
                                 <h2 className="text-4xl font-bold mb-3 tracking-tight">Redact & Mask</h2>
-                                <p className="text-gray-500 text-lg max-w-md mx-auto">Permanently remove sensitive information, PII, and secrets from your documents.</p>
+                                <p className="text-text-muted text-lg max-w-md mx-auto">Permanently remove sensitive information, PII, and secrets from your documents.</p>
                                 <div className="flex items-center justify-center gap-6 mt-6">
-                                    <div className="px-3 py-1 rounded-full border border-gray-100 bg-white/50 text-[10px] font-bold uppercase shadow-sm flex gap-2 items-center"><Fingerprint className="w-3 h-3 text-red-500" /> Fingerprint Safe</div>
-                                    <div className="px-3 py-1 rounded-full border border-gray-100 bg-white/50 text-[10px] font-bold uppercase shadow-sm flex gap-2 items-center"><ShieldCheck className="w-3 h-3 text-green-500" /> 100% Client-side</div>
+                                    <div className="px-3 py-1 rounded-full border border-border-subtle bg-surface-elevated/50 text-[10px] font-bold uppercase shadow-sm flex gap-2 items-center"><Fingerprint className="w-3 h-3 text-red-500" /> Fingerprint Safe</div>
+                                    <div className="px-3 py-1 rounded-full border border-border-subtle bg-surface-elevated/50 text-[10px] font-bold uppercase shadow-sm flex gap-2 items-center"><ShieldCheck className="w-3 h-3 text-green-500" /> 100% Client-side</div>
                                 </div>
                             </div>
                             <FileUploader onFilesSelected={handleFileSelected} accept=".pdf" multiple={false} className="max-w-xl mx-auto" />
@@ -448,55 +448,55 @@ export default function MaskPdf({
                     <motion.div key="workspace" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-6 h-full flex-1 min-h-0">
                         <div className="flex flex-1 gap-6 min-h-0 relative">
                             {/* Left Viewport */}
-                            <div className="flex-1 bg-gray-50/50 rounded-3xl flex flex-col overflow-hidden border border-gray-200/50 shadow-inner relative group">
-                                <div className="h-16 bg-white/80 backdrop-blur-md border-b flex items-center justify-between px-8 z-20 shrink-0">
+                            <div className="flex-1 bg-surface-secondary/50 rounded-3xl flex flex-col overflow-hidden border border-border-medium/50 shadow-inner relative group">
+                                <div className="h-16 bg-surface-elevated/80 backdrop-blur-md border-b flex items-center justify-between px-8 z-20 shrink-0">
                                     <div className="flex items-center gap-6">
-                                        <div className="flex bg-gray-100/80 rounded-xl p-1 shadow-sm">
+                                        <div className="flex bg-surface-secondary/80 rounded-xl p-1 shadow-sm">
                                             <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-lg" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage <= 1}><ChevronLeft className="w-4 h-4" /></Button>
-                                            <div className="px-4 text-xs font-bold text-gray-600 min-w-[70px] flex items-center justify-center tabular-nums">{currentPage} / {totalPages || '?'}</div>
+                                            <div className="px-4 text-xs font-bold text-text-muted min-w-[70px] flex items-center justify-center tabular-nums">{currentPage} / {totalPages || '?'}</div>
                                             <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-lg" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}><ChevronRight className="w-4 h-4" /></Button>
                                         </div>
-                                        <div className="flex items-center gap-1 bg-gray-100/80 rounded-xl p-1 shadow-sm">
+                                        <div className="flex items-center gap-1 bg-surface-secondary/80 rounded-xl p-1 shadow-sm">
                                             <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-lg" onClick={() => setScale(s => Math.max(0.5, s - 0.1))}><ZoomOut className="w-4 h-4" /></Button>
-                                            <span className="text-[11px] font-bold text-gray-500 w-12 text-center tabular-nums">{Math.round(scale * 100)}%</span>
+                                            <span className="text-[11px] font-bold text-text-muted w-12 text-center tabular-nums">{Math.round(scale * 100)}%</span>
                                             <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-lg" onClick={() => setScale(s => Math.min(2, s + 0.1))}><ZoomIn className="w-4 h-4" /></Button>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <Button variant="outline" size="sm" className={cn("h-9 px-4 rounded-xl gap-2 font-bold text-[11px] uppercase tracking-tighter shadow-sm transition-all", activeTool === 'whiteout' ? "bg-red-50 text-red-600 border-red-100 ring-4 ring-red-50" : "text-gray-500")} onClick={() => setActiveTool('whiteout')}>
+                                        <Button variant="outline" size="sm" className={cn("h-9 px-4 rounded-xl gap-2 font-bold text-[11px] uppercase tracking-tighter shadow-sm transition-all", activeTool === 'whiteout' ? "bg-red-50 text-red-600 border-red-100 ring-4 ring-red-50" : "text-text-muted")} onClick={() => setActiveTool('whiteout')}>
                                             <Eraser className="w-3.5 h-3.5" /> Manual Mask
                                         </Button>
-                                        <Button variant="outline" size="sm" className={cn("h-9 px-4 rounded-xl gap-2 font-bold text-[11px] uppercase tracking-tighter shadow-sm transition-all", activeTool === 'select' ? "bg-blue-50 text-blue-600 border-blue-100 ring-4 ring-blue-50" : "text-gray-500")} onClick={() => setActiveTool('select')}>
+                                        <Button variant="outline" size="sm" className={cn("h-9 px-4 rounded-xl gap-2 font-bold text-[11px] uppercase tracking-tighter shadow-sm transition-all", activeTool === 'select' ? "bg-primary/5 text-primary border-blue-100 ring-4 ring-blue-50" : "text-text-muted")} onClick={() => setActiveTool('select')}>
                                             <MousePointer2 className="w-3.5 h-3.5" /> Select Mode
                                         </Button>
-                                        <div className="w-px h-6 bg-gray-200 mx-2" />
+                                        <div className="w-px h-6 bg-border-medium mx-2" />
                                         <Button variant="outline" size="sm" className="h-9 w-9 p-0 rounded-lg shadow-sm font-bold" onClick={undo} disabled={history.length === 0} title="Undo (Ctrl+Z)"><Undo2 className="w-4 h-4" /></Button>
                                         <Button variant="outline" size="sm" className="h-9 w-9 p-0 rounded-lg shadow-sm font-bold" onClick={redo} disabled={redoStack.length === 0} title="Redo (Ctrl+Y)"><Redo2 className="w-4 h-4" /></Button>
                                     </div>
                                 </div>
 
                                 <div className="flex-1 overflow-auto p-12 flex justify-center items-start custom-scrollbar bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px]">
-                                    <div 
-                                        ref={previewContainerRef} 
-                                        className={cn("relative shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-300 rounded-sm origin-top", activeTool === 'whiteout' ? "cursor-crosshair" : "cursor-default")} 
+                                    <div
+                                        ref={previewContainerRef}
+                                        className={cn("relative shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-300 rounded-sm origin-top", activeTool === 'whiteout' ? "cursor-crosshair" : "cursor-default")}
                                         style={{ width: canvasSize.width || 'fit-content', height: canvasSize.height || 'auto' }}
                                         onMouseDown={handleLassoMouseDown}
                                         onMouseMove={handleLassoMouseMove}
                                         onMouseUp={handleLassoMouseUp}
                                     >
                                         <PdfPreview file={file} pageNumber={currentPage} scale={scale} onLoadSuccess={setTotalPages} onResize={handleCanvasResize} className="rounded-sm overflow-hidden" />
-                                        
+
                                         {/* Element Overlay Layer - Now always 100% to ensure visibility */}
                                         <div className="absolute inset-0 pointer-events-none z-30">
                                             {elements.filter(el => el.pageIndex === currentPage - 1).map(el => (
                                                 <EditableElement key={el.id} el={el} scale={scale} active={activeElementId === el.id} onSelect={() => setActiveElementId(el.id)} onUpdate={(updates) => { recordHistory(); updateElement(el.id, updates); }} />
                                             ))}
-                                            
+
                                             {/* Preview Matches */}
                                             {previewMatches.filter(m => m.pageIndex === currentPage - 1).map(m => (
                                                 <div key={m.id} className="absolute border-2 border-amber-500 bg-amber-400/40 animate-pulse rounded-sm shadow-[0_0_10px_rgba(245,158,11,0.5)]" style={{ left: `${m.x}%`, top: `${m.y}%`, width: `${m.width}%`, height: `${m.height}%` }} />
                                             ))}
-                                            
+
                                             {/* Lasso Preview */}
                                             {lassoStart && lassoEnd && (
                                                 <div className="absolute border-2 border-primary bg-primary/10 border-dashed rounded-sm z-50" style={{ left: `${Math.min(lassoStart.x, lassoEnd.x)}%`, top: `${Math.min(lassoStart.y, lassoEnd.y)}%`, width: `${Math.abs(lassoStart.x - lassoEnd.x)}%`, height: `${Math.abs(lassoStart.y - lassoEnd.y)}%` }} />
@@ -509,63 +509,63 @@ export default function MaskPdf({
                             {/* Right Panel - Controls */}
                             <div className="w-80 flex flex-col gap-6 shrink-0 min-h-0">
                                 {/* Batch Mask Panel */}
-                                <Card className="flex flex-col border-none shadow-xl bg-white/80 backdrop-blur-md overflow-hidden flex-1 max-h-[50%]">
-                                    <div className="px-5 py-4 border-b flex items-center justify-between bg-gray-50/50">
-                                        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400 flex items-center gap-2"><Search className="w-3 h-3" /> Batch Redaction</h4>
+                                <Card className="flex flex-col border-none shadow-xl bg-surface-elevated/80 backdrop-blur-md overflow-hidden flex-1 max-h-[50%]">
+                                    <div className="px-5 py-4 border-b flex items-center justify-between bg-surface-secondary/50">
+                                        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em] text-text-faint flex items-center gap-2"><Search className="w-3 h-3" /> Batch Redaction</h4>
                                         {isSearching && <RefreshCw className="w-3 h-3 animate-spin text-primary" />}
                                     </div>
                                     <div className="p-5 space-y-5 overflow-y-auto custom-scrollbar">
-                                        <div className="flex bg-gray-100/80 rounded-xl p-1 gap-1">
+                                        <div className="flex bg-surface-secondary/80 rounded-xl p-1 gap-1">
                                             {(['word', 'phrase', 'regex'] as const).map(mode => (
-                                                <button key={mode} onClick={() => setBatchMode(mode)} className={cn("flex-1 px-2 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all", batchMode === mode ? "bg-white text-primary shadow-sm" : "text-gray-400 hover:text-gray-600")}>
+                                                <button key={mode} onClick={() => setBatchMode(mode)} className={cn("flex-1 px-2 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all", batchMode === mode ? "bg-surface-elevated text-primary shadow-sm" : "text-text-faint hover:text-text-muted")}>
                                                     {mode}
                                                 </button>
                                             ))}
                                         </div>
                                         <div className="relative group">
-                                            <input type="text" placeholder={batchMode === 'regex' ? '/pattern/gi' : "Type to find matches..."} className="w-full bg-gray-100/50 border-gray-200/50 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none" value={batchQuery} onChange={(e) => setBatchQuery(e.target.value)} />
+                                            <input type="text" placeholder={batchMode === 'regex' ? '/pattern/gi' : "Type to find matches..."} className="w-full bg-surface-secondary/50 border-border-medium/50 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none" value={batchQuery} onChange={(e) => setBatchQuery(e.target.value)} />
                                             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                                                 {isSearching && <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" />}
                                                 {!isSearching && batchQuery.length >= 2 && (
-                                                    <button onClick={() => setBatchQuery(q => q + ' ')} className="p-1 hover:bg-white rounded-md transition-colors" title="Force refresh">
-                                                        <Search className="w-3 h-3 text-gray-400" />
+                                                    <button onClick={() => setBatchQuery(q => q + ' ')} className="p-1 hover:bg-surface-elevated rounded-md transition-colors" title="Force refresh">
+                                                        <Search className="w-3 h-3 text-text-faint" />
                                                     </button>
                                                 )}
                                             </div>
                                         </div>
 
                                         {searchStatus && (
-                                            <div className={cn("px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 animate-in fade-in slide-in-from-top-1", 
-                                                searchStatus.startsWith('Error') || searchStatus.startsWith('Failed') ? "bg-red-50 text-red-600" : 
-                                                searchStatus.includes('Found') ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-400")}>
-                                                <div className={cn("w-1.5 h-1.5 rounded-full", 
-                                                    searchStatus.startsWith('Error') || searchStatus.startsWith('Failed') ? "bg-red-500" : 
-                                                    searchStatus.includes('Found') ? "bg-green-500 animate-pulse" : "bg-gray-400")} />
+                                            <div className={cn("px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 animate-in fade-in slide-in-from-top-1",
+                                                searchStatus.startsWith('Error') || searchStatus.startsWith('Failed') ? "bg-red-50 text-red-600" :
+                                                    searchStatus.includes('Found') ? "bg-green-500/5 text-green-500" : "bg-surface-secondary text-text-faint")}>
+                                                <div className={cn("w-1.5 h-1.5 rounded-full",
+                                                    searchStatus.startsWith('Error') || searchStatus.startsWith('Failed') ? "bg-red-500" :
+                                                        searchStatus.includes('Found') ? "bg-green-500 animate-pulse" : "bg-border-medium")} />
                                                 {searchStatus}
                                             </div>
                                         )}
-                                        
+
                                         {!debouncedQuery && !previewMatches.length && (
-                                            <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 text-center space-y-2">
-                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">How it works</p>
-                                                <p className="text-[11px] text-gray-500 leading-relaxed">
+                                            <div className="p-4 rounded-2xl bg-surface-secondary border border-border-subtle text-center space-y-2">
+                                                <p className="text-[10px] font-bold text-text-faint uppercase tracking-widest">How it works</p>
+                                                <p className="text-[11px] text-text-muted leading-relaxed">
                                                     Type any word above. We'll find all occurrences and highlight them in <span className="text-amber-600 font-bold underline decoration-amber-200 decoration-2 underline-offset-2">yellow</span>.
                                                 </p>
                                             </div>
                                         )}
-                                        
+
                                         {previewMatches.length > 0 && (
                                             <div className="space-y-3 pt-2">
                                                 <Button className="w-full bg-amber-500 hover:bg-amber-600 h-12 rounded-xl border-none shadow-xl shadow-amber-500/20 font-bold gap-2 animate-in slide-in-from-bottom-2 duration-300" onClick={applyBatchMask}>
                                                     <Eraser className="w-4 h-4" /> Redact {previewMatches.length} Instances
                                                 </Button>
-                                                <Button variant="ghost" size="sm" className="w-full text-gray-400 text-[10px] font-bold uppercase tracking-widest" onClick={() => { setBatchQuery(''); setPreviewMatches([]); }}>
+                                                <Button variant="ghost" size="sm" className="w-full text-text-faint text-[10px] font-bold uppercase tracking-widest" onClick={() => { setBatchQuery(''); setPreviewMatches([]); }}>
                                                     Clear Results
                                                 </Button>
                                             </div>
                                         )}
-                                        
-                                        <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex gap-3 items-start">
+
+                                        <div className="p-4 rounded-2xl bg-primary/5/50 border border-blue-100 flex gap-3 items-start">
                                             <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
                                             <p className="text-[11px] leading-relaxed text-blue-700 font-medium">
                                                 All identified matches across {totalPages} pages will be previewed in yellow before you apply the permanent mask.
@@ -575,10 +575,10 @@ export default function MaskPdf({
                                 </Card>
 
                                 {/* Style & Actions Panel */}
-                                <Card className="p-5 border-none shadow-xl bg-white/80 backdrop-blur-md space-y-6">
+                                <Card className="p-5 border-none shadow-xl bg-surface-elevated/80 backdrop-blur-md space-y-6">
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2"><Palette className="w-3 h-3" /> Mask Style</label>
+                                            <label className="text-[11px] font-bold text-text-faint uppercase tracking-wider flex items-center gap-2"><Palette className="w-3 h-3" /> Mask Style</label>
                                             <div className="flex gap-1.5">
                                                 {['#000000', '#FFFFFF', '#ef4444'].map(color => (
                                                     <button key={color} className={cn("w-5 h-5 rounded-full border transition-all ring-offset-2", currentColor === color && "ring-2 ring-primary scale-110")} style={{ backgroundColor: color }} onClick={() => { recordHistory(); setCurrentColor(color); }} />
@@ -588,25 +588,25 @@ export default function MaskPdf({
 
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-center">
-                                                <label className="text-[10px] font-bold text-gray-500 uppercase">Opacity</label>
-                                                <span className="text-[10px] tabular-nums font-bold text-gray-400">{maskOpacity}%</span>
+                                                <label className="text-[10px] font-bold text-text-muted uppercase">Opacity</label>
+                                                <span className="text-[10px] tabular-nums font-bold text-text-faint">{maskOpacity}%</span>
                                             </div>
                                             <Slider value={maskOpacity} onChange={(e) => { const val = parseInt(e.target.value); setMaskOpacity(val); if (activeElementId) updateElement(activeElementId, { opacity: val / 100 }); }} min={0} max={100} step={1} />
                                         </div>
 
-                                        <div className="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl border border-gray-100">
+                                        <div className="flex items-center justify-between p-3 bg-surface-secondary/50 rounded-xl border border-border-subtle">
                                             <div className="flex items-center gap-2">
-                                                {showLabel ? <Eye className="w-3.5 h-3.5 text-gray-500" /> : <EyeOff className="w-3.5 h-3.5 text-gray-400" />}
-                                                <span className="text-[11px] font-bold text-gray-600">Show Label</span>
+                                                {showLabel ? <Eye className="w-3.5 h-3.5 text-text-muted" /> : <EyeOff className="w-3.5 h-3.5 text-text-faint" />}
+                                                <span className="text-[11px] font-bold text-text-muted">Show Label</span>
                                             </div>
-                                            <button onClick={() => { setShowLabel(!showLabel); if (activeElementId) updateElement(activeElementId, { label: !showLabel ? '[REDACTED]' : '' }); }} className={cn("w-9 h-5 rounded-full transition-colors relative", showLabel ? "bg-primary" : "bg-gray-200")}>
-                                                <div className={cn("absolute top-1 w-3 h-3 bg-white rounded-full transition-all shadow-sm", showLabel ? "left-5" : "left-1")} />
+                                            <button onClick={() => { setShowLabel(!showLabel); if (activeElementId) updateElement(activeElementId, { label: !showLabel ? '[REDACTED]' : '' }); }} className={cn("w-9 h-5 rounded-full transition-colors relative", showLabel ? "bg-primary" : "bg-border-medium")}>
+                                                <div className={cn("absolute top-1 w-3 h-3 bg-surface-elevated rounded-full transition-all shadow-sm", showLabel ? "left-5" : "left-1")} />
                                             </button>
                                         </div>
                                     </div>
 
                                     {activeElement && (
-                                        <div className="pt-4 border-t border-gray-100">
+                                        <div className="pt-4 border-t border-border-subtle">
                                             <Button variant="ghost" size="sm" className="w-full text-red-500 hover:bg-red-50 rounded-xl" onClick={() => { recordHistory(); removeElement(activeElement.id); }}>
                                                 <Trash2 className="w-3.5 h-3.5 mr-2" /> Delete Selected
                                             </Button>
@@ -622,23 +622,23 @@ export default function MaskPdf({
                                             <><ShieldCheck className="w-5 h-5 mr-2" /> Export Masked PDF</>
                                         )}
                                     </Button>
-                                    <Button variant="ghost" className="w-full text-gray-400 hover:text-gray-600 rounded-xl" onClick={isInteractionMode ? onCancel : () => setFile(null)}>
+                                    <Button variant="ghost" className="w-full text-text-faint hover:text-text-muted rounded-xl" onClick={isInteractionMode ? onCancel : () => setFile(null)}>
                                         {isInteractionMode ? 'Cancel' : 'Reset & Close'}
                                     </Button>
-                                    {!isInteractionMode && <Button variant="ghost" className="w-full text-gray-400 hover:text-gray-600 rounded-xl" onClick={() => setFile(null)}>Reset & Close</Button>}
+                                    {!isInteractionMode && <Button variant="ghost" className="w-full text-text-faint hover:text-text-muted rounded-xl" onClick={() => setFile(null)}>Reset & Close</Button>}
                                 </div>
                             </div>
                         </div>
 
                         {resultPdfUrl && (
-                            <div className="absolute inset-0 bg-white/60 backdrop-blur-2xl z-[100] flex items-center justify-center p-8">
-                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md w-full bg-white rounded-3xl p-10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] text-center space-y-8 border border-gray-100">
-                                    <div className="w-20 h-20 bg-green-50 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+                            <div className="absolute inset-0 bg-surface-elevated/60 backdrop-blur-2xl z-[100] flex items-center justify-center p-8">
+                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md w-full bg-surface-elevated rounded-3xl p-10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] text-center space-y-8 border border-border-subtle">
+                                    <div className="w-20 h-20 bg-green-500/5 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
                                         <CheckCircle className="w-10 h-10 text-green-500" />
                                     </div>
                                     <div className="space-y-2">
                                         <h3 className="text-3xl font-bold tracking-tight">Safely Redacted</h3>
-                                        <p className="text-gray-500 text-lg">Your file is ready for secure sharing.</p>
+                                        <p className="text-text-muted text-lg">Your file is ready for secure sharing.</p>
                                     </div>
                                     <div className="flex gap-4">
                                         <a href={resultPdfUrl} download={`${file.name.replace('.pdf', '')}_masked.pdf`} className="flex-1"><Button className="w-full h-14 rounded-2xl text-lg"><Download className="w-5 h-5 mr-2" /> Download</Button></a>
@@ -655,7 +655,7 @@ export default function MaskPdf({
 }
 
 const ToolButton = ({ active, onClick, icon, label }: { active?: boolean, onClick: () => void, icon: React.ReactNode, label: string }) => (
-    <button onClick={onClick} className={cn("flex flex-col items-center justify-center p-2 rounded-lg transition-all", active ? "bg-primary text-white" : "hover:bg-gray-100 text-gray-500")}>
+    <button onClick={onClick} className={cn("flex flex-col items-center justify-center p-2 rounded-lg transition-all", active ? "bg-primary text-background" : "hover:bg-surface-secondary text-text-muted")}>
         {icon}
         <span className="text-[10px] font-bold uppercase mt-1">{label}</span>
     </button>
@@ -730,7 +730,7 @@ const EditableElement = ({ el, active, onSelect, onUpdate, scale = 1 }: { el: Ed
                 onMouseDown={handleMouseDown}
             >
                 {el.label && !el.isPreview && (
-                    <span 
+                    <span
                         className="text-[white] font-bold text-center pointer-events-none break-all p-0.5 leading-none"
                         style={{ fontSize: Math.max(4, Math.min(10, el.height * scale * 0.4)) + 'px' }}
                     >
@@ -741,7 +741,7 @@ const EditableElement = ({ el, active, onSelect, onUpdate, scale = 1 }: { el: Ed
                     <div className="absolute inset-0 ring-2 ring-primary ring-offset-1 z-30 ring-inset" />
                 )}
                 {active && !el.isPreview && handles.map(h => (
-                    <div key={h} className={cn("absolute w-2 h-2 bg-white border border-primary z-40 rounded-full", h === 'nw' && "-top-1 -left-1", h === 'n' && "-top-1 left-1/2 -translate-x-1/2", h === 'ne' && "-top-1 -right-1", h === 'e' && "top-1/2 -right-1 -translate-y-1/2", h === 'se' && "-bottom-1 -right-1", h === 's' && "-bottom-1 left-1/2 -translate-x-1/2", h === 'sw' && "-bottom-1 -left-1", h === 'w' && "top-1/2 -left-1 -translate-y-1/2")} onMouseDown={e => handleResizeStart(e, h)} />
+                    <div key={h} className={cn("absolute w-2 h-2 bg-surface-elevated border border-primary z-40 rounded-full", h === 'nw' && "-top-1 -left-1", h === 'n' && "-top-1 left-1/2 -translate-x-1/2", h === 'ne' && "-top-1 -right-1", h === 'e' && "top-1/2 -right-1 -translate-y-1/2", h === 'se' && "-bottom-1 -right-1", h === 's' && "-bottom-1 left-1/2 -translate-x-1/2", h === 'sw' && "-bottom-1 -left-1", h === 'w' && "top-1/2 -left-1 -translate-y-1/2")} onMouseDown={e => handleResizeStart(e, h)} />
                 ))}
             </div>
         );
@@ -759,7 +759,7 @@ const EditableElement = ({ el, active, onSelect, onUpdate, scale = 1 }: { el: Ed
             onMouseDown={handleMouseDown}
             onDoubleClick={() => el.type === 'text' && setIsEditingText(true)}
         >
-            <div className={cn("w-full h-full flex items-center relative", showBackground && "bg-white")}>
+            <div className={cn("w-full h-full flex items-center relative", showBackground && "bg-surface-elevated")}>
                 {el.type === 'text' && (
                     isEditingText ?
                         <textarea autoFocus className="text-left outline-none bg-transparent resize-none w-full h-full p-0 m-0 leading-tight overflow-hidden" style={{ color: el.color || '#000000', fontSize: `${(el.fontSize || 16) * scale}px`, fontFamily: el.fontFamily, textAlign: el.textAlign || 'left' }} value={el.content} onChange={e => { onUpdate({ content: e.target.value }); }} onBlur={() => setIsEditingText(false)} /> :
@@ -772,7 +772,7 @@ const EditableElement = ({ el, active, onSelect, onUpdate, scale = 1 }: { el: Ed
                 )}
             </div>
             {active && handles.map(h => (
-                <div key={h} className={cn("absolute w-2.5 h-2.5 bg-white border border-primary z-40 rounded-full", h === 'nw' && "-top-1 -left-1", h === 'n' && "-top-1 left-1/2 -translate-x-1/2", h === 'ne' && "-top-1 -right-1", h === 'e' && "top-1/2 -right-1 -translate-y-1/2", h === 'se' && "-bottom-1 -right-1", h === 's' && "-bottom-1 left-1/2 -translate-x-1/2", h === 'sw' && "-bottom-1 -left-1", h === 'w' && "top-1/2 -left-1 -translate-y-1/2")} onMouseDown={e => handleResizeStart(e, h)} />
+                <div key={h} className={cn("absolute w-2.5 h-2.5 bg-surface-elevated border border-primary z-40 rounded-full", h === 'nw' && "-top-1 -left-1", h === 'n' && "-top-1 left-1/2 -translate-x-1/2", h === 'ne' && "-top-1 -right-1", h === 'e' && "top-1/2 -right-1 -translate-y-1/2", h === 'se' && "-bottom-1 -right-1", h === 's' && "-bottom-1 left-1/2 -translate-x-1/2", h === 'sw' && "-bottom-1 -left-1", h === 'w' && "top-1/2 -left-1 -translate-y-1/2")} onMouseDown={e => handleResizeStart(e, h)} />
             ))}
         </div>
     );

@@ -81,7 +81,7 @@ export default function PdfToImage() {
                                     <ImageIcon className="w-8 h-8 text-indigo-600" />
                                 </div>
                                 <h2 className="text-2xl font-semibold mb-2">PDF to Image</h2>
-                                <p className="text-gray-500">Convert each PDF page into a high-quality image file.</p>
+                                <p className="text-text-muted">Convert each PDF page into a high-quality image file.</p>
                             </div>
 
                             {!file ? (
@@ -92,14 +92,14 @@ export default function PdfToImage() {
                                 />
                             ) : (
                                 <div className="space-y-8">
-                                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                    <div className="flex items-center justify-between p-4 bg-surface-secondary rounded-xl border border-border-subtle">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-600">
                                                 <Layers className="w-6 h-6" />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-semibold text-gray-900 truncate max-w-[300px]">{file.name}</p>
-                                                <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                                <p className="text-sm font-semibold text-text-primary truncate max-w-[300px]">{file.name}</p>
+                                                <p className="text-xs text-text-muted">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                                             </div>
                                         </div>
                                         <Button variant="ghost" size="sm" onClick={() => setFile(null)}>Change File</Button>
@@ -107,7 +107,7 @@ export default function PdfToImage() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-3">
-                                            <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                            <label className="text-sm font-medium text-text-secondary flex items-center gap-2">
                                                 <Settings2 className="w-4 h-4" />
                                                 Image Quality (DPI)
                                             </label>
@@ -120,7 +120,7 @@ export default function PdfToImage() {
                                                             "flex-1 py-2 px-4 rounded-lg border text-sm transition-all",
                                                             dpi === val
                                                                 ? "bg-indigo-600 text-white border-indigo-600 font-bold"
-                                                                : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300"
+                                                                : "bg-surface-elevated text-text-muted border-border-medium hover:border-indigo-300"
                                                         )}
                                                     >
                                                         {val === 72 ? 'Fast' : val === 150 ? 'Standard' : 'High Quality'} ({val})
@@ -130,7 +130,7 @@ export default function PdfToImage() {
                                         </div>
 
                                         <div className="space-y-3">
-                                            <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                            <label className="text-sm font-medium text-text-secondary flex items-center gap-2">
                                                 <ImageIcon className="w-4 h-4" />
                                                 Output Format
                                             </label>
@@ -143,7 +143,7 @@ export default function PdfToImage() {
                                                             "flex-1 py-2 px-4 rounded-lg border text-sm transition-all",
                                                             format === f
                                                                 ? "bg-indigo-600 text-white border-indigo-600 font-bold"
-                                                                : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300"
+                                                                : "bg-surface-elevated text-text-muted border-border-medium hover:border-indigo-300"
                                                         )}
                                                     >
                                                         {f}
@@ -174,8 +174,8 @@ export default function PdfToImage() {
                     >
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="text-2xl font-bold text-gray-900">Conversion Complete!</h3>
-                                <p className="text-gray-500">{images.length} pages converted to {format}</p>
+                                <h3 className="text-2xl font-bold text-text-primary">Conversion Complete!</h3>
+                                <p className="text-text-muted">{images.length} pages converted to {format}</p>
                             </div>
                             <div className="flex gap-3">
                                 <Button variant="outline" onClick={() => setImages([])}>Convert Another</Button>
@@ -194,15 +194,15 @@ export default function PdfToImage() {
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ delay: idx * 0.05 }}
                                 >
-                                    <div className="group relative bg-white border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
-                                        <div className="aspect-3/4 overflow-hidden bg-gray-100">
+                                    <div className="group relative bg-surface-elevated border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+                                        <div className="aspect-3/4 overflow-hidden bg-surface-secondary">
                                             <img src={url} alt={`Page ${idx + 1}`} className="w-full h-full object-cover" />
                                         </div>
                                         <div className="p-3 flex items-center justify-between">
-                                            <span className="text-xs font-bold text-gray-500">Page {idx + 1}</span>
+                                            <span className="text-xs font-bold text-text-muted">Page {idx + 1}</span>
                                             <button
                                                 onClick={() => downloadImage(url, idx)}
-                                                className="p-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-indigo-600 hover:text-white transition-all"
+                                                className="p-1.5 bg-surface-secondary text-text-muted rounded-lg hover:bg-indigo-600 hover:text-white transition-all"
                                             >
                                                 <Download className="w-4 h-4" />
                                             </button>

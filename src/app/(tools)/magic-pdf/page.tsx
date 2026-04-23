@@ -69,7 +69,7 @@ const MagicPdf = () => {
   }, [activeToolLabel]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#FDFDFD] relative">
+    <div className="flex h-screen overflow-hidden bg-[color:var(--background)] relative">
       <ToolSidebar
         title="PDF Tools"
         items={tools}
@@ -80,12 +80,12 @@ const MagicPdf = () => {
       />
 
       {/* Main Editor Area */}
-      <main className="flex-1 overflow-hidden relative bg-gray-50/30 flex flex-col">
-        <header className="h-14 border-b border-gray-200/50 bg-white/50 backdrop-blur-md flex items-center justify-between px-6 transition-all duration-300">
+      <main className="flex-1 overflow-hidden relative bg-transparent flex flex-col">
+        <header className="h-14 border-b border-[color:var(--border-subtle)] bg-[var(--surface-overlay)] backdrop-blur-md flex items-center justify-between px-6 transition-all duration-300">
           <div className={cn("flex items-center gap-2 transition-all duration-300", !isSidebarOpen && "pl-12")}>
-            <div className="flex items-center text-sm text-gray-500">
-              <span className="font-semibold text-gray-800 mr-2">Magic PDF</span>
-              <span className="text-gray-300">/</span>
+            <div className="flex items-center text-sm text-text-muted">
+              <span className="font-semibold text-text-primary mr-2">Magic PDF</span>
+              <span className="text-text-muted">/</span>
               <span className="ml-2">{activeToolLabel}</span>
             </div>
           </div>
@@ -270,17 +270,17 @@ const MagicPdf = () => {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex h-full items-center justify-center p-12 text-center text-gray-400"
+                  className="flex h-full items-center justify-center p-12 text-center text-text-faint"
                 >
                   <Card className="p-12 max-w-md w-full flex flex-col items-center gap-6 border-dashed border-2 bg-transparent shadow-none">
-                    <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-full bg-surface-secondary flex items-center justify-center">
                       {(() => {
                         const Icon = tools.find(t => t.id === activeTool)?.icon || FileText;
                         return <Icon className="w-10 h-10 opacity-20" />
                       })()}
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Coming Soon</h3>
+                      <h3 className="text-lg font-semibold text-text-primary mb-2">Coming Soon</h3>
                       <p>The <strong>{activeToolLabel}</strong> tool is currently under development.</p>
                     </div>
                     <Button variant="outline" onClick={() => setActiveTool('merge')}>
