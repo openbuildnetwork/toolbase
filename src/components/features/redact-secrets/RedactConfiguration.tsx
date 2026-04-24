@@ -28,11 +28,11 @@ export const RedactConfiguration: React.FC<RedactConfigurationProps> = ({
     setRegexPatterns,
 }) => {
     return (
-        <Card className="border-none shadow-lg bg-white/70 backdrop-blur-xl ring-1 ring-black/5">
-            <div className="px-6 py-4 border-b border-gray-100 bg-white/30">
+        <Card className="border-none shadow-lg bg-surface/70 backdrop-blur-xl ring-1 ring-border-subtle">
+            <div className="px-6 py-4 border-b border-border-subtle bg-surface-secondary/30">
                 <div className="flex items-center gap-2">
-                    <Settings2 className="w-4 h-4 text-gray-500" />
-                    <span className="font-bold text-sm text-gray-900 uppercase tracking-tight">Configuration</span>
+                    <Settings2 className="w-4 h-4 text-text-muted" />
+                    <span className="font-bold text-sm text-text-primary uppercase tracking-tight">Configuration</span>
                 </div>
             </div>
             <div className="p-6 space-y-8">
@@ -49,11 +49,11 @@ export const RedactConfiguration: React.FC<RedactConfigurationProps> = ({
                             orientation="horizontal"
                             size="sm"
                             colors={{
-                                container: "bg-gray-100",
-                                indicator: "bg-blue-600",
-                                activeBackground: "bg-white",
+                                container: "bg-surface-secondary",
+                                indicator: "bg-primary",
+                                activeBackground: "bg-surface",
                                 label: {
-                                    active: "text-blue-600",
+                                    active: "text-primary",
                                 },
                             }}
                             tabs={[
@@ -62,7 +62,7 @@ export const RedactConfiguration: React.FC<RedactConfigurationProps> = ({
                                 { id: "hash", label: "Hash" },
                             ]}
                         />
-                        <p className="text-[10px] text-gray-400 font-medium px-1">
+                        <p className="text-[10px] text-text-muted font-medium px-1">
                             {maskingStyle === 'partial' && "Shows start/end bits (e.g. pr...12)"}
                             {maskingStyle === 'full' && "Completely obscures secrets"}
                             {maskingStyle === 'hash' && "Replaces with cryptographic hash"}
@@ -71,7 +71,7 @@ export const RedactConfiguration: React.FC<RedactConfigurationProps> = ({
                 </div>
 
                 {/* Hints */}
-                <div className="space-y-6 pt-4 border-t border-gray-100">
+                <div className="space-y-6 pt-4 border-t border-border-subtle">
                     <TagInput
                         label="Force Mask Keys"
                         placeholder="e.g. secret_token"
