@@ -29,6 +29,11 @@ __pycache__
 Thumbs.db
 *.pem
 
+# more debug/temp
+.eslintcache
+.npm/
+.turbo/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
