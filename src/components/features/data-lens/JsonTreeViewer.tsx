@@ -16,7 +16,7 @@ interface JsonObject { [key: string]: JsonValue; }
 type JsonArray = JsonValue[];
 
 interface JsonTreeViewerProps {
-    data: any;
+    data: JsonValue;
     searchQuery?: string;
     onPathClick?: (path: string) => void;
 }
@@ -121,19 +121,19 @@ function JsonNode({ keyName, value, path, depth, defaultExpanded = false, search
         <div className="select-none">
             {/* Node Header */}
             <div
-                className={`group flex items-center gap-1 py-1 px-2 rounded-md hover:bg-indigo-50/50 transition-colors cursor-pointer ${matchesSearch ? 'bg-yellow-100 ring-1 ring-yellow-300' : ''}`}
+                className={`group flex items-center gap-1 py-1 px-2 rounded-md hover:bg-surface-overlay transition-colors cursor-pointer ${matchesSearch ? 'bg-primary/20 ring-1 ring-primary/50' : ''}`}
                 style={{ paddingLeft: `${depth * 16 + 8}px` }}
             >
                 {/* Expand/Collapse Toggle */}
                 {isExpandable && hasContent ? (
                     <button
                         onClick={() => setExpanded(!expanded)}
-                        className="p-0.5 rounded hover:bg-indigo-100 transition-colors"
+                        className="p-0.5 rounded hover:bg-surface-overlay transition-colors"
                     >
                         {expanded ? (
-                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                            <ChevronDown className="w-4 h-4 text-text-muted" />
                         ) : (
-                            <ChevronRight className="w-4 h-4 text-gray-400" />
+                            <ChevronRight className="w-4 h-4 text-text-muted" />
                         )}
                     </button>
                 ) : (
@@ -145,14 +145,14 @@ function JsonNode({ keyName, value, path, depth, defaultExpanded = false, search
 
                 {/* Key Name */}
                 <span
-                    className="font-medium text-gray-700 cursor-pointer hover:text-indigo-600 transition-colors"
+                    className="font-medium text-text-primary cursor-pointer hover:text-primary transition-colors"
                     onClick={() => onPathClick?.(path)}
                     title={`Click to copy path: ${path}`}
                 >
                     {typeof keyName === 'number' ? `[${keyName}]` : keyName}
                 </span>
 
-                <span className="text-gray-400 mx-1">:</span>
+                <span className="text-text-muted mx-1">:</span>
 
                 {/* Value Preview */}
                 <span className={`text-sm ${getTypeColor(type)} ${isExpandable ? 'opacity-70' : ''}`}>
@@ -160,7 +160,7 @@ function JsonNode({ keyName, value, path, depth, defaultExpanded = false, search
                 </span>
 
                 {/* Type Badge */}
-                <span className="ml-2 px-1.5 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-500 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="ml-2 px-1.5 py-0.5 text-[10px] font-medium bg-surface-secondary text-text-secondary rounded opacity-0 group-hover:opacity-100 transition-opacity">
                     {type}
                 </span>
 
@@ -168,17 +168,17 @@ function JsonNode({ keyName, value, path, depth, defaultExpanded = false, search
                 <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                         onClick={copyPath}
-                        className="p-1 rounded text-gray-400 hover:text-indigo-600 hover:bg-indigo-100 transition-colors"
+                        className="p-1 rounded text-text-muted hover:text-primary hover:bg-surface-overlay transition-colors"
                         title="Copy path"
                     >
-                        {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                        {copied ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
                     </button>
                 </div>
             </div>
 
             {/* Children */}
             {isExpandable && expanded && hasContent && (
-                <div className="border-l border-gray-200 ml-4" style={{ marginLeft: `${depth * 16 + 20}px` }}>
+                <div className="border-l border-border-subtle ml-4" style={{ marginLeft: `${depth * 16 + 20}px` }}>
                     {type === 'array' ? (
                         (value as JsonArray).map((item, index) => (
                             <JsonNode
@@ -256,7 +256,7 @@ export function JsonTreeViewer({ data, onPathClick }: JsonTreeViewerProps) {
 
     if (!jsonData) {
         return (
-            <div className="flex items-center justify-center h-64 text-gray-400">
+            <div className="flex items-center justify-center h-64 text-text-muted">
                 <FileJson className="w-12 h-12 opacity-30" />
                 <p className="ml-4">No JSON data to display</p>
             </div>
@@ -264,22 +264,22 @@ export function JsonTreeViewer({ data, onPathClick }: JsonTreeViewerProps) {
     }
 
     return (
-        <div className="h-full flex flex-col bg-white">
+        <div className="h-full flex flex-col bg-background">
             {/* Toolbar */}
-            <div className="flex items-center gap-4 px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+            <div className="flex items-center gap-4 px-4 py-3 border-b border-border-subtle bg-surface-secondary">
                 {/* Search */}
                 <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
                     <input
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-10 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300"
+                        className="w-full pl-10 pr-10 py-2 bg-surface border border-border-medium rounded-lg text-sm text-text-primary placeholder-(--text-faint) focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50"
                         placeholder="Search keys or values..."
                     />
                     {searchQuery && (
                         <button
                             onClick={() => setSearchQuery('')}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary"
                         >
                             <X className="w-4 h-4" />
                         </button>
@@ -287,7 +287,7 @@ export function JsonTreeViewer({ data, onPathClick }: JsonTreeViewerProps) {
                 </div>
 
                 {/* Stats */}
-                <div className="flex items-center gap-4 text-xs text-gray-500">
+                <div className="flex items-center gap-4 text-xs text-text-secondary">
                     {Array.isArray(jsonData) ? (
                         <span className="flex items-center gap-1.5">
                             <Brackets className="w-3.5 h-3.5 text-blue-500" />
@@ -306,7 +306,7 @@ export function JsonTreeViewer({ data, onPathClick }: JsonTreeViewerProps) {
                     <button
                         onClick={handleExpandToggle}
                         disabled={isTransitioning}
-                        className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                        className="px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface border border-border-medium rounded-lg hover:bg-surface-overlay transition-colors flex items-center gap-1.5 disabled:opacity-50"
                     >
                         {isTransitioning ? (
                             <Loader2 className="w-3 h-3 animate-spin" />
@@ -318,7 +318,7 @@ export function JsonTreeViewer({ data, onPathClick }: JsonTreeViewerProps) {
                             navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
                             showToast("JSON copied to clipboard!");
                         }}
-                        className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+                        className="px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface border border-border-medium rounded-lg hover:bg-surface-overlay transition-colors flex items-center gap-1.5"
                     >
                         <Copy className="w-3 h-3" /> Copy JSON
                     </button>
@@ -328,10 +328,10 @@ export function JsonTreeViewer({ data, onPathClick }: JsonTreeViewerProps) {
             {/* Tree View */}
             <div className="relative flex-1 overflow-auto p-4 font-mono text-sm">
                 {isTransitioning && (
-                    <div className="absolute inset-0 z-10 bg-white/50 backdrop-blur-[1px] flex items-center justify-center">
-                        <div className="flex flex-col items-center gap-3 p-4 bg-white rounded-xl shadow-lg border border-gray-100">
-                            <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-                            <span className="text-sm font-medium text-gray-600">
+                    <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-[1px] flex items-center justify-center">
+                        <div className="flex flex-col items-center gap-3 p-4 bg-surface-elevated rounded-xl shadow-lg border border-border-subtle">
+                            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                            <span className="text-sm font-medium text-text-secondary">
                                 {expandAll ? 'Collapsing...' : 'Expanding...'}
                             </span>
                         </div>
@@ -366,21 +366,21 @@ export function JsonTreeViewer({ data, onPathClick }: JsonTreeViewerProps) {
                         />
                     ))
                 ) : (
-                    <div className="text-gray-600">{String(jsonData)}</div>
+                    <div className="text-text-primary">{String(jsonData)}</div>
                 )}
             </div>
 
             {/* Toast Notification */}
             {toast.visible && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-full shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2.5 bg-surface-inverse text-text-inverse rounded-full shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-4 duration-300 border border-border-subtle">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     <span className="text-sm font-medium">{toast.message}</span>
                 </div>
             )}
 
             {/* Quick Help */}
-            <div className="px-4 py-2 border-t border-gray-100 bg-gray-50/50 text-xs text-gray-500">
-                <span className="font-medium">Tip:</span> Click on a key to copy its JSONPath. Use paths like <code className="px-1 py-0.5 bg-gray-100 rounded">$.orders[0].customer.name</code> in Python queries.
+            <div className="px-4 py-2 border-t border-border-subtle bg-surface-secondary text-xs text-text-secondary">
+                <span className="font-medium">Tip:</span> Click on a key to copy its JSONPath. Use paths like <code className="px-1 py-0.5 bg-surface-overlay rounded text-text-primary border border-border-subtle">$.orders[0].customer.name</code> in Python queries.
             </div>
         </div>
     );

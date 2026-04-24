@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import { Editor } from "@monaco-editor/react";
 import { Button } from "@/components/ui/Button";
 import { Play, HelpCircle, CheckCircle2, ChevronUp, ChevronDown } from "lucide-react";
+import { useTheme } from "next-themes";
 import { TableSchema } from "@/hooks/useDataLens";
 import { HelpPanel } from "./HelpPanel";
 import { DataTable } from "./DataTable";
@@ -22,6 +23,7 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
     const [isHelpOpen, setIsHelpOpen] = React.useState(false);
     const [resultsPanelCollapsed, setResultsPanelCollapsed] = React.useState(false);
     const { ratio, isDragging, handleProps, containerRef } = useResizablePanel({ initialRatio: 0.45 });
+    const { theme, resolvedTheme } = useTheme();
 
     // Transform query result data for the DataTable
     const resultTableData = React.useMemo(() => {
@@ -67,21 +69,21 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
     const pythonIntro = (
         <div className="space-y-4">
             <div className="space-y-2">
-                <h3 className="text-sm font-bold text-indigo-900">Variables & Naming</h3>
-                <p className="text-xs text-indigo-700/80 leading-relaxed">
+                <h3 className="text-sm font-bold text-text-primary">Variables & Naming</h3>
+                <p className="text-xs text-text-secondary leading-relaxed">
                     Every file you upload is automatically injected as a **Pandas DataFrame** variable. 
                 </p>
-                <div className="flex items-center gap-3 bg-white/50 p-2 rounded-xl border border-indigo-100 italic text-[10px] text-indigo-600">
+                <div className="flex items-center gap-3 bg-surface-sunken p-2 rounded-xl border border-border-subtle italic text-[10px] text-primary">
                     <span>📄 employees_200.csv</span>
-                    <span className="text-gray-400">➔</span>
+                    <span className="text-text-muted">➔</span>
                     <span className="font-mono font-bold">employees_200</span>
                 </div>
             </div>
             
             <div className="space-y-2">
-                <h3 className="text-sm font-bold text-indigo-900">Python Environment</h3>
-                <ul className="text-[10px] text-indigo-700/70 space-y-1 list-disc pl-4">
-                    <li>Built-in: <code className="bg-indigo-100 px-1 rounded">pd</code> (Pandas), <code className="bg-indigo-100 px-1 rounded">np</code> (NumPy)</li>
+                <h3 className="text-sm font-bold text-text-primary">Python Environment</h3>
+                <ul className="text-[10px] text-text-secondary space-y-1 list-disc pl-4">
+                    <li>Built-in: <code className="bg-primary/20 px-1 rounded text-primary">pd</code> (Pandas), <code className="bg-primary/20 px-1 rounded text-primary">np</code> (NumPy)</li>
                     <li>Automatic Result: The last created DataFrame is auto-detected.</li>
                     <li>Nested JSON: Arrays are automatically &quot;exploded&quot; into rows.</li>
                 </ul>
@@ -95,11 +97,11 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
         schemasRef.current = schemas;
     }, [schemas]);
 
-    const handleEditorMount = (editor: any, monaco: any) => {
+    const handleEditorMount = (editor: unknown, monaco: any) => {
         // Register completion item provider for Python
-        const provider = monaco.languages.registerCompletionItemProvider('python', {
+        monaco.languages.registerCompletionItemProvider('python', {
             provideCompletionItems: (model: any, position: any) => {
-                const suggestions: any[] = [];
+                const suggestions: unknown[] = [];
                 const currentSchemas = schemasRef.current;
 
                 // 1. Table Names (from current schemas)
@@ -174,23 +176,23 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
     };
 
     return (
-        <div ref={containerRef} className="h-full flex flex-col bg-gray-50/50 relative overflow-hidden">
+        <div ref={containerRef} className="h-full flex flex-col bg-background relative overflow-hidden">
             {/* Editor Panel */}
             <div
-                className="flex flex-col bg-white border-b border-gray-200 shadow-sm overflow-hidden"
+                className="flex flex-col bg-surface border-b border-border-subtle shadow-sm overflow-hidden"
                 style={hasResults && !resultsPanelCollapsed ? { height: `${ratio * 100}%`, minHeight: 150 } : { flex: 1 }}
             >
-                <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-gray-50/50">
+                <div className="flex items-center justify-between px-5 py-3 border-b border-border-subtle bg-surface-secondary">
                     <div className="flex items-center gap-3">
-                        <span className="text-sm font-semibold text-gray-700">Python Editor</span>
-                        <span className="px-2 py-0.5 bg-yellow-50 border border-yellow-200 rounded-md text-[10px] text-yellow-700 font-medium">Pyodide WASM</span>
+                        <span className="text-sm font-semibold text-text-primary">Python Editor</span>
+                        <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 rounded-md text-[10px] text-yellow-600 font-medium">Pyodide WASM</span>
                     </div>
                     <div className="flex gap-2">
                         <Button 
                             onClick={() => setIsHelpOpen(true)}
                             variant="outline" 
                             size="sm" 
-                            className="gap-2 border-gray-200 hover:bg-gray-100 text-gray-600"
+                            className="gap-2 border-border-medium hover:bg-surface-overlay text-text-secondary hover:text-text-primary"
                         >
                             <HelpCircle className="w-4 h-4" /> How to use
                         </Button>
@@ -198,7 +200,7 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
                             onClick={onRunPython} 
                             disabled={isProcessing} 
                             size="sm" 
-                            className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+                            className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-sm"
                         >
                             <Play className="w-4 h-4" /> Run Script
                         </Button>
@@ -211,7 +213,7 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
                         value={pythonCode}
                         onChange={(val) => setPythonCode(val || '')}
                         onMount={handleEditorMount}
-                        theme="vs"
+                        theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs'}
                         options={{
                             minimap: { enabled: false },
                             fontSize: 14,
@@ -231,25 +233,25 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
             {/* Drag Handle */}
             {hasResults && !resultsPanelCollapsed && (
                 <div {...handleProps}>
-                    <div className={`w-12 h-1 rounded-full transition-colors ${isDragging ? 'bg-indigo-400' : 'bg-gray-300 group-hover:bg-indigo-400'}`} />
+                    <div className={`w-12 h-1 rounded-full transition-colors ${isDragging ? 'bg-primary' : 'bg-border-medium group-hover:bg-primary'}`} />
                 </div>
             )}
 
             {/* Inline Results Panel */}
             {hasResults && (
-                <div className={`flex flex-col bg-white overflow-hidden ${resultsPanelCollapsed ? 'h-auto' : 'flex-1 min-h-[120px]'}`}>
+                <div className={`flex flex-col bg-surface overflow-hidden ${resultsPanelCollapsed ? 'h-auto' : 'flex-1 min-h-[120px]'}`}>
                     {/* Results Header */}
-                    <div className="flex items-center justify-between px-5 py-2.5 border-b border-gray-100 bg-gray-50/50">
+                    <div className="flex items-center justify-between px-5 py-2.5 border-b border-border-subtle bg-surface-secondary">
                         <div className="flex items-center gap-3">
                             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                            <span className="text-sm font-semibold text-gray-700">Results</span>
-                            <span className="text-xs text-gray-400 font-mono bg-gray-100 px-2 py-0.5 rounded-md">
+                            <span className="text-sm font-semibold text-text-primary">Results</span>
+                            <span className="text-xs text-text-secondary font-mono bg-surface-overlay px-2 py-0.5 rounded-md">
                                 {resultTableData.length} row{resultTableData.length !== 1 ? 's' : ''}
                             </span>
                         </div>
                         <button
                             onClick={() => setResultsPanelCollapsed(!resultsPanelCollapsed)}
-                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                            className="p-1.5 rounded-lg hover:bg-surface-overlay text-text-muted hover:text-text-primary transition-colors"
                             title={resultsPanelCollapsed ? 'Expand results' : 'Collapse results'}
                         >
                             {resultsPanelCollapsed ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -269,26 +271,26 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
 
             {/* Environment Info (shown when no results) */}
             {!hasResults && (
-                <div className="h-36 grid grid-cols-2 gap-4 p-4 border-t border-gray-200 bg-white">
-                    <div className="bg-gray-50 rounded-2xl border border-gray-200 p-4">
-                        <h5 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Available Libraries</h5>
+                <div className="h-36 grid grid-cols-2 gap-4 p-4 border-t border-border-subtle bg-surface">
+                    <div className="bg-surface-secondary rounded-2xl border border-border-medium p-4">
+                        <h5 className="text-xs font-semibold uppercase tracking-wider text-text-muted mb-3">Available Libraries</h5>
                         <div className="flex flex-wrap gap-2">
-                            <span className="px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-medium">pandas (pd)</span>
-                            <span className="px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-lg text-xs text-orange-700 font-medium">numpy (np)</span>
-                            <span className="px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700 font-medium">openpyxl</span>
+                            <span className="px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs text-blue-400 font-medium">pandas (pd)</span>
+                            <span className="px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-lg text-xs text-orange-400 font-medium">numpy (np)</span>
+                            <span className="px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-xs text-green-400 font-medium">openpyxl</span>
                         </div>
                     </div>
-                    <div className="bg-gray-50 rounded-2xl border border-gray-200 p-4 overflow-auto">
-                        <h5 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Available Variables</h5>
-                        <div className="text-xs text-gray-600 space-y-1.5">
+                    <div className="bg-surface-secondary rounded-2xl border border-border-medium p-4 overflow-auto">
+                        <h5 className="text-xs font-semibold uppercase tracking-wider text-text-muted mb-3">Available Variables</h5>
+                        <div className="text-xs text-text-primary space-y-1.5">
                             <div className="flex items-center gap-2">
-                                <code className="text-indigo-600 font-semibold">DATA_STORE</code>
-                                <span className="text-gray-400">— All loaded DataFrames</span>
+                                <code className="text-primary font-semibold">DATA_STORE</code>
+                                <span className="text-text-secondary">— All loaded DataFrames</span>
                             </div>
                             {schemas.map(s => (
                                 <div key={s.table_name} className="flex items-center gap-2">
-                                    <code className="text-indigo-600 font-semibold">{s.table_name}</code>
-                                    <span className="text-gray-400">— {s.rows} rows</span>
+                                    <code className="text-primary font-semibold">{s.table_name}</code>
+                                    <span className="text-text-secondary">— {s.rows} rows</span>
                                 </div>
                             ))}
                         </div>
