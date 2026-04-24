@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { FileUploader } from "@/components/ui/FileUploader";
 import { Button } from "@/components/ui/Button";
@@ -101,27 +100,16 @@ export function Steganography() {
         { id: "reveal", label: "Reveal Message", icon: <Unlock className="w-4 h-4" /> },
     ];
 
-    const tabColors = mode === "hide"
-        ? {
-            container: "bg-blue-50/50 border border-blue-100 p-1.5",
-            indicator: "bg-blue-600 shadow-md",
-            activeBackground: "bg-white",
-            label: {
-                active: "text-blue font-semibold",
-                inactive: "text-blue-500 hover:text-blue-700",
-                onHoverColor: "hover:text-blue-700"
-            }
+    const tabColors = {
+        container: "bg-[var(--surface-secondary)] border border-[color:var(--border-subtle)] p-1.5 shadow-inner",
+        indicator: "bg-primary shadow-md shadow-primary/20",
+        activeBackground: "bg-primary",
+        label: {
+            active: "text-white font-bold tracking-wide",
+            inactive: "text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)] font-medium",
+            onHoverColor: "hover:text-[color:var(--text-primary)]"
         }
-        : {
-            container: "bg-violet-50/50 border border-violet-100 p-1.5",
-            indicator: "bg-violet-600 shadow-md",
-            activeBackground: "bg-white",
-            label: {
-                active: "text-violet font-semibold",
-                inactive: "text-violet-500 hover:text-violet-700",
-                onHoverColor: "hover:text-violet-700"
-            }
-        };
+    };
 
     return (
         <div className="h-full flex flex-col gap-6 p-1">
@@ -145,14 +133,14 @@ export function Steganography() {
                     >
                         {/* Input Side */}
                         <div className="space-y-6">
-                            <Card>
+                            <Card className="bg-[var(--surface-elevated)] border-[color:var(--border-medium)]">
                                 <CardContent className="p-6 space-y-4">
-                                    <h3 className="font-bold text-gray-700">1. Select Image</h3>
-                                    <div className={cn("min-h-[200px] flex flex-col items-center justify-center overflow-hidden relative w-full", hiddenPreviewUrl ? "bg-[var(--surface-elevated)] rounded-2xl border border-[var(--border-subtle)]" : "")}>
+                                    <h3 className="font-bold text-[color:var(--text-primary)]">1. Select Image</h3>
+                                    <div className={cn("min-h-[200px] flex flex-col items-center justify-center overflow-hidden relative w-full", hiddenPreviewUrl ? "bg-[var(--surface-secondary)] rounded-2xl border border-[var(--border-subtle)]" : "")}>
                                         {hiddenPreviewUrl ? (
                                             <>
                                                 <img src={hiddenPreviewUrl} className="absolute inset-0 w-full h-full object-contain p-4" alt="Preview" />
-                                                <div className="absolute inset-0 bg-black/10 hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 hover:opacity-100 cursor-pointer" onClick={() => { setFileToHide(null); setHiddenPreviewUrl(null); }}>
+                                                <div className="absolute inset-0 bg-black/40 hover:bg-black/60 transition-colors flex items-center justify-center opacity-0 hover:opacity-100 cursor-pointer backdrop-blur-sm" onClick={() => { setFileToHide(null); setHiddenPreviewUrl(null); }}>
                                                     <RefreshCw className="text-white w-8 h-8" />
                                                 </div>
                                             </>
@@ -168,27 +156,27 @@ export function Steganography() {
                                 </CardContent>
                             </Card>
 
-                            <Card>
+                            <Card className="bg-[var(--surface-elevated)] border-[color:var(--border-medium)]">
                                 <CardContent className="p-6 space-y-4">
-                                    <h3 className="font-bold text-gray-700">2. Enter Secret Message</h3>
+                                    <h3 className="font-bold text-[color:var(--text-primary)]">2. Enter Secret Message</h3>
                                     <textarea
                                         value={textToHide}
                                         onChange={(e) => setTextToHide(e.target.value)}
                                         placeholder="Type your secret message here..."
-                                        className="w-full h-32 p-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
+                                        className="w-full h-32 p-4 rounded-xl border border-[color:var(--border-medium)] bg-[var(--surface-secondary)] text-[color:var(--text-primary)] placeholder-[color:var(--text-faint)] focus:bg-[var(--surface-overlay)] focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
                                     />
                                     <div className="flex items-center justify-between">
-                                        <div className="text-xs text-gray-400">
+                                        <div className="text-xs text-[color:var(--text-muted)]">
                                             {textToHide.length} characters
                                         </div>
 
                                         <label className="flex items-center gap-2 cursor-pointer select-none">
                                             <div className="relative">
                                                 <input type="checkbox" className="sr-only" checked={useEncryption} onChange={(e) => setUseEncryption(e.target.checked)} />
-                                                <div className={`w-10 h-6 rounded-full shadow-inner transition-colors ${useEncryption ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-                                                <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${useEncryption ? 'translate-x-4' : ''}`}></div>
+                                                <div className={`w-10 h-6 rounded-full shadow-inner transition-colors ${useEncryption ? 'bg-primary' : 'bg-[var(--surface-secondary)] border border-[color:var(--border-medium)]'}`}></div>
+                                                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full shadow transition-transform ${useEncryption ? 'translate-x-4 bg-white' : 'bg-[color:var(--text-muted)]'}`}></div>
                                             </div>
-                                            <span className="text-sm font-medium text-gray-700">Encrypt with Key</span>
+                                            <span className="text-sm font-medium text-[color:var(--text-primary)]">Encrypt with Key</span>
                                         </label>
                                     </div>
 
@@ -205,7 +193,7 @@ export function Steganography() {
                                                     value={secretKey}
                                                     onChange={(e) => setSecretKey(e.target.value)}
                                                     placeholder="Enter secret key..."
-                                                    className="w-full p-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                                    className="w-full p-3 rounded-xl border border-[color:var(--border-medium)] bg-[var(--surface-secondary)] text-[color:var(--text-primary)] placeholder-[color:var(--text-faint)] focus:bg-[var(--surface-overlay)] focus:ring-2 focus:ring-primary outline-none transition-all mt-4"
                                                 />
                                             </motion.div>
                                         )}
@@ -216,7 +204,7 @@ export function Steganography() {
                             <Button
                                 onClick={handleHide}
                                 disabled={!fileToHide || !textToHide || isProcessing || (useEncryption && !secretKey)}
-                                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed border-0 font-bold"
                             >
                                 {isProcessing ? (
                                     <div className="flex items-center gap-2">
@@ -232,23 +220,23 @@ export function Steganography() {
                         {/* Output Side */}
                         <div className="space-y-6 flex flex-col">
                             {hiddenResultUrl ? (
-                                <Card className="flex-1 border-emerald-100 bg-emerald-50/30">
+                                <Card className="flex-1 bg-emerald-500/10 border border-emerald-500/20">
                                     <CardContent className="p-6 h-full flex flex-col items-center justify-center space-y-6">
-                                        <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
+                                        <div className="w-16 h-16 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/10 border border-emerald-500/30">
                                             <Lock className="w-8 h-8" />
                                         </div>
-                                        <h3 className="text-2xl font-bold text-emerald-900">Data Hidden!</h3>
-                                        <p className="text-emerald-700 text-center max-w-xs">
+                                        <h3 className="text-2xl font-bold text-emerald-500 drop-shadow-sm">Data Hidden!</h3>
+                                        <p className="text-emerald-500/80 text-center max-w-xs font-medium">
                                             Your image now contains the secret data. It looks identical to the original.
                                         </p>
 
-                                        <div className="w-full max-w-sm bg-white p-2 rounded-2xl shadow-sm border border-emerald-100 mt-4">
+                                        <div className="w-full max-w-sm bg-[var(--surface-elevated)] p-2 rounded-2xl shadow-sm border border-[color:var(--border-subtle)] mt-4">
                                             <img src={hiddenResultUrl} className="w-full rounded-xl object-contain h-64" alt="Result" />
                                         </div>
 
                                         <Button
                                             onClick={downloadImage}
-                                            className="w-full max-w-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-12 shadow-lg shadow-emerald-900/20"
+                                            className="w-full max-w-xs bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl h-12 shadow-lg shadow-emerald-500/20 border-0"
                                         >
                                             <Download className="w-4 h-4 mr-2" />
                                             Download Encoded Image
@@ -256,10 +244,10 @@ export function Steganography() {
                                     </CardContent>
                                 </Card>
                             ) : (
-                                <div className="flex-1 border-2 border-dashed border-gray-200 rounded-3xl flex items-center justify-center text-gray-300">
+                                <div className="flex-1 border-2 border-dashed border-[color:var(--border-medium)] bg-[var(--surface-secondary)] rounded-[24px] flex items-center justify-center text-[color:var(--text-muted)]">
                                     <div className="text-center">
-                                        <EyeOff className="w-12 h-12 mx-auto mb-2 opacity-20" />
-                                        <p>Output will appear here</p>
+                                        <EyeOff className="w-12 h-12 mx-auto mb-2 text-[color:var(--border-medium)]" />
+                                        <p className="font-medium text-[color:var(--text-faint)]">Output will appear here</p>
                                     </div>
                                 </div>
                             )}
@@ -274,15 +262,15 @@ export function Steganography() {
                         exit={{ opacity: 0, y: -10 }}
                         className="max-w-2xl mx-auto space-y-8"
                     >
-                        <Card>
+                        <Card className="bg-[var(--surface-elevated)] border-[color:var(--border-medium)]">
                             <CardContent className="p-8 space-y-6">
-                                <h3 className="text-center font-bold text-gray-700 text-xl">Upload Image to Reveal Message</h3>
-                                <div className={cn("min-h-[300px] flex flex-col items-center justify-center overflow-hidden relative group w-full", revealPreviewUrl ? "bg-[var(--surface-elevated)] rounded-3xl border border-[var(--border-subtle)]" : "")}>
+                                <h3 className="text-center font-bold text-[color:var(--text-primary)] text-xl">Upload Image to Reveal Message</h3>
+                                <div className={cn("min-h-[300px] flex flex-col items-center justify-center overflow-hidden relative group w-full", revealPreviewUrl ? "bg-[var(--surface-secondary)] rounded-3xl border border-[var(--border-subtle)]" : "")}>
                                     {revealPreviewUrl ? (
                                         <>
-                                            <img src={revealPreviewUrl} className="absolute inset-0 w-full h-full object-contain p-4 transition-opacity group-hover:opacity-50" alt="Preview" />
-                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Button onClick={() => { setFileToReveal(null); setRevealPreviewUrl(null); setRevealedText(null); }} variant="outline" className="bg-white">
+                                            <img src={revealPreviewUrl} className="absolute inset-0 w-full h-full object-contain p-4 transition-opacity group-hover:opacity-30" alt="Preview" />
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm">
+                                                <Button onClick={() => { setFileToReveal(null); setRevealPreviewUrl(null); setRevealedText(null); }} className="bg-white text-black hover:bg-gray-100 font-bold border-0">
                                                     Change Image
                                                 </Button>
                                             </div>
@@ -298,20 +286,20 @@ export function Steganography() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700">Decryption Key (Optional)</label>
+                                    <label className="text-sm font-medium text-[color:var(--text-primary)]">Decryption Key (Optional)</label>
                                     <input
                                         type="password"
                                         value={revealKey}
                                         onChange={(e) => setRevealKey(e.target.value)}
                                         placeholder="Enter key if message is encrypted..."
-                                        className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-violet-500 outline-none transition-all"
+                                        className="w-full p-3 rounded-xl border border-[color:var(--border-medium)] bg-[var(--surface-secondary)] text-[color:var(--text-primary)] placeholder-[color:var(--text-faint)] focus:bg-[var(--surface-overlay)] focus:ring-2 focus:ring-violet-500 outline-none transition-all"
                                     />
                                 </div>
 
                                 <Button
                                     onClick={handleReveal}
                                     disabled={!fileToReveal || isProcessing}
-                                    className="w-full h-14 text-lg bg-violet-600 hover:bg-violet-700 text-white rounded-2xl shadow-lg shadow-violet-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full h-14 text-lg bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-2xl shadow-lg shadow-violet-900/20 disabled:opacity-50 disabled:cursor-not-allowed border-0"
                                 >
                                     {isProcessing ? (
                                         <div className="flex items-center gap-2">
@@ -335,15 +323,15 @@ export function Steganography() {
                                 className={cn(
                                     "rounded-3xl p-8 shadow-xl border ring-4 transition-all duration-300",
                                     revealedText.startsWith("ERROR:") || revealedText.startsWith("Error")
-                                        ? "bg-red-50 border-red-200 ring-red-100"
-                                        : "bg-white border-violet-100 ring-violet-50"
+                                        ? "bg-red-500/10 border-red-500/20 ring-red-500/10 backdrop-blur-xl"
+                                        : "bg-[var(--surface-elevated)] border-violet-500/20 ring-violet-500/10 backdrop-blur-xl"
                                 )}
                             >
                                 <div className={cn(
                                     "flex items-center gap-3 mb-4",
                                     revealedText.startsWith("ERROR:") || revealedText.startsWith("Error")
-                                        ? "text-red-600"
-                                        : "text-violet-600"
+                                        ? "text-red-500"
+                                        : "text-violet-400"
                                 )}>
                                     {revealedText.startsWith("ERROR:") || revealedText.startsWith("Error") ? (
                                         <Lock className="w-6 h-6" />
@@ -360,8 +348,8 @@ export function Steganography() {
                                 <div className={cn(
                                     "p-6 rounded-2xl border font-mono whitespace-pre-wrap break-all min-h-[100px]",
                                     revealedText.startsWith("ERROR:") || revealedText.startsWith("Error")
-                                        ? "bg-red-100/50 border-red-200 text-red-800"
-                                        : "bg-slate-50 border-slate-100 text-slate-700"
+                                        ? "bg-red-500/10 border-red-500/20 text-red-500 shadow-inner"
+                                        : "bg-[var(--surface-overlay)] border-[color:var(--border-subtle)] text-[color:var(--text-primary)] shadow-inner"
                                 )}>
                                     {revealedText}
                                 </div>
