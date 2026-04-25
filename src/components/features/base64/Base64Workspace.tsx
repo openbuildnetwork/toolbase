@@ -13,7 +13,6 @@ import Editor from '@monaco-editor/react';
 import {
     FileText,
     FileCode,
-    Loader2,
     AlertCircle,
     Download,
     ArrowRight,
@@ -21,9 +20,8 @@ import {
     ChevronDown,
     Sparkles,
     Eye,
-    Binary,
 } from 'lucide-react';
-import type { Base64Mode } from '@/types/base64';
+import type { Base64Mode, Base64Response } from '@/types/base64';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface Base64WorkspaceProps {
@@ -32,7 +30,7 @@ export interface Base64WorkspaceProps {
     initialOperation?: 'encode' | 'decode';
     initialContent?: string;
     showControls?: boolean;
-    onResultUpdate?: (result: any) => void;
+    onResultUpdate?: (result: Base64Response) => void;
 }
 
 export function Base64Workspace({
@@ -59,8 +57,9 @@ export function Base64Workspace({
     const [mode, setMode] = useState<'text' | 'file'>(initialMode);
     const [operation, setOperation] = useState<'encode' | 'decode'>(initialOperation);
     const [inputText, setInputText] = useState(initialContent);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [isImage, setIsImage] = useState(false);
+    const [imagePreview, setImagePreview] = useState<string | null>(() => (
+        initialFile?.type.startsWith('image/') ? URL.createObjectURL(initialFile) : null
+    ));
     const [selectedFile, setSelectedFile] = useState<File | null>(initialFile);
     
     // Decoded Previews
@@ -96,7 +95,7 @@ export function Base64Workspace({
                 setFormattedPreview(JSON.stringify(parsed, null, 4));
                 setDetectedLanguage('json');
                 return;
-            } catch (e) { /* ignore */ }
+            } catch { /* ignore */ }
         }
 
         // XML/HTML detection
@@ -186,7 +185,7 @@ export function Base64Workspace({
                         }
 
                         if (detectedMimeType) {
-                            const blob = new Blob([bytes as any], { type: detectedMimeType });
+                            const blob = new Blob([new Uint8Array(bytes)], { type: detectedMimeType });
                             const url = URL.createObjectURL(blob);
                             if (detectedMimeType === 'application/pdf') setDecodedPdfUrl(url);
                             else setDecodedImageUrl(url);
@@ -196,7 +195,7 @@ export function Base64Workspace({
                             try {
                                 const text = decoder.decode(bytes);
                                 detectTextFormat(text);
-                            } catch (err) {
+                            } catch {
                                 // Fallback to raw bytes
                                 setDetectedLanguage('text');
                             }
@@ -220,18 +219,11 @@ export function Base64Workspace({
         return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
     }, [liveMode, mode, inputText, isReady, handleProcess]);
 
-    // Initial load for files
     useEffect(() => {
-        if (initialFile && !selectedFile) {
-            setSelectedFile(initialFile);
-            setMode('file');
-            if (initialFile.type.startsWith('image/')) {
-                setIsImage(true);
-                const url = URL.createObjectURL(initialFile);
-                setImagePreview(url);
-            }
-        }
-    }, [initialFile, selectedFile]);
+        return () => {
+            if (imagePreview) URL.revokeObjectURL(imagePreview);
+        };
+    }, [imagePreview]);
 
     // Handle results when they change
     const handleDownload = () => {
@@ -250,14 +242,12 @@ export function Base64Workspace({
         if (imagePreview) { URL.revokeObjectURL(imagePreview); setImagePreview(null); }
         if (file) {
             const isImageFile = file.type.startsWith('image/');
-            setIsImage(isImageFile);
             if (isImageFile && operation === 'encode') {
                 const previewUrl = URL.createObjectURL(file);
                 setImagePreview(previewUrl);
             }
             if (operation === 'encode') setMimeType(file.type || 'application/octet-stream');
         } else {
-            setIsImage(false);
         }
     };
 
