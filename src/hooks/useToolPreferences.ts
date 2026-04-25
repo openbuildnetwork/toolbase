@@ -4,19 +4,19 @@
  * useToolPreferences
  *
  * Manages user-specific tool preferences stored exclusively in localStorage.
- * Provides favorites (toggle), recents (capped at 5, newest-first), and
+ * Provides favorites (toggle), recents (capped at 15, newest-first), and
  * cross-tab sync via the native `storage` event.
  *
  * localStorage keys:
  *   toolbase:favorites  → string[]  e.g. ['magic-pdf', 'pixel-axe']
- *   toolbase:recents    → string[]  e.g. ['data-lens', 'base64']  (max 5)
+ *   toolbase:recents    → string[]  e.g. ['data-lens', 'base64']  (max 15)
  */
 
 import { useState, useEffect, useCallback } from 'react';
 
 const FAVORITES_KEY = 'toolbase:favorites';
 const RECENTS_KEY = 'toolbase:recents';
-const RECENTS_MAX = 5;
+const RECENTS_MAX = 15;
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 

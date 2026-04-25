@@ -188,30 +188,24 @@
 
   .premium-sheen {
     @apply absolute inset-0 pointer-events-none;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.25) 0%,
-      rgba(255, 255, 255, 0) 45%,
-      rgba(0, 0, 0, 0.05) 55%,
-      rgba(0, 0, 0, 0.1) 100%
-    );
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.25) 0%,
+        rgba(255, 255, 255, 0) 45%,
+        rgba(0, 0, 0, 0.05) 55%,
+        rgba(0, 0, 0, 0.1) 100%);
     z-index: 2;
   }
 
   .glyph-3d {
-    filter: drop-shadow(1px 1.5px 0px rgba(255, 255, 255, 0.6))
-      drop-shadow(-0.5px -0.5px 0.5px rgba(0, 0, 0, 0.2))
-      drop-shadow(3px 6px 10px rgba(0, 0, 0, 0.45));
+    filter: drop-shadow(1px 1.5px 0px rgba(255, 255, 255, 0.6)) drop-shadow(-0.5px -0.5px 0.5px rgba(0, 0, 0, 0.2)) drop-shadow(3px 6px 10px rgba(0, 0, 0, 0.45));
     @apply transition-transform duration-500;
   }
 
   .icon-texture {
     @apply absolute inset-0 opacity-20 pointer-events-none;
-    background-image: radial-gradient(
-      circle at 2px 2px,
-      rgba(255, 255, 255, 0.15) 1px,
-      transparent 0
-    );
+    background-image: radial-gradient(circle at 2px 2px,
+        rgba(255, 255, 255, 0.15) 1px,
+        transparent 0);
     background-size: 8px 8px;
   }
 
@@ -274,6 +268,7 @@
     @apply backdrop-blur-md border rounded-xl transition-all duration-300;
     border-color: var(--border-subtle);
     @apply focus:border-primary/30 focus:ring-4 focus:ring-primary/10;
+
     &:focus {
       background: var(--surface);
     }
@@ -283,6 +278,7 @@
   .theme-logo-light {
     display: block;
   }
+
   .theme-logo-dark {
     display: none;
   }
@@ -290,6 +286,7 @@
   .dark .theme-logo-light {
     display: none !important;
   }
+
   .dark .theme-logo-dark {
     display: block !important;
   }
@@ -300,6 +297,7 @@
       opacity: 0;
       transform: translateX(-8px);
     }
+
     to {
       opacity: 1;
       transform: translateX(0);
@@ -311,6 +309,7 @@
       opacity: 0;
       transform: translateX(8px);
     }
+
     to {
       opacity: 1;
       transform: translateX(0);
@@ -322,6 +321,7 @@
       opacity: 0;
       transform: translateY(-4px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -332,6 +332,7 @@
     from {
       opacity: 0;
     }
+
     to {
       opacity: 1;
     }
@@ -377,6 +378,7 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -386,6 +388,7 @@
     0% {
       transform: translateX(-100%);
     }
+
     100% {
       transform: translateX(100%);
     }
@@ -397,9 +400,12 @@
 
   /* Gradient animation */
   @keyframes gradient {
-    0%, 100% {
+
+    0%,
+    100% {
       background-position: 0% 50%;
     }
+
     50% {
       background-position: 100% 50%;
     }

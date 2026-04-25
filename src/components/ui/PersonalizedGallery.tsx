@@ -286,64 +286,7 @@ export function PersonalizedGallery({ allTools }: PersonalizedGalleryProps) {
                     )}
                 </AnimatePresence>
 
-                {/* ── Recently Used ─────────────────────────────────────── */}
-                <AnimatePresence initial={false}>
-                    {recentCards.length > 0 && (
-                        <motion.div
-                            key="recents-section"
-                            variants={slideVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                            className="overflow-hidden"
-                        >
-                            <SectionLabel
-                                icon={<Clock size={12} style={{ color: 'var(--text-muted)' }} />}
-                                label="Recently Used"
-                                count={recentCards.length}
-                                collapsible
-                                collapsed={recentsCollapsed}
-                                onToggleCollapse={() => setRecentsCollapsed((v) => !v)}
-                                onClearAll={clearRecents}
-                            />
-
-                            {/* Collapsible cards area */}
-                            <AnimatePresence initial={false}>
-                                {!recentsCollapsed && (
-                                    <motion.div
-                                        key="recents-cards"
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{
-                                            opacity: 1,
-                                            height: 'auto',
-                                            transition: { duration: 0.25, ease: 'easeOut' },
-                                        }}
-                                        exit={{
-                                            opacity: 0,
-                                            height: 0,
-                                            transition: { duration: 0.18, ease: 'easeIn' },
-                                        }}
-                                        className="overflow-hidden"
-                                    >
-                                        <motion.div className="flex flex-wrap gap-5 pt-0.5" layout>
-                                            <AnimatePresence mode="popLayout">
-                                                {recentCards.map((card, i) => (
-                                                    <MiniCard
-                                                        key={card.toolId ?? card.route}
-                                                        card={card}
-                                                        index={i}
-                                                        removeLabel={`Remove ${card.title} from recents`}
-                                                        onRemove={() => removeRecent(card.toolId ?? '')}
-                                                    />
-                                                ))}
-                                            </AnimatePresence>
-                                        </motion.div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                {/* Recently Used removed - moved to Header Drawer */}
 
                 {/* Divider */}
                 <div style={{ borderTop: '1px solid var(--border-subtle)' }} />

@@ -11,7 +11,7 @@ export default function NotFound() {
         className="absolute left-[clamp(1.25rem,4vw,4rem)] top-[clamp(1.25rem,4vw,3.5rem)] z-30 inline-flex  px-5 py-3  transition hover:bg-white/45"
       >
         <Image
-          src="/assets/images/toolbase-light-cropped.png"
+          src="/assets/images/logo-toolbase-light.png"
           alt="Toolbase"
           width={1390}
           height={355}
