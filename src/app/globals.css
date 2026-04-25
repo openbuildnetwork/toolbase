@@ -2,6 +2,7 @@
 
 /* ── Light theme (default) ──────────────────────────────────────────── */
 :root {
+  color-scheme: light;
   --background: #f5f5f7;
   --foreground: #1c1c1e;
   --primary: #2b8cee;
@@ -40,6 +41,7 @@
 
 /* ── Dark theme (Slate/Charcoal) ────────────────────────────────────── */
 .dark {
+  color-scheme: dark;
   --background: #191A23;
   --foreground: #F3F4F6;
   --primary: #3B82F6;
@@ -438,5 +440,11 @@
 
   .scrollbar-thumb-gray-200::-webkit-scrollbar-thumb {
     background: var(--scrollbar-thumb);
+  }
+
+  /* Dropdown option styling */
+  select option {
+    background-color: var(--surface-elevated);
+    color: var(--text-primary);
   }
 }
