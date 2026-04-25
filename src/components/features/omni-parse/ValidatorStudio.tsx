@@ -3,6 +3,7 @@
 import React from "react";
 import { Editor } from "@monaco-editor/react";
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Select";
 import type { ValidationResult } from "@/lib/omni-parse";
@@ -27,18 +28,20 @@ export function ValidatorStudio({
   validationIssues,
   languageMap,
 }: ValidatorStudioProps) {
+  const { resolvedTheme } = useTheme();
+
   return (
     <div className="grid lg:grid-cols-12 gap-6">
       <div className="lg:col-span-12 space-y-5">
-        <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-          <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+        <Card className="p-0 overflow-hidden border-(--border-subtle)">
+          <div className="border-b border-(--border-subtle) bg-linear-to-r from-sky-500/10 via-cyan-500/5 to-transparent px-5 py-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-sky-700" />
-                  <h3 className="text-sm font-semibold text-gray-900">Validator Studio</h3>
+                  <CheckCircle2 className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                  <h3 className="text-sm font-semibold text-(--text-primary)">Validator Studio</h3>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">Validate JSON, XML, and YAML inputs in real time.</p>
+                <p className="mt-1 text-xs text-(--text-muted)">Validate JSON, XML, and YAML inputs in real time.</p>
               </div>
             </div>
           </div>
@@ -74,13 +77,13 @@ export function ValidatorStudio({
               </div>
             </div>
 
-            <div className="mt-4 h-[360px] border border-gray-200 rounded-xl overflow-hidden">
+            <div className="mt-4 h-[360px] border border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-secondary)/50">
               <Editor
                 height="100%"
                 defaultLanguage={languageMap[validateFormat]}
                 value={validateInput}
                 onChange={(val) => setValidateInput(val || "")}
-                theme="vs"
+                theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs'}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 13,
@@ -97,10 +100,10 @@ export function ValidatorStudio({
                   if (rows.length === 0) return null;
                   const style =
                     severity === "critical"
-                      ? "border-red-200 bg-red-50 text-red-700"
+                      ? "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400"
                       : severity === "warning"
-                        ? "border-amber-200 bg-amber-50 text-amber-700"
-                        : "border-sky-200 bg-sky-50 text-sky-700";
+                        ? "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                        : "border-sky-500/20 bg-sky-500/10 text-sky-600 dark:text-sky-400";
                   return (
                     <div key={severity} className={`rounded-xl border px-4 py-3 ${style}`}>
                       <div className="flex items-center gap-2 text-sm font-semibold capitalize">
@@ -109,15 +112,15 @@ export function ValidatorStudio({
                       </div>
                       <ul className="mt-2 space-y-2 text-sm">
                         {rows.map((row, idx) => (
-                          <li key={`${severity}-${idx}`} className="rounded-lg border border-black/10 bg-white/70 px-3 py-2">
-                            <div className="font-medium">{row.message}</div>
-                            <div className="text-xs mt-1">
+                          <li key={`${severity}-${idx}`} className="rounded-lg border border-(--border-subtle) bg-(--surface-overlay) px-3 py-2">
+                            <div className="font-medium text-(--text-primary)">{row.message}</div>
+                            <div className="text-xs mt-1 text-(--text-muted)">
                               {(row.line || row.column) && (
                                 <span>line {row.line ?? "?"}, col {row.column ?? "?"}</span>
                               )}
                               {row.path && <span className="ml-2">path {row.path}</span>}
                             </div>
-                            <div className="text-xs mt-1">Suggestion: {row.suggestion}</div>
+                            <div className="text-xs mt-1 text-(--text-muted)">Suggestion: {row.suggestion}</div>
                           </li>
                         ))}
                       </ul>

@@ -3,6 +3,7 @@
 import React from "react";
 import { Editor } from "@monaco-editor/react";
 import { Upload, Wand2 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -90,6 +91,8 @@ export function FormatterStudio({
   fixtureImportRef,
   languageMap,
 }: FormatterStudioProps) {
+  const { resolvedTheme } = useTheme();
+
   return (
     <div className="grid lg:grid-cols-12 gap-6">
       <div className="lg:col-span-12 space-y-5">
@@ -189,7 +192,7 @@ export function FormatterStudio({
                 defaultLanguage={languageMap[validateFormat]}
                 value={validateInput}
                 onChange={(val) => setValidateInput(val || "")}
-                theme="vs"
+                theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs'}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 13,

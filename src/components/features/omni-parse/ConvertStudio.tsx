@@ -3,6 +3,7 @@
 import React from "react";
 import { Editor } from "@monaco-editor/react";
 import { ArrowRightLeft, XCircle } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Select";
@@ -35,18 +36,20 @@ export function ConvertStudio({
   formatOptions,
   languageMap,
 }: ConvertStudioProps) {
+  const { resolvedTheme } = useTheme();
+
   return (
     <div className="grid lg:grid-cols-12 gap-6">
       <div className="lg:col-span-12 space-y-5">
-        <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-          <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+        <Card className="p-0 overflow-hidden border-(--border-subtle)">
+          <div className="border-b border-(--border-subtle) bg-linear-to-r from-sky-500/10 via-cyan-500/5 to-transparent px-5 py-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <ArrowRightLeft className="w-4 h-4 text-sky-700" />
-                  <h3 className="text-sm font-semibold text-gray-900">Convert Studio</h3>
+                  <ArrowRightLeft className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                  <h3 className="text-sm font-semibold text-(--text-primary)">Convert Studio</h3>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">Convert structured data between JSON, XML, YAML, and TOML.</p>
+                <p className="mt-1 text-xs text-(--text-muted)">Convert structured data between JSON, XML, YAML, and TOML.</p>
               </div>
             </div>
           </div>
@@ -54,7 +57,7 @@ export function ConvertStudio({
           <div className="p-5">
             <div className="flex flex-wrap items-center gap-4">
               <div className="w-48">
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Input Format</label>
+                <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Input Format</label>
                 <Select value={inputFormat} onChange={(e) => setInputFormat(e.target.value as DataFormat)}>
                   {formatOptions.map((opt) => (
                     <option key={opt.id} value={opt.id}>{opt.label}</option>
@@ -62,7 +65,7 @@ export function ConvertStudio({
                 </Select>
               </div>
               <div className="w-48">
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Output Format</label>
+                <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Output Format</label>
                 <Select value={outputFormat} onChange={(e) => setOutputFormat(e.target.value as DataFormat)}>
                   {formatOptions.map((opt) => (
                     <option key={opt.id} value={opt.id}>{opt.label}</option>
@@ -78,14 +81,14 @@ export function ConvertStudio({
 
             <div className="mt-4 grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Input</label>
-                <div className="h-[360px] border border-gray-200 rounded-xl overflow-hidden">
+                <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Input</label>
+                <div className="h-[360px] border border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-secondary)/50">
                   <Editor
                     height="100%"
                     defaultLanguage={languageMap[inputFormat]}
                     value={inputText}
                     onChange={(val) => setInputText(val || "")}
-                    theme="vs"
+                    theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs'}
                     options={{
                       minimap: { enabled: false },
                       fontSize: 13,
@@ -97,12 +100,13 @@ export function ConvertStudio({
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Output</label>
-                <div className="h-[360px] border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+                <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Output</label>
+                <div className="h-[360px] border border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-secondary)/50">
                   <Editor
                     height="100%"
                     defaultLanguage={languageMap[outputFormat]}
                     value={outputText}
+                    theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs'}
                     options={{
                       minimap: { enabled: false },
                       fontSize: 13,

@@ -3,6 +3,7 @@
 import React from "react";
 import { Editor } from "@monaco-editor/react";
 import { Braces, Download } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -131,6 +132,7 @@ export function GeneratorHub({
   roundTripReport,
   languageMap,
 }: GeneratorHubProps) {
+  const { resolvedTheme } = useTheme();
   const collapseOrRestore = () => {
     if (docGraphDefaultExpandDepth > 0) {
       setDocGraphRestoreExpandDepth(docGraphDefaultExpandDepth);
@@ -186,7 +188,7 @@ export function GeneratorHub({
                   language={languageMap[docInputFormat]}
                   value={docInput}
                   onChange={(val) => setDocInput(val || "")}
-                  theme="vs"
+                  theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs'}
                   options={{ minimap: { enabled: false }, fontSize: 12, padding: { top: 12, bottom: 12 }, scrollBeyondLastLine: false }}
                 />
               </div>

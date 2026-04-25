@@ -93,10 +93,10 @@ export default function DataForgePage() {
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="h-full w-full space-y-8">
             {activeSection === "fields" && (
-              <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-                <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+              <Card className="p-0 overflow-hidden border border-(--border-subtle)">
+                <div className="border-b border-(--border-subtle) bg-linear-to-r from-sky-500/10 via-cyan-500/5 to-transparent px-5 py-4">
                   <div className="flex items-center gap-2">
-                    <Layers3 className="w-4 h-4 text-sky-700" />
+                    <Layers3 className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                     <h3 className="text-sm font-semibold text-(--text-primary)">Field Builder</h3>
                   </div>
                   <p className="mt-1 text-xs text-(--text-tertiary)">Define fields and constraints to generate realistic mock rows.</p>
@@ -127,7 +127,7 @@ export default function DataForgePage() {
                           </Button>
 
                           {(field.type === "int" || field.type === "float") && (
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 text-xs text-(--text-muted)">
                               <span>Min</span>
                               <Input
                                 type="number"
@@ -146,7 +146,7 @@ export default function DataForgePage() {
                           )}
 
                           {field.type === "date" && (
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 text-xs text-(--text-muted)">
                               <span>Start</span>
                               <Input
                                 type="date"
@@ -165,7 +165,7 @@ export default function DataForgePage() {
                           )}
 
                           {field.type === "string" && (
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 text-xs text-(--text-muted)">
                               <span>Min Len</span>
                               <Input
                                 type="number"
@@ -292,10 +292,10 @@ export default function DataForgePage() {
             )}
 
             {activeSection === "blueprint" && (
-              <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-                <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+              <Card className="p-0 overflow-hidden border border-(--border-subtle)">
+                <div className="border-b border-(--border-subtle) bg-linear-to-r from-sky-500/10 via-cyan-500/5 to-transparent px-5 py-4">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-sky-700" />
+                    <Sparkles className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                     <h3 className="text-sm font-semibold text-(--text-primary)">Blueprint Generator</h3>
                   </div>
                   <p className="mt-1 text-xs text-(--text-tertiary)">Define nested structures with constraints, null chance, and linked logic.</p>
@@ -352,10 +352,10 @@ export default function DataForgePage() {
             )}
 
             {activeSection === "testing" && (
-              <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-                <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+              <Card className="p-0 overflow-hidden border border-(--border-subtle)">
+                <div className="border-b border-(--border-subtle) bg-linear-to-r from-sky-500/10 via-cyan-500/5 to-transparent px-5 py-4">
                   <div className="flex items-center gap-2">
-                    <FlaskConical className="w-4 h-4 text-sky-700" />
+                    <FlaskConical className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                     <h3 className="text-sm font-semibold text-(--text-primary)">Testing Studio</h3>
                   </div>
                   <p className="mt-1 text-xs text-(--text-tertiary)">Schema-first deterministic datasets with profile-based generation and fixture pack workflows.</p>
