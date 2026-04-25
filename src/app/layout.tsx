@@ -1,3 +1,5 @@
+'use client';
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
@@ -5,6 +7,7 @@ import { CommandPaletteProvider } from "../components/ui/CommandPaletteProvider"
 import { AIChatProvider } from "@/hooks/useAIChat";
 import { GlobalAIOverlay } from "@/components/ai/GlobalAIOverlay";
 import { ThemeProvider } from "../components/ui/ThemeProvider";
+import { DaylightManager } from "../components/ui/DaylightManager";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,20 +24,6 @@ const inter = Inter({
   subsets: ["latin"],
   display: "swap",
 });
-
-export const metadata: Metadata = {
-  title: {
-    template: "%s | OBN Toolkit",
-    default: "OBN Toolkit",
-  },
-  description: "The Open Build Network: Browser-based utilities for the privacy-conscious developer.",
-  keywords: ["developer tools", "privacy", "pdf tools", "browser tools", "no upload"],
-  openGraph: {
-    title: "OBN Toolkit",
-    description: "Every tool you need. Zero data leaves your machine.",
-    type: "website",
-  },
-};
 
 export default function RootLayout({
   children,
@@ -72,6 +61,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ThemeProvider>
+          <DaylightManager />
           <AIChatProvider>
             {/* Global Header + Cmd+K palette — both managed by the client provider */}
             <CommandPaletteProvider />

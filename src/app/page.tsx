@@ -4,6 +4,7 @@ import NextImage from 'next/image';
 import SearchBar from "../components/ui/SearchBar";
 import ToolGrid from "../components/ui/ToolGrid";
 import { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import BottomNav from "../components/ui/BottomNav";
 import Header from '@/components/ui/Header';
 import Footer from '@/components/ui/Footer';
@@ -35,29 +36,88 @@ export default function Home() {
 
   const tools = useMemo(() => registryToCardProps(TOOLS), []);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.12,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 1.2, 
+        ease: [0.23, 1, 0.32, 1] 
+      }
+    }
+  };
+
   return (
     <div>
       <Header 
         onOpenRecents={() => setIsRecentsOpen(true)} 
         onOpenFavorites={() => setIsFavoritesOpen(true)}
       />
-      <div className="view font-display min-h-screen flex flex-col selection:bg-primary/30 antialiased"
+      <div className="view relative font-display min-h-screen flex flex-col selection:bg-primary/30 antialiased overflow-x-hidden"
         style={{ background: 'var(--background)', color: 'var(--text-primary)' }}
       >
-        <main className="grow px-6 md:px-20 lg:px-40 py-12 lg:py-16">
-          <div className="max-w-[1200px] mx-auto">
-            <h3 className="text-2xl md:text-3xl font-semibold tracking-tight text-center mb-10 max-w-2xl mx-auto leading-snug animate-fade-up">
-              The Open Build Network: Browser-based utilities for the privacy-conscious developer.
-            </h3>
+        {/* Background decorative element */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1400px] h-[600px] pointer-events-none overflow-hidden -z-0">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/10 dark:bg-primary/5 rounded-full blur-[120px] animate-pulse" />
+        </div>
 
-            <div className="animate-fade-up-delay-1 mb-12">
+        <main className="relative grow z-10 px-6 md:px-20 lg:px-40 py-12 lg:py-24">
+          <div className="max-w-[1200px] mx-auto">
+            
+            {/* Animated High-Impact Headline */}
+            <motion.div 
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="mb-16 md:mb-24"
+            >
+              <motion.h1 
+                variants={itemVariants}
+                className="text-5xl md:text-6xl lg:text-8xl font-extrabold tracking-tight text-center leading-[0.95] md:leading-[0.9]"
+              >
+                <span className="block text-transparent bg-clip-text bg-gradient-to-br from-primary via-blue-500 to-cyan-400 pb-2 drop-shadow-sm">
+                  Your tools.
+                </span>
+                <span className="block text-transparent bg-clip-text bg-gradient-to-br from-primary/80 via-blue-600 to-indigo-500 pb-4">
+                  Your browser.
+                </span>
+              </motion.h1>
+              
+              <motion.p 
+                variants={itemVariants}
+                className="text-center text-xl md:text-2xl lg:text-3xl font-medium opacity-80 max-w-2xl mx-auto mt-6"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                No servers, no tracking, no compromise.
+              </motion.p>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 1 }}
+              className="mb-16"
+            >
               <SearchBar value={searchQuery} onChange={setSearchQuery} />
-            </div>
+            </motion.div>
 
             <div id="tool-grid-section">
               <ToolGrid searchQuery={searchQuery} tools={tools} />
             </div>
-            <div className="mt-16 flex justify-center">
+            
+            <div className="mt-20 flex justify-center">
               <div
                 className="
                           flex items-center gap-2

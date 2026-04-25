@@ -19,7 +19,6 @@ import { passwordxConfig } from "./tools/passwordx";
 import { omniParseConfig } from "./tools/omni-parse";
 import { dataForgeConfig } from "./tools/data-forge";
 import { archiveKitConfig } from "./tools/archive-kit";
-import { systemConfig } from "./tools/system";
 
 // ============================================================
 // REGISTERED TOOLS
@@ -40,7 +39,6 @@ export const TOOLS: ToolMeta[] = [
   omniParseConfig,
   dataForgeConfig,
   archiveKitConfig,
-  systemConfig,
 ];
 
 // ============================================================

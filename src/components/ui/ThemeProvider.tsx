@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * ThemeProvider — wraps next-themes for dark/light/system theme support.
+ * ThemeProvider — wraps next-themes for dark/light/system/daylight theme support.
  * Uses class-based strategy so Tailwind `dark:` variants and `.dark` CSS selectors work.
  */
 
@@ -15,6 +15,7 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
+            themes={['light', 'dark', 'system', 'daylight']}
             {...props}
         >
             {children}

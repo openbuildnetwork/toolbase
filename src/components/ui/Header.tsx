@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import React from 'react';
-import { Search, Command, MessageSquare, Sparkles, Clock, Heart } from 'lucide-react';
+import { Search, Command, MessageSquare, Sparkles, Clock, Heart, Github } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { useAIChat } from '@/hooks/useAIChat';
 import { useToolPreferences } from '@/hooks/useToolPreferences';
@@ -168,6 +168,21 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFav
                             </span>
                         )}
                     </button>
+
+                    {/* GitHub Link */}
+                    <a
+                        href="https://github.com/openbuildnetwork/toolbase"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="View on GitHub"
+                        className="group h-9 w-9 flex items-center justify-center rounded-xl transition-all duration-150"
+                        style={{
+                            background: 'var(--surface-hover)',
+                            color: 'var(--text-muted)'
+                        }}
+                    >
+                        <Github size={18} className="group-hover:text-primary transition-colors" />
+                    </a>
 
                 </div>
             </div>
