@@ -4,7 +4,7 @@ import NextImage from 'next/image';
 import SearchBar from "../components/ui/SearchBar";
 import ToolGrid from "../components/ui/ToolGrid";
 import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import BottomNav from "../components/ui/BottomNav";
 import Header from '@/components/ui/Header';
 import Footer from '@/components/ui/Footer';
@@ -36,7 +36,7 @@ export default function Home() {
 
   const tools = useMemo(() => registryToCardProps(TOOLS), []);
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -47,7 +47,7 @@ export default function Home() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
       opacity: 1, 

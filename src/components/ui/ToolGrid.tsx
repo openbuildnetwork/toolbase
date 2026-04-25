@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import ToolCard from './ToolCard';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { ToolCardProps } from '@/types/tool-search';
 import { searchTools } from '@/lib/searchTools';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -13,7 +13,7 @@ interface ToolGridProps {
     tools: ToolCardProps[];
 }
 
-const itemVariants = {
+const itemVariants: Variants = {
     hidden: { opacity: 0, scale: 0.8, y: 30 },
     visible: (i: number) => ({
         opacity: 1,
