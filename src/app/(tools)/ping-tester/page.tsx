@@ -67,17 +67,17 @@ export default function PingTesterPage() {
     };
 
     return (
-        <div className="min-h-screen bg-background-light p-4 md:p-8 font-display">
+        <div className="min-h-screen bg-(--background) text-(--text-primary) p-4 md:p-8 font-display">
             <div className="max-w-7xl mx-auto space-y-8">
                 {/* Header / Top Toolbar */}
-                <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/40 backdrop-blur-xl p-6 rounded-3xl border border-white/20 shadow-xl ring-1 ring-black/5">
+                <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-(--surface-overlay) backdrop-blur-xl p-6 rounded-3xl border border-(--border-subtle) shadow-xl shadow-black/5 dark:shadow-black/30 ring-1 ring-(--border-subtle)">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
                             <Activity className="w-7 h-7" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold tracking-tight text-gray-900 leading-tight">Ping Tester</h1>
-                            <p className="text-sm text-gray-500 font-medium">HTTP-based latency connectivity check</p>
+                            <h1 className="text-2xl font-bold tracking-tight text-(--text-primary) leading-tight">Ping Tester</h1>
+                            <p className="text-sm text-(--text-tertiary) font-medium">HTTP-based latency connectivity check</p>
                         </div>
                     </div>
                     <ReturnToToolsButton />
@@ -88,7 +88,7 @@ export default function PingTesterPage() {
                                 value={target}
                                 onChange={(e) => setTarget(e.target.value)}
                                 placeholder="example.com or 8.8.8.8"
-                                className="h-11 bg-white/50"
+                                className="h-11 bg-(--input-bg) border-(--border-medium)"
                                 disabled={isRunning}
                             />
                         </div>
@@ -105,7 +105,7 @@ export default function PingTesterPage() {
                                 variant="outline"
                                 onClick={stopPing}
                                 disabled={!isRunning}
-                                className="h-11 bg-white/50 border-gray-100 text-red-500 hover:bg-red-50 hover:border-red-100"
+                                className="h-11 bg-(--surface-secondary) border-(--border-medium) text-red-500 hover:bg-red-500/10 hover:border-red-500/20"
                             >
                                 <Square className="w-4 h-4 mr-2" />
                                 Stop
@@ -113,7 +113,7 @@ export default function PingTesterPage() {
                             <Button
                                 variant="outline"
                                 onClick={clearResults}
-                                className="h-11 bg-white/50 border-gray-100 hover:bg-gray-50"
+                                className="h-11 bg-(--surface-secondary) border-(--border-medium) hover:bg-(--surface-hover)"
                                 disabled={isRunning || results.length === 0}
                             >
                                 <Trash2 className="w-4 h-4" />
@@ -129,27 +129,27 @@ export default function PingTesterPage() {
                         {/* Results Output */}
                         <div className="flex flex-col h-full space-y-3 min-h-[500px]">
                             <div className="flex items-center justify-between px-1">
-                                <div className="flex items-center gap-2 text-gray-500">
+                                <div className="flex items-center gap-2 text-(--text-tertiary)">
                                     <Terminal className="w-4 h-4" />
                                     <span className="text-xs font-bold uppercase tracking-wider">Ping Output</span>
                                 </div>
-                                <div className="flex items-center gap-1.5 text-blue-500">
+                                <div className="flex items-center gap-1.5 text-blue-500 shadow-sm dark:text-blue-400">
                                     <Info className="w-3.5 h-3.5" />
                                     <span className="text-[10px] font-bold uppercase">HTTP Mode</span>
                                 </div>
                             </div>
-                            <Card className="flex-1 overflow-hidden border-none shadow-2xl bg-gray-950/95 backdrop-blur-3xl ring-1 ring-white/10 flex flex-col group">
+                            <Card className="flex-1 overflow-hidden border border-(--border-subtle) shadow-2xl shadow-black/10 dark:shadow-black/40 bg-gray-950/95 backdrop-blur-3xl ring-1 ring-white/10 flex flex-col group">
                                 <div
                                     ref={outputRef}
                                     className="flex-1 overflow-auto p-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
                                 >
                                     <div className="font-mono text-sm space-y-1.5">
                                         {results.length === 0 ? (
-                                            <div className="text-gray-500 italic">Ready to ping...</div>
+                                            <div className="text-(--text-muted) italic">Ready to ping...</div>
                                         ) : (
                                             results.map((res, i) => (
                                                 <div key={i} className="flex items-start gap-4 py-0.5 border-b border-white/5 last:border-0">
-                                                    <span className="text-gray-500 shrink-0">[{res.timestamp}]</span>
+                                                    <span className="text-(--text-muted) shrink-0">[{res.timestamp}]</span>
                                                     <span className="text-blue-400 shrink-0">Target: {res.host}</span>
                                                     <span className="flex-1 text-gray-300">
                                                         {res.latency !== null ? `time=${res.latency}ms` : '---'}
@@ -182,9 +182,9 @@ export default function PingTesterPage() {
                                             { label: 'Loss', value: `${stats.lossRate}%`, icon: <AlertCircle className="w-3.5 h-3.5" />, color: 'red' },
                                             { label: 'Avg Latency', value: `${stats.avg}ms`, icon: <Timer className="w-3.5 h-3.5" />, color: 'purple' },
                                         ].map((stat, i) => (
-                                            <Card key={i} className="p-4 border-none shadow-lg bg-white/70 backdrop-blur-xl">
+                                            <Card key={i} className="p-4 border border-(--border-subtle) shadow-lg bg-(--surface-overlay) backdrop-blur-xl shadow-black/5 dark:shadow-black/20">
                                                 <div className="flex flex-col gap-1">
-                                                    <div className="flex items-center gap-2 text-gray-400">
+                                                    <div className="flex items-center gap-2 text-(--text-muted)">
                                                         {stat.icon}
                                                         <span className="text-[10px] font-bold uppercase tracking-wider">{stat.label}</span>
                                                     </div>
@@ -211,84 +211,84 @@ export default function PingTesterPage() {
 
                     {/* Right Column: Configuration & Notes */}
                     <div className="lg:col-span-4 space-y-6">
-                        <Card className="border-none shadow-lg bg-white/70 backdrop-blur-xl ring-1 ring-black/5">
-                            <div className="px-6 py-4 border-b border-gray-100 bg-white/30">
+                        <Card className="border border-(--border-subtle) shadow-lg bg-(--surface-overlay) backdrop-blur-xl shadow-black/5 dark:shadow-black/20 ring-1 ring-(--border-subtle)">
+                            <div className="px-6 py-4 border-b border-(--border-subtle) bg-white/5">
                                 <div className="flex items-center gap-2">
-                                    <Settings2 className="w-4 h-4 text-gray-500" />
-                                    <span className="font-bold text-sm text-gray-900 uppercase tracking-tight">Configuration</span>
+                                    <Settings2 className="w-4 h-4 text-(--text-tertiary)" />
+                                    <span className="font-bold text-sm text-(--text-primary) uppercase tracking-tight">Configuration</span>
                                 </div>
                             </div>
-                            <div className="p-6 space-y-6">
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-bold uppercase text-gray-500">Target Host</Label>
-                                        <Input
-                                            value={target}
-                                            onChange={(e) => setTarget(e.target.value)}
-                                            placeholder="example.com"
-                                            className="h-10 bg-white/50"
-                                            disabled={isRunning}
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                <div className="p-6 space-y-6">
+                                    <div className="space-y-4">
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-bold uppercase text-gray-500">Packet Count</Label>
+                                            <Label className="text-xs font-bold uppercase text-(--text-muted)">Target Host</Label>
                                             <Input
-                                                type="number"
-                                                value={options.packetCount}
-                                                onChange={(e) => setOptions(prev => ({ ...prev, packetCount: parseInt(e.target.value) || 4 }))}
-                                                className="h-10 bg-white/50"
+                                                value={target}
+                                                onChange={(e) => setTarget(e.target.value)}
+                                                placeholder="example.com"
+                                                className="h-10 bg-(--input-bg) border-(--border-medium)"
                                                 disabled={isRunning}
-                                                min={1}
-                                                max={100}
                                             />
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold uppercase text-gray-500">Interval (ms)</Label>
-                                            <Input
-                                                type="number"
-                                                value={options.interval}
-                                                onChange={(e) => setOptions(prev => ({ ...prev, interval: parseInt(e.target.value) || 1000 }))}
-                                                className="h-10 bg-white/50"
-                                                disabled={isRunning}
-                                                min={100}
-                                                max={10000}
-                                            />
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold uppercase text-(--text-muted)">Packet Count</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={options.packetCount}
+                                                    onChange={(e) => setOptions(prev => ({ ...prev, packetCount: parseInt(e.target.value) || 4 }))}
+                                                    className="h-10 bg-(--input-bg) border-(--border-medium)"
+                                                    disabled={isRunning}
+                                                    min={1}
+                                                    max={100}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold uppercase text-(--text-muted)">Interval (ms)</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={options.interval}
+                                                    onChange={(e) => setOptions(prev => ({ ...prev, interval: parseInt(e.target.value) || 1000 }))}
+                                                    className="h-10 bg-(--input-bg) border-(--border-medium)"
+                                                    disabled={isRunning}
+                                                    min={100}
+                                                    max={10000}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="pt-6 border-t border-gray-100 space-y-4">
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 shrink-0">
-                                            <Globe className="w-4 h-4" />
+                                    <div className="pt-6 border-t border-(--border-subtle) space-y-4">
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0">
+                                                <Globe className="w-4 h-4" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <h4 className="text-xs font-bold text-(--text-secondary)">Client-Side Only</h4>
+                                                <p className="text-[11px] text-(--text-tertiary) leading-relaxed">
+                                                    Tests are conducted directly from your browser. No data leaves your machine.
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="space-y-1">
-                                            <h4 className="text-xs font-bold text-gray-700">Client-Side Only</h4>
-                                            <p className="text-[11px] text-gray-500 leading-relaxed">
-                                                Tests are conducted directly from your browser. No data leaves your machine.
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 shrink-0">
-                                            <Zap className="w-4 h-4" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <h4 className="text-xs font-bold text-gray-700">HTTP Latency Check</h4>
-                                            <p className="text-[11px] text-gray-500 leading-relaxed">
-                                                Uses HTTP requests instead of ICMP. Measures time-to-first-byte (TTFB) or equivalent.
-                                            </p>
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
+                                                <Zap className="w-4 h-4" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <h4 className="text-xs font-bold text-(--text-secondary)">HTTP Latency Check</h4>
+                                                <p className="text-[11px] text-(--text-tertiary) leading-relaxed">
+                                                    Uses HTTP requests instead of ICMP. Measures time-to-first-byte (TTFB) or equivalent.
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
                         </Card>
 
                         {/* Transparency Note */}
-                        <div className="flex items-center justify-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                        <div className="flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
                                 Runs locally • No data stored • HTTP check
                             </span>
                         </div>

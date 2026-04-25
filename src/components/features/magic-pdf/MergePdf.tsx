@@ -134,17 +134,17 @@ export default function MergePdf({
                     >
                         <Card className={cn(
                             "relative overflow-hidden transition-all duration-300 ease-out",
-                            "bg-gradient-to-br from-white via-gray-50/40 to-white",
-                            "border-2 border-border-medium/60 hover:border-purple-300/60",
-                            "hover:shadow-xl hover:shadow-purple-500/10",
+                            "bg-linear-to-br from-(--surface) via-(--surface-overlay) to-(--surface)",
+                            "border-2 border-(--border-medium) hover:border-(--primary)/60",
+                            "hover:shadow-xl hover:shadow-(--primary)/10",
                             "h-[260px] flex flex-col"
                         )}>
                             {/* Order badge with gradient */}
                             <div className="absolute top-3 left-3 z-20">
                                 <div className={cn(
                                     "w-7 h-7 rounded-xl flex items-center justify-center",
-                                    "bg-gradient-to-br from-purple-600 to-violet-600",
-                                    "text-background font-bold text-sm shadow-lg shadow-purple-500/30",
+                                    "bg-linear-to-br from-(--primary) to-(--primary) opacity-80",
+                                    "text-white font-bold text-sm shadow-lg shadow-(--primary) opacity-30",
                                     "transition-transform duration-300 group-hover:scale-110"
                                 )}>
                                     {index + 1}
@@ -157,38 +157,38 @@ export default function MergePdf({
                                     <button
                                         onClick={() => moveFile(index, 'up')}
                                         disabled={index === 0}
-                                        className="p-2 hover:bg-purple-100 rounded-lg disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
+                                        className="p-2 hover:bg-(--surface-hover) rounded-lg disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
                                         title="Move up"
                                     >
-                                        <ArrowUp className="w-4 h-4 text-text-secondary hover:text-purple-600" />
+                                        <ArrowUp className="w-4 h-4 text-(--text-secondary) hover:text-(--primary)" />
                                     </button>
                                     <button
                                         onClick={() => moveFile(index, 'down')}
                                         disabled={index === files.length - 1}
-                                        className="p-2 hover:bg-purple-100 rounded-lg disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
+                                        className="p-2 hover:bg-(--surface-hover) rounded-lg disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
                                         title="Move down"
                                     >
-                                        <ArrowDown className="w-4 h-4 text-text-secondary hover:text-purple-600" />
+                                        <ArrowDown className="w-4 h-4 text-(--text-secondary) hover:text-(--primary)" />
                                     </button>
                                     <button
                                         onClick={() => window.open(URL.createObjectURL(file), '_blank')}
-                                        className="p-2 hover:bg-primary/10 rounded-lg transition-all hover:scale-110 active:scale-95"
+                                        className="p-2 hover:bg-(--primary) opacity-10 rounded-lg transition-all hover:scale-110 active:scale-95"
                                         title="Preview"
                                     >
-                                        <Eye className="w-4 h-4 text-text-secondary hover:text-primary" />
+                                        <Eye className="w-4 h-4 text-(--text-secondary) hover:text-(--primary)" />
                                     </button>
                                     <button
                                         onClick={() => removeFile(index)}
-                                        className="p-2 hover:bg-red-100 rounded-lg transition-all hover:scale-110 active:scale-95"
+                                        className="p-2 hover:bg-red-500 opacity-10 rounded-lg transition-all hover:scale-110 active:scale-95"
                                         title="Remove"
                                     >
-                                        <Trash2 className="w-4 h-4 text-text-secondary hover:text-red-600" />
+                                        <Trash2 className="w-4 h-4 text-(--text-secondary) hover:text-red-600" />
                                     </button>
                                 </div>
                             </div>
 
                             {/* PDF Preview with gradient background */}
-                            <div className="flex-1 bg-gradient-to-br from-gray-50 to-white flex items-center justify-center p-4 overflow-hidden relative">
+                            <div className="flex-1 bg-linear-to-br from-(--surface-secondary) to-(--surface) flex items-center justify-center p-4 overflow-hidden relative">
                                 {/* Subtle grid pattern background */}
                                 <div className="absolute inset-0 opacity-[0.03]" style={{
                                     backgroundImage: 'radial-gradient(circle at 1px 1px, #000 1px, transparent 0)',
@@ -200,7 +200,7 @@ export default function MergePdf({
                             </div>
 
                             {/* File info footer */}
-                            <div className="p-3 bg-gradient-to-r from-white/90 via-gray-50/50 to-white/90 backdrop-blur-sm border-t border-border-subtle/60">
+                            <div className="p-3 bg-linear-to-r from-(--surface-overlay) via-(--surface-secondary) to-(--surface-overlay) backdrop-blur-sm border-t border-(--border-subtle)">
                                 <p className="text-sm font-semibold text-text-primary truncate" title={file.name}>
                                     {file.name}
                                 </p>
@@ -210,7 +210,7 @@ export default function MergePdf({
                             </div>
 
                             {/* Hover glow effect */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-purple-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                            <div className="absolute inset-0 bg-linear-to-t from-(--primary)/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                         </Card>
                     </motion.div>
                 ))}
@@ -345,8 +345,8 @@ export default function MergePdf({
                 animate={{ opacity: 1, y: 0 }}
                 className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
             >
-                <Card className="w-full max-w-2xl bg-surface-elevated shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                    <div className="p-6 border-b border-border-subtle flex items-center justify-between">
+                <Card className="p-0 bg-(--surface-overlay) border border-(--border-subtle) shadow-sm overflow-hidden">
+                <div className="border-b border-(--border-subtle) bg-linear-to-r from-sky-500/5 via-cyan-500/5 to-transparent px-5 py-4">
                         <div>
                             <h3 className="text-xl font-bold text-text-primary">PDFs Merged Successfully!</h3>
                             <p className="text-sm text-text-muted">Your document is ready to download.</p>

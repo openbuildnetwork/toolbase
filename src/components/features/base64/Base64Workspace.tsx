@@ -259,34 +259,62 @@ export function Base64Workspace({
     return (
         <div className="flex flex-col h-full space-y-4">
             {showControls && (
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex gap-2 p-1 bg-(--surface) rounded-lg border border-(--border) shadow-sm">
-                        <button onClick={() => { setMode('text'); reset(); }} className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'text' ? 'bg-primary text-white shadow' : 'text-(--foreground) opacity-60 hover:opacity-100'}`}><FileText className="h-4 w-4" />Text</button>
-                        <button onClick={() => { setMode('file'); reset(); }} className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'file' ? 'bg-primary text-white shadow' : 'text-(--foreground) opacity-60 hover:opacity-100'}`}><FileCode className="h-4 w-4" />File</button>
+                <div className="flex flex-wrap items-center gap-3 text-(--text-primary)">
+                    <div className="flex gap-2 p-1 bg-(--surface-overlay) rounded-lg border border-(--border-subtle) shadow-sm">
+                        <button 
+                            onClick={() => { setMode('text'); reset(); }} 
+                            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'text' ? 'bg-(--primary) text-white shadow' : 'text-(--text-secondary) opacity-60 hover:opacity-100'}`}
+                        >
+                            <FileText className="h-4 w-4" />Text
+                        </button>
+                        <button 
+                            onClick={() => { setMode('file'); reset(); }} 
+                            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'file' ? 'bg-(--primary) text-white shadow' : 'text-(--text-secondary) opacity-60 hover:opacity-100'}`}
+                        >
+                            <FileCode className="h-4 w-4" />File
+                        </button>
                     </div>
 
-                    <div className="flex gap-2 p-1 bg-(--surface) rounded-lg border border-(--border) shadow-sm">
-                        <button onClick={() => { setOperation('encode'); reset(); }} className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${operation === 'encode' ? 'bg-primary text-white shadow' : 'text-(--foreground) opacity-60 hover:opacity-100'}`}>Encode</button>
-                        <button onClick={() => { setOperation('decode'); reset(); }} className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${operation === 'decode' ? 'bg-primary text-white shadow' : 'text-(--foreground) opacity-60 hover:opacity-100'}`}>Decode</button>
+                    <div className="flex gap-2 p-1 bg-(--surface-overlay) rounded-lg border border-(--border-subtle) shadow-sm">
+                        <button 
+                            onClick={() => { setOperation('encode'); reset(); }} 
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${operation === 'encode' ? 'bg-(--primary) text-white shadow' : 'text-(--text-secondary) opacity-60 hover:opacity-100'}`}
+                        >
+                            Encode
+                        </button>
+                        <button 
+                            onClick={() => { setOperation('decode'); reset(); }} 
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${operation === 'decode' ? 'bg-(--primary) text-white shadow' : 'text-(--text-secondary) opacity-60 hover:opacity-100'}`}
+                        >
+                            Decode
+                        </button>
                     </div>
 
-                    <label className="flex items-center gap-2 px-3 py-2 bg-(--surface) rounded-lg border border-(--border) shadow-sm cursor-pointer hover:bg-(--surface-secondary) transition-colors">
+                    <label className="flex items-center gap-2 px-3 py-2 bg-(--surface-overlay) rounded-lg border border-(--border-subtle) shadow-sm cursor-pointer hover:bg-(--surface-hover) transition-colors">
                         <Switch checked={urlSafe} onChange={(e) => setUrlSafe(e.target.checked)} />
-                        <span className="text-sm font-medium">URL Safe</span>
+                        <span className="text-sm font-medium text-(--text-secondary)">URL Safe</span>
                     </label>
 
-                    <button onClick={() => setShowAdvanced(!showAdvanced)} className="flex items-center gap-2 px-3 py-2 bg-(--surface) rounded-lg border border-(--border) shadow-sm text-sm font-medium hover:bg-(--surface-secondary) transition-colors">
+                    <button 
+                        onClick={() => setShowAdvanced(!showAdvanced)} 
+                        className="flex items-center gap-2 px-3 py-2 bg-(--surface-overlay) rounded-lg border border-(--border-subtle) shadow-sm text-sm font-medium hover:bg-(--surface-hover) transition-colors text-(--text-secondary)"
+                    >
                         <Settings className="h-4 w-4" />Advanced<ChevronDown className={`h-4 w-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
                     </button>
 
                     {mode === 'text' && (
-                        <label className="flex items-center gap-2 px-3 py-2 bg-(--surface) rounded-lg border border-(--border) shadow-sm cursor-pointer hover:bg-(--surface-secondary) transition-colors">
+                        <label className="flex items-center gap-2 px-3 py-2 bg-(--surface-overlay) rounded-lg border border-(--border-subtle) shadow-sm cursor-pointer hover:bg-(--surface-hover) transition-colors">
                             <Switch checked={liveMode} onChange={(e) => setLiveMode(e.target.checked)} />
-                            <span className="text-sm font-medium text-(--foreground)">Live</span>
+                            <span className="text-sm font-medium text-(--text-secondary)">Live</span>
                         </label>
                     )}
                     
-                    <Button onClick={() => handleProcess()} disabled={!isReady || isProcessing || (mode === 'text' && !inputText) || (mode === 'file' && !selectedFile)} className="ml-auto" isLoading={isProcessing}>
+                    <Button 
+                        onClick={() => handleProcess()} 
+                        disabled={!isReady || isProcessing || (mode === 'text' && !inputText) || (mode === 'file' && !selectedFile)} 
+                        className="ml-auto" 
+                        isLoading={isProcessing}
+                    >
                         {operation === 'encode' ? 'Encode' : 'Decode'}<ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                 </div>
@@ -295,17 +323,35 @@ export function Base64Workspace({
             <AnimatePresence>
                 {showAdvanced && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                        <Card className="p-4 bg-(--surface) border border-(--border)"><div className="flex items-center gap-3"><Switch checked={addMimeHeader} onChange={(e) => setAddMimeHeader(e.target.checked)} /><Label className="font-medium">Add MIME Header</Label>{addMimeHeader && (<Input value={mimeType} onChange={(e) => setMimeType(e.target.value)} placeholder="e.g., text/plain" className="max-w-xs" />)}</div></Card>
+                        <Card className="p-4 bg-(--surface-overlay) border border-(--border-subtle)">
+                            <div className="flex items-center gap-3">
+                                <Switch checked={addMimeHeader} onChange={(e) => setAddMimeHeader(e.target.checked)} />
+                                <Label className="font-medium text-(--text-primary)">Add MIME Header</Label>
+                                {addMimeHeader && (
+                                    <Input 
+                                        value={mimeType} 
+                                        onChange={(e) => setMimeType(e.target.value)} 
+                                        placeholder="e.g., text/plain" 
+                                        className="max-w-xs h-9 bg-(--input-bg) border-(--border-medium)" 
+                                    />
+                                )}
+                            </div>
+                        </Card>
                     </motion.div>
                 )}
             </AnimatePresence>
 
             <div className="grid lg:grid-cols-2 gap-4 flex-1 min-h-0">
                 {/* LEFT: INPUT */}
-                <Card className="flex flex-col bg-(--surface) border border-(--border) shadow-lg overflow-hidden h-full">
-                    <div className="p-4 border-b border-(--border) flex items-center justify-between shrink-0">
-                        <h2 className="font-semibold flex items-center gap-2"><span className="inline-flex items-center justify-center w-6 h-6 bg-primary/10 text-primary rounded-full text-xs font-bold">1</span>Input</h2>
-                        <span className="text-xs opacity-50 uppercase tracking-wider">{mode} mode</span>
+                <Card className="flex flex-col bg-(--surface-overlay) border border-(--border-subtle) shadow-lg overflow-hidden h-full">
+                    <div className="p-4 border-b border-(--border-subtle) flex items-center justify-between shrink-0">
+                        <h2 className="font-semibold flex items-center gap-2 text-(--text-primary)">
+                            <span className="inline-flex items-center justify-center w-6 h-6 bg-(--primary) opacity-20 text-(--primary) rounded-full text-xs font-bold ring-2 ring-(--primary)/20">
+                                1
+                            </span>
+                            Input
+                        </h2>
+                        <span className="text-xs opacity-50 uppercase tracking-wider text-(--text-tertiary)">{mode} mode</span>
                     </div>
                     <div className="flex-1 min-h-0 relative">
                         {mode === 'text' ? (
@@ -322,13 +368,21 @@ export function Base64Workspace({
                                 <FileDropZone onFileSelected={handleFileSelected} accept={acceptedFiles} />
                                 {selectedFile && (
                                     <div className="space-y-4">
-                                        <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20">
-                                            <div className="flex items-center gap-3"><div className="p-2 bg-primary/10 rounded"><FileText className="h-4 w-4 text-primary" /></div><div><p className="font-medium text-sm truncate max-w-[200px]">{selectedFile.name}</p><p className="text-xs opacity-60">{formatFileSize(selectedFile.size)}</p></div></div>
+                                        <div className="flex items-center justify-between p-3 bg-(--primary)/10 rounded-lg border border-(--primary)/20">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-(--primary)/10 rounded">
+                                                    <FileText className="h-4 w-4 text-(--primary)" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-sm truncate max-w-[200px] text-(--text-primary)">{selectedFile.name}</p>
+                                                    <p className="text-xs text-(--text-tertiary)">{formatFileSize(selectedFile.size)}</p>
+                                                </div>
+                                            </div>
                                             <Button variant="ghost" size="sm" onClick={() => handleFileSelected(null)} className="text-red-500 hover:bg-red-500/10 h-8">Remove</Button>
                                         </div>
                                         {imagePreview && (
-                                            <div className="p-4 bg-(--surface-secondary) rounded-lg border border-(--border) flex flex-col items-center">
-                                                <p className="text-xs font-semibold opacity-30 mb-3 self-start uppercase tracking-wider">Image Preview</p>
+                                            <div className="p-4 bg-(--surface-secondary) rounded-lg border border-(--border-subtle) flex flex-col items-center">
+                                                <p className="text-xs font-semibold opacity-30 mb-3 self-start uppercase tracking-wider text-(--text-tertiary)">Image Preview</p>
                                                 <img src={imagePreview} alt="Preview" className="max-h-64 rounded shadow-lg object-contain" />
                                             </div>
                                         )}
@@ -340,15 +394,20 @@ export function Base64Workspace({
                 </Card>
 
                 {/* RIGHT: OUTPUT */}
-                <Card className="flex flex-col bg-(--surface) border border-(--border) shadow-lg overflow-hidden h-full">
-                    <div className="p-4 border-b border-(--border) flex items-center justify-between shrink-0">
-                        <h2 className="font-semibold flex items-center gap-2"><span className="inline-flex items-center justify-center w-6 h-6 bg-green-500/10 text-green-700 rounded-full text-xs font-bold">2</span>Output</h2>
+                <Card className="flex flex-col bg-(--surface-overlay) border border-(--border-subtle) shadow-lg overflow-hidden h-full">
+                    <div className="p-4 border-b border-(--border-subtle) flex items-center justify-between shrink-0">
+                        <h2 className="font-semibold flex items-center gap-2 text-(--text-primary)">
+                            <span className="inline-flex items-center justify-center w-6 h-6 bg-green-500 opacity-20 text-green-600 rounded-full text-xs font-bold ring-2 ring-green-600/20">
+                                2
+                            </span>
+                            Output
+                        </h2>
                         <div className="flex items-center gap-2">
                             {result?.success && (
                                 <>
-                                    <span className="text-xs opacity-50 mr-2">{formatFileSize(result.size || 0)}</span>
+                                    <span className="text-xs text-(--text-tertiary) mr-2">{formatFileSize(result.size || 0)}</span>
                                     {!isLargeFile && result.result && <CopyToClipboard text={typeof result.result === 'string' ? result.result : (formattedPreview || previewText)} showText={false} />}
-                                    <Button variant="ghost" size="sm" onClick={handleDownload} className="h-8"><Download className="h-4 w-4" /></Button>
+                                    <Button variant="ghost" size="sm" onClick={handleDownload} className="h-8 text-(--text-secondary)"><Download className="h-4 w-4" /></Button>
                                 </>
                             )}
                         </div>
@@ -356,24 +415,32 @@ export function Base64Workspace({
                     <div className="flex-1 min-h-0 relative">
                         {error ? (
                             <div className="p-4 h-full flex items-center justify-center">
-                                <div className="max-w-md w-full p-4 bg-red-500/5 border-2 border-red-500/20 rounded-lg flex items-start gap-3">
-                                    <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 shrink-0" /><div><p className="font-semibold text-red-500">Processing Error</p><p className="text-sm text-red-500/90 mt-1">{error}</p></div>
+                                <div className="max-w-md w-full p-4 bg-red-500 opacity-5 border-2 border-red-500 opacity-20 rounded-lg flex items-start gap-3">
+                                    <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
+                                    <div>
+                                        <p className="font-semibold text-red-500">Processing Error</p>
+                                        <p className="text-sm text-red-500 opacity-90 mt-1">{error}</p>
+                                    </div>
                                 </div>
                             </div>
                         ) : result?.success ? (
                             decodedImageUrl ? (
                                 <div className="p-6 h-full overflow-auto flex flex-col items-center custom-scrollbar">
-                                    <div className="w-full mb-4 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded text-xs font-bold text-green-600 dark:text-green-400 flex items-center gap-2 uppercase tracking-widest"><Eye className="h-3 w-3" /> Image Output</div>
-                                    <img src={decodedImageUrl} alt="Decoded" className="max-w-full max-h-[80%] rounded shadow-2xl border border-(--border) object-contain mt-auto mb-auto" />
+                                    <div className="w-full mb-4 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded text-xs font-bold text-green-600 dark:text-green-400 flex items-center gap-2 uppercase tracking-widest">
+                                        <Eye className="h-3 w-3" /> Image Output
+                                    </div>
+                                    <img src={decodedImageUrl} alt="Decoded" className="max-w-full max-h-[80%] rounded shadow-2xl border border-(--border-subtle) object-contain mt-auto mb-auto" />
                                 </div>
                             ) : decodedPdfUrl ? (
                                 <div className="h-full flex flex-col">
-                                    <div className="px-4 py-2 bg-blue-500/10 border-b border-blue-500/20 text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2 uppercase tracking-widest"><FileText className="h-3 w-3" /> PDF Document</div>
+                                    <div className="px-4 py-2 bg-blue-500/10 border-b border-blue-500/20 text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2 uppercase tracking-widest">
+                                        <FileText className="h-3 w-3" /> PDF Document
+                                    </div>
                                     <iframe src={decodedPdfUrl} className="w-full h-full bg-white" title="PDF Preview" />
                                 </div>
                             ) : (
                                 <div className="h-full flex flex-col">
-                                    <div className="px-4 py-2 bg-(--surface-secondary) border-b border-(--border) text-[10px] font-bold opacity-40 flex items-center justify-between uppercase tracking-widest">
+                                    <div className="px-4 py-2 bg-(--surface-secondary) border-b border-(--border-subtle) text-[10px] font-bold text-(--text-tertiary) flex items-center justify-between uppercase tracking-widest">
                                         <span>Detected Format: {detectedLanguage}</span>
                                         {Array.isArray(result.result) && <span>Binary Byte Source</span>}
                                     </div>
@@ -388,7 +455,10 @@ export function Base64Workspace({
                             )
                         ) : (
                             <div className="flex items-center justify-center h-full opacity-40">
-                                <div className="text-center"><Sparkles className="h-12 w-12 mx-auto mb-3 text-primary animate-pulse" /><p className="text-sm font-medium tracking-wide">Ready to process</p></div>
+                                <div className="text-center">
+                                    <Sparkles className="h-12 w-12 mx-auto mb-3 text-(--primary) animate-pulse" />
+                                    <p className="text-sm font-medium tracking-wide text-(--text-secondary)">Ready to process</p>
+                                </div>
                             </div>
                         )}
                     </div>

@@ -64,7 +64,7 @@ export default function OmniParsePage() {
   const generator = useOmniParseGenerator();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f7f6f3] relative font-display text-gray-900">
+    <div className="flex h-screen overflow-hidden bg-(--background) relative font-display text-(--text-primary)">
       <ToolSidebar
         title="OmniParse"
         items={tools}
@@ -74,19 +74,19 @@ export default function OmniParsePage() {
         onToggle={setSidebarOpen}
       />
 
-      <main className="flex-1 overflow-hidden relative bg-gray-50/30 flex flex-col">
-        <header className="h-14 border-b border-gray-200/50 bg-white/50 backdrop-blur-md flex items-center justify-between px-6 transition-all duration-300">
+      <main className="flex-1 overflow-hidden relative bg-(--background)/30 flex flex-col">
+        <header className="h-14 border-b border-(--border-subtle) bg-(--surface-overlay)/50 backdrop-blur-md flex items-center justify-between px-6 transition-all duration-300">
           <div className={cn("flex items-center gap-2 transition-all duration-300", !isSidebarOpen && "pl-12")}>
-            <div className="flex items-center text-sm text-gray-500">
-              <span className="font-semibold text-gray-800 mr-2">OmniParse</span>
-              <span className="text-gray-300">/</span>
+            <div className="flex items-center text-sm text-(--text-muted)">
+              <span className="font-semibold text-(--text-primary) mr-2">OmniParse</span>
+              <span className="text-(--border-subtle)">/</span>
               <span className="ml-2">{activeToolLabel}</span>
             </div>
           </div>
           <ReturnToToolsButton />
-          <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full">
+          <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
               Running Locally (Browser)
             </span>
           </div>

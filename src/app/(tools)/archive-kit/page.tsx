@@ -654,7 +654,7 @@ export default function ArchiveKitPage() {
   });
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f7f6f3] relative font-display text-gray-900">
+    <div className="flex h-screen overflow-hidden bg-(--background) relative font-display text-(--text-primary)">
       <ToolSidebar
         title="Archive Kit"
         items={sections}
@@ -664,19 +664,19 @@ export default function ArchiveKitPage() {
         onToggle={setSidebarOpen}
       />
 
-      <main className="flex-1 overflow-hidden relative bg-gray-50/30 flex flex-col">
-        <header className="h-14 border-b border-gray-200/50 bg-white/50 backdrop-blur-md flex items-center justify-between px-6 transition-all duration-300">
+      <main className="flex-1 overflow-hidden relative bg-(--background) flex flex-col">
+        <header className="h-14 border-b border-(--border-subtle) bg-(--surface-overlay) backdrop-blur-md flex items-center justify-between px-6 transition-all duration-300">
           <div className={cn("flex items-center gap-2 transition-all duration-300", !isSidebarOpen && "pl-12")}>
-            <div className="flex items-center text-sm text-gray-500">
-              <span className="font-semibold text-gray-800 mr-2">Archive Kit</span>
-              <span className="text-gray-300">/</span>
-              <span className="ml-2">{activeLabel}</span>
-            </div>
+            <div className="flex items-center text-sm text-(--text-tertiary)">
+                                <span className="font-semibold text-(--text-primary) mr-2">Archive Kit</span>
+                                <span className="text-(--text-muted)">/</span>
+                                <span className="ml-2">{activeLabel}</span>
+                              </div>
           </div>
           <ReturnToToolsButton />
-          <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full">
+          <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
               Running Locally (Browser)
             </span>
           </div>
@@ -684,22 +684,22 @@ export default function ArchiveKitPage() {
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="h-full w-full space-y-8">
-            <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-              <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+            <Card className="p-0 bg-(--surface-overlay) border border-(--border-subtle) shadow-sm overflow-hidden">
+              <div className="border-b border-(--border-subtle) bg-linear-to-r from-sky-500/5 via-cyan-500/5 to-transparent px-5 py-4">
                 <div className="flex items-center gap-2">
-                  <Archive className="w-4 h-4 text-sky-700" />
-                  <h3 className="text-sm font-semibold text-gray-900">{activeLabel}</h3>
+                  <Archive className="w-4 h-4 text-sky-600" />
+                  <h3 className="text-sm font-semibold text-(--text-primary)">{activeLabel}</h3>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-(--text-tertiary)">
                   ZIP/TAR create, list, and extract operations run fully in your browser.
                 </p>
-                <p className="mt-1 text-[11px] text-sky-700 font-medium">Engine: {engineLabel}</p>
+                <p className="mt-1 text-[11px] text-sky-600 font-medium">Engine: {engineLabel}</p>
               </div>
 
               <div className="p-5 space-y-4">
-                <div className="rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-3">
+                <div className="rounded-xl border border-(--border-subtle) bg-(--surface-elevated)/60 px-4 py-3">
                   <div className="flex flex-wrap items-center gap-4">
-                    <label className="text-xs text-gray-700">
+                    <label className="text-xs text-(--text-secondary)">
                       <input
                         type="checkbox"
                         checked={queueEnabled}
@@ -708,14 +708,14 @@ export default function ArchiveKitPage() {
                       />
                       background queue mode
                     </label>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-(--text-tertiary)">
                       Jobs: {jobs.filter((j) => j.status === "pending").length} pending / {jobs.filter((j) => j.status === "running").length} running
                     </span>
                   </div>
                   {jobs.length > 0 && (
                     <div className="mt-2 max-h-24 overflow-auto space-y-1">
                       {jobs.slice(-6).reverse().map((job) => (
-                        <div key={job.id} className="flex items-center justify-between text-xs text-gray-700">
+                        <div key={job.id} className="flex items-center justify-between text-xs text-(--text-secondary)">
                           <span>{job.label} - {job.status} (try {job.attempts})</span>
                           {job.status === "failed" && (
                             <Button
@@ -738,7 +738,7 @@ export default function ArchiveKitPage() {
                 {isBusy && (
                   <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3">
                     <div className="flex items-center justify-between gap-3">
-                      <div className="text-sm font-medium text-sky-800">
+                      <div className="text-sm font-medium text-sky-600">
                         Processing... {progress.progress}% ({progress.stage})
                       </div>
                       <Button variant="outline" size="sm" onClick={cancel}>
@@ -777,7 +777,7 @@ export default function ArchiveKitPage() {
                       </div>
                       {createFormat === "zip" && (
                         <div className="w-36">
-                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Compression</label>
+                          <label className="text-xs font-semibold uppercase tracking-wider text-(--text-tertiary)">Compression</label>
                           <Select
                             value={zipCompression}
                             onChange={(e) => setZipCompression(e.target.value as ZipCompressionMode)}
@@ -789,7 +789,7 @@ export default function ArchiveKitPage() {
                         </div>
                       )}
                       <div className="w-72">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Output Name</label>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-(--text-tertiary)">Output Name</label>
                         <Input
                           value={outputName}
                           onChange={(e) => setOutputName(e.target.value)}
@@ -798,7 +798,7 @@ export default function ArchiveKitPage() {
                       </div>
                       {createFormat === "zip" && (
                         <div className="w-60">
-                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Password (AES-256)</label>
+                          <label className="text-xs font-semibold uppercase tracking-wider text-(--text-tertiary)">Password (AES-256)</label>
                           <Input
                             type="password"
                             value={zipPassword}
@@ -808,7 +808,7 @@ export default function ArchiveKitPage() {
                         </div>
                       )}
                       <div className="w-40">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Build Mode</label>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-(--text-tertiary)">Build Mode</label>
                         <Select
                           value={deterministic ? "deterministic" : "default"}
                           onChange={(e) => setDeterministic(e.target.value === "deterministic")}
@@ -825,10 +825,10 @@ export default function ArchiveKitPage() {
                       </div>
                     </div>
 
-                    <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
-                      <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Input Files</label>
+                    <div className="rounded-xl border border-(--border-subtle) bg-(--surface-elevated)/60 p-4">
+                      <label className="text-xs font-semibold uppercase tracking-wider text-(--text-tertiary)">Input Files</label>
                       <div
-                        className="mt-2 rounded-lg border border-dashed border-sky-200 bg-sky-50/60 p-3 text-xs text-sky-700"
+                        className="mt-2 rounded-lg border border-dashed border-sky-500/20 bg-sky-500/5 p-3 text-xs text-sky-600"
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={(e) => {
                           e.preventDefault();
@@ -839,7 +839,7 @@ export default function ArchiveKitPage() {
                       </div>
                       <div className="mt-2 grid md:grid-cols-2 gap-3">
                         <div>
-                          <div className="text-[11px] font-medium text-gray-500 mb-1">Add Files</div>
+                          <div className="text-[11px] font-medium text-(--text-tertiary) mb-1">Add Files</div>
                           <Input
                             type="file"
                             multiple
@@ -847,7 +847,7 @@ export default function ArchiveKitPage() {
                           />
                         </div>
                         <div>
-                          <div className="text-[11px] font-medium text-gray-500 mb-1">Add Folder</div>
+                          <div className="text-[11px] font-medium text-(--text-tertiary) mb-1">Add Folder</div>
                           <Input
                             type="file"
                             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -859,7 +859,7 @@ export default function ArchiveKitPage() {
                       </div>
                       <div className="mt-3 space-y-1">
                         {createFiles.length === 0 ? (
-                          <p className="text-sm text-gray-500">No files selected.</p>
+                          <p className="text-sm text-(--text-tertiary)">No files selected.</p>
                         ) : (
                           createFiles.map(({ file, path }, idx) => (
                             <div key={path + file.size + idx} className="grid grid-cols-12 gap-2 items-center">
@@ -868,7 +868,7 @@ export default function ArchiveKitPage() {
                                 value={path}
                                 onChange={(e) => updateCreatePath(idx, e.target.value)}
                               />
-                              <div className="col-span-3 text-xs text-gray-500 text-right">{bytesToHuman(file.size)}</div>
+                              <div className="col-span-3 text-xs text-(--text-tertiary) text-right">{bytesToHuman(file.size)}</div>
                               <div className="col-span-1 text-right">
                                 <Button variant="outline" size="sm" onClick={() => removeCreateFile(idx)}>
                                   <XCircle className="w-3 h-3" />
@@ -879,7 +879,7 @@ export default function ArchiveKitPage() {
                         )}
                       </div>
                       {createFiles.length > 0 && (
-                        <div className="mt-3 max-h-36 overflow-auto rounded-md border border-gray-200 bg-white p-2">
+                          <div className="mt-3 max-h-36 overflow-auto rounded-md border border-(--border-subtle) bg-(--surface-overlay) p-2">
                           {renderTree(buildPathTree(createFiles.map((f) => f.path)))}
                         </div>
                       )}
@@ -907,9 +907,9 @@ export default function ArchiveKitPage() {
                     {telemetry.length > 0 && (
                       <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
                         <div className="flex items-center justify-between">
-                          <div className="text-sm font-semibold text-gray-900">Local Benchmark</div>
+                          <div className="text-sm font-semibold text-(--text-primary)">Local Benchmark</div>
                           <div className="flex items-center gap-2">
-                            <label className="text-xs text-gray-600">
+                            <label className="text-xs text-(--text-secondary)">
                               <input
                                 type="checkbox"
                                 checked={telemetryEnabled}
@@ -932,7 +932,7 @@ export default function ArchiveKitPage() {
                         </div>
                         <div className="mt-2 max-h-32 overflow-auto space-y-1">
                           {telemetry.slice(-8).reverse().map((evt, idx) => (
-                            <div key={`${evt.at}-${idx}`} className="text-xs text-gray-700">
+                            <div key={`${evt.at}-${idx}`} className="text-xs text-(--text-secondary)">
                               {evt.op} [{evt.format}] - {evt.ms}ms - in {bytesToHuman(evt.inputBytes)} / out {bytesToHuman(evt.outputBytes)}
                             </div>
                           ))}
@@ -946,7 +946,7 @@ export default function ArchiveKitPage() {
                   <>
                     <div className="flex flex-wrap items-end gap-3">
                       <div className="w-28">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Format</label>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-(--text-tertiary)">Format</label>
                         <Select value={inspectFormat} onChange={(e) => setInspectFormat(e.target.value as ArchiveFormat)}>
                           <option value="zip">ZIP</option>
                           <option value="tar">TAR</option>
@@ -955,7 +955,7 @@ export default function ArchiveKitPage() {
                       </div>
                       {inspectFormat === "zip" && (
                         <div className="w-64">
-                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Password (optional)</label>
+                          <label className="text-xs font-semibold uppercase tracking-wider text-(--text-tertiary)">Password (optional)</label>
                           <Input
                             type="password"
                             value={inspectPassword}
@@ -965,7 +965,7 @@ export default function ArchiveKitPage() {
                         </div>
                       )}
                       <div className="flex-1 min-w-[280px]">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Archive File</label>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-(--text-tertiary)">Archive File</label>
                         <Input
                           type="file"
                           multiple
@@ -996,7 +996,7 @@ export default function ArchiveKitPage() {
                           placeholder="Search entries by name..."
                         />
                       </div>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-(--text-tertiary)">
                         Showing {filteredInspectEntries.length} of {inspectEntries.length}
                       </span>
                       {inspectFiles.length === 1 && selectedEntryNames.size > 0 && (
@@ -1021,12 +1021,12 @@ export default function ArchiveKitPage() {
 
                     {inspectEntries.length > 0 && (
                       <div className="grid sm:grid-cols-4 gap-2">
-                        <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600">
-                          <div className="font-semibold text-gray-900">{inspectEntries.filter((e) => !e.isDirectory).length}</div>
+                        <div className="rounded-lg border border-(--border-subtle) bg-(--surface-overlay) px-3 py-2 text-xs text-(--text-secondary)">
+                          <div className="font-semibold text-(--text-primary)">{inspectEntries.filter((e) => !e.isDirectory).length}</div>
                           Files
                         </div>
-                        <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600">
-                          <div className="font-semibold text-gray-900">{inspectEntries.filter((e) => e.isDirectory).length}</div>
+                        <div className="rounded-lg border border-(--border-subtle) bg-(--surface-overlay) px-3 py-2 text-xs text-(--text-secondary)">
+                          <div className="font-semibold text-(--text-primary)">{inspectEntries.filter((e) => e.isDirectory).length}</div>
                           Folders
                         </div>
                         <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600">
@@ -1035,8 +1035,8 @@ export default function ArchiveKitPage() {
                           </div>
                           Total Size
                         </div>
-                        <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600">
-                          <div className="font-semibold text-gray-900">
+                        <div className="rounded-lg border border-(--border-subtle) bg-(--surface-overlay) px-3 py-2 text-xs text-(--text-secondary)">
+                          <div className="font-semibold text-(--text-primary)">
                             {(() => {
                               const counts = new Map<string, number>();
                               for (const entry of inspectEntries) {
@@ -1047,8 +1047,8 @@ export default function ArchiveKitPage() {
                           </div>
                           Duplicate Paths
                         </div>
-                        <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600 sm:col-span-4">
-                          <div className="font-semibold text-gray-900">Security Checks</div>
+                        <div className="rounded-lg border border-(--border-subtle) bg-(--surface-overlay) px-3 py-2 text-xs text-(--text-secondary) sm:col-span-4">
+                          <div className="font-semibold text-(--text-primary)">Security Checks</div>
                           <div className="mt-1">
                             Suspicious paths: {
                               inspectEntries.filter((e) => /(^\/|^\.\.|\/\.\.\/|\\\.\.\\)/.test(e.name)).length
@@ -1071,12 +1071,12 @@ export default function ArchiveKitPage() {
                       </div>
                       <div className="max-h-[420px] overflow-y-auto">
                         {filteredInspectEntries.length === 0 ? (
-                          <div className="px-3 py-4 text-sm text-gray-500">No entries loaded.</div>
+                          <div className="px-3 py-4 text-sm text-(--text-muted)">No entries loaded.</div>
                         ) : (
                           filteredInspectEntries.map((entry) => (
                             <div
                               key={`${entry.name}-${entry.size}-${entry.compressedSize}`}
-                              className="grid grid-cols-12 gap-2 px-3 py-2 text-sm border-t border-gray-100"
+                              className="grid grid-cols-12 gap-2 px-3 py-2 text-sm border-t border-(--border-subtle)"
                             >
                               <div className="col-span-1 flex justify-center">
                                 {!entry.isDirectory && inspectFiles.length === 1 && !entry.name.includes(" :: ") ? (
@@ -1088,9 +1088,9 @@ export default function ArchiveKitPage() {
                                 ) : null}
                               </div>
                               <div className="col-span-5 truncate">{entry.name}</div>
-                              <div className="col-span-2 text-right text-gray-600">{bytesToHuman(entry.size)}</div>
-                              <div className="col-span-2 text-right text-gray-600">{bytesToHuman(entry.compressedSize)}</div>
-                              <div className="col-span-1 text-right text-gray-500">{entry.isDirectory ? "Dir" : "File"}</div>
+                              <div className="col-span-2 text-right text-(--text-tertiary)">{bytesToHuman(entry.size)}</div>
+                              <div className="col-span-2 text-right text-(--text-tertiary)">{bytesToHuman(entry.compressedSize)}</div>
+                              <div className="col-span-1 text-right text-(--text-muted)">{entry.isDirectory ? "Dir" : "File"}</div>
                               <div className="col-span-1 flex justify-end gap-1">
                                 {!entry.isDirectory && inspectFiles.length === 1 && !entry.name.includes(" :: ") && (
                                   <>
@@ -1111,18 +1111,18 @@ export default function ArchiveKitPage() {
                     {previewPath && (
                       <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-4 space-y-2">
                         <div className="flex items-center justify-between">
-                          <div className="text-sm font-semibold text-gray-900">Preview: {previewPath}</div>
+                          <div className="text-sm font-semibold text-(--text-primary)">Preview: {previewPath}</div>
                           <Button variant="outline" size="sm" onClick={() => setPreviewPath(null)}>Close</Button>
                         </div>
                         {previewError ? (
                           <div className="text-sm text-red-600">{previewError}</div>
                         ) : previewKind === "image" && previewImageUrl ? (
-                          <div className="max-h-[260px] overflow-auto rounded-lg border border-gray-200 bg-white p-3">
+                          <div className="max-h-[260px] overflow-auto rounded-lg border border-(--border-subtle) bg-(--surface-overlay) p-3">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={previewImageUrl} alt={previewPath} className="max-h-56 w-auto" />
                           </div>
                         ) : (
-                          <pre className="max-h-[260px] overflow-auto rounded-lg border border-gray-200 bg-white p-3 text-xs text-gray-700 whitespace-pre-wrap">
+                          <pre className="max-h-[260px] overflow-auto rounded-lg border border-(--border-subtle) bg-(--surface-overlay) p-3 text-xs text-(--text-secondary) whitespace-pre-wrap">
                             {previewText}
                           </pre>
                         )}
@@ -1135,7 +1135,7 @@ export default function ArchiveKitPage() {
                   <>
                     <div className="flex flex-wrap items-end gap-3">
                       <div className="w-28">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Format</label>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-(--text-tertiary)">Format</label>
                         <Select value={extractFormat} onChange={(e) => setExtractFormat(e.target.value as ArchiveFormat)}>
                           <option value="zip">ZIP</option>
                           <option value="tar">TAR</option>
@@ -1154,7 +1154,7 @@ export default function ArchiveKitPage() {
                         </div>
                       )}
                       <div className="flex-1 min-w-[280px]">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Archive File</label>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-(--text-tertiary)">Archive File</label>
                         <Input
                           type="file"
                           multiple
@@ -1195,8 +1195,8 @@ export default function ArchiveKitPage() {
                       </div>
                     )}
 
-                    <div className="rounded-xl border border-gray-200 overflow-hidden">
-                      <div className="grid grid-cols-12 gap-2 bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    <div className="rounded-xl border border-(--border-subtle) overflow-hidden">
+                      <div className="grid grid-cols-12 gap-2 bg-(--surface-elevated) px-3 py-2 text-xs font-semibold text-(--text-tertiary) uppercase tracking-wide">
                         <div className="col-span-8">File</div>
                         <div className="col-span-2 text-right">Size</div>
                         <div className="col-span-2 text-right">Action</div>
@@ -1208,7 +1208,7 @@ export default function ArchiveKitPage() {
                           extracted.map((file) => (
                             <div key={`${file.name}-${file.bytes.length}`} className="grid grid-cols-12 gap-2 px-3 py-2 text-sm border-t border-gray-100">
                               <div className="col-span-8 truncate">{file.name}</div>
-                              <div className="col-span-2 text-right text-gray-600">{bytesToHuman(file.bytes.length)}</div>
+                              <div className="col-span-2 text-right text-(--text-tertiary)">{bytesToHuman(file.bytes.length)}</div>
                               <div className="col-span-2 text-right">
                                 <Button
                                   variant="outline"

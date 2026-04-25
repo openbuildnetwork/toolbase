@@ -110,15 +110,15 @@ ${toolDescriptions}`
 
   if (showHistory) {
     return (
-      <div className="flex h-full w-full flex-col bg-white">
-        <div className="flex items-center justify-between border-b border-gray-100 p-4">
+      <div className="flex h-full w-full flex-col bg-(--surface-overlay)">
+        <div className="flex items-center justify-between border-b border-(--border-subtle) p-4">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => setShowHistory(false)} className="px-2">
               <ChevronLeft className="h-4 w-4 mr-1" /> Back
             </Button>
-            <span className="font-medium text-sm">Past Chats</span>
+            <span className="font-medium text-sm text-(--text-primary)">Past Chats</span>
           </div>
-          <Button onClick={() => { createNewConversation(); setShowHistory(false); }} size="sm" variant="secondary" className="gap-2 bg-gray-100 hover:bg-gray-200 text-black">
+          <Button onClick={() => { createNewConversation(); setShowHistory(false); }} size="sm" variant="secondary" className="gap-2 bg-(--surface-secondary) hover:bg-(--surface-hover) text-(--text-primary)">
             <Plus className="h-4 w-4" /> New Chat
           </Button>
         </div>
@@ -128,7 +128,7 @@ ${toolDescriptions}`
               key={conv.id}
               className={cn(
                 "group flex cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-sm transition-colors",
-                activeId === conv.id ? "bg-gray-100 font-medium" : "text-gray-600 hover:bg-gray-50"
+                activeId === conv.id ? "bg-(--surface-secondary) font-medium text-(--text-primary)" : "text-(--text-secondary) hover:bg-(--surface-hover)"
               )}
               onClick={() => {
                 setActiveId(conv.id);
@@ -136,13 +136,13 @@ ${toolDescriptions}`
               }}
             >
               <div className="flex items-center gap-3 overflow-hidden">
-                <MessageSquare className="h-4 w-4 shrink-0 text-gray-400" />
+                <MessageSquare className="h-4 w-4 shrink-0 text-(--text-muted)" />
                 <span className="truncate">{conv.title}</span>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 shrink-0 p-0 text-gray-400 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
+                className="h-8 w-8 shrink-0 p-0 text-(--text-muted) opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
                 onClick={(e) => {
                   e.stopPropagation();
                   deleteConversation(conv.id);
@@ -153,7 +153,7 @@ ${toolDescriptions}`
             </div>
           ))}
           {conversations.length === 0 && (
-            <div className="p-8 text-center text-sm text-gray-400">
+            <div className="p-8 text-center text-sm text-(--text-muted)">
               No recent chats
             </div>
           )}
@@ -166,7 +166,7 @@ ${toolDescriptions}`
     <div className="flex h-full flex-col bg-white/50 backdrop-blur-xl relative">
       {/* Top Bar for active chat actions */}
       <div className="absolute top-0 left-0 z-10 p-2 flex gap-2">
-        <Button variant="outline" size="sm" className="bg-white/90 backdrop-blur shadow-sm h-8 px-3 text-xs" onClick={() => setShowHistory(true)}>
+        <Button variant="outline" size="sm" className="bg-(--surface-overlay)/90 backdrop-blur shadow-sm h-8 px-3 text-xs border-(--border-subtle) text-(--text-primary)" onClick={() => setShowHistory(true)}>
           <List className="h-3 w-3 mr-1.5" /> History
         </Button>
       </div>
@@ -175,10 +175,10 @@ ${toolDescriptions}`
       <div className="flex-1 space-y-6 overflow-y-auto p-4 pt-12 md:p-6 bg-white/30">
         {!activeConversation?.messages.length ? (
           <div className="flex h-full flex-col items-center justify-center space-y-4 text-center mt-8">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-500 shadow-inner ring-1 ring-black/5">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500/10 to-indigo-500/10 text-blue-500 shadow-inner ring-1 ring-black/5 dark:ring-white/5">
               <MessageSquare className="h-7 w-7" />
             </div>
-            <h2 className="text-xl font-semibold tracking-tight text-gray-900">How can I help you?</h2>
+            <h2 className="text-xl font-semibold tracking-tight text-(--text-primary)">How can I help you?</h2>
           </div>
         ) : (
           activeConversation.messages.map((msg, idx) => {
@@ -197,8 +197,8 @@ ${toolDescriptions}`
                     className={cn(
                       "rounded-[20px] px-5 py-3.5 text-[15px] leading-relaxed shadow-sm w-fit",
                       msg.role === "user"
-                        ? "rounded-br-sm bg-black text-white"
-                        : "rounded-bl-sm border border-gray-100 bg-white text-gray-800"
+                        ? "rounded-br-sm bg-(--primary) text-white"
+                        : "rounded-bl-sm border border-(--border-subtle) bg-(--surface-secondary) text-(--text-primary)"
                     )}
                   >
                     <div className="font-sans whitespace-pre-wrap">{msg.content}</div>
@@ -217,7 +217,7 @@ ${toolDescriptions}`
                   {matchedTools.length > 0 && (
                     <div className="flex flex-wrap gap-3 mt-1">
                       {matchedTools.map(t => (
-                        <div key={t.id} className="w-36 rounded-3xl bg-white shadow-sm border border-gray-100/50">
+                        <div key={t.id} className="w-36 rounded-3xl bg-(--surface-overlay) shadow-sm border border-(--border-subtle)">
                           <ToolCard
                             title={t.name}
                             route={`/${t.route}`}
@@ -238,15 +238,15 @@ ${toolDescriptions}`
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-100 bg-white/80 p-4 backdrop-blur-md pb-6 shrink-0">
-        <div className="relative mx-auto rounded-3xl border border-gray-200 bg-white shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] block max-h-[150px]">
+      <div className="border-t border-(--border-subtle) bg-(--surface-overlay)/80 p-4 backdrop-blur-md pb-6 shrink-0">
+        <div className="relative mx-auto rounded-3xl border border-(--border-subtle) bg-(--surface-secondary) shadow-sm block max-h-[150px]">
           <textarea
             ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask Ollama locally..."
-            className="w-full resize-none rounded-3xl bg-transparent py-3.5 pl-4 pr-12 text-[15px] text-gray-900 placeholder:text-gray-500 outline-none disabled:opacity-50 block no-scrollbar"
+            className="w-full resize-none rounded-3xl bg-transparent py-3.5 pl-4 pr-12 text-[15px] text-(--text-primary) placeholder:text-(--text-muted) outline-none disabled:opacity-50 block no-scrollbar"
             rows={1}
             style={{ minHeight: "52px" }}
             disabled={isGenerating}
@@ -257,7 +257,7 @@ ${toolDescriptions}`
               disabled={!input.trim() || isGenerating}
               className={cn(
                 "h-10 w-10 rounded-full p-0 transition-colors",
-                input.trim() && !isGenerating ? "bg-black text-white hover:bg-gray-800 shadow-md" : "bg-gray-100 text-gray-400"
+                input.trim() && !isGenerating ? "bg-(--primary) text-white hover:bg-(--primary-hover) shadow-md" : "bg-(--surface-secondary) text-(--text-muted)"
               )}
               variant="ghost"
             >

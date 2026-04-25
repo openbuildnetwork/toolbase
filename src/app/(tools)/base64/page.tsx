@@ -43,12 +43,12 @@ export default function Base64Page() {
             <div className="max-w-[1800px] mx-auto flex flex-col h-[calc(100vh-48px)]">
                 <header className="mb-6 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                        <div className="w-12 h-12 rounded-2xl bg-(--primary) flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
                             <Binary className="w-7 h-7" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold tracking-tight text-gray-900 leading-tight">Base64 Converter</h1>
-                            <p className="text-sm text-gray-500 font-medium">Encode or decode text and files instantly</p>
+                            <h1 className="text-2xl font-bold tracking-tight text-(--text-primary) leading-tight">Base64 Converter</h1>
+                            <p className="text-sm text-(--text-tertiary) font-medium">Encode or decode text and files instantly</p>
                         </div>
                     </div>
                     <ReturnToToolsButton />

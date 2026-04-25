@@ -88,31 +88,31 @@ export default function PasswordGeneratorPage() {
     }, [generatePassword]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-6 px-4 relative">
+        <div className="min-h-screen bg-linear-to-br from-(--background) to-(--surface-secondary) py-6 px-4 relative">
             <div className="absolute top-6 right-6">
                 <ReturnToToolsButton />
             </div>
             <div className="max-w-2xl mx-auto">
                 <div className="mb-8 text-center space-y-4">
-                    <div className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-full w-fit mx-auto">
+                    <div className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full w-fit mx-auto">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
                             Running Locally (WASM)
                         </span>
                     </div>
 
                     <div>
-                        <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-3">
-                            <Lock className="w-10 h-10 text-primary" />
+                        <h1 className="text-4xl font-bold text-(--text-primary) mb-2 flex items-center justify-center gap-3">
+                            <Lock className="w-10 h-10 text-(--primary)" />
                             PasswordX
                         </h1>
-                        <p className="text-gray-600 max-w-lg mx-auto">
+                        <p className="text-(--text-secondary) max-w-lg mx-auto text-balance">
                             Generate cryptographically secure passwords instantly. Your data never leaves this browser.
                         </p>
                     </div>
                 </div>
 
-                <Card className="p-6 bg-white border border-gray-200 shadow-xl rounded-2xl">
+                <Card className="p-6 bg-(--surface-overlay) border border-(--border-subtle) shadow-xl rounded-2xl ring-1 ring-black/5 dark:ring-white/5">
                     {/* Password Display */}
                     <div className="relative mb-6">
                         <div
@@ -123,11 +123,11 @@ export default function PasswordGeneratorPage() {
                                     setTimeout(() => setShowToast(false), 2000);
                                 }
                             }}
-                            className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 group hover:border-primary/30 transition-all cursor-pointer hover:bg-gray-100/80 active:scale-[0.99]"
+                            className="flex items-center justify-between p-4 bg-(--surface-secondary) rounded-xl border border-(--border-subtle) group hover:border-(--primary)/30 transition-all cursor-pointer hover:bg-(--surface-hover) active:scale-[0.99]"
                             title="Click to copy"
                         >
-                            <div className="font-mono text-xl md:text-2xl break-all text-gray-800 tracking-wide">
-                                {password || <span className="text-gray-400 text-base italic">Select options to generate</span>}
+                            <div className="font-mono text-xl md:text-2xl break-all text-(--text-primary) tracking-wide">
+                                {password || <span className="text-(--text-muted) text-base italic">Select options to generate</span>}
                             </div>
                             <div className="flex items-center gap-2 ml-4 shrink-0">
                                 <div onClick={(e) => e.stopPropagation()}>
@@ -140,7 +140,7 @@ export default function PasswordGeneratorPage() {
                                         e.stopPropagation();
                                         generatePassword();
                                     }}
-                                    className="p-2 hover:bg-gray-200 rounded-lg text-gray-600"
+                                    className="p-2 hover:bg-(--surface-hover) rounded-lg text-(--text-secondary)"
                                     title="Regenerate"
                                 >
                                     <RefreshCw className="w-5 h-5" />
@@ -155,9 +155,9 @@ export default function PasswordGeneratorPage() {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: 10 }}
-                                    className="absolute top-[-10px] left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg flex items-center gap-2 z-10"
+                                    className="absolute top-[-10px] left-1/2 transform -translate-x-1/2 bg-(--surface-elevated) text-(--text-primary) px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg border border-(--border-subtle) flex items-center gap-2 z-10"
                                 >
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                                     Password Copied!
                                 </motion.div>
                             )}
@@ -165,12 +165,12 @@ export default function PasswordGeneratorPage() {
 
                         {/* Strength Indicator */}
                         {password && (
-                            <div className="absolute -bottom-3 left-4 px-2 py-0.5 bg-white rounded-full border border-gray-100 shadow-sm flex items-center gap-2">
+                            <div className="absolute -bottom-3 left-4 px-2 py-0.5 bg-(--surface-overlay) rounded-full border border-(--border-subtle) shadow-sm flex items-center gap-2">
                                 <div className="flex gap-1">
                                     {[1, 2, 3, 4, 5].map((i) => (
                                         <div
                                             key={i}
-                                            className={`w-5 h-1.5 rounded-full transition-colors ${i <= strength ? getStrengthLabel().color : 'bg-gray-200'
+                                            className={`w-5 h-1.5 rounded-full transition-colors ${i <= strength ? getStrengthLabel().color : 'bg-(--surface-secondary)'
                                                 }`}
                                         />
                                     ))}
@@ -186,7 +186,7 @@ export default function PasswordGeneratorPage() {
                         {/* Length Slider */}
                         <div className="space-y-4">
                             <div className="flex justify-between items-center">
-                                <label className="text-sm font-medium text-gray-700">
+                                <label className="text-sm font-medium text-(--text-secondary)">
                                     Password Length
                                 </label>
                                 <Input
@@ -211,7 +211,7 @@ export default function PasswordGeneratorPage() {
                                         if (length < 4) setLength(4);
                                         if (length > 64) setLength(64);
                                     }}
-                                    className="w-20 h-9 text-center bg-gray-50 border-gray-200 focus:border-primary/50"
+                                    className="w-20 h-9 text-center bg-(--input-bg) border-(--border-subtle) focus:border-(--primary)/50"
                                 />
                             </div>
                             <Slider
@@ -226,41 +226,27 @@ export default function PasswordGeneratorPage() {
 
                         {/* Character Options */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="p-3 rounded-lg border border-gray-100 hover:border-primary/20 hover:bg-primary/5 transition-colors">
-                                <Checkbox
-                                    checked={includeUppercase}
-                                    onChange={(e) => setIncludeUppercase(e.target.checked)}
-                                    label="Uppercase (A-Z)"
-                                />
-                            </div>
-                            <div className="p-3 rounded-lg border border-gray-100 hover:border-primary/20 hover:bg-primary/5 transition-colors">
-                                <Checkbox
-                                    checked={includeLowercase}
-                                    onChange={(e) => setIncludeLowercase(e.target.checked)}
-                                    label="Lowercase (a-z)"
-                                />
-                            </div>
-                            <div className="p-3 rounded-lg border border-gray-100 hover:border-primary/20 hover:bg-primary/5 transition-colors">
-                                <Checkbox
-                                    checked={includeNumbers}
-                                    onChange={(e) => setIncludeNumbers(e.target.checked)}
-                                    label="Numbers (0-9)"
-                                />
-                            </div>
-                            <div className="p-3 rounded-lg border border-gray-100 hover:border-primary/20 hover:bg-primary/5 transition-colors">
-                                <Checkbox
-                                    checked={includeSymbols}
-                                    onChange={(e) => setIncludeSymbols(e.target.checked)}
-                                    label="Symbols (!@#$)"
-                                />
-                            </div>
+                            {[
+                                { checked: includeUppercase, onChange: setIncludeUppercase, label: "Uppercase (A-Z)" },
+                                { checked: includeLowercase, onChange: setIncludeLowercase, label: "Lowercase (a-z)" },
+                                { checked: includeNumbers, onChange: setIncludeNumbers, label: "Numbers (0-9)" },
+                                { checked: includeSymbols, onChange: setIncludeSymbols, label: "Symbols (!@#$)" }
+                            ].map((opt, idx) => (
+                                <div key={idx} className="p-3 rounded-lg border border-(--border-subtle) hover:border-(--primary)/20 hover:bg-(--primary)/5 transition-colors">
+                                    <Checkbox
+                                        checked={opt.checked}
+                                        onChange={(e) => opt.onChange(e.target.checked)}
+                                        label={opt.label}
+                                    />
+                                </div>
+                            ))}
                         </div>
                     </div>
 
-                    <div className="mt-8 pt-6 border-t border-gray-100">
+                    <div className="mt-8 pt-6 border-t border-(--border-subtle)">
                         <Button
                             onClick={generatePassword}
-                            className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 h-12 text-lg font-semibold rounded-xl"
+                            className="w-full bg-(--primary) hover:bg-(--primary-hover) text-white shadow-lg shadow-(--primary)/25 h-12 text-lg font-semibold rounded-xl"
                         >
                             Generate Password
                         </Button>

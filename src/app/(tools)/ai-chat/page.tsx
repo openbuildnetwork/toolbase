@@ -11,8 +11,8 @@ export default function AiChatPage() {
   return (
     <div className="container mx-auto h-full max-w-6xl p-4 pt-6 md:p-6 lg:p-8">
       <div className="mb-4 space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Local AI Assistant</h1>
-        <p className="text-sm text-gray-500">
+        <h1 className="text-2xl font-semibold tracking-tight text-(--text-primary)">Local AI Assistant</h1>
+        <p className="text-sm text-(--text-secondary)">
           Interact privately with an AI engine running directly on your machine.
         </p>
       </div>
