@@ -62,7 +62,7 @@ export default function DataForgePage() {
   } = useDataForgeTesting();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f7f6f3] relative font-display text-gray-900">
+    <div className="flex h-screen overflow-hidden bg-(--background) relative font-display text-(--text-primary)">
       <ToolSidebar
         title="Data Forge"
         items={sections}
@@ -72,19 +72,19 @@ export default function DataForgePage() {
         onToggle={setSidebarOpen}
       />
 
-      <main className="flex-1 overflow-hidden relative bg-gray-50/30 flex flex-col">
-        <header className="h-14 border-b border-gray-200/50 bg-white/50 backdrop-blur-md flex items-center justify-between px-6 transition-all duration-300">
+      <main className="flex-1 overflow-hidden relative bg-(--background) flex flex-col">
+        <header className="h-14 border-b border-(--border-subtle) bg-(--surface-overlay) backdrop-blur-md flex items-center justify-between px-6 transition-all duration-300">
           <div className={cn("flex items-center gap-2 transition-all duration-300", !isSidebarOpen && "pl-12")}>
-            <div className="flex items-center text-sm text-gray-500">
-              <span className="font-semibold text-gray-800 mr-2">Data Forge</span>
-              <span className="text-gray-300">/</span>
-              <span className="ml-2">{activeLabel}</span>
-            </div>
+            <div className="flex items-center text-sm text-(--text-tertiary)">
+                                <span className="font-semibold text-(--text-primary) mr-2">Data Forge</span>
+                                <span className="text-(--text-muted)">/</span>
+                                <span className="ml-2">{activeLabel}</span>
+                              </div>
           </div>
           <ReturnToToolsButton />
-          <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full">
+          <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
               Running Locally (Browser)
             </span>
           </div>
@@ -93,13 +93,13 @@ export default function DataForgePage() {
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="h-full w-full space-y-8">
             {activeSection === "fields" && (
-              <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-                <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+              <Card className="p-0 overflow-hidden border border-(--border-subtle)">
+                <div className="border-b border-(--border-subtle) bg-linear-to-r from-sky-500/10 via-cyan-500/5 to-transparent px-5 py-4">
                   <div className="flex items-center gap-2">
-                    <Layers3 className="w-4 h-4 text-sky-700" />
-                    <h3 className="text-sm font-semibold text-gray-900">Field Builder</h3>
+                    <Layers3 className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                    <h3 className="text-sm font-semibold text-(--text-primary)">Field Builder</h3>
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">Define fields and constraints to generate realistic mock rows.</p>
+                  <p className="mt-1 text-xs text-(--text-tertiary)">Define fields and constraints to generate realistic mock rows.</p>
                 </div>
                 <div className="p-5">
                 <div className="grid lg:grid-cols-12 gap-6">
@@ -116,7 +116,7 @@ export default function DataForgePage() {
                           <Select
                             value={field.type}
                             onChange={(e) => updateField(field.id, { type: e.target.value as MockFieldType })}
-                            className="w-44"
+                            className="w-44 h-9"
                           >
                             {MOCK_FIELD_TYPES.map((type) => (
                               <option key={type} value={type}>{type}</option>
@@ -127,26 +127,26 @@ export default function DataForgePage() {
                           </Button>
 
                           {(field.type === "int" || field.type === "float") && (
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 text-xs text-(--text-muted)">
                               <span>Min</span>
                               <Input
                                 type="number"
                                 value={field.constraints?.min ?? ""}
                                 onChange={(e) => updateField(field.id, { constraints: { ...field.constraints, min: e.target.value === "" ? undefined : Number(e.target.value) } })}
-                                className="w-24"
+                                className="w-24 bg-(--input-bg) border-(--border-medium)"
                               />
                               <span>Max</span>
                               <Input
                                 type="number"
                                 value={field.constraints?.max ?? ""}
                                 onChange={(e) => updateField(field.id, { constraints: { ...field.constraints, max: e.target.value === "" ? undefined : Number(e.target.value) } })}
-                                className="w-24"
+                                className="w-24 bg-(--input-bg) border-(--border-medium)"
                               />
                             </div>
                           )}
 
                           {field.type === "date" && (
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 text-xs text-(--text-muted)">
                               <span>Start</span>
                               <Input
                                 type="date"
@@ -165,7 +165,7 @@ export default function DataForgePage() {
                           )}
 
                           {field.type === "string" && (
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 text-xs text-(--text-muted)">
                               <span>Min Len</span>
                               <Input
                                 type="number"
@@ -184,7 +184,7 @@ export default function DataForgePage() {
                           )}
 
                           {field.type === "email" && (
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-(--text-tertiary)">
                               <span className="mr-2">Domains</span>
                               {POPULAR_EMAIL_DOMAINS.map((domain) => {
                                 const selected = field.constraints?.domains?.includes(domain);
@@ -203,7 +203,7 @@ export default function DataForgePage() {
                                       "px-2.5 py-1 rounded-full border text-[11px] transition-all",
                                       selected
                                         ? "bg-indigo-600 text-white border-indigo-600"
-                                        : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                                        : "bg-(--surface-overlay) text-(--text-secondary) border-(--border-subtle) hover:border-(--border-medium)"
                                     )}
                                   >
                                     {domain}
@@ -213,7 +213,7 @@ export default function DataForgePage() {
                               <div className="flex items-center gap-2">
                                 <Input
                                   placeholder="Add domain (e.g. custom.com)"
-                                  className="min-w-[220px]"
+                                  className="min-w-[220px] h-9 bg-(--input-bg) border-(--border-medium)"
                                   onKeyDown={(e) => {
                                     if (e.key !== "Enter") return;
                                     const value = (e.currentTarget.value || "").trim();
@@ -255,7 +255,7 @@ export default function DataForgePage() {
                         <Plus className="w-4 h-4" /> Add Field
                       </Button>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500">Rows</span>
+                        <span className="text-sm text-(--text-tertiary)">Rows</span>
                         <Input
                           type="number"
                           value={rowCount}
@@ -292,22 +292,22 @@ export default function DataForgePage() {
             )}
 
             {activeSection === "blueprint" && (
-              <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-                <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+              <Card className="p-0 overflow-hidden border border-(--border-subtle)">
+                <div className="border-b border-(--border-subtle) bg-linear-to-r from-sky-500/10 via-cyan-500/5 to-transparent px-5 py-4">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-sky-700" />
-                    <h3 className="text-sm font-semibold text-gray-900">Blueprint Generator</h3>
+                    <Sparkles className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                    <h3 className="text-sm font-semibold text-(--text-primary)">Blueprint Generator</h3>
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">Define nested structures with constraints, null chance, and linked logic.</p>
+                  <p className="mt-1 text-xs text-(--text-tertiary)">Define nested structures with constraints, null chance, and linked logic.</p>
                 </div>
                 <div className="p-5">
                 <div className="flex items-center justify-between gap-4 mb-4">
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900">Blueprint Controls</h3>
-                    <p className="text-xs text-gray-500">Configure records and metadata, then generate output.</p>
+                    <h3 className="text-sm font-semibold text-(--text-primary)">Blueprint Controls</h3>
+                    <p className="text-xs text-(--text-tertiary)">Configure records and metadata, then generate output.</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <label className="flex items-center gap-2 text-xs text-gray-500">
+                    <label className="flex items-center gap-2 text-xs text-(--text-tertiary)">
                       <input
                         type="checkbox"
                         checked={blueprintWithMeta}
@@ -352,26 +352,26 @@ export default function DataForgePage() {
             )}
 
             {activeSection === "testing" && (
-              <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-                <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+              <Card className="p-0 overflow-hidden border border-(--border-subtle)">
+                <div className="border-b border-(--border-subtle) bg-linear-to-r from-sky-500/10 via-cyan-500/5 to-transparent px-5 py-4">
                   <div className="flex items-center gap-2">
-                    <FlaskConical className="w-4 h-4 text-sky-700" />
-                    <h3 className="text-sm font-semibold text-gray-900">Testing Studio</h3>
+                    <FlaskConical className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                    <h3 className="text-sm font-semibold text-(--text-primary)">Testing Studio</h3>
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">Schema-first deterministic datasets with profile-based generation and fixture pack workflows.</p>
+                  <p className="mt-1 text-xs text-(--text-tertiary)">Schema-first deterministic datasets with profile-based generation and fixture pack workflows.</p>
                 </div>
                 <div className="p-5 space-y-4">
                   <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">Count</span>
+                      <span className="text-xs text-(--text-tertiary)">Count</span>
                       <Input type="number" min={1} max={50000} value={schemaCount} onChange={(e) => setSchemaCount(Number(e.target.value))} className="w-24" />
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">Seed</span>
+                      <span className="text-xs text-(--text-tertiary)">Seed</span>
                       <Input type="number" value={schemaSeed} onChange={(e) => setSchemaSeed(Number(e.target.value))} className="w-24" />
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">Profile</span>
+                      <span className="text-xs text-(--text-tertiary)">Profile</span>
                       <Select value={schemaProfile} onChange={(e) => setSchemaProfile(e.target.value as GenerationProfile)} className="w-48">
                         <option value="happy_path">happy_path</option>
                         <option value="edge_cases">edge_cases</option>
@@ -401,8 +401,8 @@ export default function DataForgePage() {
                   </div>
 
                   {schemaValidation && (
-                    <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3 text-xs text-gray-700">
-                      <div className="font-semibold text-gray-900 mb-1">Validation Summary</div>
+                    <div className="rounded-xl border border-(--border-subtle) bg-(--surface-elevated)/70 p-3 text-xs text-(--text-secondary)">
+                      <div className="font-semibold text-(--text-primary) mb-1">Validation Summary</div>
                       <div>Records: {schemaValidation.records}</div>
                       <div>Valid: {schemaValidation.validRecords}</div>
                       <div>Invalid: {schemaValidation.invalidRecords}</div>
@@ -410,9 +410,9 @@ export default function DataForgePage() {
                     </div>
                   )}
 
-                  <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-3">
+                  <div className="rounded-xl border border-(--border-subtle) bg-(--surface-overlay) p-3 space-y-3">
                     <div className="flex flex-wrap items-center gap-2">
-                      <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">Fixture Packs</div>
+                      <div className="text-xs font-semibold uppercase tracking-wider text-(--text-tertiary)">Fixture Packs</div>
                       <div className="ml-auto flex items-center gap-2">
                         <Button variant="outline" size="sm" onClick={handleExportFixturePack}>Export Pack</Button>
                         <Button variant="outline" size="sm" onClick={handleImportFixturePack}>Import Pack</Button>

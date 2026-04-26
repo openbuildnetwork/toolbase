@@ -134,17 +134,17 @@ export default function MergePdf({
                     >
                         <Card className={cn(
                             "relative overflow-hidden transition-all duration-300 ease-out",
-                            "bg-gradient-to-br from-white via-gray-50/40 to-white",
-                            "border-2 border-gray-200/60 hover:border-purple-300/60",
-                            "hover:shadow-xl hover:shadow-purple-500/10",
+                            "bg-linear-to-br from-(--surface) via-(--surface-overlay) to-(--surface)",
+                            "border-2 border-(--border-medium) hover:border-(--primary)/60",
+                            "hover:shadow-xl hover:shadow-(--primary)/10",
                             "h-[260px] flex flex-col"
                         )}>
                             {/* Order badge with gradient */}
                             <div className="absolute top-3 left-3 z-20">
                                 <div className={cn(
                                     "w-7 h-7 rounded-xl flex items-center justify-center",
-                                    "bg-gradient-to-br from-purple-600 to-violet-600",
-                                    "text-white font-bold text-sm shadow-lg shadow-purple-500/30",
+                                    "bg-linear-to-br from-(--primary) to-(--primary) opacity-80",
+                                    "text-white font-bold text-sm shadow-lg shadow-(--primary) opacity-30",
                                     "transition-transform duration-300 group-hover:scale-110"
                                 )}>
                                     {index + 1}
@@ -153,42 +153,42 @@ export default function MergePdf({
 
                             {/* Action buttons with frosted glass */}
                             <div className="absolute top-3 right-3 z-20 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-white/90 backdrop-blur-md shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                                <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-surface-elevated/90 backdrop-blur-md shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
                                     <button
                                         onClick={() => moveFile(index, 'up')}
                                         disabled={index === 0}
-                                        className="p-2 hover:bg-purple-100 rounded-lg disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
+                                        className="p-2 hover:bg-(--surface-hover) rounded-lg disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
                                         title="Move up"
                                     >
-                                        <ArrowUp className="w-4 h-4 text-gray-700 hover:text-purple-600" />
+                                        <ArrowUp className="w-4 h-4 text-(--text-secondary) hover:text-(--primary)" />
                                     </button>
                                     <button
                                         onClick={() => moveFile(index, 'down')}
                                         disabled={index === files.length - 1}
-                                        className="p-2 hover:bg-purple-100 rounded-lg disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
+                                        className="p-2 hover:bg-(--surface-hover) rounded-lg disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
                                         title="Move down"
                                     >
-                                        <ArrowDown className="w-4 h-4 text-gray-700 hover:text-purple-600" />
+                                        <ArrowDown className="w-4 h-4 text-(--text-secondary) hover:text-(--primary)" />
                                     </button>
                                     <button
                                         onClick={() => window.open(URL.createObjectURL(file), '_blank')}
-                                        className="p-2 hover:bg-blue-100 rounded-lg transition-all hover:scale-110 active:scale-95"
+                                        className="p-2 hover:bg-(--primary) opacity-10 rounded-lg transition-all hover:scale-110 active:scale-95"
                                         title="Preview"
                                     >
-                                        <Eye className="w-4 h-4 text-gray-700 hover:text-blue-600" />
+                                        <Eye className="w-4 h-4 text-(--text-secondary) hover:text-(--primary)" />
                                     </button>
                                     <button
                                         onClick={() => removeFile(index)}
-                                        className="p-2 hover:bg-red-100 rounded-lg transition-all hover:scale-110 active:scale-95"
+                                        className="p-2 hover:bg-red-500 opacity-10 rounded-lg transition-all hover:scale-110 active:scale-95"
                                         title="Remove"
                                     >
-                                        <Trash2 className="w-4 h-4 text-gray-700 hover:text-red-600" />
+                                        <Trash2 className="w-4 h-4 text-(--text-secondary) hover:text-red-600" />
                                     </button>
                                 </div>
                             </div>
 
                             {/* PDF Preview with gradient background */}
-                            <div className="flex-1 bg-gradient-to-br from-gray-50 to-white flex items-center justify-center p-4 overflow-hidden relative">
+                            <div className="flex-1 bg-linear-to-br from-(--surface-secondary) to-(--surface) flex items-center justify-center p-4 overflow-hidden relative">
                                 {/* Subtle grid pattern background */}
                                 <div className="absolute inset-0 opacity-[0.03]" style={{
                                     backgroundImage: 'radial-gradient(circle at 1px 1px, #000 1px, transparent 0)',
@@ -200,17 +200,17 @@ export default function MergePdf({
                             </div>
 
                             {/* File info footer */}
-                            <div className="p-3 bg-gradient-to-r from-white/90 via-gray-50/50 to-white/90 backdrop-blur-sm border-t border-gray-100/60">
-                                <p className="text-sm font-semibold text-gray-900 truncate" title={file.name}>
+                            <div className="p-3 bg-linear-to-r from-(--surface-overlay) via-(--surface-secondary) to-(--surface-overlay) backdrop-blur-sm border-t border-(--border-subtle)">
+                                <p className="text-sm font-semibold text-text-primary truncate" title={file.name}>
                                     {file.name}
                                 </p>
-                                <p className="text-xs text-gray-500 font-medium mt-0.5">
+                                <p className="text-xs text-text-muted font-medium mt-0.5">
                                     {(file.size / 1024 / 1024).toFixed(2)} MB
                                 </p>
                             </div>
 
                             {/* Hover glow effect */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-purple-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                            <div className="absolute inset-0 bg-linear-to-t from-(--primary)/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                         </Card>
                     </motion.div>
                 ))}
@@ -266,7 +266,7 @@ export default function MergePdf({
             {/* ── Mode-specific action bar ── */}
             {isInteractionMode ? (
                 /* Interaction: confirm / cancel */
-                <div className="flex items-center justify-end gap-3 shrink-0 pt-2 border-t border-gray-100">
+                <div className="flex items-center justify-end gap-3 shrink-0 pt-2 border-t border-border-subtle">
                     {files.length < 2 && (
                         <span className="text-sm text-amber-500 mr-auto">Add at least one more PDF to confirm.</span>
                     )}
@@ -298,8 +298,8 @@ export default function MergePdf({
                                         {files.length < 2 ? 'Add at least 2 files' : isProcessing ? (progressMessage || 'Merging PDFs…') : 'Merge PDFs'}
                                     </div>
                                     {isProcessing && progress > 0 && (
-                                        <div className="w-full mt-2 bg-white/20 rounded-full h-1 overflow-hidden">
-                                            <div className="bg-white/80 h-1 transition-all duration-300" style={{ width: `${progress}%` }} />
+                                        <div className="w-full mt-2 bg-surface-elevated/20 rounded-full h-1 overflow-hidden">
+                                            <div className="bg-surface-elevated/80 h-1 transition-all duration-300" style={{ width: `${progress}%` }} />
                                         </div>
                                     )}
                                 </Button>
@@ -323,9 +323,9 @@ export default function MergePdf({
         >
             <Card className="p-8">
                 <div className="text-center mb-8">
-                    <Merge className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+                    <Merge className="w-10 h-10 mx-auto mb-3 text-text-muted" />
                     <h2 className="text-2xl font-semibold mb-2">Upload PDFs to Start</h2>
-                    <p className="text-gray-500">
+                    <p className="text-text-muted">
                         {isInteractionMode
                             ? 'Add PDFs and confirm their order for the pipeline.'
                             : 'Combine multiple PDF files into one document.'}
@@ -345,20 +345,20 @@ export default function MergePdf({
                 animate={{ opacity: 1, y: 0 }}
                 className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
             >
-                <Card className="w-full max-w-2xl bg-white shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                    <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+                <Card className="p-0 bg-(--surface-overlay) border border-(--border-subtle) shadow-sm overflow-hidden">
+                <div className="border-b border-(--border-subtle) bg-linear-to-r from-sky-500/5 via-cyan-500/5 to-transparent px-5 py-4">
                         <div>
-                            <h3 className="text-xl font-bold text-gray-900">PDFs Merged Successfully!</h3>
-                            <p className="text-sm text-gray-500">Your document is ready to download.</p>
+                            <h3 className="text-xl font-bold text-text-primary">PDFs Merged Successfully!</h3>
+                            <p className="text-sm text-text-muted">Your document is ready to download.</p>
                         </div>
                         <Button variant="ghost" size="sm" onClick={() => setMergedPdfUrl(null)}>
                             <X className="w-5 h-5" />
                         </Button>
                     </div>
-                    <div className="flex-1 bg-gray-100 p-8 flex items-center justify-center min-h-[300px]">
-                        <iframe src={`${mergedPdfUrl}#toolbar=0`} className="w-full h-full shadow-lg rounded-lg border border-gray-200" title="Merged PDF Preview" />
+                    <div className="flex-1 bg-surface-secondary p-8 flex items-center justify-center min-h-[300px]">
+                        <iframe src={`${mergedPdfUrl}#toolbar=0`} className="w-full h-full shadow-lg rounded-lg border border-border-medium" title="Merged PDF Preview" />
                     </div>
-                    <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex gap-4 justify-end">
+                    <div className="p-6 border-t border-border-subtle bg-surface-secondary/50 flex gap-4 justify-end">
                         <Button variant="outline" onClick={() => window.open(mergedPdfUrl, '_blank')}>
                             <Eye className="w-4 h-4 mr-2" />
                             Preview

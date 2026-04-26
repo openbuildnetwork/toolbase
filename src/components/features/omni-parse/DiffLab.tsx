@@ -3,6 +3,7 @@
 import React from "react";
 import { Editor } from "@monaco-editor/react";
 import { FileDiff } from "lucide-react";
+import { useActualTheme } from "@/hooks/useActualTheme";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Select";
@@ -33,16 +34,18 @@ export function DiffLab({
   onRunDiff,
   languageMap,
 }: DiffLabProps) {
+  const { editorTheme } = useActualTheme();
+
   return (
     <div className="grid lg:grid-cols-12 gap-6">
       <div className="lg:col-span-12 space-y-5">
-        <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-          <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+        <Card className="p-0 overflow-hidden border-(--border-subtle)">
+          <div className="border-b border-(--border-subtle) bg-linear-to-r from-sky-500/10 via-cyan-500/5 to-transparent px-5 py-4">
             <div className="flex items-center gap-2">
-              <FileDiff className="w-4 h-4 text-sky-700" />
-              <h3 className="text-sm font-semibold text-gray-900">Diff Lab</h3>
+              <FileDiff className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+              <h3 className="text-sm font-semibold text-(--text-primary)">Diff Lab</h3>
             </div>
-            <p className="mt-1 text-xs text-gray-500">Compare two payloads and inspect structural and value changes.</p>
+            <p className="mt-1 text-xs text-(--text-muted)">Compare two payloads and inspect structural and value changes.</p>
           </div>
           <div className="p-5 space-y-4">
             <div className="flex items-center gap-3">
@@ -52,40 +55,40 @@ export function DiffLab({
                 <option value="yaml">YAML</option>
               </Select>
               <Button variant="secondary" onClick={onRunDiff}>Run Diff</Button>
-              <span className="text-xs text-gray-500 ml-auto">{diffEntries.length} changes</span>
+              <span className="text-xs text-(--text-muted) ml-auto">{diffEntries.length} changes</span>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Left (Original)</label>
-                <div className="h-[600px] border border-gray-200 rounded-xl overflow-hidden">
+                <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Left (Original)</label>
+                <div className="h-[600px]  border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-secondary)/50">
                   <Editor
                     height="100%"
                     defaultLanguage={languageMap[diffFormat]}
                     value={diffLeft}
                     onChange={(val) => setDiffLeft(val || "")}
-                    theme="vs"
+                    theme={editorTheme}
                     options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Right (Modified)</label>
-                <div className="h-[600px] border border-gray-200 rounded-xl overflow-hidden">
+                <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Right (Modified)</label>
+                <div className="h-[600px] border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-secondary)/50">
                   <Editor
                     height="100%"
                     defaultLanguage={languageMap[diffFormat]}
                     value={diffRight}
                     onChange={(val) => setDiffRight(val || "")}
-                    theme="vs"
+                    theme={editorTheme}
                     options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
                   />
                 </div>
               </div>
             </div>
-            {diffError && <div className="text-sm text-red-600">{diffError}</div>}
+            {diffError && <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400">{diffError}</div>}
             {!diffError && (
-              <div className="rounded-xl border border-gray-200 overflow-hidden">
-                <div className="grid grid-cols-12 gap-2 bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+              <div className="rounded-xl border border-(--border-subtle) overflow-hidden bg-(--surface-overlay)">
+                <div className="grid grid-cols-12 gap-2 bg-(--surface-secondary) px-3 py-2 text-xs font-semibold text-(--text-muted) uppercase tracking-wide border-b border-(--border-subtle)">
                   <div className="col-span-1">Type</div>
                   <div className="col-span-4">Path</div>
                   <div className="col-span-3">Left</div>
@@ -95,15 +98,15 @@ export function DiffLab({
                   {diffEntries.length === 0 ? (
                     <div className="px-3 py-4 text-sm text-gray-500">No differences detected.</div>
                   ) : diffEntries.map((entry, idx) => {
-                    const rowStyles = 
-                      entry.kind === "added" ? "bg-emerald-50/70 text-emerald-900 border-emerald-100" :
-                      entry.kind === "removed" ? "bg-rose-50/70 text-rose-900 border-rose-100" :
-                      "bg-amber-50/70 text-amber-900 border-amber-100";
-                    
-                    const kindStyles = 
-                      entry.kind === "added" ? "text-emerald-700" :
-                      entry.kind === "removed" ? "text-rose-700" :
-                      "text-amber-700";
+                    const rowStyles =
+                      entry.kind === "added" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" :
+                        entry.kind === "removed" ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20" :
+                          "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
+
+                    const kindStyles =
+                      entry.kind === "added" ? "text-emerald-700 dark:text-emerald-400" :
+                        entry.kind === "removed" ? "text-rose-700 dark:text-rose-400" :
+                          "text-amber-700 dark:text-amber-400";
 
                     return (
                       <div key={`${entry.path}-${idx}`} className={`grid grid-cols-12 gap-2 px-3 py-2 border-t text-sm ${rowStyles}`}>

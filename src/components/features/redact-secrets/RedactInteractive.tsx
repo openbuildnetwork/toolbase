@@ -111,8 +111,8 @@ export default function RedactInteractive({
                         <Shield className="w-6 h-6" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold tracking-tight text-gray-900">Configure Redaction</h2>
-                        <p className="text-xs text-gray-500 font-medium italic">Adjust masking patterns and PII detection</p>
+                        <h2 className="text-xl font-bold tracking-tight text-text-primary">Configure Redaction</h2>
+                        <p className="text-xs text-text-muted font-medium italic">Adjust masking patterns and PII detection</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -136,15 +136,15 @@ export default function RedactInteractive({
                         {response && <RedactOutput response={response} />}
                         
                         {!response && !isLoading && !isInternalReading && (
-                             <Card className="p-8 border-dashed border-2 border-gray-100 flex flex-col items-center justify-center text-center space-y-4 bg-gray-50/30">
-                                <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center">
-                                    <ShieldAlert className="w-6 h-6 text-gray-300" />
+                              <Card className="p-8 border-dashed border-2 border-border-subtle flex flex-col items-center justify-center text-center space-y-4 bg-surface-secondary/30">
+                                <div className="w-12 h-12 rounded-full bg-surface-secondary flex items-center justify-center">
+                                    <ShieldAlert className="w-6 h-6 text-text-muted/50" />
                                 </div>
-                                <div>
-                                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Awaiting Preview</h3>
-                                    <p className="text-xs text-gray-500 mt-1 max-w-[240px] mx-auto">Click "Run Preview" to test your redaction patterns before confirming.</p>
+                                <div className="space-y-1">
+                                    <h3 className="text-sm font-bold text-text-muted uppercase tracking-widest">Awaiting Preview</h3>
+                                    <p className="text-xs text-text-muted mt-1 max-w-[240px] mx-auto">Click "Run Preview" to test your redaction patterns before confirming.</p>
                                 </div>
-                             </Card>
+                              </Card>
                         )}
                     </div>
 
@@ -166,7 +166,7 @@ export default function RedactInteractive({
                 </div>
             </div>
 
-            <footer className="flex items-center justify-between pt-6 border-t border-gray-100 shrink-0">
+            <footer className="flex items-center justify-between pt-6 border-t border-border-subtle shrink-0">
                 <div className="flex items-center gap-3">
                     <Button
                         variant="outline"
@@ -181,7 +181,7 @@ export default function RedactInteractive({
                     <Button
                         variant="ghost"
                         onClick={onCancel}
-                        className="h-12 px-6 rounded-xl text-gray-500 hover:text-gray-900 border-none"
+                        className="h-12 px-6 rounded-xl text-text-muted hover:text-text-primary border-none"
                     >
                         Cancel
                     </Button>

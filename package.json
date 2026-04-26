@@ -1,5 +1,5 @@
 {
-  "name": "tool-box",
+  "name": "toolbase",
   "description": "Every tool you need. Zero data leaves your machine.",
   "type": "module",
   "version": "0.1.0",
@@ -13,7 +13,7 @@
     "build:wasm": "node scripts/build-wasm.mjs",
     "check:wasm": "node scripts/check-wasm-artifacts.mjs",
     "watch:python": "nodemon --watch src/python -e py --exec \"npm run build:python\"",
-    "watch:wasm": "nodemon --watch rust -e rs,toml --exec \"npm run build:wasm\"",
+    "watch:wasm": "nodemon --watch rust -e rs,toml --exec \"npm run build:wasm -- --dev\"",
     "build": "npm run build:python && npm run build:wasm && next build",
     "build:strict-wasm": "npm run build:python && npm run build:wasm && npm run check:wasm && next build",
     "dev": "concurrently \"npm run watch:python\" \"npm run watch:wasm\" \"next dev --turbo\"",
@@ -40,6 +40,7 @@
     "jspdf": "^4.1.0",
     "lucide-react": "^0.562.0",
     "next": "16.1.2",
+    "next-themes": "^0.4.6",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.530",
     "pyodide": "^0.29.3",

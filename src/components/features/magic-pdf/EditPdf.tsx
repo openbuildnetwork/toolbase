@@ -312,11 +312,11 @@ export default function EditPdf() {
                     <motion.div key="upload" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}>
                         <Card className="p-8">
                             <div className="text-center mb-8">
-                                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                                    <Edit3 className="w-8 h-8 text-blue-600" />
+                                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
+                                    <Edit3 className="w-8 h-8 text-primary" />
                                 </div>
                                 <h2 className="text-2xl font-semibold mb-2">Edit PDF</h2>
-                                <p className="text-gray-500">Add content or mask existing parts of your document.</p>
+                                <p className="text-text-muted">Add content or mask existing parts of your document.</p>
                             </div>
                             <FileUploader onFilesSelected={handleFileSelected} accept=".pdf" multiple={false} className="max-w-2xl mx-auto" />
                         </Card>
@@ -343,8 +343,8 @@ export default function EditPdf() {
                                         <ToolButton active={activeTool === 'whiteout'} onClick={() => setActiveTool('whiteout')} icon={<Eraser className="w-4 h-4" />} label="Mask" />
                                         <ToolButton active={activeTool === 'shape' && activeShapeType === 'rectangle'} onClick={() => { setActiveTool('shape'); setActiveShapeType('rectangle'); }} icon={<Square className="w-4 h-4" />} label="Rect" />
                                         <ToolButton active={activeTool === 'shape' && activeShapeType === 'circle'} onClick={() => { setActiveTool('shape'); setActiveShapeType('circle'); }} icon={<Circle className="w-4 h-4" />} label="Circle" />
-                                        <div className="h-6 w-px bg-gray-200 mx-2 hidden sm:block" />
-                                        <label className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer shadow-sm">
+                                        <div className="h-6 w-px bg-border-medium mx-2 hidden sm:block" />
+                                        <label className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-text-secondary bg-surface-elevated border border-border-medium rounded-md hover:bg-surface-secondary cursor-pointer shadow-sm">
                                             <Upload size={14} />
                                             <span className="hidden sm:inline">Add Image</span>
                                             <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
@@ -355,11 +355,11 @@ export default function EditPdf() {
                                 {/* Property Editor */}
                                 {(activeElement || activeTool !== 'select') && (
                                     <Card className="p-4 space-y-4">
-                                        <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">Properties</h4>
+                                        <h4 className="text-xs font-bold uppercase tracking-wider text-text-faint">Properties</h4>
                                         <div className="space-y-3">
                                             {activeElement?.type !== 'whiteout' && (
                                                 <div>
-                                                    <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Color</label>
+                                                    <label className="text-[10px] font-bold text-text-muted uppercase mb-1 block">Color</label>
                                                     <div className="flex flex-wrap gap-2">
                                                         {['#000000', '#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#FFFFFF'].map(color => (
                                                             <button
@@ -376,7 +376,7 @@ export default function EditPdf() {
                                             {activeElement?.type === 'text' && (
                                                 <div className="space-y-3">
                                                     <div>
-                                                        <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Font Size</label>
+                                                        <label className="text-[10px] font-bold text-text-muted uppercase mb-1 block">Font Size</label>
                                                         <div className="flex items-center gap-2">
                                                             <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => updateElement(activeElement.id, { fontSize: Math.max(8, (activeElement.fontSize || 12) - 2) })}><Minus className="w-3 h-3" /></Button>
                                                             <span className="text-sm font-medium w-8 text-center">{Math.round(activeElement.fontSize || 12)}</span>
@@ -384,12 +384,12 @@ export default function EditPdf() {
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Alignment</label>
-                                                        <div className="flex bg-gray-100 rounded-lg p-1 w-fit">
+                                                        <label className="text-[10px] font-bold text-text-muted uppercase mb-1 block">Alignment</label>
+                                                        <div className="flex bg-surface-secondary rounded-lg p-1 w-fit">
                                                             {(['left', 'center', 'right'] as const).map(align => (
                                                                 <button
                                                                     key={align}
-                                                                    className={cn("px-2 py-1 rounded-md text-[10px] uppercase font-bold transition-all", (activeElement.textAlign === align) ? "bg-white text-primary shadow-sm" : "text-gray-400 hover:text-gray-600")}
+                                                                    className={cn("px-2 py-1 rounded-md text-[10px] uppercase font-bold transition-all", (activeElement.textAlign === align) ? "bg-surface-elevated text-primary shadow-sm" : "text-text-faint hover:text-text-muted")}
                                                                     onClick={() => updateElement(activeElement.id, { textAlign: align })}
                                                                 >
                                                                     {align}
@@ -398,9 +398,9 @@ export default function EditPdf() {
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Font Family</label>
+                                                        <label className="text-[10px] font-bold text-text-muted uppercase mb-1 block">Font Family</label>
                                                         <select
-                                                            className="w-full h-8 text-xs bg-gray-100 rounded-md px-2 outline-none border-none"
+                                                            className="w-full h-8 text-xs bg-surface-secondary rounded-md px-2 outline-none border-none"
                                                             value={activeElement.fontFamily || 'Inter'}
                                                             onChange={(e) => updateElement(activeElement.id, { fontFamily: e.target.value })}
                                                         >
@@ -415,7 +415,7 @@ export default function EditPdf() {
                                             {activeElement?.type === 'image' && (
                                                 <div className="space-y-3">
                                                     <div>
-                                                        <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Rotation</label>
+                                                        <label className="text-[10px] font-bold text-text-muted uppercase mb-1 block">Rotation</label>
                                                         <div className="flex items-center gap-2">
                                                             <Button size="sm" variant="outline" className="h-7 w-7 p-0" onClick={() => updateElement(activeElement.id, { rotation: ((activeElement.rotation || 0) - 90 + 360) % 360 })}>
                                                                 <RotateCcw className="w-3 h-3" />
@@ -427,12 +427,12 @@ export default function EditPdf() {
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Quick Rotate</label>
+                                                        <label className="text-[10px] font-bold text-text-muted uppercase mb-1 block">Quick Rotate</label>
                                                         <div className="flex gap-1">
                                                             {[0, 90, 180, 270].map(deg => (
                                                                 <button
                                                                     key={deg}
-                                                                    className={cn("px-2 py-1 rounded text-[10px] font-bold transition-all", (activeElement.rotation || 0) === deg ? "bg-primary text-white" : "bg-gray-100 hover:bg-gray-200")}
+                                                                    className={cn("px-2 py-1 rounded text-[10px] font-bold transition-all", (activeElement.rotation || 0) === deg ? "bg-primary text-background" : "bg-surface-secondary hover:bg-border-medium")}
                                                                     onClick={() => updateElement(activeElement.id, { rotation: deg })}
                                                                 >
                                                                     {deg}°
@@ -449,22 +449,22 @@ export default function EditPdf() {
 
                                 <div className="mt-auto space-y-3">
                                     <Button className="w-full h-12 shadow-lg" onClick={handleApply} isLoading={isProcessing} disabled={elements.length === 0}>Save PDF Changes</Button>
-                                    <Button variant="ghost" className="w-full text-gray-400" onClick={() => setFile(null)}>Cancel</Button>
+                                    <Button variant="ghost" className="w-full text-text-faint" onClick={() => setFile(null)}>Cancel</Button>
                                 </div>
                             </div>
 
                             {/* Viewport */}
-                            <div className="flex-1 bg-gray-100 rounded-2xl flex flex-col overflow-hidden border border-gray-200 shadow-inner relative">
-                                <div className="h-14 bg-white border-b flex items-center justify-between px-6 z-10 shrink-0">
+                            <div className="flex-1 bg-surface-secondary rounded-2xl flex flex-col overflow-hidden border border-border-medium shadow-inner relative">
+                                <div className="h-14 bg-surface-elevated border-b flex items-center justify-between px-6 z-10 shrink-0">
                                     <div className="flex items-center gap-4">
-                                        <div className="flex bg-gray-100 rounded-lg p-1">
+                                        <div className="flex bg-surface-secondary rounded-lg p-1">
                                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage <= 1}><ChevronLeft className="w-4 h-4" /></Button>
-                                            <div className="px-3 text-xs font-bold text-gray-600 min-w-[60px] flex items-center justify-center">{currentPage} / {totalPages || '?'}</div>
+                                            <div className="px-3 text-xs font-bold text-text-muted min-w-[60px] flex items-center justify-center">{currentPage} / {totalPages || '?'}</div>
                                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}><ChevronRight className="w-4 h-4" /></Button>
                                         </div>
-                                        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                                        <div className="flex items-center gap-1 bg-surface-secondary rounded-lg p-1">
                                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScale(s => Math.max(0.5, s - 0.1))}><ZoomOut className="w-4 h-4" /></Button>
-                                            <span className="text-[10px] font-bold text-gray-500 w-10 text-center">{Math.round(scale * 100)}%</span>
+                                            <span className="text-[10px] font-bold text-text-muted w-10 text-center">{Math.round(scale * 100)}%</span>
                                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScale(s => Math.min(2, s + 0.1))}><ZoomIn className="w-4 h-4" /></Button>
                                         </div>
                                     </div>
@@ -482,11 +482,11 @@ export default function EditPdf() {
                                 </div>
 
                                 {resultPdfUrl && (
-                                    <div className="absolute inset-0 bg-white/95 backdrop-blur-md z-40 flex items-center justify-center p-8">
+                                    <div className="absolute inset-0 bg-surface-elevated/95 backdrop-blur-md z-40 flex items-center justify-center p-8">
                                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md w-full text-center space-y-6">
-                                            <CheckCircle className="w-16 h-16 text-green-600 mx-auto" />
+                                            <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
                                             <h3 className="text-2xl font-bold">PDF Updated!</h3>
-                                            <p className="text-gray-500">Your edits have been applied successfully.</p>
+                                            <p className="text-text-muted">Your edits have been applied successfully.</p>
                                             <div className="flex gap-3">
                                                 <a href={resultPdfUrl} download={`edited_${file.name}`} className="flex-1"><Button className="w-full">Download</Button></a>
                                                 <Button variant="ghost" onClick={() => setResultPdfUrl(null)}>Close</Button>
@@ -504,7 +504,7 @@ export default function EditPdf() {
 }
 
 const ToolButton = ({ active, onClick, icon, label }: { active?: boolean, onClick: () => void, icon: React.ReactNode, label: string }) => (
-    <button onClick={onClick} className={cn("flex flex-col items-center justify-center p-2 rounded-lg transition-all", active ? "bg-primary text-white" : "hover:bg-gray-100 text-gray-500")}>
+    <button onClick={onClick} className={cn("flex flex-col items-center justify-center p-2 rounded-lg transition-all", active ? "bg-primary text-background" : "hover:bg-surface-secondary text-text-muted")}>
         {icon}
         <span className="text-[10px] font-bold uppercase mt-1">{label}</span>
     </button>
@@ -598,7 +598,7 @@ const EditableElement = ({ el, active, onSelect, onUpdate, scale = 1 }: { el: Ed
             onMouseDown={handleMouseDown}
             onDoubleClick={() => el.type === 'text' && setIsEditingText(true)}
         >
-            <div className={cn("w-full h-full flex items-center relative", showBackground && "bg-white")}>
+            <div className={cn("w-full h-full flex items-center relative", showBackground && "bg-surface-elevated")}>
                 {el.type === 'text' && (
                     isEditingText ?
                         <textarea autoFocus className="text-left outline-none bg-transparent resize-none w-full h-full p-0 m-0 leading-tight overflow-hidden" style={{ color: el.color || '#000000', fontSize: `${(el.fontSize || 16) * scale}px`, fontFamily: el.fontFamily, textAlign: el.textAlign || 'left' }} value={el.content} onChange={e => { onUpdate({ content: e.target.value }); }} onBlur={() => setIsEditingText(false)} /> :
@@ -615,7 +615,7 @@ const EditableElement = ({ el, active, onSelect, onUpdate, scale = 1 }: { el: Ed
                 )}
             </div>
             {active && handles.map(h => (
-                <div key={h} className={cn("absolute w-2.5 h-2.5 bg-white border border-primary z-40 rounded-full", h === 'nw' && "-top-1 -left-1", h === 'n' && "-top-1 left-1/2 -translate-x-1/2", h === 'ne' && "-top-1 -right-1", h === 'e' && "top-1/2 -right-1 -translate-y-1/2", h === 'se' && "-bottom-1 -right-1", h === 's' && "-bottom-1 left-1/2 -translate-x-1/2", h === 'sw' && "-bottom-1 -left-1", h === 'w' && "top-1/2 -left-1 -translate-y-1/2")} onMouseDown={e => handleResizeStart(e, h)} />
+                <div key={h} className={cn("absolute w-2.5 h-2.5 bg-surface-elevated border border-primary z-40 rounded-full", h === 'nw' && "-top-1 -left-1", h === 'n' && "-top-1 left-1/2 -translate-x-1/2", h === 'ne' && "-top-1 -right-1", h === 'e' && "top-1/2 -right-1 -translate-y-1/2", h === 'se' && "-bottom-1 -right-1", h === 's' && "-bottom-1 left-1/2 -translate-x-1/2", h === 'sw' && "-bottom-1 -left-1", h === 'w' && "top-1/2 -left-1 -translate-y-1/2")} onMouseDown={e => handleResizeStart(e, h)} />
             ))}
         </div>
     );

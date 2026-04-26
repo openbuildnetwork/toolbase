@@ -70,8 +70,13 @@ function ResultRow({ tool, isHighlighted, onPointerEnter, onSelect }: ResultRowP
             className={cn(
                 'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left',
                 'transition-colors duration-100 cursor-default',
-                isHighlighted ? 'bg-black/5' : 'hover:bg-black/3'
             )}
+            style={{
+                background: isHighlighted ? 'var(--surface-active)' : 'transparent',
+            }}
+            onPointerLeave={(e) => { if (!isHighlighted) e.currentTarget.style.background = 'transparent'; }}
+            onPointerOver={(e) => { if (!isHighlighted) e.currentTarget.style.background = 'var(--surface-hover)'; }}
+            onPointerOut={(e) => { if (!isHighlighted) e.currentTarget.style.background = 'transparent'; }}
         >
             {/* Icon */}
             <div className="relative w-9 h-9 shrink-0">
@@ -85,10 +90,10 @@ function ResultRow({ tool, isHighlighted, onPointerEnter, onSelect }: ResultRowP
 
             {/* Name + description */}
             <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold text-[#1c1c1e] truncate">
+                <p className="text-[13px] font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
                     {tool.name}
                 </p>
-                <p className="text-[11px] text-[#8e8e93] truncate leading-tight mt-0.5">
+                <p className="text-[11px] truncate leading-tight mt-0.5" style={{ color: 'var(--text-muted)' }}>
                     {tool.description}
                 </p>
             </div>
@@ -114,7 +119,7 @@ function ResultRow({ tool, isHighlighted, onPointerEnter, onSelect }: ResultRowP
 
             {/* Enter hint when highlighted */}
             {isHighlighted && (
-                <ArrowRight size={14} className="text-black/30 shrink-0" />
+                <ArrowRight size={14} className="shrink-0" style={{ color: 'var(--text-faint)' }} />
             )}
         </button>
     );
@@ -125,8 +130,8 @@ function ResultRow({ tool, isHighlighted, onPointerEnter, onSelect }: ResultRowP
 function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string }) {
     return (
         <div className="flex items-center gap-2 px-4 pt-3 pb-1.5">
-            <span className="text-[#8e8e93]">{icon}</span>
-            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#8e8e93]">
+            <span style={{ color: 'var(--text-muted)' }}>{icon}</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>
                 {label}
             </span>
         </div>
@@ -262,15 +267,19 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                         className={cn(
                             'fixed z-9999 top-[12vh] left-1/2 -translate-x-1/2',
                             'w-full max-w-[580px] mx-4',
-                            'bg-white/90 backdrop-blur-2xl',
-                            'rounded-2xl shadow-[0_24px_64px_rgba(0,0,0,0.18)]',
-                            'border border-black/7',
+                            'backdrop-blur-2xl',
+                            'rounded-2xl',
                             'overflow-hidden'
                         )}
+                        style={{
+                            background: 'var(--surface-overlay)',
+                            border: '1px solid var(--border-medium)',
+                            boxShadow: '0 24px 64px var(--shadow-heavy)',
+                        }}
                     >
                         {/* Search input row */}
-                        <div className="flex items-center gap-3 px-4 h-[56px] border-b border-black/6">
-                            <Search size={18} className="text-black/30 shrink-0" />
+                        <div className="flex items-center gap-3 px-4 h-[56px]" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                            <Search size={18} className="shrink-0" style={{ color: 'var(--text-faint)' }} />
                             <input
                                 ref={inputRef}
                                 type="text"
@@ -282,9 +291,9 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                 spellCheck={false}
                                 className={cn(
                                     'flex-1 bg-transparent border-none outline-none',
-                                    'text-[15px] font-medium text-[#1c1c1e] placeholder:text-black/25',
-                                    'caret-black/60'
+                                    'text-[15px] font-medium',
                                 )}
+                                style={{ color: 'var(--text-primary)', caretColor: 'var(--text-muted)' }}
                                 aria-autocomplete="list"
                                 aria-controls="cp-results"
                                 aria-activedescendant={
@@ -293,7 +302,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                         : undefined
                                 }
                             />
-                            <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-black/5 text-[11px] font-medium text-black/30 shrink-0">
+                            <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[11px] font-medium shrink-0" style={{ background: 'var(--kbd-bg)', color: 'var(--text-faint)' }}>
                                 esc
                             </kbd>
                         </div>
@@ -340,7 +349,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                         />
                                     ))
                                 ) : (
-                                    <p className="py-8 text-center text-[13px] text-[#8e8e93]">
+                                    <p className="py-8 text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>
                                         No tools match &ldquo;{query}&rdquo;
                                     </p>
                                 )}
@@ -348,17 +357,17 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                         </div>
 
                         {/* Footer hint bar */}
-                        <div className="flex items-center gap-4 px-4 h-9 border-t border-black/6 bg-black/2">
-                            <span className="flex items-center gap-1.5 text-[11px] text-black/30">
-                                <kbd className="px-1 rounded bg-black/5 font-mono">↑↓</kbd>
+                        <div className="flex items-center gap-4 px-4 h-9" style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--surface-hover)' }}>
+                            <span className="flex items-center gap-1.5 text-[11px]" style={{ color: 'var(--text-faint)' }}>
+                                <kbd className="px-1 rounded font-mono" style={{ background: 'var(--kbd-bg)' }}>↑↓</kbd>
                                 navigate
                             </span>
-                            <span className="flex items-center gap-1.5 text-[11px] text-black/30">
-                                <kbd className="px-1 rounded bg-black/5 font-mono">↵</kbd>
+                            <span className="flex items-center gap-1.5 text-[11px]" style={{ color: 'var(--text-faint)' }}>
+                                <kbd className="px-1 rounded font-mono" style={{ background: 'var(--kbd-bg)' }}>↵</kbd>
                                 open
                             </span>
-                            <span className="flex items-center gap-1.5 text-[11px] text-black/30">
-                                <kbd className="px-1 rounded bg-black/5 font-mono">esc</kbd>
+                            <span className="flex items-center gap-1.5 text-[11px]" style={{ color: 'var(--text-faint)' }}>
+                                <kbd className="px-1 rounded font-mono" style={{ background: 'var(--kbd-bg)' }}>esc</kbd>
                                 close
                             </span>
                         </div>

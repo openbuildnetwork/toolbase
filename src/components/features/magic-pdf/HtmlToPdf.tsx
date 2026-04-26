@@ -109,16 +109,16 @@ export default function HtmlToPdf() {
                                     <Globe className="w-8 h-8 text-orange-600" />
                                 </div>
                                 <h2 className="text-2xl font-semibold mb-2">HTML/Web to PDF</h2>
-                                <p className="text-gray-500">Convert HTML files or webpages to PDF documents.</p>
+                                <p className="text-text-muted">Convert HTML files or webpages to PDF documents.</p>
                             </div>
 
                             <div className="flex justify-center mb-8">
-                                <div className="bg-gray-100 p-1 rounded-lg inline-flex gap-1">
+                                <div className="bg-surface-secondary p-1 rounded-lg inline-flex gap-1">
                                     <button
                                         onClick={() => { setMode('file'); setResultPdfUrl(null); }}
                                         className={cn(
                                             "px-4 py-2 rounded-md text-sm font-medium transition-all",
-                                            mode === 'file' ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"
+                                            mode === 'file' ? "bg-surface-elevated text-text-primary shadow-sm" : "text-text-muted hover:text-text-primary"
                                         )}
                                     >
                                         Upload File
@@ -127,7 +127,7 @@ export default function HtmlToPdf() {
                                         onClick={() => { setMode('url'); setResultPdfUrl(null); }}
                                         className={cn(
                                             "px-4 py-2 rounded-md text-sm font-medium transition-all",
-                                            mode === 'url' ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"
+                                            mode === 'url' ? "bg-surface-elevated text-text-primary shadow-sm" : "text-text-muted hover:text-text-primary"
                                         )}
                                     >
                                         Webpage URL
@@ -144,14 +144,14 @@ export default function HtmlToPdf() {
                                     />
                                 ) : (
                                     <div className="space-y-6">
-                                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                        <div className="flex items-center justify-between p-4 bg-surface-secondary rounded-xl border border-border-subtle">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600">
                                                     <Code className="w-6 h-6" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-semibold text-gray-900 truncate max-w-[200px]">{file.name}</p>
-                                                    <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(2)} KB</p>
+                                                    <p className="text-sm font-semibold text-text-primary truncate max-w-[200px]">{file.name}</p>
+                                                    <p className="text-xs text-text-muted">{(file.size / 1024).toFixed(2)} KB</p>
                                                 </div>
                                             </div>
                                             <Button variant="ghost" size="sm" onClick={() => setFile(null)}>Change File</Button>
@@ -162,17 +162,17 @@ export default function HtmlToPdf() {
                                 <div className="space-y-4">
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <LinkIcon className="h-5 w-5 text-gray-400" />
+                                            <LinkIcon className="h-5 w-5 text-text-faint" />
                                         </div>
                                         <input
                                             type="url"
                                             placeholder="https://example.com"
-                                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:ring-orange-500 focus:border-orange-500 sm:text-sm shadow-sm"
+                                            className="block w-full pl-10 pr-3 py-3 border border-border-medium rounded-xl focus:ring-orange-500 focus:border-orange-500 sm:text-sm shadow-sm"
                                             value={url}
                                             onChange={(e) => setUrl(e.target.value)}
                                         />
                                     </div>
-                                    <div className="bg-blue-50 p-4 rounded-lg flex gap-3 text-sm text-blue-700">
+                                    <div className="bg-primary/5 p-4 rounded-lg flex gap-3 text-sm text-blue-700">
                                         <span>ℹ️</span>
                                         <p>Note: Some websites may block direct access. If this fails, please save the page as HTML (Ctrl+S) and use the "Upload File" tab.</p>
                                     </div>
@@ -198,13 +198,13 @@ export default function HtmlToPdf() {
                         className="text-center space-y-6"
                     >
                         <Card className="p-12 flex flex-col items-center gap-6">
-                            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                            <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center text-green-500">
                                 <CheckCircle className="w-12 h-12" />
                             </div>
 
                             <div className="space-y-2">
-                                <h3 className="text-2xl font-bold text-gray-900">Conversion Complete!</h3>
-                                <p className="text-gray-500 text-lg">Your content has been converted to PDF.</p>
+                                <h3 className="text-2xl font-bold text-text-primary">Conversion Complete!</h3>
+                                <p className="text-text-muted text-lg">Your content has been converted to PDF.</p>
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">

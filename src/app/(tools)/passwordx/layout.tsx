@@ -3,7 +3,7 @@ import { ToolPageTracker } from '@/components/ui/ToolPageTracker';
 import { PrivacyBadge } from '@/components/ui/PrivacyBadge';
 
 export const metadata: Metadata = {
-    title: 'PasswordX | OBN Toolkit',
+    title: 'PasswordX | OBN toolbase',
     description: 'Generate secure passwords and test their strength directly in your browser.',
 };
 

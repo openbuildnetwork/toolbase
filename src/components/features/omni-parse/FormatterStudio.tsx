@@ -3,6 +3,7 @@
 import React from "react";
 import { Editor } from "@monaco-editor/react";
 import { Upload, Wand2 } from "lucide-react";
+import { useActualTheme } from "@/hooks/useActualTheme";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -90,24 +91,26 @@ export function FormatterStudio({
   fixtureImportRef,
   languageMap,
 }: FormatterStudioProps) {
+  const { editorTheme } = useActualTheme();
+
   return (
     <div className="grid lg:grid-cols-12 gap-6">
       <div className="lg:col-span-12 space-y-5">
-        <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-          <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+        <Card className="p-0 bg-(--surface-overlay) border-(--border-subtle) shadow-sm overflow-hidden">
+          <div className="border-b border-(--border-subtle) bg-linear-to-r from-sky-500/10 via-cyan-500/5 to-transparent px-5 py-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <Wand2 className="w-4 h-4 text-sky-700" />
-                  <h3 className="text-sm font-semibold text-gray-900">Formatter Studio</h3>
+                  <Wand2 className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                  <h3 className="text-sm font-semibold text-(--text-primary)">Formatter Studio</h3>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">Clean, normalize, and escape payload text quickly.</p>
+                <p className="mt-1 text-xs text-(--text-muted)">Clean, normalize, and escape payload text quickly.</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="rounded-full border border-sky-100 bg-white/80 px-3 py-1 text-[11px] font-semibold text-sky-700">
+                <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-3 py-1 text-[11px] font-semibold text-sky-600 dark:text-sky-400">
                   {formatStats.lines} lines
                 </span>
-                <span className="rounded-full border border-sky-100 bg-white/80 px-3 py-1 text-[11px] font-semibold text-sky-700">
+                <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-3 py-1 text-[11px] font-semibold text-sky-600 dark:text-sky-400">
                   {formatStats.chars} chars
                 </span>
               </div>
@@ -115,9 +118,9 @@ export function FormatterStudio({
           </div>
 
           <div className="p-5 space-y-4">
-            <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-3">
+            <div className="rounded-2xl border border-(--border-subtle) bg-(--surface-secondary) p-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Format</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-(--text-muted)">Format</span>
                 <Select
                   value={validateFormat}
                   onChange={(e) => setValidateFormat(e.target.value as "json" | "xml" | "yaml")}
@@ -145,7 +148,7 @@ export function FormatterStudio({
                 <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={() => onFormatterPreset("apiReady")}>
                   API Ready
                 </Button>
-                 <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={onAddCurrentAsFixture}>
+                <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={onAddCurrentAsFixture}>
                   Add Fixture
                 </Button>
                 {validateFormat === "json" ? (
@@ -172,18 +175,18 @@ export function FormatterStudio({
                     )}
                   </>
                 ) : (
-                  <span className="text-xs text-gray-500">JSON-only: Flatten, Unflatten, Escape, Unescape.</span>
+                  <span className="text-xs text-(--text-muted)">JSON-only: Flatten, Unflatten, Escape, Unescape.</span>
                 )}
               </div>
             </div>
 
-            <div className="h-[600px] border border-gray-200 rounded-xl overflow-hidden bg-white">
+            <div className="h-[600px] border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-overlay)">
               <Editor
                 height="100%"
                 defaultLanguage={languageMap[validateFormat]}
                 value={validateInput}
                 onChange={(val) => setValidateInput(val || "")}
-                theme="vs"
+                theme={editorTheme}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 13,
@@ -192,11 +195,69 @@ export function FormatterStudio({
                 }}
               />
             </div>
-            {fixtureCases.length > 0 && (
-              <div className="grid lg:grid-cols-1 gap-3">
-                <div className="rounded-xl border border-gray-200 bg-white p-3">
+            <div className="rounded-xl border border-(--border-subtle) bg-(--surface-overlay) p-3 space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Pipeline Builder</span>
+                <Input value={recipeNameDraft} onChange={(e) => setRecipeNameDraft(e.target.value)} className="h-8 w-48" placeholder="Recipe name" />
+                <Select value={recipeStepOpDraft} onChange={(e) => setRecipeStepOpDraft(e.target.value as RecipeStepOp)} className="w-40">
+                  <option value="beautify">Beautify</option>
+                  <option value="minify">Minify</option>
+                  <option value="sortKeys">Sort Keys</option>
+                  <option value="flatten">Flatten</option>
+                  <option value="unflatten">Unflatten</option>
+                  <option value="jsonEscape">JSON Escape</option>
+                  <option value="jsonUnescape">JSON Unescape</option>
+                  <option value="convert">Convert</option>
+                </Select>
+                {recipeStepOpDraft === "convert" && (
+                  <Select value={recipeStepTargetDraft} onChange={(e) => setRecipeStepTargetDraft(e.target.value as "json" | "xml" | "yaml")} className="w-28">
+                    <option value="json">JSON</option>
+                    <option value="xml">XML</option>
+                    <option value="yaml">YAML</option>
+                  </Select>
+                )}
+                <Button variant="outline" size="sm" onClick={onAddRecipeStepDraft}>Add Step</Button>
+                <Button variant="outline" size="sm" onClick={onClearRecipeStepsDraft}>Clear Steps</Button>
+              </div>
+              <div className="max-h-32 overflow-auto space-y-1">
+                {recipeStepsDraft.length === 0 ? (
+                  <div className="text-xs text-(--text-muted)">No steps yet. Add operations and run/save the pipeline.</div>
+                ) : recipeStepsDraft.map((step, idx) => (
+                  <div key={step.id} className="flex items-center gap-2 rounded-md border border-(--border-subtle) px-2 py-1 text-xs">
+                    <span className="font-semibold text-(--text-secondary)">{idx + 1}.</span>
+                    <span className="capitalize text-(--text-primary)">{step.op}</span>
+                    {step.targetFormat && <span className="text-(--text-muted)">→ {step.targetFormat.toUpperCase()}</span>}
+                    <div className="ml-auto flex items-center gap-1">
+                      <Button variant="outline" size="sm" onClick={() => onMoveRecipeStep(step.id, "up")}>↑</Button>
+                      <Button variant="outline" size="sm" onClick={() => onMoveRecipeStep(step.id, "down")}>↓</Button>
+                      <Button variant="outline" size="sm" onClick={() => onRemoveRecipeStep(step.id)}>Remove</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {(formatterRecipes.length > 0 || fixtureCases.length > 0) && (
+              <div className="grid lg:grid-cols-2 gap-3">
+                <div className="rounded-xl border border-(--border-subtle) bg-(--surface-overlay) p-3">
                   <div className="flex items-center justify-between">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">Fixture Tests</div>
+                    <div className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Saved Recipes</div>
+                    <span className="text-xs text-(--text-muted)">{formatterRecipes.length}</span>
+                  </div>
+                  <div className="mt-2 max-h-28 overflow-auto space-y-1">
+                    {formatterRecipes.slice(-8).reverse().map((recipe) => (
+                      <div key={recipe.id} className="flex items-center justify-between rounded-md border border-(--border-subtle) px-2 py-1 text-xs">
+                        <span className="truncate text-(--text-primary)">{recipe.name} ({recipe.inputFormat})</span>
+                        <div className="flex items-center gap-1">
+                          <Button variant="outline" size="sm" onClick={() => onLoadFormatterRecipe(recipe.id)}>Load</Button>
+                          <Button variant="outline" size="sm" onClick={() => onRunSavedRecipe(recipe.id)}>Run</Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-xl border border-(--border-subtle) bg-(--surface-overlay) p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Fixture Tests</div>
                     <div className="flex items-center gap-1">
                       <Button variant="outline" size="sm" onClick={onRunFixtureTests}>Run</Button>
                       <Button variant="outline" size="sm" onClick={onExportFixturePack}>Export</Button>
@@ -219,19 +280,19 @@ export function FormatterStudio({
                   </div>
                   <div className="mt-2 max-h-48 overflow-auto space-y-1">
                     {fixtureCases.slice(-20).reverse().map((fx) => (
-                      <div key={fx.id} className="flex items-center justify-between rounded-md border border-gray-100 px-2 py-1 text-xs">
-                        <span className="truncate">{fx.name} ({fx.format}) - expect {fx.expectedValid ? "valid" : "invalid"}</span>
+                      <div key={fx.id} className="flex items-center justify-between rounded-md border border-(--border-subtle) px-2 py-1 text-xs">
+                        <span className="truncate text-(--text-primary)">{fx.name} ({fx.format}) - expect {fx.expectedValid ? "valid" : "invalid"}</span>
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            className="text-sky-700 hover:underline"
+                            className="text-sky-600 dark:text-sky-400 hover:underline"
                             onClick={() => setFixtureCases((prev) => prev.map((item) => item.id === fx.id ? { ...item, expectedValid: !item.expectedValid } : item))}
                           >
                             Toggle
                           </button>
                           <button
                             type="button"
-                            className="text-sky-700 hover:underline"
+                            className="text-sky-600 dark:text-sky-400 hover:underline"
                             onClick={() => setFixtureCases((prev) => prev.filter((item) => item.id !== fx.id))}
                           >
                             Remove
@@ -240,7 +301,7 @@ export function FormatterStudio({
                       </div>
                     ))}
                     {fixtureResults.slice(-10).map((res) => (
-                      <div key={res.id} className={`rounded-md px-2 py-1 text-xs mt-1 ${res.passed ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
+                      <div key={res.id} className={`rounded-md px-2 py-1 text-xs mt-1 ${res.passed ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 text-red-600 dark:text-red-400"}`}>
                         {res.name}: {res.detail}
                       </div>
                     ))}

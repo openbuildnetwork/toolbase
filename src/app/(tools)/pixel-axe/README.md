@@ -2,7 +2,7 @@
 
 ## Overview
 
-A powerful image processing toolkit running entirely in your browser. Compress, resize, upscale images and hide secret messages using steganography — no uploads, no waiting, no privacy risk.
+A powerful image processing toolbase running entirely in your browser. Compress, resize, upscale images and hide secret messages using steganography — no uploads, no waiting, no privacy risk.
 
 ## Features
 

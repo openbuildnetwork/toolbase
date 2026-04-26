@@ -140,10 +140,10 @@ export const FileUploader = ({
                 className={cn(
                     'relative overflow-hidden transition-all duration-300 cursor-pointer',
                     'border-2 border-dashed rounded-2xl backdrop-blur-sm',
-                    'bg-gradient-to-br from-white/90 via-gray-50/50 to-white/90',
+                    'bg-surface',
                     isDragOver
-                        ? 'border-purple-500 bg-purple-50/30 scale-[1.01] shadow-lg shadow-purple-500/10'
-                        : 'border-gray-300/70 hover:border-purple-400/50 hover:bg-white/80 hover:shadow-xl',
+                        ? 'border-primary bg-primary/5 scale-[1.01] shadow-lg shadow-primary/10'
+                        : 'border-border-medium hover:border-primary/50 hover:bg-surface/80 hover:shadow-xl',
                     disabled && 'opacity-50 cursor-not-allowed'
                 )}
                 onDragOver={handleDragOver}
@@ -153,29 +153,29 @@ export const FileUploader = ({
             >
                 {/* Animated background effect on drag */}
                 {isDragOver && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-transparent to-purple-500/5 animate-pulse pointer-events-none" />
+                    <div className="absolute inset-0 bg-primary/5 animate-pulse pointer-events-none" />
                 )}
 
                 <div className="relative flex flex-col items-center justify-center py-12 px-6 text-center">
                     {/* Icon container */}
                     <div className={cn(
                         "relative mb-5 rounded-2xl p-4 transition-all duration-300",
-                        "bg-gradient-to-br from-white to-gray-50 shadow-md",
+                        "bg-surface-elevated shadow-md",
                         isDragOver
-                            ? "scale-110 shadow-xl shadow-purple-500/20 ring-2 ring-purple-200"
+                            ? "scale-110 shadow-xl shadow-primary/20 ring-2 ring-primary/20"
                             : "shadow-md"
                     )}>
                         <div className={cn(
                             "rounded-xl p-3 transition-colors duration-300",
                             isDragOver
-                                ? "bg-gradient-to-br from-purple-100/50 to-purple-50/50"
-                                : "bg-gradient-to-br from-gray-100 to-gray-50"
+                                ? "bg-primary/10"
+                                : "bg-surface-secondary"
                         )}>
                             <Upload className={cn(
                                 "h-8 w-8 transition-all duration-300",
                                 isDragOver
-                                    ? "text-purple-600 scale-110"
-                                    : "text-gray-600"
+                                    ? "text-primary scale-110"
+                                    : "text-text-secondary"
                             )} />
                         </div>
                     </div>
@@ -184,18 +184,18 @@ export const FileUploader = ({
                     <div className="relative space-y-2 mb-6 max-w-sm">
                         <h3 className={cn(
                             "text-xl font-bold transition-all duration-300",
-                            "bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent",
-                            isDragOver && "from-purple-600 to-purple-700"
+                            "text-text-primary",
+                            isDragOver && "text-primary"
                         )}>
                             {isDragOver ? 'Drop files to upload' : 'Drag & drop files here'}
                         </h3>
                         <p className={cn(
                             "text-sm transition-all duration-300",
-                            isDragOver ? "text-purple-600 font-medium" : "text-gray-500"
+                            isDragOver ? "text-primary font-medium" : "text-text-muted"
                         )}>
                             Upload {multiple ? 'files' : 'a file'} to get started.
                             {accept !== '*' && accept !== '*' && (
-                                <span className="block mt-1 text-xs text-gray-400">
+                                <span className="block mt-1 text-xs text-text-faint">
                                     Supports: {accept}
                                 </span>
                             )}
@@ -207,8 +207,8 @@ export const FileUploader = ({
                             <div className={cn(
                                 "inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full",
                                 isDragOver
-                                    ? "bg-purple-100/70 text-purple-700"
-                                    : "bg-gray-100/70 text-gray-500"
+                                    ? "bg-primary/10 text-primary"
+                                    : "bg-surface-secondary text-text-muted"
                             )}>
                                 <AlertCircle className="h-3.5 w-3.5" />
                                 Max: {maxSize ? formatFileSize(maxSize) : 'Unlimited'}
@@ -245,16 +245,16 @@ export const FileUploader = ({
 
             {/* File list with progress indicators */}
             {showFileList && uploadedFiles.length > 0 && (
-                <Card className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+                <Card className="overflow-hidden rounded-2xl border border-border-medium bg-surface-elevated shadow-lg">
                     <div className="p-5">
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-purple-100/60">
-                                    <FileText className="h-5 w-5 text-purple-600" />
+                                <div className="p-2 rounded-lg bg-primary/10">
+                                    <FileText className="h-5 w-5 text-primary" />
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold text-gray-900">Uploaded Files</h4>
-                                    <p className="text-xs text-gray-500">
+                                    <h4 className="font-semibold text-text-primary">Uploaded Files</h4>
+                                    <p className="text-xs text-text-muted">
                                         {uploadedFiles.length} {uploadedFiles.length === 1 ? 'file' : 'files'}
                                     </p>
                                 </div>
@@ -263,7 +263,7 @@ export const FileUploader = ({
                                 onClick={clearAllFiles}
                                 variant="ghost"
                                 size="sm"
-                                className="text-gray-500 hover:text-red-600 hover:bg-red-50"
+                                className="text-text-muted hover:text-red-600 hover:bg-red-50"
                             >
                                 <X className="h-4 w-4 mr-1" />
                                 Clear all
@@ -278,14 +278,14 @@ export const FileUploader = ({
                                 return (
                                     <div
                                         key={file.name}
-                                        className="group flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:border-purple-200 hover:bg-purple-50/30 transition-all duration-200"
+                                        className="group flex items-center gap-3 p-3 rounded-xl border border-border-medium hover:border-primary/20 hover:bg-primary/5 transition-all duration-200"
                                     >
                                         <div className="shrink-0">
                                             <div className={cn(
                                                 "p-2 rounded-lg transition-colors",
                                                 isComplete
-                                                    ? "bg-green-100 text-green-600"
-                                                    : "bg-gray-100 text-gray-600"
+                                                    ? "bg-green-500/10 text-green-600"
+                                                    : "bg-surface-secondary text-text-secondary"
                                             )}>
                                                 {getFileIcon(file)}
                                             </div>
@@ -293,12 +293,12 @@ export const FileUploader = ({
 
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between mb-1">
-                                                <p className="font-medium text-gray-900 truncate text-sm">
+                                                <p className="font-medium text-text-primary truncate text-sm">
                                                     {file.name}
                                                 </p>
                                                 <button
                                                     onClick={() => removeFile(file.name)}
-                                                    className="opacity-0 group-hover:opacity-100 transition-all p-1 hover:bg-red-100 rounded text-gray-400 hover:text-red-600"
+                                                    className="opacity-0 group-hover:opacity-100 transition-all p-1 hover:bg-red-100 rounded text-text-faint hover:text-red-600"
                                                 >
                                                     <X className="h-4 w-4" />
                                                 </button>
@@ -309,18 +309,18 @@ export const FileUploader = ({
                                                 <div className="flex justify-between text-xs">
                                                     <span className={cn(
                                                         "font-medium",
-                                                        isComplete ? "text-green-600" : "text-purple-600"
+                                                        isComplete ? "text-green-600" : "text-primary"
                                                     )}>
                                                         {isComplete ? 'Ready' : `${progress.toFixed(0)}%`}
                                                     </span>
                                                 </div>
-                                                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                                <div className="h-1.5 bg-surface-secondary rounded-full overflow-hidden">
                                                     <div
                                                         className={cn(
                                                             "h-full transition-all duration-300 rounded-full",
                                                             isComplete
                                                                 ? "bg-green-500"
-                                                                : "bg-gradient-to-r from-purple-500 to-purple-400"
+                                                                : "bg-primary"
                                                         )}
                                                         style={{ width: `${progress}%` }}
                                                     />

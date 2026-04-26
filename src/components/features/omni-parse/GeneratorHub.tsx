@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
+import { useActualTheme } from "@/hooks/useActualTheme";
 import { Editor } from "@monaco-editor/react";
-import { Braces, Download } from "lucide-react";
+import { Wand2, Download, Braces } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -62,7 +63,7 @@ function GraphControls({
   return (
     <div className="flex flex-wrap items-center gap-2 justify-end">
       <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold text-gray-500">Expand</span>
+        <span className="text-xs font-semibold text-(--text-muted)">Expand</span>
         <Input
           type="number"
           min={0}
@@ -73,7 +74,7 @@ function GraphControls({
         />
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold text-gray-500">Depth</span>
+        <span className="text-xs font-semibold text-(--text-muted)">Depth</span>
         <Input
           type="number"
           min={1}
@@ -84,7 +85,7 @@ function GraphControls({
         />
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold text-gray-500">Nodes</span>
+        <span className="text-xs font-semibold text-(--text-muted)">Nodes</span>
         <Input
           type="number"
           min={50}
@@ -131,6 +132,7 @@ export function GeneratorHub({
   roundTripReport,
   languageMap,
 }: GeneratorHubProps) {
+  const { editorTheme } = useActualTheme();
   const collapseOrRestore = () => {
     if (docGraphDefaultExpandDepth > 0) {
       setDocGraphRestoreExpandDepth(docGraphDefaultExpandDepth);
@@ -144,21 +146,21 @@ export function GeneratorHub({
 
   return (
     <div className="grid lg:grid-cols-1 gap-6">
-      <Card className="p-0 bg-white border border-black/10 shadow-sm overflow-hidden">
-        <div className="border-b border-gray-200/80 bg-gradient-to-r from-sky-50 via-cyan-50 to-white px-5 py-4">
+      <Card className="p-0 bg-(--surface-overlay) border-(--border-subtle) shadow-sm overflow-hidden">
+        <div className="border-b border-(--border-subtle) bg-linear-to-r from-sky-500/10 via-cyan-500/5 to-transparent px-5 py-4">
           <div className="flex items-center gap-2">
-            <Braces className="w-4 h-4 text-sky-700" />
-            <h3 className="text-sm font-semibold text-gray-900">Generator Hub</h3>
+            <Braces className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+            <h3 className="text-sm font-semibold text-(--text-primary)">Generator Hub</h3>
           </div>
-          <p className="mt-1 text-xs text-gray-500">Use one input (JSON/XML/YAML) to generate both Markdown and Graph outputs.</p>
+          <p className="mt-1 text-xs text-(--text-muted)">Use one input (JSON/XML/YAML) to generate both Markdown and Graph outputs.</p>
         </div>
         <div className="p-5">
           <div className="grid gap-6">
-            <div className="rounded-2xl border border-gray-200 bg-white p-4">
+            <div className="rounded-2xl border border-(--border-subtle) bg-(--surface-secondary) p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <div className="text-sm font-semibold text-gray-900">Input Data</div>
-                  <div className="text-[11px] text-gray-500">This input is used for both Markdown and Graph generation.</div>
+                  <div className="text-sm font-semibold text-(--text-primary)">Input Data</div>
+                  <div className="text-[11px] text-(--text-muted)">This input is used for both Markdown and Graph generation.</div>
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Select value={docInputFormat} onChange={(e) => setDocInputFormat(e.target.value as "json" | "xml" | "yaml")} className="w-28">
@@ -176,33 +178,33 @@ export function GeneratorHub({
                 </div>
               </div>
               {roundTripReport && (
-                <div className="mt-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-700">
+                <div className="mt-3 rounded-lg border border-sky-500/20 bg-sky-500/10 px-3 py-2 text-xs text-sky-600 dark:text-sky-400">
                   {roundTripReport}
                 </div>
               )}
-              <div className="mt-3 h-[260px] border border-gray-200 rounded-xl overflow-hidden bg-white">
+              <div className="mt-3 h-[260px] border border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-overlay)">
                 <Editor
                   height="100%"
                   language={languageMap[docInputFormat]}
                   value={docInput}
                   onChange={(val) => setDocInput(val || "")}
-                  theme="vs"
+                  theme={editorTheme}
                   options={{ minimap: { enabled: false }, fontSize: 12, padding: { top: 12, bottom: 12 }, scrollBeyondLastLine: false }}
                 />
               </div>
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4">
-              <div className="text-sm font-semibold text-gray-900">Markdown</div>
-              <div className="text-[11px] text-gray-500 mt-1">Generated from the Input Data above.</div>
-              <Textarea value={docOutput} readOnly placeholder="Generated Markdown will appear here..." className="mt-3 min-h-[220px] font-mono text-xs bg-white" />
+            <div className="rounded-2xl border border-(--border-subtle) bg-(--surface-secondary) p-4">
+              <div className="text-sm font-semibold text-(--text-primary)">Markdown</div>
+              <div className="text-[11px] text-(--text-muted) mt-1">Generated from the Input Data above.</div>
+              <Textarea value={docOutput} readOnly placeholder="Generated Markdown will appear here..." className="mt-3 min-h-[220px] font-mono text-xs bg-(--surface-overlay)" />
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4">
+            <div className="rounded-2xl border border-(--border-subtle) bg-(--surface-secondary) p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <div className="text-sm font-semibold text-gray-900">Graph</div>
-                  <div className="text-[11px] text-gray-400">Generated from the same Input Data as connected nodes.</div>
+                  <div className="text-sm font-semibold text-(--text-primary)">Graph</div>
+                  <div className="text-[11px] text-(--text-muted)">Generated from the same Input Data as connected nodes.</div>
                 </div>
                 {!docGraph.error && (
                   <div className="flex flex-wrap items-center gap-2">
@@ -218,7 +220,7 @@ export function GeneratorHub({
 
               <div className="mt-3">
                 {docGraph.error ? (
-                  <div className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+                  <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400">
                     Invalid input: {docGraph.error}
                   </div>
                 ) : (
@@ -266,12 +268,12 @@ export function GeneratorHub({
                       />
                     </div>
                     <div className="mt-4 grid lg:grid-cols-2 gap-4">
-                      <div className="rounded-xl border border-gray-200 bg-white p-3">
-                        <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Schema Summary</div>
+                      <div className="rounded-xl border border-(--border-subtle) bg-(--surface-overlay) p-3">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-(--text-muted) mb-2">Schema Summary</div>
                         <Textarea value={docSchemaOutput} onChange={(e) => setDocSchemaOutput(e.target.value)} className="min-h-[180px] font-mono text-xs" />
                       </div>
-                      <div className="rounded-xl border border-gray-200 bg-white p-3">
-                        <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">OpenAPI Snippet</div>
+                      <div className="rounded-xl border border-(--border-subtle) bg-(--surface-overlay) p-3">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-(--text-muted) mb-2">OpenAPI Snippet</div>
                         <Textarea value={docOpenApiOutput} onChange={(e) => setDocOpenApiOutput(e.target.value)} className="min-h-[180px] font-mono text-xs" />
                       </div>
                     </div>
@@ -285,16 +287,16 @@ export function GeneratorHub({
 
       {docGraphModalOpen && (
         <div className="absolute top-14 bottom-0 right-0 left-0 z-50 pointer-events-none">
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm pointer-events-auto" onClick={() => setDocGraphModalOpen(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto" onClick={() => setDocGraphModalOpen(false)} />
           <div className="absolute inset-0 pointer-events-none flex items-start justify-start p-0">
             <div
-              className="pointer-events-auto w-full h-full bg-white/90 backdrop-blur-2xl border border-black/10 rounded-none shadow-2xl overflow-hidden flex flex-col"
+              className="pointer-events-auto w-full h-full bg-(--surface-overlay)/90 backdrop-blur-2xl border border-(--border-subtle) rounded-none shadow-2xl overflow-hidden flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="h-14 border-b border-gray-200/70 bg-white/60 backdrop-blur-md flex items-center justify-between px-5">
-                <div className="text-sm text-gray-500">
-                  <span className="font-semibold text-gray-800 mr-2">Graph</span>
-                  <span className="text-gray-300">/</span>
+              <div className="h-14 border-b border-(--border-subtle) bg-(--surface-overlay)/60 backdrop-blur-md flex items-center justify-between px-5">
+                <div className="text-sm text-(--text-muted)">
+                  <span className="font-semibold text-(--text-primary) mr-2">Graph</span>
+                  <span className="text-(--border-subtle)">/</span>
                   <span className="ml-2">Input Data</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -309,7 +311,7 @@ export function GeneratorHub({
 
               <div className="p-4 md:p-6 flex flex-col gap-3 min-h-0 flex-1">
                 {docGraph.error ? (
-                  <div className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+                  <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400">
                     Invalid input: {docGraph.error}
                   </div>
                 ) : (

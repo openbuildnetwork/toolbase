@@ -18,13 +18,13 @@ export const RedactStats: React.FC<RedactStatsProps> = ({ response }) => {
                     className="space-y-6"
                 >
                     <Card className="border-none shadow-lg bg-linear-to-br from-primary/5 to-primary/10 ring-1 ring-primary/20">
-                        <div className="px-6 py-4 border-b border-primary/10 bg-white/30">
+                        <div className="px-6 py-4 border-b border-primary/10 bg-surface-secondary/30">
                             <div className="flex items-center gap-2 text-primary font-bold text-sm uppercase tracking-tight">
                                 <Activity className="w-4 h-4" />
                                 Security Audit
                             </div>
                         </div>
-                        <div className="p-8 text-center bg-white/40">
+                        <div className="p-8 text-center bg-surface-secondary/40">
                             <motion.div
                                 initial={{ scale: 0.5, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
@@ -44,10 +44,10 @@ export const RedactStats: React.FC<RedactStatsProps> = ({ response }) => {
                                 key={type}
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                className="bg-white/60 backdrop-blur-md px-5 py-4 rounded-2xl border border-gray-100 flex items-center justify-between shadow-sm group hover:border-primary/20 transition-colors"
+                                className="bg-surface/60 backdrop-blur-md px-5 py-4 rounded-2xl border border-border-subtle flex items-center justify-between shadow-sm group hover:border-primary/20 transition-colors"
                             >
-                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-primary transition-colors">{type.replace(/_/g, ' ')}</span>
-                                <span className="text-sm font-black text-gray-900 bg-gray-100 px-3 py-1 rounded-full group-hover:bg-primary/10 group-hover:text-primary transition-colors">{count}</span>
+                                <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest group-hover:text-primary transition-colors">{type.replace(/_/g, ' ')}</span>
+                                <span className="text-sm font-black text-text-primary bg-surface-secondary px-3 py-1 rounded-full group-hover:bg-primary/10 group-hover:text-primary transition-colors">{count}</span>
                             </motion.div>
                         ))}
                     </div>

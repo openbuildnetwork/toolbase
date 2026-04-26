@@ -163,8 +163,8 @@ export default function SplitPdf({
 
     // ── Shared page selector UI ──────────────────────────────────────────────────
     const pageSelector = (
-        <div className="bg-gradient-to-b from-gray-50/80 to-white/50 p-4 sm:p-6 rounded-2xl border border-gray-200/60 shadow-sm">
-            <p className="text-center text-sm text-gray-500 mb-4 sm:mb-6 font-medium">
+        <div className="bg-gradient-to-b from-gray-50/80 to-white/50 p-4 sm:p-6 rounded-2xl border border-border-medium/60 shadow-sm">
+            <p className="text-center text-sm text-text-muted mb-4 sm:mb-6 font-medium">
                 {isInteractionMode
                     ? 'Tap the scissors between pages to set split points, then confirm.'
                     : 'Tap the scissors to split the document at that point.'}
@@ -180,7 +180,7 @@ export default function SplitPdf({
                                 "hover:shadow-lg hover:scale-105 hover:border-red-200/50",
                                 "w-[100px] h-[135px] sm:w-[140px] sm:h-[180px]"
                             )}>
-                                <div className="w-full h-full bg-white rounded-lg border border-gray-100 overflow-hidden relative shadow-sm">
+                                <div className="w-full h-full bg-surface-elevated rounded-lg border border-border-subtle overflow-hidden relative shadow-sm">
                                     <PdfPreview
                                         pdfDocument={pdfDocument}
                                         pageNumber={i + 1}
@@ -188,7 +188,7 @@ export default function SplitPdf({
                                         className="w-full h-full object-contain"
                                     />
                                 </div>
-                                <span className="text-[10px] sm:text-xs font-medium text-gray-500 bg-gray-100/80 px-2 py-0.5 rounded-full">
+                                <span className="text-[10px] sm:text-xs font-medium text-text-muted bg-surface-secondary/80 px-2 py-0.5 rounded-full">
                                     Page {i + 1}
                                 </span>
                             </Card>
@@ -203,8 +203,8 @@ export default function SplitPdf({
                                         "w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-200 border-2 shadow-sm",
                                         "active:scale-90 touch-manipulation",
                                         splitIndices.includes(i)
-                                            ? 'bg-gradient-to-br from-red-500 to-red-600 border-red-700 text-white scale-110 shadow-red-200'
-                                            : 'bg-white border-gray-200 text-gray-300 hover:text-red-500 hover:border-red-300 hover:scale-105 hover:shadow-md'
+                                            ? 'bg-gradient-to-br from-red-500 to-red-600 border-red-700 text-background scale-110 shadow-red-200'
+                                            : 'bg-surface-elevated border-border-medium text-text-muted hover:text-red-500 hover:border-red-300 hover:scale-105 hover:shadow-md'
                                     )}
                                     title="Split here"
                                     aria-label={`Split after page ${i + 1}`}
@@ -238,10 +238,10 @@ export default function SplitPdf({
                     <div className="w-16 h-16 sm:w-12 sm:h-12 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center shadow-inner">
                         <Scissors className="w-8 h-8 sm:w-6 sm:h-6 text-red-500" />
                     </div>
-                    <h2 className="text-xl sm:text-2xl font-semibold mb-2 text-gray-900">
+                    <h2 className="text-xl sm:text-2xl font-semibold mb-2 text-text-primary">
                         {isInteractionMode ? 'Select PDF to Split' : 'Split PDF Document'}
                     </h2>
-                    <p className="text-sm sm:text-base text-gray-500 max-w-md mx-auto">
+                    <p className="text-sm sm:text-base text-text-muted max-w-md mx-auto">
                         {isInteractionMode
                             ? 'Upload the PDF you want to split in the pipeline, then mark the split points.'
                             : 'Extract pages or split your document into multiple files.'}
@@ -268,8 +268,8 @@ export default function SplitPdf({
             {/* Sticky toolbar */}
             <div className={cn(
                 'flex items-center justify-between p-3 sm:p-4 rounded-xl border shadow-sm',
-                isInteractionMode ? 'shrink-0 bg-white' : 'bg-white/80 backdrop-blur-md sticky top-0 z-30',
-                isInteractionMode ? 'border-gray-200' : 'border-gray-200/60'
+                isInteractionMode ? 'shrink-0 bg-surface-elevated' : 'bg-surface-elevated/80 backdrop-blur-md sticky top-0 z-30',
+                isInteractionMode ? 'border-border-medium' : 'border-border-medium/60'
             )}>
                 <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                     <div className={cn(
@@ -279,10 +279,10 @@ export default function SplitPdf({
                         <Scissors className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                        <h3 className="font-medium text-gray-900 truncate text-xs sm:text-sm" title={file?.name}>
+                        <h3 className="font-medium text-text-primary truncate text-xs sm:text-sm" title={file?.name}>
                             {file?.name}
                         </h3>
-                        <p className="text-[10px] sm:text-xs text-gray-500 font-medium whitespace-nowrap">
+                        <p className="text-[10px] sm:text-xs text-text-muted font-medium whitespace-nowrap">
                             {numPages} Pages · {((file?.size ?? 0) / 1024 / 1024).toFixed(2)} MB
                             {splitIndices.length > 0 && <span className="hidden sm:inline text-red-500"> · {splitIndices.length + 1} segments</span>}
                         </p>
@@ -355,13 +355,13 @@ export default function SplitPdf({
                                 <div className="flex items-center gap-2.5 min-w-0">
                                     <div className={cn(
                                         "h-10 w-10 sm:h-11 sm:w-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
-                                        "bg-white border-2 border-green-200/60"
+                                        "bg-surface-elevated border-2 border-green-200/60"
                                     )}>
-                                        <span className="font-bold text-green-600 text-base sm:text-lg">{i + 1}</span>
+                                        <span className="font-bold text-green-500 text-base sm:text-lg">{i + 1}</span>
                                     </div>
                                     <div className="flex flex-col min-w-0 flex-1">
-                                        <span className="font-semibold text-gray-900 truncate text-sm sm:text-base">{result.name}</span>
-                                        <span className="text-[10px] sm:text-xs text-green-600 font-medium flex items-center gap-1">
+                                        <span className="font-semibold text-text-primary truncate text-sm sm:text-base">{result.name}</span>
+                                        <span className="text-[10px] sm:text-xs text-green-500 font-medium flex items-center gap-1">
                                             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                                             Ready to download
                                         </span>
@@ -385,7 +385,7 @@ export default function SplitPdf({
                                             variant="outline"
                                             className={cn(
                                                 "w-full sm:w-auto flex-1 sm:flex-none text-xs sm:text-sm font-medium",
-                                                "bg-white hover:bg-green-600 hover:text-white hover:border-green-600",
+                                                "bg-surface-elevated hover:bg-green-600 hover:text-background hover:border-green-600",
                                                 "border-green-200 text-green-700 transition-all duration-200"
                                             )}
                                         >
@@ -417,7 +417,7 @@ export default function SplitPdf({
             {(isInteractionMode || !splitResult.length) && (
                 <div className={isInteractionMode ? 'flex-1 overflow-y-auto min-h-0' : ''}>
                     {numPages > 0 ? pageSelector : (
-                        <div className="flex items-center justify-center h-40 text-gray-400 text-sm">
+                        <div className="flex items-center justify-center h-40 text-text-faint text-sm">
                             Loading pages…
                         </div>
                     )}

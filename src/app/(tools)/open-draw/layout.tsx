@@ -3,7 +3,7 @@ import { ToolPageTracker } from '@/components/ui/ToolPageTracker';
 import { PrivacyBadge } from '@/components/ui/PrivacyBadge';
 
 export const metadata: Metadata = {
-    title: 'Open Draw | OBN Toolkit',
+    title: 'Open Draw | OBN toolbase',
     description: 'Create diagrams, flowcharts and system designs with a full diagramming canvas — no account required.',
 };
 

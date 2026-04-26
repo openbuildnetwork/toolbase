@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Base64Request, Base64Response } from '@/types/base64';
+import { base64Worker } from '@/workers/instances';
 
 export interface UseBase64Result {
     process: (request: Base64Request) => Promise<Base64Response>;
@@ -13,7 +14,9 @@ export interface UseBase64Result {
     reset: () => void;
 }
 
-import { base64Worker } from '@/workers/instances';
+const errorMessage = (error: unknown, fallback: string): string => {
+    return error instanceof Error ? error.message : fallback;
+};
 
 export function useBase64(): UseBase64Result {
     const [isReady, setIsReady] = useState(base64Worker.readyState === 'ready');
@@ -22,6 +25,8 @@ export function useBase64(): UseBase64Result {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        let isMounted = true;
+
         const handleReadyStateChange = (state: string, message?: string) => {
             setIsReady(state === 'ready');
             if (state === 'cold' && message) {
@@ -33,8 +38,14 @@ export function useBase64(): UseBase64Result {
         
         // Initial sync
         setIsReady(base64Worker.readyState === 'ready');
+        base64Worker.init().catch((err: unknown) => {
+            if (!isMounted) return;
+            setError(errorMessage(err, 'Failed to start Base64 worker'));
+            setIsReady(false);
+        });
 
         return () => {
+            isMounted = false;
             if (base64Worker.onReadyStateChange === handleReadyStateChange) {
                 base64Worker.onReadyStateChange = undefined;
             }
@@ -45,11 +56,14 @@ export function useBase64(): UseBase64Result {
         setIsProcessing(true);
         setError(null);
         try {
-            const res = await base64Worker.execute('process', request as any) as Base64Response;
+            const res = await base64Worker.execute('process', request as unknown as Record<string, unknown>) as Base64Response;
             setResult(res);
+            if (!res.success) {
+                setError(res.error || 'Processing failed');
+            }
             return res;
-        } catch (err: any) {
-            const msg = err.message || 'Processing failed';
+        } catch (err: unknown) {
+            const msg = errorMessage(err, 'Processing failed');
             setError(msg);
             throw err;
         } finally {
@@ -75,7 +89,7 @@ export function useBase64(): UseBase64Result {
                     }
                 } else if (Array.isArray(result.result)) {
                     const uint8Array = new Uint8Array(result.result);
-                    blob = new Blob([uint8Array as any], { type: 'application/octet-stream' });
+                    blob = new Blob([new Uint8Array(uint8Array)], { type: 'application/octet-stream' });
                     if (!downloadFilename.includes('.')) {
                         downloadFilename += '.bin';
                     }
@@ -92,7 +106,7 @@ export function useBase64(): UseBase64Result {
                 link.click();
                 document.body.removeChild(link);
                 setTimeout(() => URL.revokeObjectURL(url), 100);
-            } catch (err) {
+            } catch {
                 setError('Failed to download file');
             }
         },

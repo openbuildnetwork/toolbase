@@ -4,6 +4,7 @@ import React from "react";
 import { Editor } from "@monaco-editor/react";
 import { Button } from "@/components/ui/Button";
 import { Play, Database, FileSpreadsheet, HelpCircle, ChevronUp, ChevronDown, CheckCircle2, GripHorizontal } from "lucide-react";
+import { useTheme } from "next-themes";
 import { TableSchema } from "@/hooks/useDataLens";
 import { HelpPanel } from "./HelpPanel";
 import { DataTable } from "./DataTable";
@@ -22,6 +23,7 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
     const [isHelpOpen, setIsHelpOpen] = React.useState(false);
     const [resultsPanelCollapsed, setResultsPanelCollapsed] = React.useState(false);
     const { ratio, isDragging, handleProps, containerRef } = useResizablePanel({ initialRatio: 0.45 });
+    const { theme, resolvedTheme } = useTheme();
 
     // Transform query result data for the DataTable
     const resultTableData = React.useMemo(() => {
@@ -61,17 +63,17 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
 
     const sqlIntro = (
         <div className="space-y-3">
-            <h3 className="text-sm font-bold text-indigo-900">How Naming Works</h3>
-            <p className="text-xs text-indigo-700/80 leading-relaxed">
+            <h3 className="text-sm font-bold text-text-primary">How Naming Works</h3>
+            <p className="text-xs text-text-secondary leading-relaxed">
                 When you upload a file, the **filename (without extension)** becomes your table name.
             </p>
-            <div className="flex items-center gap-3 bg-white/50 p-2 rounded-xl border border-indigo-100 italic text-[10px] text-indigo-600">
+            <div className="flex items-center gap-3 bg-surface-sunken p-2 rounded-xl border border-border-subtle italic text-[10px] text-primary">
                 <span>📄 employees_200.csv</span>
-                <span className="text-gray-400">➔</span>
+                <span className="text-text-muted">➔</span>
                 <span className="font-mono font-bold">employees_200</span>
             </div>
-            <p className="text-[10px] text-indigo-600/70">
-                All nested JSON fields are flattened using underscores (e.g., <code className="bg-indigo-100 px-1 rounded">personalInfo_city</code>).
+            <p className="text-[10px] text-text-muted">
+                All nested JSON fields are flattened using underscores (e.g., <code className="bg-primary/20 text-primary px-1 rounded">personalInfo_city</code>).
             </p>
         </div>
     );
@@ -82,11 +84,11 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
         schemasRef.current = schemas;
     }, [schemas]);
 
-    const handleEditorMount = (editor: any, monaco: any) => {
+    const handleEditorMount = (editor: unknown, monaco: any) => {
         // Register completion item provider for SQL
         monaco.languages.registerCompletionItemProvider('sql', {
             provideCompletionItems: (model: any, position: any) => {
-                const suggestions: any[] = [];
+                const suggestions: unknown[] = [];
                 const currentSchemas = schemasRef.current;
 
                 // 1. Table Names (from current schemas)
@@ -158,20 +160,20 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
     };
 
     return (
-        <div ref={containerRef} className="h-full flex flex-col bg-gray-50/50 relative overflow-hidden">
+        <div ref={containerRef} className="h-full flex flex-col bg-background relative overflow-hidden">
             {/* Editor Panel */}
             <div
-                className="flex flex-col bg-white border-b border-gray-200 shadow-sm overflow-hidden"
+                className="flex flex-col bg-surface border-b border-border-subtle shadow-sm overflow-hidden"
                 style={hasResults && !resultsPanelCollapsed ? { height: `${ratio * 100}%`, minHeight: 150 } : { flex: 1 }}
             >
-                <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-gray-50/50">
-                    <span className="text-sm font-semibold text-gray-700">SQL Editor</span>
+                <div className="flex items-center justify-between px-5 py-3 border-b border-border-subtle bg-surface-secondary">
+                    <span className="text-sm font-semibold text-text-primary">SQL Editor</span>
                     <div className="flex gap-2">
                         <Button 
                             onClick={() => setIsHelpOpen(true)}
                             variant="outline" 
                             size="sm" 
-                            className="gap-2 border-gray-200 hover:bg-gray-100 text-gray-600"
+                            className="gap-2 border-border-medium hover:bg-surface-overlay text-text-secondary hover:text-text-primary"
                         >
                             <HelpCircle className="w-4 h-4" /> How to use
                         </Button>
@@ -179,7 +181,7 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
                             onClick={onRunSql} 
                             disabled={isProcessing} 
                             size="sm" 
-                            className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+                            className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-sm"
                         >
                             <Play className="w-4 h-4" /> Run Query
                         </Button>
@@ -192,7 +194,7 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
                         value={sqlQuery}
                         onChange={(val) => setSqlQuery(val || '')}
                         onMount={handleEditorMount}
-                        theme="vs"
+                        theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs'}
                         options={{
                             minimap: { enabled: false },
                             fontSize: 14,
@@ -211,25 +213,25 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
             {/* Drag Handle */}
             {hasResults && !resultsPanelCollapsed && (
                 <div {...handleProps}>
-                    <div className={`w-12 h-1 rounded-full transition-colors ${isDragging ? 'bg-indigo-400' : 'bg-gray-300 group-hover:bg-indigo-400'}`} />
+                    <div className={`w-12 h-1 rounded-full transition-colors ${isDragging ? 'bg-primary' : 'bg-border-medium group-hover:bg-primary'}`} />
                 </div>
             )}
 
             {/* Inline Results Panel */}
             {hasResults && (
-                <div className={`flex flex-col bg-white overflow-hidden ${resultsPanelCollapsed ? 'h-auto' : 'flex-1 min-h-[120px]'}`}>
+                <div className={`flex flex-col bg-surface overflow-hidden ${resultsPanelCollapsed ? 'h-auto' : 'flex-1 min-h-[120px]'}`}>
                     {/* Results Header */}
-                    <div className="flex items-center justify-between px-5 py-2.5 border-b border-gray-100 bg-gray-50/50">
+                    <div className="flex items-center justify-between px-5 py-2.5 border-b border-border-subtle bg-surface-secondary">
                         <div className="flex items-center gap-3">
                             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                            <span className="text-sm font-semibold text-gray-700">Results</span>
-                            <span className="text-xs text-gray-400 font-mono bg-gray-100 px-2 py-0.5 rounded-md">
+                            <span className="text-sm font-semibold text-text-primary">Results</span>
+                            <span className="text-xs text-text-secondary font-mono bg-surface-overlay px-2 py-0.5 rounded-md">
                                 {resultTableData.length} row{resultTableData.length !== 1 ? 's' : ''}
                             </span>
                         </div>
                         <button
                             onClick={() => setResultsPanelCollapsed(!resultsPanelCollapsed)}
-                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                            className="p-1.5 rounded-lg hover:bg-surface-overlay text-text-muted hover:text-text-primary transition-colors"
                             title={resultsPanelCollapsed ? 'Expand results' : 'Collapse results'}
                         >
                             {resultsPanelCollapsed ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -249,28 +251,28 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
 
             {/* Schema Explorer (shown when no results) */}
             {!hasResults && (
-                <div className="h-40 bg-white border-t border-gray-200 p-5 overflow-auto">
+                <div className="h-40 bg-surface border-t border-border-subtle p-5 overflow-auto">
                     <div className="flex items-center gap-2 mb-4">
-                        <Database className="w-4 h-4 text-indigo-500" />
-                        <span className="text-sm font-semibold text-gray-700">Schema Explorer</span>
+                        <Database className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-semibold text-text-primary">Schema Explorer</span>
                     </div>
                     <div className="flex flex-wrap gap-4">
                         {schemas.map(s => (
-                            <div key={s.table_name} className="bg-gray-50 border border-gray-200 rounded-xl p-4 min-w-[200px]">
-                                <div className="font-semibold text-indigo-600 mb-2 flex items-center gap-2">
+                            <div key={s.table_name} className="bg-surface-secondary border border-border-medium rounded-xl p-4 min-w-[200px]">
+                                <div className="font-semibold text-primary mb-2 flex items-center gap-2">
                                     <FileSpreadsheet className="w-4 h-4" />
                                     {s.table_name}
                                 </div>
                                 <div className="flex flex-wrap gap-1.5">
                                     {s.columns.slice(0, 5).map(c => (
-                                        <span key={c.name} className="px-2 py-0.5 bg-white border border-gray-200 rounded text-[10px] text-gray-600 font-medium">{c.name}</span>
+                                        <span key={c.name} className="px-2 py-0.5 bg-surface border border-border-medium rounded text-[10px] text-text-secondary font-medium">{c.name}</span>
                                     ))}
-                                    {s.columns.length > 5 && <span className="px-2 py-0.5 text-[10px] text-gray-400">+{s.columns.length - 5}</span>}
+                                    {s.columns.length > 5 && <span className="px-2 py-0.5 text-[10px] text-text-muted">+{s.columns.length - 5}</span>}
                                 </div>
                             </div>
                         ))}
                         {schemas.length === 0 && (
-                            <p className="text-sm text-gray-400">No tables loaded yet. Upload a file to see schema.</p>
+                            <p className="text-sm text-text-muted">No tables loaded yet. Upload a file to see schema.</p>
                         )}
                     </div>
                 </div>

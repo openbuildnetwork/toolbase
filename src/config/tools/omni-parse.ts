@@ -5,7 +5,7 @@ export const omniParseConfig: ToolMeta = {
   name: 'OmniParse',
   description: 'Convert, validate, and format JSON/XML/YAML/TOML with visual schema and graph generation.',
   longDescription:
-    'OmniParse is a browser-native structured data toolkit for converting formats, validating payloads, formatting content, and generating markdown or graph documentation from JSON, XML, and YAML.',
+    'OmniParse is a browser-native structured data toolbase for converting formats, validating payloads, formatting content, and generating markdown or graph documentation from JSON, XML, and YAML.',
   category: 'data',
   route: 'omni-parse',
   thumbnail: '/assets/thumbnails/omni-parse.svg',

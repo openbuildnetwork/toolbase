@@ -44,14 +44,14 @@ export function ImagePreview({
     return (
         <div className="relative w-full h-full flex flex-col gap-4">
             {/* Stats Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-white/60 backdrop-blur-md rounded-2xl border border-white/20 shadow-sm">
+            <div className="flex items-center justify-between px-4 py-3 bg-[var(--surface-overlay)] backdrop-blur-md rounded-2xl border border-[var(--border-subtle)] shadow-sm">
                 <div className="flex items-center gap-4">
                     <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Original</span>
+                        <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">Original</span>
                         <div className="flex items-baseline gap-2">
-                            <span className="text-sm font-medium text-gray-700">{formatBytes(originalInfo?.size_bytes || 0)}</span>
+                            <span className="text-sm font-medium text-text-primary">{formatBytes(originalInfo?.size_bytes || 0)}</span>
                             {originalInfo?.width && (
-                                <span className="text-[10px] text-gray-400 font-mono">
+                                <span className="text-[10px] text-text-muted font-mono">
                                     {originalInfo.width}x{originalInfo.height}
                                 </span>
                             )}
@@ -61,7 +61,7 @@ export function ImagePreview({
 
                 {compressedUrl && (
                     <>
-                        <div className="h-8 w-px bg-gray-200" />
+                        <div className="h-8 w-px bg-[var(--border-medium)]" />
 
                         <div className="flex flex-col items-end">
                             <span className={cn("text-xs font-bold uppercase tracking-wider flex items-center gap-1", labelColorClass)}>
@@ -69,9 +69,9 @@ export function ImagePreview({
                                 <span className={cn("px-1.5 rounded text-[10px]", diffColor)}>{diffLabel}</span>
                             </span>
                             <div className="flex items-baseline gap-2">
-                                <span className="text-sm font-bold text-gray-900">{formatBytes(compressedInfo?.size_bytes || 0)}</span>
+                                <span className="text-sm font-bold text-text-primary">{formatBytes(compressedInfo?.size_bytes || 0)}</span>
                                 {compressedInfo?.width && (
-                                    <span className="text-[10px] text-gray-400 font-mono">
+                                    <span className="text-[10px] text-text-muted font-mono">
                                         {compressedInfo.width}x{compressedInfo.height}
                                     </span>
                                 )}
@@ -84,7 +84,7 @@ export function ImagePreview({
             {/* Comparison Slider */}
             <div
                 ref={containerRef}
-                className="relative flex-1 min-h-[400px] w-full bg-checkered rounded-3xl overflow-hidden border border-gray-200 shadow-inner group select-none"
+                className="relative flex-1 min-h-[400px] w-full bg-checkered rounded-3xl overflow-hidden border border-[var(--border-medium)] shadow-inner group select-none"
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
             >
@@ -97,7 +97,7 @@ export function ImagePreview({
                     />
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <span className="text-sm text-gray-400 animate-pulse">
+                        <span className="text-sm text-text-muted animate-pulse">
                             Waiting for {mode === 'upscale' ? 'upscaling' : mode === 'resize' ? 'resizing' : 'compression'}...
                         </span>
                     </div>
@@ -157,7 +157,7 @@ export function ImagePreview({
 
             <style jsx global>{`
                 .bg-checkered {
-                    background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+                    background-image: linear-gradient(45deg, var(--border-subtle) 25%, transparent 25%), linear-gradient(-45deg, var(--border-subtle) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--border-subtle) 75%), linear-gradient(-45deg, transparent 75%, var(--border-subtle) 75%);
                     background-size: 20px 20px;
                     background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
                 }

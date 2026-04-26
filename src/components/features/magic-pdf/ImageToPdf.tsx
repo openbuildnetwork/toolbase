@@ -56,7 +56,7 @@ function SortableImage({ file, id, onRemove }: { file: File, id: string, onRemov
         <div
             ref={setNodeRef}
             style={style}
-            className="relative group aspect-square bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm touch-none"
+            className="relative group aspect-square bg-surface-elevated rounded-lg border border-border-medium overflow-hidden shadow-sm touch-none"
         >
             <div
                 {...attributes}
@@ -83,7 +83,7 @@ function SortableImage({ file, id, onRemove }: { file: File, id: string, onRemov
                         e.stopPropagation();
                         onRemove();
                     }}
-                    className="p-1.5 bg-white rounded-full text-red-600 hover:bg-red-50 shadow-lg transform scale-90 hover:scale-100 transition-all cursor-pointer"
+                    className="p-1.5 bg-surface-elevated rounded-full text-red-600 hover:bg-red-50 shadow-lg transform scale-90 hover:scale-100 transition-all cursor-pointer"
                 >
                     <Trash2 className="w-3 h-3" />
                 </button>
@@ -164,7 +164,7 @@ export default function ImageToPdf() {
                                     <ImageIcon className="w-8 h-8 text-pink-600" />
                                 </div>
                                 <h2 className="text-2xl font-semibold mb-2">Images to PDF</h2>
-                                <p className="text-gray-500">Combine multiple images into a single PDF document. Drag to reorder.</p>
+                                <p className="text-text-muted">Combine multiple images into a single PDF document. Drag to reorder.</p>
                             </div>
 
                             <div className="space-y-6">
@@ -175,11 +175,11 @@ export default function ImageToPdf() {
                                         multiple={true}
                                     />
                                 ) : (
-                                    <div className="bg-gray-50 rounded-xl p-6 border border-gray-100 space-y-6">
-                                        <div className="flex items-center justify-between text-sm text-gray-500">
+                                    <div className="bg-surface-secondary rounded-xl p-6 border border-border-subtle space-y-6">
+                                        <div className="flex items-center justify-between text-sm text-text-muted">
                                             <div className="flex flex-col">
-                                                <span className="font-medium text-gray-700">{files.length} images selected</span>
-                                                <span className="text-xs text-gray-400">Drag images to reorder page sequence</span>
+                                                <span className="font-medium text-text-secondary">{files.length} images selected</span>
+                                                <span className="text-xs text-text-faint">Drag images to reorder page sequence</span>
                                             </div>
                                             <div className="flex gap-2">
                                                 <div className="relative overflow-hidden">
@@ -230,7 +230,7 @@ export default function ImageToPdf() {
 
                                             <DragOverlay>
                                                 {activeId ? (
-                                                    <div className="w-32 h-32 bg-white rounded-lg border border-pink-500 shadow-xl overflow-hidden opacity-90 cursor-grabbing">
+                                                    <div className="w-32 h-32 bg-surface-elevated rounded-lg border border-pink-500 shadow-xl overflow-hidden opacity-90 cursor-grabbing">
                                                         <img
                                                             src={URL.createObjectURL(files.find(f => (f.name + f.size) === activeId) || files[0])}
                                                             className="w-full h-full object-cover"
@@ -262,13 +262,13 @@ export default function ImageToPdf() {
                         className="text-center space-y-6"
                     >
                         <Card className="p-12 flex flex-col items-center gap-6">
-                            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                            <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center text-green-500">
                                 <CheckCircle className="w-12 h-12" />
                             </div>
 
                             <div className="space-y-2">
-                                <h3 className="text-2xl font-bold text-gray-900">Conversion Complete!</h3>
-                                <p className="text-gray-500 text-lg">Your images have been combined into a PDF.</p>
+                                <h3 className="text-2xl font-bold text-text-primary">Conversion Complete!</h3>
+                                <p className="text-text-muted text-lg">Your images have been combined into a PDF.</p>
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">

@@ -76,10 +76,14 @@ export function EngineLoader({
                     exit={{ opacity: 0, y: -4, transition: { duration: 0.3 } }}
                     className={cn(
                         'flex items-center gap-3 px-4 py-2.5 rounded-2xl',
-                        'bg-white border border-black/6 shadow-[0_2px_12px_rgba(0,0,0,0.05)]',
+                        'border shadow-[0_2px_12px_var(--shadow-color)]',
                         'w-fit',
                         className
                     )}
+                    style={{
+                        background: 'var(--surface-elevated)',
+                        borderColor: 'var(--border-subtle)',
+                    }}
                 >
                     {/* Animated spinner orb */}
                     <div className="relative w-4 h-4 shrink-0">
@@ -95,13 +99,14 @@ export function EngineLoader({
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -4 }}
                                 transition={{ duration: 0.2 }}
-                                className="text-[12px] font-medium text-[#3a3a3c] block"
+                                className="text-[12px] font-medium block"
+                                style={{ color: 'var(--text-secondary)' }}
                             >
                                 {msgs[msgIndex]}
                             </motion.span>
                         </AnimatePresence>
-                        <span className="text-[10px] font-bold tracking-widest text-[#8e8e93] uppercase">
-                            100% Local
+                        <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>
+                            {ENGINE_LABEL[engine]} · 100% Local
                         </span>
                     </div>
                 </motion.div>

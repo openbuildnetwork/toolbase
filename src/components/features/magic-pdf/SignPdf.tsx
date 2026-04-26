@@ -369,7 +369,7 @@ export default function SignPdf({
                                     <PenTool className="w-8 h-8 text-primary" />
                                 </div>
                                 <h2 className="text-2xl font-semibold mb-2">Sign PDF</h2>
-                                <p className="text-gray-500">Add digital signatures to your PDF documents easily.</p>
+                                <p className="text-text-muted">Add digital signatures to your PDF documents easily.</p>
                             </div>
                             <FileUploader
                                 onFilesSelected={handleFileSelected}
@@ -390,27 +390,27 @@ export default function SignPdf({
                         <div className="w-full lg:w-80 flex flex-col gap-6">
                             <Card className="p-4 flex flex-col gap-4">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="font-semibold text-gray-900">Your Signature</h3>
+                                    <h3 className="font-semibold text-text-primary">Your Signature</h3>
                                     <Button variant="ghost" size="sm" onClick={() => setFile(null)}>Change PDF</Button>
                                 </div>
 
-                                <div className="flex bg-gray-100 p-1 rounded-lg">
+                                <div className="flex bg-surface-secondary p-1 rounded-lg">
                                     <button
-                                        className={cn("flex-1 flex flex-col items-center py-2 rounded-md transition-all", mode === 'draw' ? "bg-white shadow-sm" : "text-gray-500")}
+                                        className={cn("flex-1 flex flex-col items-center py-2 rounded-md transition-all", mode === 'draw' ? "bg-surface-elevated shadow-sm" : "text-text-muted")}
                                         onClick={() => setMode('draw')}
                                     >
                                         <PenTool className="w-4 h-4 mb-1" />
                                         <span className="text-[10px] font-medium uppercase tracking-wider">Draw</span>
                                     </button>
                                     <button
-                                        className={cn("flex-1 flex flex-col items-center py-2 rounded-md transition-all", mode === 'type' ? "bg-white shadow-sm" : "text-gray-500")}
+                                        className={cn("flex-1 flex flex-col items-center py-2 rounded-md transition-all", mode === 'type' ? "bg-surface-elevated shadow-sm" : "text-text-muted")}
                                         onClick={() => setMode('type')}
                                     >
                                         <Type className="w-4 h-4 mb-1" />
                                         <span className="text-[10px] font-medium uppercase tracking-wider">Type</span>
                                     </button>
                                     <button
-                                        className={cn("flex-1 flex flex-col items-center py-2 rounded-md transition-all", mode === 'upload' ? "bg-white shadow-sm" : "text-gray-500")}
+                                        className={cn("flex-1 flex flex-col items-center py-2 rounded-md transition-all", mode === 'upload' ? "bg-surface-elevated shadow-sm" : "text-text-muted")}
                                         onClick={() => setMode('upload')}
                                     >
                                         <Upload className="w-4 h-4 mb-1" />
@@ -418,7 +418,7 @@ export default function SignPdf({
                                     </button>
                                 </div>
 
-                                <div className="aspect-3/2 bg-white border-2 border-dashed border-gray-200 rounded-xl overflow-hidden relative group">
+                                <div className="aspect-3/2 bg-surface-elevated border-2 border-dashed border-border-medium rounded-xl overflow-hidden relative group">
                                     {mode === 'draw' && (
                                         <div className="w-full h-full">
                                             <canvas
@@ -436,23 +436,23 @@ export default function SignPdf({
                                             />
                                             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={clearCanvas}>
-                                                    <RefreshCw className="w-3 h-3 text-gray-400" />
+                                                    <RefreshCw className="w-3 h-3 text-text-faint" />
                                                 </Button>
                                             </div>
                                         </div>
                                     )}
 
                                     {mode === 'type' && (
-                                        <div className="w-full h-full p-4 flex flex-col gap-2 bg-gray-50/30">
+                                        <div className="w-full h-full p-4 flex flex-col gap-2 bg-surface-secondary/30">
                                             <input
                                                 type="text"
                                                 value={signatureText}
                                                 onChange={(e) => setSignatureText(e.target.value)}
                                                 placeholder="Type your name..."
-                                                className="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary/20 outline-none"
+                                                className="w-full px-3 py-2 border rounded-lg text-sm bg-surface-elevated focus:ring-2 focus:ring-primary/20 outline-none"
                                             />
                                             <select
-                                                className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                                                className="w-full px-3 py-2 border rounded-lg text-sm bg-surface-elevated"
                                                 value={selectedFont}
                                                 onChange={(e) => setSelectedFont(e.target.value)}
                                             >
@@ -483,14 +483,14 @@ export default function SignPdf({
                                             />
                                             <label
                                                 htmlFor="sig-upload"
-                                                className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                                                className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-surface-secondary transition-colors"
                                             >
                                                 {currentSignature && mode === 'upload' ? (
                                                     <img src={currentSignature} alt="Signature Upload" className="max-h-full max-w-full object-contain" />
                                                 ) : (
                                                     <>
-                                                        <Upload className="w-8 h-8 text-gray-300 mb-2" />
-                                                        <p className="text-xs text-gray-500 font-medium">Click to upload image</p>
+                                                        <Upload className="w-8 h-8 text-text-muted mb-2" />
+                                                        <p className="text-xs text-text-muted font-medium">Click to upload image</p>
                                                     </>
                                                 )}
                                             </label>
@@ -507,32 +507,32 @@ export default function SignPdf({
                             </Card>
 
                             <Card className="p-4 flex flex-col gap-3">
-                                <h4 className="text-sm font-semibold text-gray-900 px-1">Signatures in Document</h4>
+                                <h4 className="text-sm font-semibold text-text-primary px-1">Signatures in Document</h4>
                                 <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                                     {signatures.length === 0 ? (
-                                        <p className="text-xs text-gray-400 text-center py-4 italic">No signatures placed yet</p>
+                                        <p className="text-xs text-text-faint text-center py-4 italic">No signatures placed yet</p>
                                     ) : (
                                         signatures.map((sig, idx) => (
                                             <div
                                                 key={sig.id}
                                                 className={cn(
                                                     "flex items-center gap-3 p-2 rounded-lg border transition-all cursor-pointer group",
-                                                    activeSignatureId === sig.id ? "border-primary bg-primary/5 shadow-sm" : "border-gray-100 hover:border-gray-200"
+                                                    activeSignatureId === sig.id ? "border-primary bg-primary/5 shadow-sm" : "border-border-subtle hover:border-border-medium"
                                                 )}
                                                 onClick={() => {
                                                     setActiveSignatureId(sig.id);
                                                     setCurrentPage(sig.pageIndex + 1);
                                                 }}
                                             >
-                                                <div className="w-12 h-8 bg-white border border-gray-100 rounded overflow-hidden flex items-center justify-center">
+                                                <div className="w-12 h-8 bg-surface-elevated border border-border-subtle rounded overflow-hidden flex items-center justify-center">
                                                     <img src={sig.dataUrl} alt="sig" className="max-h-full max-w-full grayscale" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Page {sig.pageIndex + 1}</p>
-                                                    <p className="text-xs font-medium text-gray-700 truncate">Signature #{idx + 1}</p>
+                                                    <p className="text-[10px] font-bold text-text-faint uppercase tracking-tighter">Page {sig.pageIndex + 1}</p>
+                                                    <p className="text-xs font-medium text-text-secondary truncate">Signature #{idx + 1}</p>
                                                 </div>
                                                 <button
-                                                    className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 p-1"
+                                                    className="opacity-0 group-hover:opacity-100 text-text-faint hover:text-red-500 p-1"
                                                     onClick={(e) => { e.stopPropagation(); removeSignature(sig.id); }}
                                                 >
                                                     <Trash2 className="w-3.5 h-3.5" />
@@ -572,11 +572,11 @@ export default function SignPdf({
                         </div>
 
                         {/* Document Preview */}
-                        <div className="flex-1 flex flex-col gap-4 bg-gray-100 rounded-2xl border border-gray-200 overflow-hidden relative shadow-inner">
+                        <div className="flex-1 flex flex-col gap-4 bg-surface-secondary rounded-2xl border border-border-medium overflow-hidden relative shadow-inner">
                             {/* Toolbar */}
-                            <div className="h-14 bg-white border-b flex items-center justify-between px-6 z-10 shrink-0">
+                            <div className="h-14 bg-surface-elevated border-b flex items-center justify-between px-6 z-10 shrink-0">
                                 <div className="flex items-center gap-4">
-                                    <div className="flex bg-gray-100 rounded-lg p-1">
+                                    <div className="flex bg-surface-secondary rounded-lg p-1">
                                         <Button
                                             variant="ghost"
                                             size="sm"
@@ -586,7 +586,7 @@ export default function SignPdf({
                                         >
                                             <ChevronLeft className="w-4 h-4" />
                                         </Button>
-                                        <div className="px-3 flex items-center text-xs font-bold text-gray-600 border-x border-gray-200 mx-1 min-w-[60px] justify-center">
+                                        <div className="px-3 flex items-center text-xs font-bold text-text-muted border-x border-border-medium mx-1 min-w-[60px] justify-center">
                                             {currentPage} / {totalPages || '?'}
                                         </div>
                                         <Button
@@ -600,20 +600,20 @@ export default function SignPdf({
                                         </Button>
                                     </div>
 
-                                    <div className="h-6 w-px bg-gray-200" />
+                                    <div className="h-6 w-px bg-border-medium" />
 
-                                    <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                                    <div className="flex items-center gap-1 bg-surface-secondary rounded-lg p-1">
                                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScale(s => Math.max(0.5, s - 0.1))}>
-                                            <ZoomOut className="w-4 h-4 text-gray-500" />
+                                            <ZoomOut className="w-4 h-4 text-text-muted" />
                                         </Button>
-                                        <span className="text-[10px] font-bold text-gray-500 w-10 text-center">{Math.round(scale * 100)}%</span>
+                                        <span className="text-[10px] font-bold text-text-muted w-10 text-center">{Math.round(scale * 100)}%</span>
                                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScale(s => Math.min(2, s + 0.1))}>
-                                            <ZoomIn className="w-4 h-4 text-gray-500" />
+                                            <ZoomIn className="w-4 h-4 text-text-muted" />
                                         </Button>
                                     </div>
                                 </div>
 
-                                <div className="text-xs font-medium text-gray-400">
+                                <div className="text-xs font-medium text-text-faint">
                                     Click and drag signatures to reposition
                                 </div>
                             </div>
@@ -654,18 +654,18 @@ export default function SignPdf({
 
                             {/* Bottom Controls (Mobile) */}
                             {resultPdfUrl && (
-                                <div className="absolute inset-0 bg-white/95 backdrop-blur-md z-40 flex items-center justify-center p-8">
+                                <div className="absolute inset-0 bg-surface-elevated/95 backdrop-blur-md z-40 flex items-center justify-center p-8">
                                     <motion.div
                                         initial={{ scale: 0.9, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
                                         className="max-w-md w-full text-center space-y-6"
                                     >
-                                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto text-green-600">
+                                        <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto text-green-500">
                                             <CheckCircle className="w-10 h-10" />
                                         </div>
                                         <div className="space-y-2">
-                                            <h3 className="text-2xl font-bold text-gray-900 border-none">Ready to Download</h3>
-                                            <p className="text-gray-500">Your signed PDF is ready with {signatures.length} signature{signatures.length !== 1 ? 's' : ''} applied.</p>
+                                            <h3 className="text-2xl font-bold text-text-primary border-none">Ready to Download</h3>
+                                            <p className="text-text-muted">Your signed PDF is ready with {signatures.length} signature{signatures.length !== 1 ? 's' : ''} applied.</p>
                                         </div>
                                         <div className="flex flex-col gap-3">
                                             <a href={resultPdfUrl} download={`signed_${file.name}`} className="block">
@@ -773,13 +773,13 @@ const SignatureLayer = ({ sig, isActive, onSelect, onMove, onRemove }: Signature
                         <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-primary rounded-full border-2 border-white shadow-sm" />
 
                         <button
-                            className="absolute -top-6 left-1/2 -translate-x-1/2 flex items-center justify-center bg-red-500 text-white rounded-md p-1 opacity-100 hover:bg-red-600 shadow-sm"
+                            className="absolute -top-6 left-1/2 -translate-x-1/2 flex items-center justify-center bg-red-500 text-background rounded-md p-1 opacity-100 hover:bg-red-600 shadow-sm"
                             onClick={(e) => { e.stopPropagation(); onRemove(); }}
                         >
                             <Trash2 className="w-3 h-3" />
                         </button>
 
-                        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center justify-center bg-gray-900 text-white rounded-md px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest whitespace-nowrap shadow-sm opacity-100 h-4">
+                        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center justify-center bg-foreground text-background rounded-md px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest whitespace-nowrap shadow-sm opacity-100 h-4">
                             Move <Move className="w-2 h-2 ml-1" />
                         </div>
                     </>

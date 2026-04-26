@@ -4,19 +4,19 @@
  * useToolPreferences
  *
  * Manages user-specific tool preferences stored exclusively in localStorage.
- * Provides favorites (toggle), recents (capped at 5, newest-first), and
+ * Provides favorites (toggle), recents (capped at 15, newest-first), and
  * cross-tab sync via the native `storage` event.
  *
  * localStorage keys:
  *   toolbase:favorites  → string[]  e.g. ['magic-pdf', 'pixel-axe']
- *   toolbase:recents    → string[]  e.g. ['data-lens', 'base64']  (max 5)
+ *   toolbase:recents    → string[]  e.g. ['data-lens', 'base64']  (max 15)
  */
 
 import { useState, useEffect, useCallback } from 'react';
 
 const FAVORITES_KEY = 'toolbase:favorites';
 const RECENTS_KEY = 'toolbase:recents';
-const RECENTS_MAX = 5;
+const RECENTS_MAX = 15;
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -46,6 +46,10 @@ function writeJSON<T>(key: string, value: T): void {
 
 // ─── hook ─────────────────────────────────────────────────────────────────────
 
+function sameStringArray(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((value, index) => value === b[index]);
+}
+
 export interface ToolPreferences {
   favorites: string[];
   recents: string[];
@@ -63,8 +67,12 @@ export function useToolPreferences(): ToolPreferences {
 
   // Hydrate once from localStorage (avoids SSR mismatch)
   useEffect(() => {
-    setFavorites(readJSON<string[]>(FAVORITES_KEY, []));
-    setRecents(readJSON<string[]>(RECENTS_KEY, []));
+    const timer = window.setTimeout(() => {
+      setFavorites(readJSON<string[]>(FAVORITES_KEY, []));
+      setRecents(readJSON<string[]>(RECENTS_KEY, []));
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   // Sync across tabs AND same-tab instances
@@ -74,11 +82,11 @@ export function useToolPreferences(): ToolPreferences {
       const newRecents = readJSON<string[]>(RECENTS_KEY, []);
       
       setFavorites(prev => {
-         if (prev.length === newFavorites.length && prev.every((v, i) => v === newFavorites[i])) return prev;
+         if (sameStringArray(prev, newFavorites)) return prev;
          return newFavorites;
       });
       setRecents(prev => {
-         if (prev.length === newRecents.length && prev.every((v, i) => v === newRecents[i])) return prev;
+         if (sameStringArray(prev, newRecents)) return prev;
          return newRecents;
       });
     };
@@ -102,7 +110,7 @@ export function useToolPreferences(): ToolPreferences {
       const next = prev.includes(id)
         ? prev.filter((fid) => fid !== id)
         : [...prev, id];
-      if (prev.length === next.length && prev.every((v, i) => v === next[i])) return prev;
+      if (sameStringArray(prev, next)) return prev;
       writeJSON(FAVORITES_KEY, next);
       return next;
     });
@@ -114,9 +122,12 @@ export function useToolPreferences(): ToolPreferences {
    */
   const addRecent = useCallback((id: string) => {
     setRecents((prev) => {
-      const deduplicated = prev.filter((rid) => rid !== id);
+      const current = readJSON<string[]>(RECENTS_KEY, prev);
+      const deduplicated = current.filter((rid) => rid !== id);
       const next = [id, ...deduplicated].slice(0, RECENTS_MAX);
-      if (prev.length === next.length && prev.every((v, i) => v === next[i])) return prev;
+      if (sameStringArray(current, next)) {
+        return sameStringArray(prev, current) ? prev : current;
+      }
       writeJSON(RECENTS_KEY, next);
       return next;
     });
@@ -125,8 +136,11 @@ export function useToolPreferences(): ToolPreferences {
   /** Remove a single tool from the recents list */
   const removeRecent = useCallback((id: string) => {
     setRecents((prev) => {
-      const next = prev.filter((rid) => rid !== id);
-      if (prev.length === next.length) return prev;
+      const current = readJSON<string[]>(RECENTS_KEY, prev);
+      const next = current.filter((rid) => rid !== id);
+      if (sameStringArray(current, next)) {
+        return sameStringArray(prev, current) ? prev : current;
+      }
       writeJSON(RECENTS_KEY, next);
       return next;
     });
@@ -135,7 +149,8 @@ export function useToolPreferences(): ToolPreferences {
   /** Wipe the entire recents list */
   const clearRecents = useCallback(() => {
     setRecents(prev => {
-        if (prev.length === 0) return prev;
+        const current = readJSON<string[]>(RECENTS_KEY, prev);
+        if (current.length === 0) return sameStringArray(prev, current) ? prev : current;
         writeJSON(RECENTS_KEY, []);
         return [];
     });
@@ -144,7 +159,8 @@ export function useToolPreferences(): ToolPreferences {
   /** Wipe the entire favourites list */
   const clearFavorites = useCallback(() => {
     setFavorites(prev => {
-        if (prev.length === 0) return prev;
+        const current = readJSON<string[]>(FAVORITES_KEY, prev);
+        if (current.length === 0) return sameStringArray(prev, current) ? prev : current;
         writeJSON(FAVORITES_KEY, []);
         return [];
     });

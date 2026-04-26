@@ -44,7 +44,7 @@ export default function RedactSecretsPage() {
     } = useRedactSecrets();
 
     return (
-        <div className="min-h-screen bg-background-light p-4 md:p-8 font-display">
+        <div className="min-h-screen bg-(--background) p-4 md:p-8 font-display">
             <div className="max-w-7xl mx-auto space-y-8">
                 {/* Header */}
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -54,14 +54,14 @@ export default function RedactSecretsPage() {
                                 <Shield className="w-7 h-7" />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold tracking-tight text-gray-900">Secret Redactor</h1>
-                                <p className="text-sm text-gray-500 font-medium">Protect sensitive information and PII automatically</p>
+                                <h1 className="text-2xl font-bold tracking-tight text-(--text-primary)">Secret Redactor</h1>
+                                <p className="text-sm text-(--text-secondary) font-medium">Protect sensitive information and PII automatically</p>
                             </div>
                         </div>
                     </div>
                     <ReturnToToolsButton />
                     <div className="flex items-center gap-3">
-                        <Button variant="outline" onClick={clearAll} className="bg-white/50 backdrop-blur-md border-gray-200 h-11 px-6 rounded-xl hover:bg-white hover:border-gray-300 transition-all">
+                        <Button variant="outline" onClick={clearAll} className="bg-(--surface-overlay)/50 backdrop-blur-md border-(--border-subtle) h-11 px-6 rounded-xl hover:bg-(--surface-overlay) hover:border-(--border-medium) transition-all">
                             <Trash2 className="w-4 h-4 mr-2" />
                             Clear
                         </Button>
@@ -76,6 +76,23 @@ export default function RedactSecretsPage() {
                 </header>
 
                 <EngineLoader isReady={isReady} engine="wasm" />
+                <div
+                    className={cn(
+                        "rounded-2xl border px-4 py-3",
+                        engineLabel === "Rust WASM"
+                            ? "border-sky-500 text-sky-500 bg-sky-500/10"
+                            : "border-amber-500 text-amber-500 bg-amber-500/10"
+                    )}
+                >
+                    <p className="text-xs font-semibold uppercase tracking-wider opacity-70">Runtime Engine</p>
+                    <p
+                        className={cn(
+                            "mt-1 text-sm font-semibold"
+                        )}
+                    >
+                        Engine: {engineLabel}
+                    </p>
+                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 font-display">
                     {/* Left Column: Editor */}
@@ -95,9 +112,9 @@ export default function RedactSecretsPage() {
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600"
+                                className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500"
                             >
-                                <AlertCircle className="w-5 h-5 fill-red-100" />
+                                <AlertCircle className="w-5 h-5 fill-current opacity-20" />
                                 <p className="text-sm font-semibold">{error}</p>
                             </motion.div>
                         )}

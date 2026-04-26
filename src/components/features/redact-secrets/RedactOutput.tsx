@@ -27,25 +27,25 @@ export const RedactOutput: React.FC<RedactOutputProps> = ({ response }) => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                 >
-                    <Card className="overflow-hidden border-none shadow-2xl bg-white/90 backdrop-blur-3xl ring-1 ring-black/5 ring-inset">
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                    <Card className="overflow-hidden border-none shadow-2xl bg-surface/90 backdrop-blur-3xl ring-1 ring-border-subtle ring-inset">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle">
                             <div className="flex items-center gap-2 text-emerald-600">
                                 <ShieldCheck className="w-5 h-5" />
                                 <span className="font-bold text-sm">Protected Output</span>
                             </div>
                             <Button variant="ghost" size="sm" onClick={copyToClipboard} className="h-8 group">
                                 {copied ? (
-                                    <Check className="w-4 h-4 text-emerald-600" />
+                                    <Check className="w-4 h-4 text-emerald-500" />
                                 ) : (
-                                    <Copy className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+                                    <Copy className="w-4 h-4 text-text-muted group-hover:text-text-primary" />
                                 )}
-                                <span className="ml-2 group-hover:text-gray-900 transition-colors uppercase text-[10px] font-bold tracking-wider">
+                                <span className="ml-2 group-hover:text-text-primary transition-colors uppercase text-[10px] font-bold tracking-wider text-text-muted">
                                     {copied ? "Copied!" : "Copy Output"}
                                 </span>
                             </Button>
                         </div>
-                        <div className="p-6 bg-gray-900/2 min-h-[300px]">
-                            <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 leading-relaxed selection:bg-primary/20">
+                        <div className="p-6 bg-surface-secondary/20 min-h-[300px]">
+                            <pre className="whitespace-pre-wrap font-mono text-sm text-text-primary leading-relaxed selection:bg-primary/20">
                                 {response.maskedContent}
                             </pre>
                         </div>

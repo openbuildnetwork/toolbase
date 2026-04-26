@@ -3,7 +3,7 @@ import { ToolPageTracker } from '@/components/ui/ToolPageTracker';
 import { PrivacyBadge } from '@/components/ui/PrivacyBadge';
 
 export const metadata: Metadata = {
-    title: 'Ping Tester | OBN Toolkit',
+    title: 'Ping Tester | OBN toolbase',
     description: 'Test network latency and reachability of any host directly from your browser.',
 };
 

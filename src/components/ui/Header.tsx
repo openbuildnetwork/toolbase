@@ -2,21 +2,45 @@
 
 import Link from 'next/link';
 import React from 'react';
-import { Search, Command, MessageSquare } from 'lucide-react';
+import { Search, Command, MessageSquare, Sparkles, Clock, Heart, Github } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 import { useAIChat } from '@/hooks/useAIChat';
+import { useToolPreferences } from '@/hooks/useToolPreferences';
 
 interface HeaderProps {
     onOpenPalette?: () => void;
+    onOpenRecents?: () => void;
+    onOpenFavorites?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onOpenPalette }) => {
+const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFavorites }) => {
     const { toggleChat } = useAIChat();
+    const { recents, favorites } = useToolPreferences();
 
     return (
-        <header className="sticky top-0 z-100 w-full bg-white/70 backdrop-blur-2xl border-b border-black/5 px-6 md:px-20 lg:px-40 py-4">
+        <header
+            className="sticky top-0 z-100 w-full backdrop-blur-2xl px-6 md:px-20 lg:px-40 py-4 transition-colors duration-200"
+            style={{
+                background: 'var(--surface-overlay)',
+                borderBottom: '1px solid var(--border-subtle)',
+            }}
+        >
             <div className="max-w-[1200px] p-2 mx-auto flex items-center justify-between gap-4">
-                <Link href="/">
-                    <img className="h-6" src="/assets/images/logo-dark.png" alt="Toolbase logo" />
+                <Link href="/" className="block">
+                    <div className="theme-logo-dark">
+                        <div className='flex items-center gap-4'>
+                            <img className="h-5" src="/assets/images/logo-light.png" alt="Toolbase logo" />
+                            <span className="w-px h-5 bg-white/30 rounded-full" />
+                            <img className="h-5" src="/assets/images/logo-toolbase-light.png" alt="Toolbase logo" />
+                        </div>
+                    </div>
+                    <div className="theme-logo-light">
+                        <div className='flex items-center gap-4'>
+                            <img className="h-5" src="/assets/images/logo-dark.png" alt="Toolbase logo" />
+                            <span className="w-px h-5 bg-gray-400/65 rounded-full" />
+                            <img className="h-5" src="/assets/images/logo-toolbase-dark.png" alt="Toolbase logo" />
+                        </div>
+                    </div>
                 </Link>
 
                 <div className="flex items-center gap-3">
@@ -26,15 +50,27 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette }) => {
                             onClick={onOpenPalette}
                             aria-label="Open command palette"
                             title="Open command palette (Cmd+K)"
-                            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/4 hover:bg-black/8 border border-black/6 transition-all duration-150 cursor-pointer"
+                            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all duration-150 cursor-pointer"
+                            style={{
+                                background: 'var(--surface-hover)',
+                                border: '1px solid var(--border-subtle)',
+                            }}
                         >
-                            <Search size={13} className="text-black/40" />
-                            <span className="text-[12px] text-black/35 font-medium">Search tools…</span>
+                            <Search size={13} style={{ color: 'var(--text-muted)' }} />
+                            <span className="text-[12px] font-medium" style={{ color: 'var(--text-faint)' }}>
+                                Search tools…
+                            </span>
                             <span className="flex items-center gap-0.5 ml-1">
-                                <kbd className="flex items-center justify-center w-5 h-5 rounded bg-black/5 text-[10px] font-medium text-black/30">
+                                <kbd
+                                    className="flex items-center justify-center w-5 h-5 rounded text-[10px] font-medium"
+                                    style={{ background: 'var(--kbd-bg)', color: 'var(--text-faint)' }}
+                                >
                                     <Command size={9} />
                                 </kbd>
-                                <kbd className="flex items-center justify-center w-5 h-5 rounded bg-black/5 text-[10px] font-medium text-black/30">
+                                <kbd
+                                    className="flex items-center justify-center w-5 h-5 rounded text-[10px] font-medium"
+                                    style={{ background: 'var(--kbd-bg)', color: 'var(--text-faint)' }}
+                                >
                                     K
                                 </kbd>
                             </span>
@@ -46,22 +82,108 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette }) => {
                         <button
                             onClick={onOpenPalette}
                             aria-label="Search tools"
-                            className="flex sm:hidden items-center justify-center w-9 h-9 rounded-xl bg-black/4 hover:bg-black/8 transition-all duration-150"
+                            className="flex sm:hidden items-center justify-center w-9 h-9 rounded-xl transition-all duration-150"
+                            style={{
+                                background: 'var(--surface-hover)',
+                                color: 'var(--text-muted)',
+                            }}
                         >
-                            <Search size={16} className="text-black/50" />
+                            <Search size={16} />
                         </button>
                     )}
 
                     {/* AI Chat Toggle */}
                     <button
                         onClick={toggleChat}
-                        aria-label="Toggle AI Assistant"
-                        className="group relative flex h-9 w-9 items-center justify-center rounded-xl bg-black/4 transition-all duration-150 hover:bg-black/8"
+                        aria-label="Ask Echo?"
+                        className="group relative flex items-center gap-2.5 px-4 py-2 rounded-full transition-all duration-300 active:scale-95 cursor-pointer backdrop-blur-md"
+                        style={{
+                            background: 'rgba(52, 87, 213, 0.1)',
+                            border: '1px solid rgba(52, 87, 213, 0.4)',
+                            boxShadow: 'none',
+                        }}
                     >
-                        <MessageSquare size={17} className="text-black/60 transition-colors group-hover:text-black/80" />
+                        <div className="relative">
+                            <MessageSquare
+                                size={16}
+                                style={{ color: '#3457D5' }}
+                                className="group-hover:opacity-0 transition-opacity duration-300"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-0.5 group-hover:translate-y-0">
+                                <Sparkles size={16} style={{ color: '#3457D5' }} />
+                            </div>
+                        </div>
+                        <div className="text-[13px] font-bold tracking-tight" style={{ color: '#3457D5' }}>
+                            Ask Echo ?
+                        </div>
+
+                        {/* Shimmer effect */}
+                        <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#3457D5]/10 to-transparent -translate-x-full group-hover:animate-shimmer" />
+                        </div>
                     </button>
 
-                    <img className="w-6 h-6 cursor-pointer" src="/assets/icons/settings.svg" alt="Settings" />
+
+                    {/* Theme toggle */}
+                    <ThemeToggle />
+                    
+                    {/* Favorites Toggle */}
+                    <button
+                        onClick={onOpenFavorites}
+                        aria-label="Favorite tools"
+                        className="group relative h-9 w-9 flex items-center justify-center rounded-xl transition-all duration-150 cursor-pointer"
+                        style={{
+                            background: 'var(--surface-hover)',
+                            color: 'var(--text-muted)'
+                        }}
+                    >
+                        <Heart size={18} className="group-hover:fill-red-500/20 group-hover:text-red-500 transition-all duration-200" />
+                        
+                        {favorites.length > 0 && (
+                            <span 
+                                className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-600 px-1 text-[9px] font-bold text-white shadow-sm"
+                            >
+                                {favorites.length}
+                            </span>
+                        )}
+                    </button>
+
+                    {/* Recents Toggle */}
+                    <button
+                        onClick={onOpenRecents}
+                        aria-label="Recently used tools"
+                        className="group relative h-9 w-9 flex items-center justify-center rounded-xl transition-all duration-150 cursor-pointer"
+                        style={{
+                            background: 'var(--surface-hover)',
+                            color: 'var(--text-muted)'
+                        }}
+                    >
+                        <Clock size={18} className="group-hover:opacity-70 transition-opacity" />
+                        
+                        {recents.length > 0 && (
+                            <span 
+                                className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-600 px-1 text-[9px] font-bold text-white shadow-sm"
+                            >
+                                {recents.length}
+                            </span>
+                        )}
+                    </button>
+
+                    {/* GitHub Link */}
+                    <a
+                        href="https://github.com/openbuildnetwork/toolbase"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="View on GitHub"
+                        className="group h-9 w-9 flex items-center justify-center rounded-xl transition-all duration-150"
+                        style={{
+                            background: 'var(--surface-hover)',
+                            color: 'var(--text-muted)'
+                        }}
+                    >
+                        <Github size={18} className="group-hover:text-primary transition-colors" />
+                    </a>
+
                 </div>
             </div>
         </header>
