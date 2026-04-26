@@ -71,24 +71,56 @@ export const getActiveCategories = (): ToolCategory[] =>
   [...new Set(TOOLS.map((tool) => tool.category))];
 
 /**
- * Search tools by query — searches name, description, and tags.
- * This is the canonical search function used by the app.
+ * Search tools by query — searches name, description, long description, and tags.
+ * Supports tokenized matching and basic typo tolerance.
+ * This is the canonical search function used by the app's CommandPalette.
  */
 export const searchToolsFromRegistry = (query: string): ToolMeta[] => {
-  const q = query.toLowerCase().trim();
-  if (!q) return TOOLS;
-  const tokens = q.split(/\s+/).filter(Boolean);
-  
-  return TOOLS.filter((tool) => {
-    const searchContent = [
-      tool.name,
-      tool.description,
-      ...tool.tags
-    ].map(s => s.toLowerCase());
+  const trimmedQuery = query.toLowerCase().trim();
+  if (!trimmedQuery) return TOOLS;
 
-    // Every token in the query must match at least one attribute of the tool
-    return tokens.every(token => 
-      searchContent.some(attr => attr.includes(token))
-    );
+  const queryTokens = trimmedQuery.split(/\s+/).filter(t => t.length > 0);
+
+  const scoredTools = TOOLS.map((tool) => {
+    let score = 0;
+
+    const searchableText = [
+      tool.name.toLowerCase(),
+      tool.description.toLowerCase(),
+      tool.longDescription?.toLowerCase() || '',
+      ...tool.tags.map(t => t.toLowerCase())
+    ].join(' ');
+
+    if (searchableText.includes(trimmedQuery)) {
+      score += 50;
+    }
+
+    for (const token of queryTokens) {
+      if (tool.name.toLowerCase().includes(token)) {
+        score += 10;
+      } else if (tool.tags.some(t => t.toLowerCase().includes(token))) {
+        score += 8;
+      } else if (tool.description.toLowerCase().includes(token)) {
+        score += 5;
+      } else if (tool.longDescription?.toLowerCase().includes(token)) {
+        score += 2;
+      } else if (token.length >= 3) {
+        const prefix = token.slice(0, 3);
+        if (tool.name.toLowerCase().split(/\s+/).some(w => w.startsWith(prefix))) {
+          score += 1;
+        } else if (tool.tags.some(t => t.toLowerCase().startsWith(prefix))) {
+          score += 1;
+        } else if (tool.description.toLowerCase().includes(prefix)) {
+          score += 0.5;
+        }
+      }
+    }
+
+    return { tool, score };
   });
+
+  return scoredTools
+    .filter(st => st.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(st => st.tool);
 };
