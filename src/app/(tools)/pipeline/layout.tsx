@@ -3,7 +3,7 @@ import { ToolPageTracker } from '@/components/ui/ToolPageTracker';
 import { PrivacyBadge } from '@/components/ui/PrivacyBadge';
 
 export const metadata: Metadata = {
-    title: 'Pipeline Builder | OBN Toolkit',
+    title: 'Pipeline Builder | OBN toolbase',
     description: 'Chain Toolbase tools together into automated workflows powered by TIP — the Toolbase Interoperability Protocol.',
 };
 

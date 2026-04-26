@@ -5,7 +5,7 @@ export const pixelAxeConfig: ToolMeta = {
   name: 'Pixel Axe',
   description: 'Compress, resize, upscale images and hide messages with steganography.',
   longDescription:
-    'Pixel Axe is a powerful image processing toolkit. Compress images without visible quality loss, resize to exact dimensions, upscale with AI-like algorithms, and even hide secret messages inside images using steganography — all processed locally in your browser.',
+    'Pixel Axe is a powerful image processing toolbase. Compress images without visible quality loss, resize to exact dimensions, upscale with AI-like algorithms, and even hide secret messages inside images using steganography — all processed locally in your browser.',
   category: 'image',
   route: 'pixel-axe',
   thumbnail: '/assets/thumbnails/pixel-axe.png',

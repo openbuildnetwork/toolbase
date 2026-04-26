@@ -3,7 +3,7 @@
 import React from "react";
 import { Editor } from "@monaco-editor/react";
 import { Upload, Wand2 } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useActualTheme } from "@/hooks/useActualTheme";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -91,7 +91,7 @@ export function FormatterStudio({
   fixtureImportRef,
   languageMap,
 }: FormatterStudioProps) {
-  const { resolvedTheme } = useTheme();
+  const { editorTheme } = useActualTheme();
 
   return (
     <div className="grid lg:grid-cols-12 gap-6">
@@ -148,7 +148,7 @@ export function FormatterStudio({
                 <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={() => onFormatterPreset("apiReady")}>
                   API Ready
                 </Button>
-                 <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={onAddCurrentAsFixture}>
+                <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={onAddCurrentAsFixture}>
                   Add Fixture
                 </Button>
                 {validateFormat === "json" ? (
@@ -186,7 +186,7 @@ export function FormatterStudio({
                 defaultLanguage={languageMap[validateFormat]}
                 value={validateInput}
                 onChange={(val) => setValidateInput(val || "")}
-                theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs'}
+                theme={editorTheme}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 13,
@@ -220,13 +220,13 @@ export function FormatterStudio({
                 <Button variant="outline" size="sm" onClick={onClearRecipeStepsDraft}>Clear Steps</Button>
               </div>
               <div className="max-h-32 overflow-auto space-y-1">
-                  {recipeStepsDraft.length === 0 ? (
-                    <div className="text-xs text-(--text-muted)">No steps yet. Add operations and run/save the pipeline.</div>
-                  ) : recipeStepsDraft.map((step, idx) => (
-                    <div key={step.id} className="flex items-center gap-2 rounded-md border border-(--border-subtle) px-2 py-1 text-xs">
-                      <span className="font-semibold text-(--text-secondary)">{idx + 1}.</span>
-                      <span className="capitalize text-(--text-primary)">{step.op}</span>
-                      {step.targetFormat && <span className="text-(--text-muted)">→ {step.targetFormat.toUpperCase()}</span>}
+                {recipeStepsDraft.length === 0 ? (
+                  <div className="text-xs text-(--text-muted)">No steps yet. Add operations and run/save the pipeline.</div>
+                ) : recipeStepsDraft.map((step, idx) => (
+                  <div key={step.id} className="flex items-center gap-2 rounded-md border border-(--border-subtle) px-2 py-1 text-xs">
+                    <span className="font-semibold text-(--text-secondary)">{idx + 1}.</span>
+                    <span className="capitalize text-(--text-primary)">{step.op}</span>
+                    {step.targetFormat && <span className="text-(--text-muted)">→ {step.targetFormat.toUpperCase()}</span>}
                     <div className="ml-auto flex items-center gap-1">
                       <Button variant="outline" size="sm" onClick={() => onMoveRecipeStep(step.id, "up")}>↑</Button>
                       <Button variant="outline" size="sm" onClick={() => onMoveRecipeStep(step.id, "down")}>↓</Button>
@@ -301,7 +301,7 @@ export function FormatterStudio({
                       </div>
                     ))}
                     {fixtureResults.slice(-10).map((res) => (
-                      <div key={res.id} className={`rounded-md px-2 py-1 text-xs mt-1 ${res.passed ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 text-red-500"}`}>
+                      <div key={res.id} className={`rounded-md px-2 py-1 text-xs mt-1 ${res.passed ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 text-red-600 dark:text-red-400"}`}>
                         {res.name}: {res.detail}
                       </div>
                     ))}

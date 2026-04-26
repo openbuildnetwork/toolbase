@@ -2,8 +2,8 @@
 
 import React from "react";
 import { Editor } from "@monaco-editor/react";
-import { ArrowRightLeft, XCircle } from "lucide-react";
-import { useTheme } from "next-themes";
+import { ArrowRightLeft, XCircle, CheckCircle2 } from "lucide-react";
+import { useActualTheme } from "@/hooks/useActualTheme";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Select";
@@ -36,7 +36,7 @@ export function ConvertStudio({
   formatOptions,
   languageMap,
 }: ConvertStudioProps) {
-  const { resolvedTheme } = useTheme();
+  const { editorTheme } = useActualTheme();
 
   return (
     <div className="grid lg:grid-cols-12 gap-6">
@@ -88,7 +88,7 @@ export function ConvertStudio({
                     defaultLanguage={languageMap[inputFormat]}
                     value={inputText}
                     onChange={(val) => setInputText(val || "")}
-                    theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs'}
+                    theme={editorTheme}
                     options={{
                       minimap: { enabled: false },
                       fontSize: 13,
@@ -106,7 +106,7 @@ export function ConvertStudio({
                     height="100%"
                     defaultLanguage={languageMap[outputFormat]}
                     value={outputText}
-                    theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs'}
+                    theme={editorTheme}
                     options={{
                       minimap: { enabled: false },
                       fontSize: 13,

@@ -225,6 +225,7 @@ export default function ArchiveKitPage() {
   const [telemetryEnabled, setTelemetryEnabled] = useState(true);
   const [telemetry, setTelemetry] = useState<TelemetryEvent[]>([]);
   const [queueEnabled, setQueueEnabled] = useState(false);
+  const engineLabel = "Rust WASM";
   const [jobs, setJobs] = useState<Array<{
     id: string;
     label: string;

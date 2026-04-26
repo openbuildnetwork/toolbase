@@ -60,11 +60,11 @@ const MagicPdf = () => {
 
   // Update page title when tool changes
   useEffect(() => {
-    document.title = `${activeToolLabel} | OBN Toolkit`;
+    document.title = `${activeToolLabel} | OBN toolbase`;
 
     // Cleanup: reset to layout default when component unmounts
     return () => {
-      document.title = 'Magic PDF | OBN Toolkit';
+      document.title = 'Magic PDF | OBN toolbase';
     };
   }, [activeToolLabel]);
 

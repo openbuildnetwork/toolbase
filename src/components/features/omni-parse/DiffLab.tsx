@@ -3,7 +3,7 @@
 import React from "react";
 import { Editor } from "@monaco-editor/react";
 import { FileDiff } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useActualTheme } from "@/hooks/useActualTheme";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Select";
@@ -34,7 +34,7 @@ export function DiffLab({
   onRunDiff,
   languageMap,
 }: DiffLabProps) {
-  const { resolvedTheme } = useTheme();
+  const { editorTheme } = useActualTheme();
 
   return (
     <div className="grid lg:grid-cols-12 gap-6">
@@ -66,7 +66,7 @@ export function DiffLab({
                     defaultLanguage={languageMap[diffFormat]}
                     value={diffLeft}
                     onChange={(val) => setDiffLeft(val || "")}
-                    theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs'}
+                    theme={editorTheme}
                     options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
                   />
                 </div>
@@ -79,13 +79,13 @@ export function DiffLab({
                     defaultLanguage={languageMap[diffFormat]}
                     value={diffRight}
                     onChange={(val) => setDiffRight(val || "")}
-                    theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs'}
+                    theme={editorTheme}
                     options={{ minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false }}
                   />
                 </div>
               </div>
             </div>
-            {diffError && <div className="text-sm text-red-600">{diffError}</div>}
+            {diffError && <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400">{diffError}</div>}
             {!diffError && (
               <div className="rounded-xl border border-(--border-subtle) overflow-hidden bg-(--surface-overlay)">
                 <div className="grid grid-cols-12 gap-2 bg-(--surface-secondary) px-3 py-2 text-xs font-semibold text-(--text-muted) uppercase tracking-wide border-b border-(--border-subtle)">
@@ -98,15 +98,15 @@ export function DiffLab({
                   {diffEntries.length === 0 ? (
                     <div className="px-3 py-4 text-sm text-gray-500">No differences detected.</div>
                   ) : diffEntries.map((entry, idx) => {
-                    const rowStyles = 
-                      entry.kind === "added" ? "bg-emerald-50/70 text-emerald-900 border-emerald-100" :
-                      entry.kind === "removed" ? "bg-rose-50/70 text-rose-900 border-rose-100" :
-                      "bg-amber-50/70 text-amber-900 border-amber-100";
-                    
-                    const kindStyles = 
-                      entry.kind === "added" ? "text-emerald-700" :
-                      entry.kind === "removed" ? "text-rose-700" :
-                      "text-amber-700";
+                    const rowStyles =
+                      entry.kind === "added" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" :
+                        entry.kind === "removed" ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20" :
+                          "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
+
+                    const kindStyles =
+                      entry.kind === "added" ? "text-emerald-700 dark:text-emerald-400" :
+                        entry.kind === "removed" ? "text-rose-700 dark:text-rose-400" :
+                          "text-amber-700 dark:text-amber-400";
 
                     return (
                       <div key={`${entry.path}-${idx}`} className={`grid grid-cols-12 gap-2 px-3 py-2 border-t text-sm ${rowStyles}`}>

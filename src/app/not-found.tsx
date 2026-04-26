@@ -50,7 +50,7 @@ export default function NotFound() {
             Whoops! Looks Like This Page Went on Vacation!
           </h1>
           <p className="mt-5 max-w-[570px] text-sm leading-6 text-[#777984] sm:text-base">
-            Uh oh! Our little toolkit friend might have accidentally scribbled out this address.
+            Uh oh! Our little toolbase friend might have accidentally scribbled out this address.
             We can&apos;t seem to find the page you&apos;re looking for.
           </p>
         </div>

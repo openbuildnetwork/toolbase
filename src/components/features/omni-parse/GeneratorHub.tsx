@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
+import { useActualTheme } from "@/hooks/useActualTheme";
 import { Editor } from "@monaco-editor/react";
-import { Braces, Download } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Wand2, Download, Braces } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -132,7 +132,7 @@ export function GeneratorHub({
   roundTripReport,
   languageMap,
 }: GeneratorHubProps) {
-  const { resolvedTheme } = useTheme();
+  const { editorTheme } = useActualTheme();
   const collapseOrRestore = () => {
     if (docGraphDefaultExpandDepth > 0) {
       setDocGraphRestoreExpandDepth(docGraphDefaultExpandDepth);
@@ -188,7 +188,7 @@ export function GeneratorHub({
                   language={languageMap[docInputFormat]}
                   value={docInput}
                   onChange={(val) => setDocInput(val || "")}
-                  theme={resolvedTheme === 'dark' ? 'vs-dark' : 'vs'}
+                  theme={editorTheme}
                   options={{ minimap: { enabled: false }, fontSize: 12, padding: { top: 12, bottom: 12 }, scrollBeyondLastLine: false }}
                 />
               </div>
@@ -220,7 +220,7 @@ export function GeneratorHub({
 
               <div className="mt-3">
                 {docGraph.error ? (
-                  <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-500">
+                  <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400">
                     Invalid input: {docGraph.error}
                   </div>
                 ) : (
@@ -311,7 +311,7 @@ export function GeneratorHub({
 
               <div className="p-4 md:p-6 flex flex-col gap-3 min-h-0 flex-1">
                 {docGraph.error ? (
-                  <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-500">
+                  <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400">
                     Invalid input: {docGraph.error}
                   </div>
                 ) : (

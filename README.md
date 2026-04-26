@@ -12,7 +12,7 @@
 
 ## What is Toolbase?
 
-Toolbase is a privacy-first, browser-native toolkit — a single platform where every tool you need lives in one place, and every operation happens entirely on your machine.
+Toolbase is a privacy-first, browser-native toolbase — a single platform where every tool you need lives in one place, and every operation happens entirely on your machine.
 
 No uploads. No servers. No subscriptions. No compromises.
 
@@ -22,31 +22,31 @@ Whether you're compressing a PDF, analyzing a dataset, redacting secrets from co
 
 ## Why Toolbase?
 
-| Feature | Toolbase | Typical Online Tools |
-|---|---|---|
-| Files processed locally | ✅ Always | ❌ Uploaded to servers |
-| Free to use | ✅ Forever | ⚠️ Freemium / paywalled |
-| Works offline | ✅ PWA support | ❌ Requires internet |
-| Open source | ✅ MIT License | ❌ Proprietary |
-| No account required | ✅ Never | ⚠️ Often required |
-| No data retention | ✅ Nothing stored | ❌ Files stored on servers |
-| Python-powered processing | ✅ Via Pyodide/WASM | N/A |
+| Feature                   | Toolbase            | Typical Online Tools       |
+| ------------------------- | ------------------- | -------------------------- |
+| Files processed locally   | ✅ Always           | ❌ Uploaded to servers     |
+| Free to use               | ✅ Forever          | ⚠️ Freemium / paywalled    |
+| Works offline             | ✅ PWA support      | ❌ Requires internet       |
+| Open source               | ✅ MIT License      | ❌ Proprietary             |
+| No account required       | ✅ Never            | ⚠️ Often required          |
+| No data retention         | ✅ Nothing stored   | ❌ Files stored on servers |
+| Python-powered processing | ✅ Via Pyodide/WASM | N/A                        |
 
 ---
 
 ## Tools
 
-| Tool | Category | Description | Engine |
-|---|---|---|---|
-| 🔮 Magic PDF | PDF | Compress, merge, split, protect, sign, convert | Python + WASM |
-| 🪓 Pixel Axe | Image | Compress, resize, upscale, steganography | Python + WASM |
-| 🔍 Data Lens | Data | SQL + Python analysis on CSV/JSON | Python + WASM |
-| 🔒 Redact Secrets | Security | Scan and redact API keys, passwords, tokens | Python + WASM |
-| 🎨 Open Draw | Drawing | Diagrams, flowcharts, architecture charts | Browser JS |
-| 🔤 Base64 | Developer | Encode/decode text, files, images | Browser JS |
-| 📐 JSON to Interface | Developer | Convert JSON to TypeScript interfaces | Browser JS |
-| 📡 Ping Tester | Network | Test host latency and reachability | Browser JS |
-| ⚡ Speed Test | Network | Measure download/upload speed | Browser JS |
+| Tool                 | Category  | Description                                    | Engine        |
+| -------------------- | --------- | ---------------------------------------------- | ------------- |
+| 🔮 Magic PDF         | PDF       | Compress, merge, split, protect, sign, convert | Python + WASM |
+| 🪓 Pixel Axe         | Image     | Compress, resize, upscale, steganography       | Python + WASM |
+| 🔍 Data Lens         | Data      | SQL + Python analysis on CSV/JSON              | Python + WASM |
+| 🔒 Redact Secrets    | Security  | Scan and redact API keys, passwords, tokens    | Python + WASM |
+| 🎨 Open Draw         | Drawing   | Diagrams, flowcharts, architecture charts      | Browser JS    |
+| 🔤 Base64            | Developer | Encode/decode text, files, images              | Browser JS    |
+| 📐 JSON to Interface | Developer | Convert JSON to TypeScript interfaces          | Browser JS    |
+| 📡 Ping Tester       | Network   | Test host latency and reachability             | Browser JS    |
+| ⚡ Speed Test        | Network   | Measure download/upload speed                  | Browser JS    |
 
 ---
 
@@ -97,6 +97,7 @@ npm run type-check   # TypeScript type checking
 Toolbase is open source and we welcome contributions of all kinds — new tools, bug fixes, performance improvements, documentation, and more.
 
 Read our [Contributing Guide](CONTRIBUTING.md) to get started. It covers:
+
 - Our philosophy and non-negotiables
 - How to add a new tool (with the exact folder structure)
 - Commit message conventions
@@ -109,6 +110,7 @@ Read our [Contributing Guide](CONTRIBUTING.md) to get started. It covers:
 ## Documentation
 
 Project docs are organized under [`docs/`](./docs/README.md):
+
 - Architecture and standards
 - Engineering workflow and quality gates
 - Product catalog and operational playbooks
@@ -130,4 +132,4 @@ If you discover a security vulnerability, please use [GitHub's private Security 
 
 ---
 
-*Built with ❤️ for privacy, by people who believe powerful tools should be free.*
+_Built with ❤️ for privacy, by people who believe powerful tools should be free._
