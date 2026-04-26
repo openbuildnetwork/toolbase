@@ -14,7 +14,10 @@ import {
   CheckCircle2,
   Download,
   FolderTree,
+  Info,
   PackageOpen,
+  ShieldCheck,
+  ShieldAlert,
   XCircle,
 } from "lucide-react";
 import {
@@ -26,7 +29,6 @@ import {
 import {
   createArchiveRust,
   extractArchiveRust,
-  isArchiveKitRustAvailable,
 } from "@/lib/archive-kit-rust";
 import { useArchiveKitWorker } from "@/hooks/useArchiveKitWorker";
 
@@ -198,7 +200,6 @@ export default function ArchiveKitPage() {
   const [zipPassword, setZipPassword] = useState("");
   const [createStatus, setCreateStatus] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [engineLabel, setEngineLabel] = useState<"Rust WASM" | "Unavailable">("Unavailable");
   const { run, cancel, isBusy, progress } = useArchiveKitWorker();
 
   const [inspectFormat, setInspectFormat] = useState<ArchiveFormat>("zip");
@@ -235,18 +236,6 @@ export default function ArchiveKitPage() {
   const processingRef = React.useRef(false);
   const jobsRef = React.useRef(jobs);
 
-  React.useEffect(() => {
-    let mounted = true;
-    isArchiveKitRustAvailable().then((available) => {
-      if (mounted && available) setEngineLabel("Rust WASM");
-      if (mounted && !available) {
-        setCreateError("Rust WASM engine is unavailable. Build artifacts may be missing.");
-      }
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   React.useEffect(() => {
     setTelemetry(readTelemetry());
@@ -355,25 +344,13 @@ export default function ArchiveKitPage() {
     try {
       const started = performance.now();
       if (createFiles.length === 0) throw new Error("Add at least one input file.");
-      const archive = createFormat === "zip" && zipPassword.trim()
-        ? await (async () => {
-            const payload: ArchiveInputFile[] = await Promise.all(
-              createFiles.map(async ({ file, path }) => ({
-                name: path,
-                bytes: await readFileAsBytesStreaming(file),
-              }))
-            );
-            return createArchiveRust(createFormat, payload, {
-              zipCompression,
-              password: zipPassword.trim(),
-            });
-          })()
-        : await run<Uint8Array>("create", {
-            format: createFormat,
-            files: createFiles.map(({ file, path }) => ({ file, name: path })),
-            zipCompression,
-            deterministic,
-          });
+      const archive = await run<Uint8Array>("create", {
+        format: createFormat,
+        files: createFiles.map(({ file, path }) => ({ file, name: path })),
+        zipCompression,
+        deterministic,
+        password: zipPassword.trim() || undefined,
+      });
       const safeName = outputName.trim() || `archive.${createFormat}`;
       const filename = safeName.endsWith(`.${createFormat}`) ? safeName : `${safeName}.${createFormat}`;
       downloadBytes(
@@ -438,6 +415,13 @@ export default function ArchiveKitPage() {
       setInspectEntries(entries);
       setSelectedEntryNames(new Set());
       setInspectStatus(`Loaded ${entries.length} entries.`);
+      
+      // Auto-validate for basic security
+      const suspicious = entries.filter((e) => /(^\/|^\.\.|\/\.\.\/|\\\.\.\\)/.test(e.name));
+      if (suspicious.length > 0) {
+        setInspectError(`Caution: ${suspicious.length} entries have suspicious paths (potential ZipSlip).`);
+      }
+      
       recordTelemetry({
         at: new Date().toISOString(),
         op: "inspect",
@@ -448,7 +432,8 @@ export default function ArchiveKitPage() {
       });
     } catch (err: unknown) {
       setInspectEntries([]);
-      setInspectError(err instanceof Error ? err.message : "Inspection failed.");
+      const isPwdError = err instanceof Error && (err.message.includes("password") || err.message.includes("decrypt"));
+      setInspectError(isPwdError ? "This archive is password protected. Please provide the correct password above." : (err instanceof Error ? err.message : "Inspection failed."));
     }
   });
 
@@ -588,15 +573,19 @@ export default function ArchiveKitPage() {
     });
   };
 
-  const handleExtractSelectedEntries = async () => {
+  const handleExtractSelectedEntries = async () => runMaybeQueued("Extract selected", async () => {
     try {
       if (inspectFiles.length !== 1) throw new Error("Select a single archive for partial extraction.");
       if (selectedEntryNames.size === 0) throw new Error("Select at least one file entry.");
-      const bytes = await readFileAsBytesStreaming(inspectFiles[0]);
       const selected = Array.from(selectedEntryNames);
       let files: ArchiveInputFile[] = [];
-      const all = await extractArchiveRust(singleInspectFormat, bytes, {
-        password: inspectPassword.trim() || undefined,
+      const all = await run<ArchiveInputFile[]>("extract", { 
+        archives: [{
+          sourceName: inspectFiles[0].name,
+          format: singleInspectFormat,
+          file: inspectFiles[0]
+        }],
+        password: inspectPassword.trim() || undefined
       });
       const map = new Map(all.map((f) => [f.name, f]));
       files = selected.map((name) => {
@@ -607,9 +596,10 @@ export default function ArchiveKitPage() {
       setExtracted(files);
       setExtractStatus(`Extracted ${files.length} selected file(s).`);
     } catch (err: unknown) {
-      setExtractError(err instanceof Error ? err.message : "Failed to extract selected entries.");
+      const isPwdError = err instanceof Error && (err.message.includes("password") || err.message.includes("decrypt"));
+      setExtractError(isPwdError ? "Password needed or incorrect for extraction." : (err instanceof Error ? err.message : "Failed to extract selected entries."));
     }
-  };
+  });
 
   const handleExtractArchive = async () => runMaybeQueued("Extract archives", async () => {
     setExtractError(null);
@@ -637,7 +627,7 @@ export default function ArchiveKitPage() {
         }));
         files = await run<ArchiveInputFile[]>("extract", { archives });
       }
-      setExtracted(files);
+      setExtracted(files.map(f => ({ ...f, selected: true })));
       setExtractStatus(`Extracted ${files.length} file(s) from ${extractFiles.length} archive(s).`);
       recordTelemetry({
         at: new Date().toISOString(),
@@ -652,6 +642,67 @@ export default function ArchiveKitPage() {
       setExtractError(err instanceof Error ? err.message : "Extraction failed.");
     }
   });
+
+  const handleDownloadSelectedExtracted = () => {
+    const selected = (extracted as (ArchiveInputFile & { selected?: boolean })[]).filter(f => f.selected);
+    if (selected.length === 0) return;
+    
+    // Warn if many files are being downloaded at once
+    if (selected.length > 5 && !window.confirm(`You are about to download ${selected.length} files. Your browser may request permission for each or block them. Continue?`)) {
+      return;
+    }
+
+    selected.forEach((file, i) => {
+      // Delay slightly to help some browsers handle multiple downloads
+      setTimeout(() => {
+        downloadBytes(file.name, file.bytes, "application/octet-stream");
+      }, i * 250);
+    });
+  };
+
+  const handlePreviewFile = async (name: string, bytes: Uint8Array) => {
+    try {
+      setPreviewError(null);
+      setPreviewPath(name);
+      if (previewImageUrl) {
+        URL.revokeObjectURL(previewImageUrl);
+        setPreviewImageUrl(null);
+      }
+      
+      const lower = name.toLowerCase();
+      if (/\.(png|jpg|jpeg|gif|webp|bmp|svg)$/.test(lower)) {
+        const mime = lower.endsWith(".svg") ? "image/svg+xml" : "image/jpeg";
+        const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: mime }));
+        setPreviewKind("image");
+        setPreviewImageUrl(url);
+        setPreviewText("");
+        return;
+      }
+
+      if (!isLikelyTextFile(name)) {
+        throw new Error("Preview is available for text and common image files only.");
+      }
+      
+      const maxPreviewBytes = 1024 * 200;
+      const slice = bytes.slice(0, maxPreviewBytes);
+      const text = new TextDecoder().decode(slice);
+      
+      if (lower.endsWith(".json")) {
+        try {
+          setPreviewText(JSON.stringify(JSON.parse(text), null, 2));
+          setPreviewKind("json");
+          return;
+        } catch {}
+      }
+      
+      setPreviewKind("text");
+      setPreviewText(text);
+    } catch (err: unknown) {
+      setPreviewText("");
+      setPreviewImageUrl(null);
+      setPreviewError(err instanceof Error ? err.message : "Unable to preview this entry.");
+    }
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-(--background) relative font-display text-(--text-primary)">
@@ -776,15 +827,21 @@ export default function ArchiveKitPage() {
                         </Select>
                       </div>
                       {createFormat === "zip" && (
-                        <div className="w-36">
-                          <label className="text-xs font-semibold uppercase tracking-wider text-(--text-tertiary)">Compression</label>
+                        <div className="w-40 relative group">
+                          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 flex items-center gap-1">
+                            Compression
+                            <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-gray-900 text-white text-[10px] rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                              Choose between speed and file size. "Best" uses maximal DEFLATE compression.
+                            </div>
+                          </label>
                           <Select
                             value={zipCompression}
                             onChange={(e) => setZipCompression(e.target.value as ZipCompressionMode)}
                           >
-                            <option value="store">Store</option>
-                            <option value="fast">Fast</option>
-                            <option value="best">Best</option>
+                            <option value="store">Store (No compression)</option>
+                            <option value="fast">Fast (Lower ratio)</option>
+                            <option value="best">Best (Maximum ratio)</option>
                           </Select>
                         </div>
                       )}
@@ -828,18 +885,27 @@ export default function ArchiveKitPage() {
                     <div className="rounded-xl border border-(--border-subtle) bg-(--surface-elevated)/60 p-4">
                       <label className="text-xs font-semibold uppercase tracking-wider text-(--text-tertiary)">Input Files</label>
                       <div
-                        className="mt-2 rounded-lg border border-dashed border-sky-500/20 bg-sky-500/5 p-3 text-xs text-sky-600"
+                        className={cn(
+                          "mt-2 rounded-lg border border-dashed p-8 text-center text-xs transition-all",
+                          createFiles.length > 0 ? "border-sky-300 bg-sky-50/40" : "border-gray-300 bg-gray-50/60 text-gray-500"
+                        )}
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={(e) => {
                           e.preventDefault();
                           appendSelectedFiles(e.dataTransfer.files);
                         }}
                       >
-                        Drag and drop files/folders here, or use pickers below.
+                        <Archive className="w-8 h-8 mx-auto mb-2 opacity-30 text-sky-600" />
+                        <div className="font-medium text-sky-800">
+                          {createFiles.length > 0 ? "Drop more files to add to archive" : "Drag and drop files/folders here"}
+                        </div>
+                        <div className="mt-1 opacity-70">Support for large files up to 2GB</div>
                       </div>
-                      <div className="mt-2 grid md:grid-cols-2 gap-3">
+                      <div className="mt-4 grid md:grid-cols-2 gap-3">
                         <div>
-                          <div className="text-[11px] font-medium text-(--text-tertiary) mb-1">Add Files</div>
+                          <div className="text-[11px] font-medium text-gray-500 mb-1">
+                            {createFiles.length > 0 ? "Add More Files" : "Choose Files"}
+                          </div>
                           <Input
                             type="file"
                             multiple
@@ -870,7 +936,12 @@ export default function ArchiveKitPage() {
                               />
                               <div className="col-span-3 text-xs text-(--text-tertiary) text-right">{bytesToHuman(file.size)}</div>
                               <div className="col-span-1 text-right">
-                                <Button variant="outline" size="sm" onClick={() => removeCreateFile(idx)}>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => removeCreateFile(idx)}
+                                  disabled={isBusy}
+                                >
                                   <XCircle className="w-3 h-3" />
                                 </Button>
                               </div>
@@ -909,7 +980,7 @@ export default function ArchiveKitPage() {
                         <div className="flex items-center justify-between">
                           <div className="text-sm font-semibold text-(--text-primary)">Local Benchmark</div>
                           <div className="flex items-center gap-2">
-                            <label className="text-xs text-(--text-secondary)">
+                            <label className="text-xs text-(--text-secondary) flex items-center gap-1 relative group">
                               <input
                                 type="checkbox"
                                 checked={telemetryEnabled}
@@ -917,6 +988,10 @@ export default function ArchiveKitPage() {
                                 className="mr-1"
                               />
                               collect telemetry
+                              <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                              <div className="absolute bottom-full right-0 mb-2 w-56 p-2 bg-gray-900 text-white text-[10px] rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 leading-relaxed">
+                                <strong>Benchmark Mode:</strong> Logs time and compression ratios locally. No data is sent to servers.
+                              </div>
                             </label>
                             <Button
                               variant="outline"
@@ -1047,15 +1122,28 @@ export default function ArchiveKitPage() {
                           </div>
                           Duplicate Paths
                         </div>
-                        <div className="rounded-lg border border-(--border-subtle) bg-(--surface-overlay) px-3 py-2 text-xs text-(--text-secondary) sm:col-span-4">
-                          <div className="font-semibold text-(--text-primary)">Security Checks</div>
-                          <div className="mt-1">
-                            Suspicious paths: {
-                              inspectEntries.filter((e) => /(^\/|^\.\.|\/\.\.\/|\\\.\.\\)/.test(e.name)).length
-                            } | Empty names: {
-                              inspectEntries.filter((e) => !e.name.trim()).length
-                            }
+                        <div className="rounded-lg border border-(--border-subtle) bg-(--surface-overlay) px-3 py-2 text-xs text-(--text-secondary) sm:col-span-4 flex items-center justify-between">
+                          <div>
+                            <div className="font-semibold text-(--text-primary) flex items-center gap-1">
+                              Security Scan
+                              <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                            </div>
+                            <div className="mt-1">
+                              Suspicious paths: {
+                                inspectEntries.filter((e) => /(^\/|^\.\.|\/\.\.\/|\\\.\.\\)/.test(e.name)).length
+                              } | Potential Malware: {
+                                inspectEntries.filter((e) => /\.(exe|dll|bat|sh|scr|vbs|js|ps1|msi)$/i.test(e.name)).length
+                              }
+                            </div>
                           </div>
+                          <a 
+                            href="https://www.virustotal.com/gui/home/upload" 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="text-[10px] text-sky-600 font-semibold hover:underline"
+                          >
+                            Verify on VirusTotal ↗
+                          </a>
                         </div>
                       </div>
                     )}
@@ -1063,11 +1151,11 @@ export default function ArchiveKitPage() {
                     <div className="rounded-xl border border-gray-200 overflow-hidden">
                       <div className="grid grid-cols-12 gap-2 bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wide">
                         <div className="col-span-1 text-center">Pick</div>
-                        <div className="col-span-5">Name</div>
-                        <div className="col-span-2 text-right">Size</div>
-                        <div className="col-span-2 text-right">Packed</div>
-                        <div className="col-span-1 text-right">Type</div>
-                        <div className="col-span-1 text-right">Actions</div>
+                        <div className="col-span-4">Name</div>
+                        <div className="col-span-2 text-right px-1">Size</div>
+                        <div className="col-span-2 text-right px-1">Packed</div>
+                        <div className="col-span-1 text-center">Type</div>
+                        <div className="col-span-2 text-right">Actions</div>
                       </div>
                       <div className="max-h-[420px] overflow-y-auto">
                         {filteredInspectEntries.length === 0 ? (
@@ -1087,17 +1175,23 @@ export default function ArchiveKitPage() {
                                   />
                                 ) : null}
                               </div>
-                              <div className="col-span-5 truncate">{entry.name}</div>
-                              <div className="col-span-2 text-right text-(--text-tertiary)">{bytesToHuman(entry.size)}</div>
-                              <div className="col-span-2 text-right text-(--text-tertiary)">{bytesToHuman(entry.compressedSize)}</div>
-                              <div className="col-span-1 text-right text-(--text-muted)">{entry.isDirectory ? "Dir" : "File"}</div>
-                              <div className="col-span-1 flex justify-end gap-1">
+                              <div className="col-span-4 truncate font-mono text-[11px]" title={entry.name}>{entry.name}</div>
+                              <div className="col-span-2 text-right text-(--text-tertiary) whitespace-nowrap overflow-hidden text-ellipsis">{bytesToHuman(entry.size)}</div>
+                              <div className="col-span-2 text-right text-(--text-tertiary) whitespace-nowrap overflow-hidden text-ellipsis">{bytesToHuman(entry.compressedSize)}</div>
+                              <div className="col-span-1 text-center text-(--text-muted)">
+                                {entry.isDirectory ? (
+                                  <span className="bg-gray-100 px-1 rounded">Dir</span>
+                                ) : (
+                                  <span className="bg-blue-50 text-blue-700 px-1 rounded">File</span>
+                                )}
+                              </div>
+                              <div className="col-span-2 flex justify-end gap-1">
                                 {!entry.isDirectory && inspectFiles.length === 1 && !entry.name.includes(" :: ") && (
                                   <>
-                                    <Button variant="outline" size="sm" onClick={() => handlePreviewInspectEntry(entry.name)}>
+                                    <Button variant="outline" size="sm" className="h-7 text-[10px] px-2" onClick={() => handlePreviewInspectEntry(entry.name)}>
                                       Preview
                                     </Button>
-                                    <Button variant="outline" size="sm" onClick={() => handleDownloadInspectEntry(entry.name)}>
+                                    <Button variant="outline" size="sm" className="h-7 text-[10px] px-2" onClick={() => handleDownloadInspectEntry(entry.name)}>
                                       Save
                                     </Button>
                                   </>
@@ -1122,8 +1216,8 @@ export default function ArchiveKitPage() {
                             <img src={previewImageUrl} alt={previewPath} className="max-h-56 w-auto" />
                           </div>
                         ) : (
-                          <pre className="max-h-[260px] overflow-auto rounded-lg border border-(--border-subtle) bg-(--surface-overlay) p-3 text-xs text-(--text-secondary) whitespace-pre-wrap">
-                            {previewText}
+                          <pre className="max-h-[260px] overflow-auto rounded-lg border border-(--border-subtle) bg-(--surface-overlay) p-3 text-xs text-(--text-secondary) whitespace-pre-wrap font-mono">
+                            {previewText.length > 50000 ? previewText.slice(0, 50000) + "\n... [Preview Truncated for Performance]" : previewText}
                           </pre>
                         )}
                       </div>
@@ -1175,7 +1269,15 @@ export default function ArchiveKitPage() {
                       </div>
                     </div>
                     {extracted.length > 0 && (
-                      <div className="flex justify-end">
+                      <div className="flex gap-2 justify-end">
+                        <Button 
+                          variant="outline" 
+                          onClick={handleDownloadSelectedExtracted} 
+                          disabled={isBusy}
+                          className="text-sky-700 border-sky-200 bg-sky-50"
+                        >
+                          Download Selected Files
+                        </Button>
                         <Button variant="outline" onClick={handleDownloadAllExtracted} disabled={isBusy}>
                           Download All as ZIP
                         </Button>
@@ -1195,9 +1297,10 @@ export default function ArchiveKitPage() {
                       </div>
                     )}
 
-                    <div className="rounded-xl border border-(--border-subtle) overflow-hidden">
+                    <div className="rounded-xl border-(--border-subtle) overflow-hidden">
                       <div className="grid grid-cols-12 gap-2 bg-(--surface-elevated) px-3 py-2 text-xs font-semibold text-(--text-tertiary) uppercase tracking-wide">
-                        <div className="col-span-8">File</div>
+                        <div className="col-span-1 text-center">Pick</div>
+                        <div className="col-span-7">File</div>
                         <div className="col-span-2 text-right">Size</div>
                         <div className="col-span-2 text-right">Action</div>
                       </div>
@@ -1205,14 +1308,34 @@ export default function ArchiveKitPage() {
                         {extracted.length === 0 ? (
                           <div className="px-3 py-4 text-sm text-gray-500">No files extracted.</div>
                         ) : (
-                          extracted.map((file) => (
-                            <div key={`${file.name}-${file.bytes.length}`} className="grid grid-cols-12 gap-2 px-3 py-2 text-sm border-t border-gray-100">
-                              <div className="col-span-8 truncate">{file.name}</div>
-                              <div className="col-span-2 text-right text-(--text-tertiary)">{bytesToHuman(file.bytes.length)}</div>
-                              <div className="col-span-2 text-right">
+                          (extracted as (ArchiveInputFile & { selected?: boolean })[]).map((file, idx) => (
+                            <div key={`${file.name}-${idx}`} className="grid grid-cols-12 gap-2 px-3 py-2 text-sm border-t border-gray-100 items-center">
+                              <div className="col-span-1 text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={file.selected ?? false}
+                                  onChange={(e) => {
+                                    const next = [...extracted] as (ArchiveInputFile & { selected?: boolean })[];
+                                    next[idx] = { ...next[idx], selected: e.target.checked };
+                                    setExtracted(next);
+                                  }}
+                                />
+                              </div>
+                              <div className="col-span-7 truncate font-mono text-[11px]">{file.name}</div>
+                              <div className="col-span-2 text-right text-gray-600 text-xs">{bytesToHuman(file.bytes.length)}</div>
+                              <div className="col-span-2 flex justify-end gap-1">
                                 <Button
                                   variant="outline"
                                   size="sm"
+                                  className="h-7 text-[10px] px-2"
+                                  onClick={() => handlePreviewFile(file.name, file.bytes)}
+                                >
+                                  Preview
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 text-[10px] px-2"
                                   onClick={() => downloadBytes(file.name, file.bytes, "application/octet-stream")}
                                 >
                                   Save

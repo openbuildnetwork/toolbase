@@ -32,18 +32,18 @@ type FormatterStudioProps = {
   recipeStepOpDraft: RecipeStepOp;
   setRecipeStepOpDraft: (value: RecipeStepOp) => void;
   recipeStepTargetDraft: "json" | "xml" | "yaml";
-  setRecipeStepTargetDraft: (value: "json" | "xml" | "yaml") => void;
+  setRecipeStepTargetDraft: React.Dispatch<React.SetStateAction<"json" | "xml" | "yaml">>;
   recipeStepsDraft: RecipeStep[];
   onAddRecipeStepDraft: () => void;
   onClearRecipeStepsDraft: () => void;
-  onMoveRecipeStep: (id: string, dir: "up" | "down") => void;
+  onMoveRecipeStep: (id: string, direction: "up" | "down") => void;
   onRemoveRecipeStep: (id: string) => void;
   formatterRecipes: FormatterRecipe[];
   onLoadFormatterRecipe: (id: string) => void;
   onRunSavedRecipe: (id: string) => void;
   fixtureCases: OmniFixture[];
   setFixtureCases: React.Dispatch<React.SetStateAction<OmniFixture[]>>;
-  fixtureResults: Array<{ id: string; name: string; passed: boolean; detail: string }>;
+  fixtureResults: { id: string; name: string; passed: boolean; detail: string }[];
   onRunFixtureTests: () => void;
   onExportFixturePack: () => void;
   onImportFixturePack: (file: File) => void;
@@ -148,13 +148,7 @@ export function FormatterStudio({
                 <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={() => onFormatterPreset("apiReady")}>
                   API Ready
                 </Button>
-                <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={onSaveFormatterRecipe}>
-                  Save Recipe
-                </Button>
-                <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={onRunDraftRecipe}>
-                  Run Pipeline
-                </Button>
-                <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={onAddCurrentAsFixture}>
+                 <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={onAddCurrentAsFixture}>
                   Add Fixture
                 </Button>
                 {validateFormat === "json" ? (
@@ -186,7 +180,7 @@ export function FormatterStudio({
               </div>
             </div>
 
-            <div className="h-[360px] border border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-overlay)">
+            <div className="h-[600px] border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-overlay)">
               <Editor
                 height="100%"
                 defaultLanguage={languageMap[validateFormat]}
@@ -284,28 +278,30 @@ export function FormatterStudio({
                       />
                     </div>
                   </div>
-                  <div className="mt-2 max-h-28 overflow-auto space-y-1">
-                    {fixtureCases.slice(-8).reverse().map((fx) => (
+                  <div className="mt-2 max-h-48 overflow-auto space-y-1">
+                    {fixtureCases.slice(-20).reverse().map((fx) => (
                       <div key={fx.id} className="flex items-center justify-between rounded-md border border-(--border-subtle) px-2 py-1 text-xs">
                         <span className="truncate text-(--text-primary)">{fx.name} ({fx.format}) - expect {fx.expectedValid ? "valid" : "invalid"}</span>
-                        <button
-                          type="button"
-                          className="text-sky-600 dark:text-sky-400 hover:underline"
-                          onClick={() => setFixtureCases((prev) => prev.map((item) => item.id === fx.id ? { ...item, expectedValid: !item.expectedValid } : item))}
-                        >
-                          Toggle
-                        </button>
-                        <button
-                          type="button"
-                          className="text-sky-600 dark:text-sky-400 hover:underline"
-                          onClick={() => setFixtureCases((prev) => prev.filter((item) => item.id !== fx.id))}
-                        >
-                          Remove
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            className="text-sky-600 dark:text-sky-400 hover:underline"
+                            onClick={() => setFixtureCases((prev) => prev.map((item) => item.id === fx.id ? { ...item, expectedValid: !item.expectedValid } : item))}
+                          >
+                            Toggle
+                          </button>
+                          <button
+                            type="button"
+                            className="text-sky-600 dark:text-sky-400 hover:underline"
+                            onClick={() => setFixtureCases((prev) => prev.filter((item) => item.id !== fx.id))}
+                          >
+                            Remove
+                          </button>
+                        </div>
                       </div>
                     ))}
-                    {fixtureResults.slice(-4).map((res) => (
-                      <div key={res.id} className={`rounded-md px-2 py-1 text-xs ${res.passed ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 text-red-500"}`}>
+                    {fixtureResults.slice(-10).map((res) => (
+                      <div key={res.id} className={`rounded-md px-2 py-1 text-xs mt-1 ${res.passed ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 text-red-500"}`}>
                         {res.name}: {res.detail}
                       </div>
                     ))}

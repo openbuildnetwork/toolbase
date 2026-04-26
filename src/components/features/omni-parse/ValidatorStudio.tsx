@@ -77,7 +77,7 @@ export function ValidatorStudio({
               </div>
             </div>
 
-            <div className="mt-4 h-[360px] border border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-secondary)/50">
+            <div className="mt-4 h-[600px] border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-secondary)/50">
               <Editor
                 height="100%"
                 defaultLanguage={languageMap[validateFormat]}

@@ -374,3 +374,54 @@ export function unflattenJson(flat: Record<string, unknown>, options: FlattenOpt
 
   return root;
 }
+
+// -------------------------
+// Payload Cleanup & Normalization
+// -------------------------
+
+export function cleanPayload(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value
+      .map(cleanPayload)
+      .filter((v) => v !== null && v !== undefined && (typeof v !== "object" || Object.keys(v as object).length > 0));
+  }
+
+  if (value !== null && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      const cleaned = cleanPayload(v);
+      if (cleaned !== null && cleaned !== undefined) {
+        if (typeof cleaned === "object" && !Array.isArray(cleaned) && Object.keys(cleaned as object).length === 0) {
+          continue;
+        }
+        out[k] = cleaned;
+      }
+    }
+    return out;
+  }
+
+  return value;
+}
+
+function toCamelCase(str: string): string {
+  return str
+    .replace(/(?:^\w|[A-Z]|\b\w)/g, (letter, index) =>
+      index === 0 ? letter.toLowerCase() : letter.toUpperCase()
+    )
+    .replace(/[\s\-_]+/g, "");
+}
+
+export function normalizeObjectKeys(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(normalizeObjectKeys);
+
+  if (value !== null && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      const newKey = toCamelCase(k);
+      out[newKey] = normalizeObjectKeys(v);
+    }
+    return out;
+  }
+
+  return value;
+}

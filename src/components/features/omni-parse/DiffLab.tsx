@@ -59,8 +59,8 @@ export function DiffLab({
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Left</label>
-                <div className="h-[280px] border border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-secondary)/50">
+                <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Left (Original)</label>
+                <div className="h-[600px]  border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-secondary)/50">
                   <Editor
                     height="100%"
                     defaultLanguage={languageMap[diffFormat]}
@@ -72,8 +72,8 @@ export function DiffLab({
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Right</label>
-                <div className="h-[280px] border border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-secondary)/50">
+                <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Right (Modified)</label>
+                <div className="h-[600px] border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-secondary)/50">
                   <Editor
                     height="100%"
                     defaultLanguage={languageMap[diffFormat]}
@@ -94,17 +94,29 @@ export function DiffLab({
                   <div className="col-span-3">Left</div>
                   <div className="col-span-4">Right</div>
                 </div>
-                <div className="max-h-[280px] overflow-auto">
+                <div className="max-h-[400px] overflow-auto">
                   {diffEntries.length === 0 ? (
-                    <div className="px-3 py-4 text-sm text-(--text-muted)">No differences detected.</div>
-                  ) : diffEntries.map((entry, idx) => (
-                    <div key={`${entry.path}-${idx}`} className="grid grid-cols-12 gap-2 px-3 py-2 border-t border-(--border-subtle) text-sm bg-(--surface-overlay) hover:bg-(--surface-hover) transition-colors">
-                      <div className="col-span-1 text-xs font-semibold uppercase text-sky-600 dark:text-sky-400">{entry.kind}</div>
-                      <div className="col-span-4 font-mono text-xs truncate text-(--text-primary)">{entry.path}</div>
-                      <div className="col-span-3 truncate text-(--text-secondary)">{entry.left}</div>
-                      <div className="col-span-4 truncate text-(--text-secondary)">{entry.right}</div>
-                    </div>
-                  ))}
+                    <div className="px-3 py-4 text-sm text-gray-500">No differences detected.</div>
+                  ) : diffEntries.map((entry, idx) => {
+                    const rowStyles = 
+                      entry.kind === "added" ? "bg-emerald-50/70 text-emerald-900 border-emerald-100" :
+                      entry.kind === "removed" ? "bg-rose-50/70 text-rose-900 border-rose-100" :
+                      "bg-amber-50/70 text-amber-900 border-amber-100";
+                    
+                    const kindStyles = 
+                      entry.kind === "added" ? "text-emerald-700" :
+                      entry.kind === "removed" ? "text-rose-700" :
+                      "text-amber-700";
+
+                    return (
+                      <div key={`${entry.path}-${idx}`} className={`grid grid-cols-12 gap-2 px-3 py-2 border-t text-sm ${rowStyles}`}>
+                        <div className={`col-span-1 text-[10px] font-bold uppercase ${kindStyles}`}>{entry.kind}</div>
+                        <div className="col-span-4 font-mono text-[11px] truncate opacity-80">{entry.path}</div>
+                        <div className="col-span-3 truncate font-mono text-xs">{entry.left}</div>
+                        <div className="col-span-4 truncate font-mono text-xs">{entry.right}</div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
