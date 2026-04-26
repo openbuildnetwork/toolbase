@@ -2,8 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  cleanPayload,
   flattenJson,
   formatData,
+  normalizeObjectKeys,
+  parseToObject,
   unflattenJson,
   validateData,
 } from "@/lib/omni-parse";
@@ -123,26 +126,36 @@ export function useOmniParseValidate() {
 
   const handleFormatterPreset = (preset: "clean" | "normalize" | "apiReady") => {
     try {
+      const adapter = validateFormat === "json" ? JSON : null;
+      let parsed: unknown;
+      
+      try {
+        parsed = parseToObject(validateFormat, validateInput);
+      } catch (err) {
+        reportValidationError("Input must be valid " + validateFormat.toUpperCase() + " to use presets.");
+        return;
+      }
+
       if (preset === "clean") {
-        const cleaned = validateInput
-          .split("\n")
-          .map((line) => line.replace(/\s+$/g, ""))
-          .join("\n")
-          .trim();
-        setValidateInput(cleaned);
+        const cleaned = cleanPayload(parsed);
+        const formatted = formatData(validateFormat, JSON.stringify(cleaned), "beautify");
+        setValidateInput(formatted);
         return;
       }
+
       if (preset === "normalize") {
-        const normalized = formatData(validateFormat, validateInput, "beautify", { sortKeys: true });
-        setValidateInput(normalized);
+        const normalized = normalizeObjectKeys(parsed);
+        const formatted = formatData(validateFormat, JSON.stringify(normalized), "beautify");
+        setValidateInput(formatted);
         return;
       }
-      const normalized = formatData(validateFormat, validateInput, "beautify", { sortKeys: true });
-      if (validateFormat === "json") {
-        const parsed = JSON.parse(normalized);
-        setValidateInput(JSON.stringify(parsed, null, 2));
-      } else {
-        setValidateInput(normalized);
+
+      if (preset === "apiReady") {
+        const cleaned = cleanPayload(parsed);
+        const normalized = normalizeObjectKeys(cleaned);
+        const formatted = formatData(validateFormat, JSON.stringify(normalized), "beautify", { sortKeys: true });
+        setValidateInput(formatted);
+        return;
       }
     } catch (err: unknown) {
       reportValidationError(err instanceof Error ? err.message : "Preset apply failed");

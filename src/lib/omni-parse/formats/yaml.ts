@@ -19,7 +19,15 @@ export const yamlAdapter: FormatAdapter = {
   validate(input) {
     if (!input.trim()) return { valid: false, errors: ["Input is empty."], warnings: [] };
     try {
-      YAML.parse(input);
+      const parsed = YAML.parse(input);
+      // Strict mode: A document should generally be a mapping or a sequence in this tool's context
+      if (parsed !== null && typeof parsed !== "object") {
+        return {
+          valid: false,
+          errors: ["Invalid YAML: Input is a plain scalar value, but a structured document (object/array) is expected."],
+          warnings: [],
+        };
+      }
       return { valid: true, errors: [], warnings: [] };
     } catch (error: unknown) {
       return {
