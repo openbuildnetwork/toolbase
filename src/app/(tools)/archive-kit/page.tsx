@@ -672,7 +672,7 @@ export default function ArchiveKitPage() {
       const lower = name.toLowerCase();
       if (/\.(png|jpg|jpeg|gif|webp|bmp|svg)$/.test(lower)) {
         const mime = lower.endsWith(".svg") ? "image/svg+xml" : "image/jpeg";
-        const url = URL.createObjectURL(new Blob([bytes], { type: mime }));
+        const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: mime }));
         setPreviewKind("image");
         setPreviewImageUrl(url);
         setPreviewText("");
