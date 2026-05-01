@@ -54,6 +54,10 @@ const SpeedGauge = ({ value, maxValue = 100, label, color, status, speedHistory 
                     </filter>
                 </defs>
 
+                {/* Static Needle Center Hub (Moved to back) */}
+                <circle cx="150" cy="150" r="8" fill="white" className="dark:fill-black opacity-50" />
+                <circle cx="150" cy="150" r="5" fill={color} style={{ transition: 'fill 0.5s ease' }} className="opacity-50" />
+
                 {/* Main Track */}
                 <path
                     d="M 60 240 A 120 120 0 1 1 240 240"
@@ -112,14 +116,11 @@ const SpeedGauge = ({ value, maxValue = 100, label, color, status, speedHistory 
                         filter="url(#needleGlow)"
                         style={{ transition: 'stroke 0.5s ease' }}
                     />
-                    {/* Needle Center Hub */}
-                    <circle cx="150" cy="150" r="8" fill="white" className="dark:fill-black shadow-lg" />
-                    <circle cx="150" cy="150" r="5" fill={color} style={{ transition: 'fill 0.5s ease' }} />
                 </motion.g>
             </svg>
 
             {/* Central Content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center translate-y-8">
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center translate-y-8 z-20">
                 <div className="flex flex-col items-center">
                     <motion.span 
                         key={status === 'idle' ? 'idle' : 'active'}
@@ -133,7 +134,7 @@ const SpeedGauge = ({ value, maxValue = 100, label, color, status, speedHistory 
                     >
                         {status === 'idle' ? '0' : Math.round(value)}
                     </motion.span>
-                    <span className="text-xs font-black uppercase tracking-[0.3em] text-(--text-muted) -mt-2 opacity-50">
+                    <span className="text-xs font-black tracking-[0.2em] text-(--text-muted) -mt-2 opacity-50">
                         {label}
                     </span>
                 </div>
@@ -141,7 +142,7 @@ const SpeedGauge = ({ value, maxValue = 100, label, color, status, speedHistory 
                 {/* Stability Sparkline */}
                 <div className="mt-4 flex items-end gap-1 h-6 opacity-40">
                     {(speedHistory.length > 0 ? speedHistory : [...Array(12)]).map((val, i) => {
-                        const h = typeof val === 'number' ? Math.max(4, (val / maxValue) * 24) : 4;
+                        const h = typeof val === 'number' ? Math.max(4, (val / (maxValue || 1)) * 24) : 4;
                         return (
                             <motion.div
                                 key={i}

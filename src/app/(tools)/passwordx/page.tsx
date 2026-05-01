@@ -1,24 +1,82 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { 
+    RefreshCw, 
+    CheckCircle2, 
+    Lock, 
+    Shield, 
+    Copy, 
+    Zap, 
+    ShieldCheck, 
+    ShieldAlert,
+    ChevronRight,
+    Binary
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/Button";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
-import { Slider } from '@/components/ui/Slider';
-import { Input } from '@/components/ui/Input';
-import { Checkbox } from '@/components/ui/Checkbox'; // Assuming this is now created
-import { CopyToClipboard } from '@/components/ui/CopyToClipboard';
-import {
-    RefreshCw,
-    CheckCircle2,
-    Lock
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Slider } from "@/components/ui/Slider";
+import { Checkbox } from "@/components/ui/Checkbox";
 
-export default function PasswordGeneratorPage() {
+/* ── Components ──────────────────────────────────────────────────────────── */
+
+/**
+ * A premium strength indicator with descriptive feedback.
+ */
+const StrengthMeter = ({ strength }: { strength: number }) => {
+    const levels = [
+        { label: "Critical", color: "bg-red-500", text: "text-red-500", icon: ShieldAlert },
+        { label: "Insecure", color: "bg-orange-500", text: "text-orange-500", icon: ShieldAlert },
+        { label: "Acceptable", color: "bg-yellow-500", text: "text-yellow-500", icon: ShieldCheck },
+        { label: "Secure", color: "bg-blue-500", text: "text-blue-500", icon: ShieldCheck },
+        { label: "Impenetrable", color: "bg-emerald-500", text: "text-emerald-500", icon: ShieldCheck },
+    ];
+
+    const current = levels[Math.min(strength, levels.length - 1)];
+    const Icon = current.icon;
+
+    return (
+        <div className="space-y-3">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Icon className={cn("w-3.5 h-3.5", current.text)} />
+                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-(--text-muted)">
+                        Security Audit
+                    </span>
+                </div>
+                <span className={cn("text-[10px] font-black uppercase tracking-widest", current.text)}>
+                    {current.label}
+                </span>
+            </div>
+            <div className="flex gap-1.5">
+                {[0, 1, 2, 3, 4].map((i) => (
+                    <motion.div
+                        key={i}
+                        className="flex-1 h-1.5 rounded-full bg-(--surface-active)"
+                        initial={false}
+                    >
+                        {i <= strength && (
+                            <motion.div
+                                layoutId="strength-bar"
+                                className={cn("h-full rounded-full", current.color)}
+                                initial={{ width: 0 }}
+                                animate={{ width: "100%" }}
+                                transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+                            />
+                        )}
+                    </motion.div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+export default function PasswordXPage() {
     // State
-    const [password, setPassword] = useState('');
-    const [length, setLength] = useState(16);
+    const [password, setPassword] = useState("");
+    const [length, setLength] = useState(24);
     const [includeUppercase, setIncludeUppercase] = useState(true);
     const [includeLowercase, setIncludeLowercase] = useState(true);
     const [includeNumbers, setIncludeNumbers] = useState(true);
@@ -27,25 +85,25 @@ export default function PasswordGeneratorPage() {
     const [showToast, setShowToast] = useState(false);
 
     // Character Sets
-    const UPPERCASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const LOWERCASE = 'abcdefghijklmnopqrstuvwxyz';
-    const NUMBERS = '0123456789';
-    const SYMBOLS = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+    const UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
+    const NUMBERS = "0123456789";
+    const SYMBOLS = "!@#$%^&*()_+-=[]{}|;:,.<>?";
 
     const generatePassword = useCallback(() => {
-        let chars = '';
+        let chars = "";
         if (includeUppercase) chars += UPPERCASE;
         if (includeLowercase) chars += LOWERCASE;
         if (includeNumbers) chars += NUMBERS;
         if (includeSymbols) chars += SYMBOLS;
 
-        if (chars === '') {
-            setPassword('');
+        if (chars === "") {
+            setPassword("");
             setStrength(0);
             return;
         }
 
-        let generated = '';
+        let generated = "";
         const array = new Uint32Array(length);
         window.crypto.getRandomValues(array);
 
@@ -54,204 +112,212 @@ export default function PasswordGeneratorPage() {
         }
 
         setPassword(generated);
-        calculateStrength(generated);
+        
+        // Advanced Strength Calculation (0-4)
+        let points = 0;
+        if (length >= 12) points += 1;
+        if (length >= 24) points += 1;
+        
+        const hasUpper = /[A-Z]/.test(generated);
+        const hasNumber = /[0-9]/.test(generated);
+        const hasSymbol = /[^A-Za-z0-9]/.test(generated);
+        
+        const complexity = [hasUpper, hasNumber, hasSymbol].filter(Boolean).length;
+        if (complexity >= 2) points += 1;
+        if (complexity >= 3) points += 1;
+
+        setStrength(Math.min(points, 4));
     }, [length, includeUppercase, includeLowercase, includeNumbers, includeSymbols]);
 
-    const calculateStrength = (pass: string) => {
-        let score = 0;
-        if (!pass) return setStrength(0);
-
-        if (pass.length > 8) score += 1;
-        if (pass.length > 12) score += 1;
-        if (/[A-Z]/.test(pass)) score += 1;
-        if (/[0-9]/.test(pass)) score += 1;
-        if (/[^A-Za-z0-9]/.test(pass)) score += 1;
-
-        setStrength(score);
+    const copyToClipboard = () => {
+        if (!password) return;
+        navigator.clipboard.writeText(password);
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 2000);
     };
 
-    const getStrengthLabel = () => {
-        switch (strength) {
-            case 0: return { label: 'Weak', color: 'bg-red-500', text: 'text-red-600' };
-            case 1: return { label: 'Weak', color: 'bg-red-500', text: 'text-red-600' };
-            case 2: return { label: 'Fair', color: 'bg-yellow-500', text: 'text-yellow-600' };
-            case 3: return { label: 'Good', color: 'bg-blue-500', text: 'text-blue-600' };
-            case 4: return { label: 'Strong', color: 'bg-green-500', text: 'text-green-600' };
-            case 5: return { label: 'Excellent', color: 'bg-emerald-500', text: 'text-emerald-600' };
-            default: return { label: 'Weak', color: 'bg-gray-200', text: 'text-gray-400' };
-        }
-    };
-
-    // Generate on initial load
+    // Generate on load
     useEffect(() => {
         generatePassword();
-    }, [generatePassword]);
+    }, []);
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-(--background) to-(--surface-secondary) py-6 px-4 relative">
-            <div className="absolute top-6 right-6">
-                <ReturnToToolsButton />
-            </div>
-            <div className="max-w-2xl mx-auto">
-                <div className="mb-8 text-center space-y-4">
-                    <div className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full w-fit mx-auto">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                            Running Locally (WASM)
-                        </span>
+        <div className="min-h-screen bg-(--background) text-(--text-primary) font-display overflow-x-hidden">
+            <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 space-y-8">
+                
+                {/* ── Header ─────────────────────────────────────────── */}
+                <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-700 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                            <Lock className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-lg font-bold tracking-tight">PasswordX</h1>
+                            <p className="text-[11px] text-(--text-muted)">
+                                Cryptographically secure · zero-knowledge · browser-only
+                            </p>
+                        </div>
                     </div>
+                    <ReturnToToolsButton />
+                </header>
 
-                    <div>
-                        <h1 className="text-4xl font-bold text-(--text-primary) mb-2 flex items-center justify-center gap-3">
-                            <Lock className="w-10 h-10 text-(--primary)" />
-                            PasswordX
-                        </h1>
-                        <p className="text-(--text-secondary) max-w-lg mx-auto text-balance">
-                            Generate cryptographically secure passwords instantly. Your data never leaves this browser.
-                        </p>
-                    </div>
-                </div>
+                {/* ── Main Vault ─────────────────────────────────────── */}
+                <div className="space-y-8">
+                    
+                    {/* Password Display Card */}
+                    <div className="relative group">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 via-blue-500/20 to-purple-500/20 rounded-[2.5rem] blur-xl opacity-50 group-hover:opacity-100 transition duration-1000" />
+                        <div className="relative flex flex-col rounded-[2rem] border border-(--border-medium) bg-(--surface-overlay)/80 backdrop-blur-3xl overflow-hidden shadow-2xl">
+                            
+                            <div className="p-8 md:p-12 space-y-8">
+                                {/* The Vaulted Text */}
+                                <div className="relative min-h-[120px] flex items-center justify-center py-4 px-6 bg-(--surface-secondary)/30 rounded-2xl border border-(--border-subtle) overflow-hidden group/pass">
+                                    <AnimatePresence mode="wait">
+                                        <motion.div
+                                            key={password}
+                                            initial={{ opacity: 0, scale: 0.98, filter: "blur(4px)" }}
+                                            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                                            exit={{ opacity: 0, scale: 1.02, filter: "blur(4px)" }}
+                                            className="font-mono text-2xl md:text-4xl lg:text-5xl font-medium tracking-tight text-center break-all select-all selection:bg-indigo-500/30"
+                                        >
+                                            {password}
+                                        </motion.div>
+                                    </AnimatePresence>
 
-                <Card className="p-6 bg-(--surface-overlay) border border-(--border-subtle) shadow-xl rounded-2xl ring-1 ring-black/5 dark:ring-white/5">
-                    {/* Password Display */}
-                    <div className="relative mb-6">
-                        <div
-                            onClick={() => {
-                                if (password) {
-                                    navigator.clipboard.writeText(password);
-                                    setShowToast(true);
-                                    setTimeout(() => setShowToast(false), 2000);
-                                }
-                            }}
-                            className="flex items-center justify-between p-4 bg-(--surface-secondary) rounded-xl border border-(--border-subtle) group hover:border-(--primary)/30 transition-all cursor-pointer hover:bg-(--surface-hover) active:scale-[0.99]"
-                            title="Click to copy"
-                        >
-                            <div className="font-mono text-xl md:text-2xl break-all text-(--text-primary) tracking-wide">
-                                {password || <span className="text-(--text-muted) text-base italic">Select options to generate</span>}
-                            </div>
-                            <div className="flex items-center gap-2 ml-4 shrink-0">
-                                <div onClick={(e) => e.stopPropagation()}>
-                                    <CopyToClipboard text={password} showText={false} />
+                                    {/* Action Hover Overlay */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-(--surface-overlay) via-transparent to-transparent opacity-0 group-hover/pass:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4 pointer-events-none">
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 drop-shadow-sm">
+                                            Vault Securely Encrypted
+                                        </span>
+                                    </div>
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        generatePassword();
-                                    }}
-                                    className="p-2 hover:bg-(--surface-hover) rounded-lg text-(--text-secondary)"
-                                    title="Regenerate"
-                                >
-                                    <RefreshCw className="w-5 h-5" />
-                                </Button>
+
+                                {/* Action Hub */}
+                                <div className="flex flex-wrap items-center justify-center gap-4">
+                                    <Button
+                                        onClick={copyToClipboard}
+                                        className="h-16 pl-8 pr-10 rounded-2xl bg-gradient-to-r from-indigo-500 via-blue-600 to-violet-600 hover:from-indigo-600 hover:via-blue-700 hover:to-violet-700 text-white shadow-2xl shadow-indigo-500/30 font-black text-lg transition-all active:scale-95 group/copy relative overflow-hidden"
+                                    >
+                                        <div className="absolute inset-0 bg-white/10 opacity-0 group-hover/copy:opacity-100 transition-opacity duration-300" />
+                                        <Copy className="w-6 h-6 mr-3 group-hover/copy:scale-110 transition-transform" />
+                                        Copy Password
+                                    </Button>
+
+                                    <Button
+                                        onClick={generatePassword}
+                                        variant="outline"
+                                        className="h-16 px-8 rounded-2xl border-(--border-medium) bg-(--surface-secondary) text-(--text-primary) hover:bg-(--surface-hover) font-bold text-lg transition-all active:scale-95"
+                                    >
+                                        <RefreshCw className="w-5 h-5 mr-3" />
+                                        Regenerate
+                                    </Button>
+                                </div>
+
+                                <AnimatePresence>
+                                    {showToast && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white shadow-lg text-xs font-bold"
+                                        >
+                                            <CheckCircle2 className="w-4 h-4" />
+                                            Copied to clipboard
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            {/* Strength Footer */}
+                            <div className="px-8 py-6 bg-(--surface-secondary)/50 border-t border-(--border-subtle)">
+                                <StrengthMeter strength={strength} />
                             </div>
                         </div>
+                    </div>
 
-                        {/* Soft Alert / Toast */}
-                        <AnimatePresence>
-                            {showToast && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 10 }}
-                                    className="absolute top-[-10px] left-1/2 transform -translate-x-1/2 bg-(--surface-elevated) text-(--text-primary) px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg border border-(--border-subtle) flex items-center gap-2 z-10"
-                                >
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                                    Password Copied!
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* Strength Indicator */}
-                        {password && (
-                            <div className="absolute -bottom-3 left-4 px-2 py-0.5 bg-(--surface-overlay) rounded-full border border-(--border-subtle) shadow-sm flex items-center gap-2">
-                                <div className="flex gap-1">
-                                    {[1, 2, 3, 4, 5].map((i) => (
-                                        <div
-                                            key={i}
-                                            className={`w-5 h-1.5 rounded-full transition-colors ${i <= strength ? getStrengthLabel().color : 'bg-(--surface-secondary)'
-                                                }`}
-                                        />
-                                    ))}
+                    {/* ── Configuration ──────────────────────────────────── */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        
+                        {/* Length Settings */}
+                        <div className="space-y-6 p-8 rounded-[2rem] border border-(--border-medium) bg-(--surface-overlay) shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Binary className="w-4 h-4 text-indigo-500" />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-(--text-muted)">
+                                        Character Count
+                                    </span>
                                 </div>
-                                <span className={`text-xs font-semibold ${getStrengthLabel().text}`}>
-                                    {getStrengthLabel().label}
+                                <span className="text-2xl font-black text-indigo-500 tabular-nums">
+                                    {length}
                                 </span>
                             </div>
-                        )}
-                    </div>
 
-                    <div className="space-y-6 mt-8">
-                        {/* Length Slider */}
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-center">
-                                <label className="text-sm font-medium text-(--text-secondary)">
-                                    Password Length
-                                </label>
-                                <Input
-                                    type="number"
-                                    min={4}
+                            <div className="space-y-4">
+                                <Slider
+                                    min={8}
                                     max={64}
+                                    step={1}
                                     value={length}
-                                    onChange={(e) => {
-                                        const newValue = parseInt(e.target.value);
-                                        if (!isNaN(newValue)) {
-                                            // Strictly enforce max length during typing
-                                            if (newValue > 64) {
-                                                setLength(64);
-                                            } else {
-                                                setLength(newValue);
-                                            }
-                                        } else if (e.target.value === '') {
-                                            setLength(0);
-                                        }
-                                    }}
-                                    onBlur={() => {
-                                        if (length < 4) setLength(4);
-                                        if (length > 64) setLength(64);
-                                    }}
-                                    className="w-20 h-9 text-center bg-(--input-bg) border-(--border-subtle) focus:border-(--primary)/50"
+                                    onChange={(e) => setLength(parseInt(e.target.value))}
+                                    className="w-full"
                                 />
-                            </div>
-                            <Slider
-                                min={4}
-                                max={64}
-                                step={1}
-                                value={length || 4} // Fallback to min if length is 0/NaN during editing
-                                onChange={(e) => setLength(parseInt(e.target.value))}
-                                className="w-full"
-                            />
-                        </div>
-
-                        {/* Character Options */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {[
-                                { checked: includeUppercase, onChange: setIncludeUppercase, label: "Uppercase (A-Z)" },
-                                { checked: includeLowercase, onChange: setIncludeLowercase, label: "Lowercase (a-z)" },
-                                { checked: includeNumbers, onChange: setIncludeNumbers, label: "Numbers (0-9)" },
-                                { checked: includeSymbols, onChange: setIncludeSymbols, label: "Symbols (!@#$)" }
-                            ].map((opt, idx) => (
-                                <div key={idx} className="p-3 rounded-lg border border-(--border-subtle) hover:border-(--primary)/20 hover:bg-(--primary)/5 transition-colors">
-                                    <Checkbox
-                                        checked={opt.checked}
-                                        onChange={(e) => opt.onChange(e.target.checked)}
-                                        label={opt.label}
-                                    />
+                                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-(--text-muted) opacity-40">
+                                    <span>8 chars</span>
+                                    <span>64 chars</span>
                                 </div>
-                            ))}
+                            </div>
+                        </div>
+
+                        {/* Composition Settings */}
+                        <div className="space-y-6 p-8 rounded-[2rem] border border-(--border-medium) bg-(--surface-overlay) shadow-sm">
+                            <div className="flex items-center gap-2">
+                                <Zap className="w-4 h-4 text-indigo-500" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-(--text-muted)">
+                                    Composition
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                {[
+                                    { checked: includeUppercase, onChange: setIncludeUppercase, label: "A-Z", sub: "Uppercase" },
+                                    { checked: includeLowercase, onChange: setIncludeLowercase, label: "a-z", sub: "Lowercase" },
+                                    { checked: includeNumbers, onChange: setIncludeNumbers, label: "0-9", sub: "Digits" },
+                                    { checked: includeSymbols, onChange: setIncludeSymbols, label: "#$!", sub: "Symbols" }
+                                ].map((opt, idx) => (
+                                    <div 
+                                        key={idx} 
+                                        onClick={() => opt.onChange(!opt.checked)}
+                                        className={cn(
+                                            "p-4 rounded-2xl border transition-all cursor-pointer select-none flex flex-col gap-1",
+                                            opt.checked 
+                                                ? "bg-indigo-500/5 border-indigo-500/30 ring-1 ring-indigo-500/10" 
+                                                : "bg-(--surface-active)/30 border-(--border-subtle) grayscale opacity-60"
+                                        )}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm font-black">{opt.label}</span>
+                                            <div className={cn(
+                                                "w-4 h-4 rounded-full border flex items-center justify-center transition-all",
+                                                opt.checked ? "bg-indigo-500 border-indigo-500" : "border-(--border-medium)"
+                                            )}>
+                                                {opt.checked && <CheckCircle2 className="w-3 h-3 text-white" />}
+                                            </div>
+                                        </div>
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-(--text-muted)">{opt.sub}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="mt-8 pt-6 border-t border-(--border-subtle)">
-                        <Button
-                            onClick={generatePassword}
-                            className="w-full bg-(--primary) hover:bg-(--primary-hover) text-white shadow-lg shadow-(--primary)/25 h-12 text-lg font-semibold rounded-xl"
-                        >
-                            Generate Password
-                        </Button>
+                    {/* Footer Info */}
+                    <div className="flex items-center justify-center gap-2 px-6 py-4 bg-(--surface-secondary)/30 border border-(--border-subtle) rounded-2xl mx-auto max-w-fit">
+                        <Shield className="w-3.5 h-3.5 text-indigo-500" />
+                        <span className="text-[10px] font-black text-(--text-muted) uppercase tracking-[0.12em]">
+                            Entropy generated via Crypto.getRandomValues() · 100% Client-Side
+                        </span>
                     </div>
-                </Card>
+                </div>
             </div>
         </div>
     );
