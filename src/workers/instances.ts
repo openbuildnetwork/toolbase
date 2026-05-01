@@ -76,6 +76,7 @@ if (typeof window !== 'undefined') {
     setTimeout(() => pixelAxeWorker.init().catch(console.error), 2000);
     setTimeout(() => dataLensWorker.init().catch(console.error), 4000);
     setTimeout(() => openDrawWorker.init().catch(console.error), 6000);
+    setTimeout(() => redactSecretsWorker.init().catch(console.error), 8000);
   };
 
   if ('requestIdleCallback' in window) {

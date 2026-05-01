@@ -7,8 +7,6 @@ import {
     ChevronRight, Signal,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/Button";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
@@ -470,21 +468,80 @@ export default function PingTesterPage() {
                         <span className="text-[11px] text-(--text-muted)">ms</span>
                     </div>
                     <div className="flex gap-2 shrink-0">
-                        {!isRunning ? (
-                            <Button id="ping-start-btn" onClick={handleStart} disabled={!target} className="macos-primary-button h-10 px-5">
-                                <Play className="w-3.5 h-3.5 mr-1.5" /> Start
-                            </Button>
-                        ) : (
-                            <Button id="ping-stop-btn" variant="outline" onClick={stopPing}
-                                className="h-10 px-5 bg-(--surface-secondary) border-red-500/30 text-red-500 hover:bg-red-500/10">
-                                <Square className="w-3.5 h-3.5 mr-1.5" /> Stop
-                            </Button>
-                        )}
-                        <Button id="ping-clear-btn" variant="outline" onClick={clearResults}
+                        <AnimatePresence mode="wait">
+                            {!isRunning ? (
+                                /* ── Start ── */
+                                <motion.button
+                                    key="start"
+                                    id="ping-start-btn"
+                                    onClick={handleStart}
+                                    disabled={!target}
+                                    initial={{ opacity: 0, scale: 0.92 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.92 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="group relative inline-flex items-center gap-2 h-10 pl-3.5 pr-4 rounded-xl
+                                               font-semibold text-sm text-white select-none
+                                               disabled:opacity-40 disabled:pointer-events-none
+                                               active:scale-[0.96] transition-transform duration-100"
+                                    style={{
+                                        background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 60%, #1d4ed8 100%)",
+                                        boxShadow: "0 2px 8px rgba(59,130,246,0.35), 0 1px 2px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.18)",
+                                    }}
+                                >
+                                    {/* Hover glow */}
+                                    <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                        style={{ background: "linear-gradient(135deg, #60a5fa22, #3b82f611)" }} />
+                                    {/* Shimmer sweep */}
+                                    <span className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
+                                        <span className="absolute inset-y-0 -left-full w-1/2 bg-gradient-to-r from-transparent via-white/15 to-transparent
+                                                         group-hover:translate-x-[300%] transition-transform duration-500 ease-in-out" />
+                                    </span>
+                                    {/* Icon with pulse ring */}
+                                    <span className="relative flex items-center justify-center w-5 h-5 shrink-0">
+                                        <span className="absolute inset-0 rounded-full bg-white/20
+                                                         group-hover:scale-[2.2] group-hover:opacity-0
+                                                         transition-all duration-500 ease-out" />
+                                        <Play className="w-3.5 h-3.5 relative fill-white stroke-none" />
+                                    </span>
+                                    <span className="relative">Start Ping</span>
+                                </motion.button>
+                            ) : (
+                                /* ── Stop ── */
+                                <motion.button
+                                    key="stop"
+                                    id="ping-stop-btn"
+                                    onClick={stopPing}
+                                    initial={{ opacity: 0, scale: 0.92 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.92 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="group relative inline-flex items-center gap-2 h-10 pl-3.5 pr-4 rounded-xl
+                                               font-semibold text-sm text-red-400 select-none border border-red-500/25
+                                               bg-red-500/8 hover:bg-red-500/14 hover:border-red-500/40
+                                               active:scale-[0.96] transition-all duration-150"
+                                >
+                                    <Square className="w-3.5 h-3.5 fill-red-400 stroke-none" />
+                                    <span>Stop</span>
+                                </motion.button>
+                            )}
+                        </AnimatePresence>
+
+                        {/* ── Clear ── */}
+                        <button
+                            id="ping-clear-btn"
+                            onClick={clearResults}
                             disabled={isRunning || results.length === 0}
-                            className="h-10 w-10 p-0 bg-(--surface-secondary) border-(--border-medium) hover:bg-(--surface-hover) rounded-xl">
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
+                            title="Clear results"
+                            className="group inline-flex items-center justify-center w-10 h-10 rounded-xl
+                                       border border-(--border-medium) bg-(--surface-secondary)
+                                       text-(--text-muted) hover:text-red-400
+                                       hover:border-red-500/20 hover:bg-red-500/6
+                                       disabled:opacity-30 disabled:pointer-events-none
+                                       transition-all duration-150 active:scale-95"
+                        >
+                            <Trash2 className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+                        </button>
                     </div>
                 </div>
 
