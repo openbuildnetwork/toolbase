@@ -2,6 +2,7 @@
 
 import React, { useRef } from "react";
 import { FileText, Upload, X } from "lucide-react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ContentType } from "@/types/redact";
 
@@ -28,25 +29,33 @@ export const RedactEditor: React.FC<RedactEditorProps> = ({
         <div className="flex flex-col rounded-2xl border border-(--border-medium) bg-(--surface-overlay) backdrop-blur-xl overflow-hidden shadow-sm dark:shadow-black/20">
             {/* Header / Tabs */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-(--border-subtle) bg-(--surface-secondary)/30">
-                <div className="flex p-1 rounded-xl bg-(--surface-active) border border-(--border-subtle)">
+                <div className="flex p-1 rounded-xl bg-(--surface-active) border border-(--border-subtle) relative">
                     {[
                         { id: "text", label: "Text Content", icon: FileText },
                         { id: "file", label: "File Upload", icon: Upload },
-                    ].map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setContentType(tab.id as ContentType)}
-                            className={cn(
-                                "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200",
-                                contentType === tab.id
-                                    ? "bg-(--background) text-(--text-primary) shadow-sm border border-(--border-subtle)"
-                                    : "text-(--text-muted) hover:text-(--text-secondary)"
-                            )}
-                        >
-                            <tab.icon className="w-3.5 h-3.5" />
-                            {tab.label}
-                        </button>
-                    ))}
+                    ].map((tab) => {
+                        const isActive = contentType === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setContentType(tab.id as ContentType)}
+                                className={cn(
+                                    "relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors duration-200 z-10",
+                                    isActive ? "text-(--text-primary)" : "text-(--text-muted) hover:text-(--text-secondary)"
+                                )}
+                            >
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="activeTab"
+                                        className="absolute inset-0 bg-(--background) border border-(--border-subtle) rounded-lg shadow-sm"
+                                        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                                    />
+                                )}
+                                <tab.icon className="w-3.5 h-3.5 relative z-10" />
+                                <span className="relative z-10">{tab.label}</span>
+                            </button>
+                        );
+                    })}
                 </div>
                 <div className="hidden sm:block text-[10px] font-black uppercase tracking-widest text-(--text-muted) opacity-50">
                     Input Source

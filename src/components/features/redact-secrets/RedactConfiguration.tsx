@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Settings2, Key, Type, Hash, Code } from "lucide-react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { TagInput } from "@/components/ui/TagInput";
 import { MaskingStyle } from "@/types/redact";
@@ -41,26 +42,34 @@ export const RedactConfiguration: React.FC<RedactConfigurationProps> = ({
                     <label className="text-[10px] font-black uppercase tracking-[0.12em] text-(--text-muted)">
                         Redaction Style
                     </label>
-                    <div className="flex p-1 rounded-xl bg-(--surface-active) border border-(--border-subtle)">
+                    <div className="flex p-1 rounded-xl bg-(--surface-active) border border-(--border-subtle) relative">
                         {[
                             { id: "partial", label: "Partial", icon: Hash },
                             { id: "full", label: "Full", icon: Type },
                             { id: "hash", label: "Hash", icon: Code },
-                        ].map((style) => (
-                            <button
-                                key={style.id}
-                                onClick={() => setMaskingStyle(style.id as MaskingStyle)}
-                                className={cn(
-                                    "flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all duration-200",
-                                    maskingStyle === style.id
-                                        ? "bg-(--background) text-violet-500 shadow-sm border border-(--border-subtle)"
-                                        : "text-(--text-muted) hover:text-(--text-secondary)"
-                                )}
-                            >
-                                <style.icon className="w-3.5 h-3.5" />
-                                {style.label}
-                            </button>
-                        ))}
+                        ].map((style) => {
+                            const isActive = maskingStyle === style.id;
+                            return (
+                                <button
+                                    key={style.id}
+                                    onClick={() => setMaskingStyle(style.id as MaskingStyle)}
+                                    className={cn(
+                                        "relative flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-colors duration-200 z-10",
+                                        isActive ? "text-violet-500" : "text-(--text-muted) hover:text-(--text-secondary)"
+                                    )}
+                                >
+                                    {isActive && (
+                                        <motion.div
+                                            layoutId="activeConfigTab"
+                                            className="absolute inset-0 bg-(--background) border border-(--border-subtle) rounded-lg shadow-sm"
+                                            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                                        />
+                                    )}
+                                    <style.icon className="w-3.5 h-3.5 relative z-10" />
+                                    <span className="relative z-10">{style.label}</span>
+                                </button>
+                            );
+                        })}
                     </div>
                     <p className="text-[10px] text-(--text-muted)/70 px-1 italic">
                         {maskingStyle === 'partial' && "Shows start/end bits (e.g. pr...12)"}
