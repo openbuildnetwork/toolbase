@@ -24,6 +24,7 @@ export const base64Config: ToolMeta = {
       description: 'Convert any file or text into a Base64 encoded string.',
       consumes: ['application/octet-stream', 'text/plain', 'image/png', 'image/jpeg', 'image/webp', 'image/gif', 'application/pdf'],
       produces: ['text/plain'],
+      mobileOptimized: true,
       configSchema: {
         fields: [
           { key: 'urlSafe', label: 'URL Safe', type: 'boolean', default: false },
@@ -58,6 +59,7 @@ export const base64Config: ToolMeta = {
       description: 'Decode a Base64 string back into its original file.',
       consumes: ['text/plain'],
       produces: ['application/octet-stream'],
+      mobileOptimized: true,
       configSchema: {
         fields: [
           { key: 'urlSafe', label: 'URL Safe', type: 'boolean', default: false },

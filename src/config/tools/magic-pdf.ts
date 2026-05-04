@@ -84,6 +84,7 @@ export const magicPdfConfig: ToolMeta = {
       description: 'Merge multiple PDF files into a single PDF document.',
       consumes: ['application/pdf'],
       produces: ['application/pdf'],
+      mobileOptimized: true,
       configSchema: { fields: [] },
       // INP: requires user interaction to set file order before execution
       interactable: true as const,
@@ -103,6 +104,7 @@ export const magicPdfConfig: ToolMeta = {
       description: 'Reorder, rotate, and remove pages from a PDF.',
       consumes: ['application/pdf'],
       produces: ['application/pdf'],
+      mobileOptimized: true,
       // No configSchema fields — all config set via the INP visual page picker
       configSchema: { fields: [] },
       // INP: visual drag-and-drop page picker
@@ -253,6 +255,7 @@ export const magicPdfConfig: ToolMeta = {
       description: 'Permanently remove sensitive information, PII, and secrets from your documents.',
       consumes: ['application/pdf'],
       produces: ['application/pdf'],
+      mobileOptimized: true,
       configSchema: { fields: [] },
       interactable: true as const,
       getInteractionComponent: async () => {
@@ -282,6 +285,7 @@ export const magicPdfConfig: ToolMeta = {
       description: 'Add hand-drawn, typed, or image signatures to a PDF.',
       consumes: ['application/pdf'],
       produces: ['application/pdf'],
+      mobileOptimized: true,
       // No configSchema fields — all config set via the INP signature canvas
       configSchema: { fields: [] },
       // INP: full signature draw/type/upload + drag-to-place UI
@@ -382,6 +386,7 @@ export const magicPdfConfig: ToolMeta = {
       description: 'Convert multiple images into a single PDF document.',
       consumes: ['image/png', 'image/jpeg', 'image/webp'],
       produces: ['application/pdf'],
+      mobileOptimized: true,
       configSchema: { fields: [] },
       getExecutor: async () => {
         const { createBatchTIPExecutor } = await import('@/tip/executor');
