@@ -239,6 +239,9 @@ export interface TIPTool {
    */
   produces: TIPContentType[];
 
+  /** Whether this tool is optimized for mobile devices */
+  mobileOptimized: boolean;
+
   /**
    * Config schema — drives the auto-rendered config UI.
    * Use an empty fields array if the tool has no configuration.

@@ -53,10 +53,6 @@ export default function PixelAxePage() {
                     </div>
                     <ReturnToToolsButton />
 
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 text-emerald-500 rounded-full border border-emerald-500/20 shadow-sm">
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Client-Side Secure</span>
-                    </div>
                 </header>
 
                 <div className="flex-1 overflow-y-auto p-4 md:p-8">

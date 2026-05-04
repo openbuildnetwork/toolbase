@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { Shield, CheckCircle, X, ShieldAlert } from 'lucide-react';
-import { useRedactSecrets } from '@/hooks/useRedactSecrets';
-import { RedactEditor } from './RedactEditor';
-import { RedactConfiguration } from './RedactConfiguration';
-import { RedactOutput } from './RedactOutput';
-import { RedactStats } from './RedactStats';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { EngineLoader } from '@/components/ui/EngineLoader';
-import type { TIPInteractionProps } from '@/tip/protocol';
-import type { ContentType, MaskingStyle } from '@/types/redact';
+import React, { useEffect, useState } from "react";
+import { Shield, CheckCircle, X, ShieldAlert, Zap } from "lucide-react";
+import { useRedactSecrets } from "@/hooks/useRedactSecrets";
+import { RedactEditor } from "./RedactEditor";
+import { RedactConfiguration } from "./RedactConfiguration";
+import { RedactOutput } from "./RedactOutput";
+import { RedactStats } from "./RedactStats";
+import { EngineLoader } from "@/components/ui/EngineLoader";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import type { TIPInteractionProps } from "@/tip/protocol";
+import type { ContentType, MaskingStyle } from "@/types/redact";
 
 /**
  * TIP Interaction Component for Redact Secrets.
- * Reuses the existing UI components to provide a consistent experience
+ * Reuses the redesigned UI components for a consistent experience
  * inside the pipeline configuration modal.
  */
 export default function RedactInteractive({
@@ -27,25 +27,15 @@ export default function RedactInteractive({
     const [isInternalReading, setIsInternalReading] = useState(false);
 
     const {
-        content,
-        setContent,
-        contentType,
-        setContentType,
-        fileName,
-        setFileName,
-        maskingStyle,
-        setMaskingStyle,
-        keys,
-        setKeys,
-        literalTexts,
-        setLiteralTexts,
-        regexPatterns,
-        setRegexPatterns,
-        response,
-        isLoading,
-        isReady,
+        content, setContent,
+        contentType, setContentType,
+        fileName, setFileName,
+        maskingStyle, setMaskingStyle,
+        keys, setKeys,
+        literalTexts, setLiteralTexts,
+        regexPatterns, setRegexPatterns,
+        response, isLoading, isReady,
         handleRedact,
-        handleFileUpload,
     } = useRedactSecrets({
         content: (seedConfig?.content as string) || "",
         contentType: (seedConfig?.contentType as ContentType) || "text",
@@ -56,7 +46,6 @@ export default function RedactInteractive({
         regexPatterns: (seedConfig?.regexPatterns as string[]) || [],
     });
 
-    // Handle seed files from TIP
     useEffect(() => {
         if (seedFiles && seedFiles.length > 0 && !content) {
             const file = seedFiles[0];
@@ -72,57 +61,47 @@ export default function RedactInteractive({
                 }
                 setIsInternalReading(false);
             };
-            reader.onerror = () => {
-                setIsInternalReading(false);
-            };
+            reader.onerror = () => setIsInternalReading(false);
             reader.readAsText(file);
         }
     }, [seedFiles, content, setContent, setFileName, setContentType]);
 
     const handleConfirm = () => {
-        // We create a virtual file if it was just text input, or pass the original file
         let finalFile: File;
         if (seedFiles && seedFiles.length > 0) {
             finalFile = seedFiles[0];
         } else {
-            const blob = new Blob([content], { type: 'text/plain' });
-            finalFile = new File([blob], fileName || 'redacted.txt', { type: 'text/plain' });
+            const blob = new Blob([content], { type: "text/plain" });
+            finalFile = new File([blob], fileName || "redacted.txt", { type: "text/plain" });
         }
 
         onConfirm({
             files: [finalFile],
             config: {
-                content,
-                contentType,
-                fileName,
-                maskingStyle,
-                keys,
-                literalTexts,
-                regexPatterns,
+                content, contentType, fileName, maskingStyle, keys, literalTexts, regexPatterns,
             },
         });
     };
 
     return (
-        <div className="flex flex-col h-full overflow-hidden font-display p-6 space-y-6">
+        <div className="flex flex-col h-full overflow-hidden bg-(--background) text-(--text-primary) font-display p-6 space-y-6">
+            {/* Header */}
             <header className="flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
-                        <Shield className="w-6 h-6" />
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center shadow-lg shadow-purple-500/25">
+                        <Shield className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold tracking-tight text-text-primary">Configure Redaction</h2>
-                        <p className="text-xs text-text-muted font-medium italic">Adjust masking patterns and PII detection</p>
+                        <h2 className="text-lg font-bold tracking-tight">Configure Redaction</h2>
+                        <p className="text-[11px] text-(--text-muted)">Preview and adjust masking patterns</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <EngineLoader isReady={isReady} engine="wasm" />
-                </div>
+                <EngineLoader isReady={isReady} engine="wasm" />
             </header>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-6">
-                    {/* Left: Editor & Output */}
                     <div className="lg:col-span-8 space-y-6">
                         <RedactEditor
                             content={content}
@@ -130,25 +109,32 @@ export default function RedactInteractive({
                             contentType={contentType}
                             setContentType={setContentType}
                             fileName={fileName}
-                            onFileUpload={handleFileUpload}
+                            onFileUpload={() => {}} // Disabled in modal for now
                         />
 
-                        {response && <RedactOutput response={response} />}
-                        
-                        {!response && !isLoading && !isInternalReading && (
-                              <Card className="p-8 border-dashed border-2 border-border-subtle flex flex-col items-center justify-center text-center space-y-4 bg-surface-secondary/30">
-                                <div className="w-12 h-12 rounded-full bg-surface-secondary flex items-center justify-center">
-                                    <ShieldAlert className="w-6 h-6 text-text-muted/50" />
-                                </div>
-                                <div className="space-y-1">
-                                    <h3 className="text-sm font-bold text-text-muted uppercase tracking-widest">Awaiting Preview</h3>
-                                    <p className="text-xs text-text-muted mt-1 max-w-[240px] mx-auto">Click "Run Preview" to test your redaction patterns before confirming.</p>
-                                </div>
-                              </Card>
-                        )}
+                        <AnimatePresence mode="wait">
+                            {response ? (
+                                <RedactOutput response={response} />
+                            ) : !isLoading && !isInternalReading && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="p-12 border-2 border-dashed border-(--border-subtle) rounded-2xl flex flex-col items-center justify-center text-center space-y-4 bg-(--surface-secondary)/20"
+                                >
+                                    <div className="w-12 h-12 rounded-full bg-(--surface-active) flex items-center justify-center text-(--text-muted)/50">
+                                        <ShieldAlert className="w-6 h-6" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h3 className="text-xs font-black uppercase tracking-widest text-(--text-muted)">Awaiting Preview</h3>
+                                        <p className="text-[11px] text-(--text-muted) mt-1 max-w-[240px] mx-auto">
+                                            Run a preview to verify your masking rules.
+                                        </p>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
-                    {/* Right: Settings & Stats */}
                     <div className="lg:col-span-4 space-y-6">
                         <RedactConfiguration
                             maskingStyle={maskingStyle}
@@ -160,39 +146,41 @@ export default function RedactInteractive({
                             regexPatterns={regexPatterns}
                             setRegexPatterns={setRegexPatterns}
                         />
-
                         <RedactStats response={response} />
                     </div>
                 </div>
             </div>
 
-            <footer className="flex items-center justify-between pt-6 border-t border-border-subtle shrink-0">
+            {/* Footer */}
+            <footer className="flex items-center justify-between pt-6 border-t border-(--border-subtle) shrink-0">
+                <button
+                    onClick={handleRedact}
+                    disabled={isLoading || isInternalReading || !content}
+                    className="group inline-flex items-center gap-2 h-11 px-6 rounded-xl border border-(--border-medium) bg-(--surface-secondary) text-sm font-bold text-(--text-primary) hover:bg-(--surface-hover) transition-all active:scale-95 disabled:opacity-40"
+                >
+                    <Zap className={cn("w-4 h-4 text-violet-500 transition-transform group-hover:scale-110", isLoading && "animate-pulse")} />
+                    Run Preview
+                </button>
+
                 <div className="flex items-center gap-3">
-                    <Button
-                        variant="outline"
-                        onClick={handleRedact}
-                        isLoading={isLoading || isInternalReading}
-                        className="h-12 px-6 rounded-xl border-gray-200 font-bold"
-                    >
-                        Run Preview
-                    </Button>
-                </div>
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="ghost"
+                    <button
                         onClick={onCancel}
-                        className="h-12 px-6 rounded-xl text-text-muted hover:text-text-primary border-none"
+                        className="h-11 px-5 rounded-xl text-xs font-bold uppercase tracking-widest text-(--text-muted) hover:text-(--text-primary) transition-colors"
                     >
                         Cancel
-                    </Button>
-                    <Button
+                    </button>
+                    <button
                         onClick={handleConfirm}
-                        className="macos-primary-button h-12 px-10 rounded-xl"
                         disabled={!content || isLoading || isInternalReading}
+                        className="inline-flex items-center gap-2 h-11 px-8 rounded-xl font-bold text-sm text-white transition-all active:scale-95 disabled:opacity-40"
+                        style={{
+                            background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                            boxShadow: "0 2px 10px rgba(139,92,246,0.3)",
+                        }}
                     >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Confirm Redactions
-                    </Button>
+                        <CheckCircle className="w-4 h-4" />
+                        Confirm
+                    </button>
                 </div>
             </footer>
         </div>

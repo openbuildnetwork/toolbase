@@ -48,20 +48,23 @@ export default function Base64Interactive({
     };
 
     return (
-        <div className="flex flex-col h-full overflow-hidden font-display p-6 space-y-6 bg-white">
+        <div className="flex flex-col h-full overflow-hidden font-display p-8 space-y-8 bg-(--background)">
             <header className="flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
-                        <Binary className="w-6 h-6" />
+                <div className="flex items-center gap-4">
+                    <div className="relative group">
+                        <div className="absolute inset-0 bg-(--primary) blur-xl opacity-20" />
+                        <div className="relative w-12 h-12 rounded-2xl bg-(--primary) flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                            <Binary className="w-7 h-7" />
+                        </div>
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold tracking-tight text-gray-900">Base64 Conversion</h2>
-                        <p className="text-xs text-gray-500 font-medium italic">Adjust parameters and preview the result before continuing</p>
+                        <h2 className="text-2xl font-bold tracking-tight text-(--text-primary)">Base64 <span className="text-(--primary)">Studio</span></h2>
+                        <p className="text-xs text-(--text-tertiary) font-semibold uppercase tracking-widest mt-1">Refine and Preview Conversion</p>
                     </div>
                 </div>
             </header>
 
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="flex-1 min-h-0 overflow-hidden bg-(--surface-overlay)/40 backdrop-blur-md border border-(--border-subtle) rounded-3xl p-6 shadow-2xl">
                 <Base64Workspace
                     initialFile={files?.[0]}
                     initialMode={files?.length ? 'file' : 'text'}
@@ -70,16 +73,16 @@ export default function Base64Interactive({
                 />
             </div>
 
-            <footer className="flex items-center justify-end gap-3 pt-6 border-t border-gray-100 shrink-0">
-                <Button variant="ghost" onClick={onCancel} className="h-12 px-6 rounded-xl text-gray-500 hover:text-gray-900 border-none font-bold">
+            <footer className="flex items-center justify-end gap-4 pt-4 shrink-0">
+                <Button variant="ghost" onClick={onCancel} className="h-12 px-8 rounded-xl text-(--text-secondary) hover:text-(--text-primary) font-bold transition-all">
                     Cancel
                 </Button>
                 <Button
                     onClick={handleConfirm}
                     disabled={!lastResult?.success}
-                    className="macos-primary-button h-12 px-10 rounded-xl font-bold"
+                    className="macos-primary-button h-12 px-12 rounded-xl font-bold shadow-xl shadow-blue-500/20 group"
                 >
-                    <CheckCircle className="w-4 h-4 mr-2" />
+                    <CheckCircle className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
                     Apply & Continue
                 </Button>
             </footer>

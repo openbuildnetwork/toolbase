@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface TagInputProps {
-    label: string;
+    label: React.ReactNode;
     values: string[];
     onChange: (values: string[]) => void;
     placeholder?: string;

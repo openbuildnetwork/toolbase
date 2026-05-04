@@ -21,6 +21,7 @@ function toTIPTool(config: NonNullable<typeof TOOLS[0]['tip']>[0]): TIPTool {
     consumes: config.consumes,
     produces: config.produces,
     configSchema: config.configSchema,
+    mobileOptimized: config.mobileOptimized ?? false,
     // INP: forward optional interactive fields so ToolNode can detect them
     interactable: config.interactable,
     getInteractionComponent: config.getInteractionComponent,

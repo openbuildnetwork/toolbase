@@ -14,19 +14,23 @@ import { ToolCardProps } from '@/types/tool-search';
 import { RecentsDrawer } from '@/components/ui/RecentsDrawer';
 import { FavoritesDrawer } from '@/components/ui/FavoritesDrawer';
 
+import { TryPipelineButton } from '@/components/ui/TryPipelineButton';
+
 /**
  * Map the central tool registry to the ToolCardProps shape expected
  * by ToolGrid / ToolCard. This is the single translation point —
  * add a tool to tools.registry.ts and it automatically appears here.
  */
 function registryToCardProps(tools: ToolMeta[]): ToolCardProps[] {
-  return tools.map((tool) => ({
-    title: tool.name,
-    route: tool.route,
-    icon: tool.thumbnail,
-    metadata: tool.tags,
-    toolId: tool.id,
-  }));
+  return tools
+    .filter((tool) => tool.route !== 'pipeline') // Remove pipeline from grid
+    .map((tool) => ({
+      title: tool.name,
+      route: tool.route,
+      icon: tool.thumbnail,
+      metadata: tool.tags,
+      toolId: tool.id,
+    }));
 }
 
 export default function Home() {
@@ -49,20 +53,20 @@ export default function Home() {
 
   const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
-      transition: { 
-        duration: 1.2, 
-        ease: [0.23, 1, 0.32, 1] 
+      transition: {
+        duration: 1.2,
+        ease: [0.23, 1, 0.32, 1]
       }
     }
   };
 
   return (
     <div>
-      <Header 
-        onOpenRecents={() => setIsRecentsOpen(true)} 
+      <Header
+        onOpenRecents={() => setIsRecentsOpen(true)}
         onOpenFavorites={() => setIsFavoritesOpen(true)}
       />
       <div className="view relative font-display min-h-screen flex flex-col selection:bg-primary/30 antialiased overflow-x-hidden"
@@ -73,19 +77,19 @@ export default function Home() {
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/10 dark:bg-primary/5 rounded-full blur-[120px] animate-pulse" />
         </div>
 
-        <main className="relative grow z-10 px-6 md:px-20 lg:px-40 py-12 lg:py-24">
+        <main className="relative grow z-10 px-4 md:px-20 lg:px-40 py-10 lg:py-24">
           <div className="max-w-[1200px] mx-auto">
-            
+
             {/* Animated High-Impact Headline */}
-            <motion.div 
+            <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="visible"
               className="mb-16 md:mb-24"
             >
-              <motion.h1 
+              <motion.h1
                 variants={itemVariants}
-                className="text-5xl md:text-6xl lg:text-8xl font-extrabold tracking-tight text-center leading-[0.95] md:leading-[0.9]"
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-extrabold tracking-tight text-center leading-[1] md:leading-[0.9]"
               >
                 <span className="block text-transparent bg-clip-text bg-gradient-to-br from-primary via-blue-500 to-cyan-400 pb-2 drop-shadow-sm">
                   Your tools.
@@ -94,29 +98,34 @@ export default function Home() {
                   Your browser.
                 </span>
               </motion.h1>
-              
-              <motion.p 
+
+              <motion.p
                 variants={itemVariants}
-                className="text-center text-xl md:text-2xl lg:text-3xl font-medium opacity-80 max-w-2xl mx-auto mt-6"
+                className="text-center text-lg md:text-2xl lg:text-3xl font-medium opacity-80 max-w-2xl mx-auto mt-4 md:mt-6"
                 style={{ color: 'var(--text-secondary)' }}
               >
                 No servers, no tracking, no compromise.
               </motion.p>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 1 }}
-              className="mb-16"
+              className="mb-16 flex flex-col md:flex-row items-center justify-center gap-4"
             >
-              <SearchBar value={searchQuery} onChange={setSearchQuery} />
+              <div className="w-full max-w-[500px]">
+                <SearchBar value={searchQuery} onChange={setSearchQuery} />
+              </div>
+              <div className="w-full max-w-[500px] md:w-auto">
+                <TryPipelineButton />
+              </div>
             </motion.div>
 
             <div id="tool-grid-section">
               <ToolGrid searchQuery={searchQuery} tools={tools} />
             </div>
-            
+
             <div className="mt-20 flex justify-center">
               <div
                 className="
@@ -150,13 +159,13 @@ export default function Home() {
         <BottomNav tools={tools} />
       </div>
 
-      <RecentsDrawer 
-        isOpen={isRecentsOpen} 
-        onClose={() => setIsRecentsOpen(false)} 
+      <RecentsDrawer
+        isOpen={isRecentsOpen}
+        onClose={() => setIsRecentsOpen(false)}
       />
-      <FavoritesDrawer 
-        isOpen={isFavoritesOpen} 
-        onClose={() => setIsFavoritesOpen(false)} 
+      <FavoritesDrawer
+        isOpen={isFavoritesOpen}
+        onClose={() => setIsFavoritesOpen(false)}
       />
     </div>
   );

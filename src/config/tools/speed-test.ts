@@ -16,4 +16,5 @@ export const speedTestConfig: ToolMeta = {
   pythonPowered: false,
   status: 'beta',
   addedAt: '2025-01-01',
+  mobileOptimized: true,
 };

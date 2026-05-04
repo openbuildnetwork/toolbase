@@ -16,4 +16,5 @@ export const archiveKitConfig: ToolMeta = {
   pythonPowered: false,
   status: 'beta',
   addedAt: '2026-03-05',
+  mobileOptimized: false,
 };

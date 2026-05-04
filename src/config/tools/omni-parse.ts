@@ -16,6 +16,7 @@ export const omniParseConfig: ToolMeta = {
   pythonPowered: false,
   status: 'beta',
   addedAt: '2025-01-01',
+  mobileOptimized: false,
   tip: [
     {
       id: 'omni-parse/beautify',
@@ -23,6 +24,7 @@ export const omniParseConfig: ToolMeta = {
       description: 'Format and indent JSON, XML, or YAML for readability.',
       consumes: ['application/json', 'text/plain'],
       produces: ['text/plain'],
+      mobileOptimized: false,
       configSchema: {
         fields: [
           {
@@ -49,6 +51,7 @@ export const omniParseConfig: ToolMeta = {
       description: 'Remove all whitespace and comments to compress the payload.',
       consumes: ['application/json', 'text/plain'],
       produces: ['text/plain'],
+      mobileOptimized: false,
       configSchema: {
         fields: [
           {
@@ -75,6 +78,7 @@ export const omniParseConfig: ToolMeta = {
       description: 'Recursively remove nulls, undefineds, and empty collections.',
       consumes: ['application/json', 'text/plain'],
       produces: ['application/json'],
+      mobileOptimized: false,
       configSchema: {
         fields: [
           {
@@ -101,6 +105,7 @@ export const omniParseConfig: ToolMeta = {
       description: 'Transform all object keys to camelCase for consistency.',
       consumes: ['application/json', 'text/plain'],
       produces: ['application/json'],
+      mobileOptimized: false,
       configSchema: {
         fields: [
           {

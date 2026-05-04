@@ -1,8 +1,9 @@
+"use client";
+
 import React from "react";
-import { Settings2 } from "lucide-react";
-import { Card } from "@/components/ui/Card";
-import { Label } from "@/components/ui/Label";
-import { Tabs } from "@/components/ui/Tabs";
+import { Settings2, Key, Type, Hash, Code } from "lucide-react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { TagInput } from "@/components/ui/TagInput";
 import { MaskingStyle } from "@/types/redact";
 
@@ -28,73 +29,94 @@ export const RedactConfiguration: React.FC<RedactConfigurationProps> = ({
     setRegexPatterns,
 }) => {
     return (
-        <Card className="border-none shadow-lg bg-surface/70 backdrop-blur-xl ring-1 ring-border-subtle">
-            <div className="px-6 py-4 border-b border-border-subtle bg-surface-secondary/30">
-                <div className="flex items-center gap-2">
-                    <Settings2 className="w-4 h-4 text-text-muted" />
-                    <span className="font-bold text-sm text-text-primary uppercase tracking-tight">Configuration</span>
-                </div>
+        <div className="flex flex-col rounded-2xl border border-(--border-medium) bg-(--surface-overlay) backdrop-blur-xl overflow-hidden shadow-sm dark:shadow-black/20">
+            {/* Header */}
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-(--border-subtle) bg-(--surface-secondary)/30">
+                <Settings2 className="w-4 h-4 text-(--text-muted)" />
+                <span className="text-xs font-bold uppercase tracking-wider text-(--text-muted)">Configuration</span>
             </div>
-            <div className="p-6 space-y-8">
-                {/* Masking Style */}
+
+            <div className="p-5 space-y-6">
+                {/* Redaction Style */}
                 <div className="space-y-3">
-                    <div className="flex-col space-y-2">
-                        <div>
-                            <Label className="text-gray-700 font-bold text-xs uppercase tracking-wider">Redaction Style</Label>
-                        </div>
-                        <Tabs
-                            value={maskingStyle}
-                            onChange={(id) => setMaskingStyle(id as MaskingStyle)}
-                            radius="rounded-[100px]"
-                            orientation="horizontal"
-                            size="sm"
-                            colors={{
-                                container: "bg-surface-secondary",
-                                indicator: "bg-primary",
-                                activeBackground: "bg-surface",
-                                label: {
-                                    active: "text-primary",
-                                },
-                            }}
-                            tabs={[
-                                { id: "partial", label: "Partial" },
-                                { id: "full", label: "Full" },
-                                { id: "hash", label: "Hash" },
-                            ]}
-                        />
-                        <p className="text-[10px] text-text-muted font-medium px-1">
-                            {maskingStyle === 'partial' && "Shows start/end bits (e.g. pr...12)"}
-                            {maskingStyle === 'full' && "Completely obscures secrets"}
-                            {maskingStyle === 'hash' && "Replaces with cryptographic hash"}
-                        </p>
+                    <label className="text-[10px] font-black uppercase tracking-[0.12em] text-(--text-muted)">
+                        Redaction Style
+                    </label>
+                    <div className="flex p-1 rounded-xl bg-(--surface-active) border border-(--border-subtle) relative">
+                        {[
+                            { id: "partial", label: "Partial", icon: Hash },
+                            { id: "full", label: "Full", icon: Type },
+                            { id: "hash", label: "Hash", icon: Code },
+                        ].map((style) => {
+                            const isActive = maskingStyle === style.id;
+                            return (
+                                <button
+                                    key={style.id}
+                                    onClick={() => setMaskingStyle(style.id as MaskingStyle)}
+                                    className={cn(
+                                        "relative flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-colors duration-200 z-10",
+                                        isActive ? "text-violet-500" : "text-(--text-muted) hover:text-(--text-secondary)"
+                                    )}
+                                >
+                                    {isActive && (
+                                        <motion.div
+                                            layoutId="activeConfigTab"
+                                            className="absolute inset-0 bg-(--background) border border-(--border-subtle) rounded-lg shadow-sm"
+                                            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                                        />
+                                    )}
+                                    <style.icon className="w-3.5 h-3.5 relative z-10" />
+                                    <span className="relative z-10">{style.label}</span>
+                                </button>
+                            );
+                        })}
                     </div>
+                    <p className="text-[10px] text-(--text-muted)/70 px-1 italic">
+                        {maskingStyle === 'partial' && "Shows start/end bits (e.g. pr...12)"}
+                        {maskingStyle === 'full' && "Completely obscures secrets with [REDACTED]"}
+                        {maskingStyle === 'hash' && "Replaces with a cryptographic fingerprint"}
+                    </p>
                 </div>
 
-                {/* Hints */}
-                <div className="space-y-6 pt-4 border-t border-border-subtle">
-                    <TagInput
-                        label="Force Mask Keys"
-                        placeholder="e.g. secret_token"
-                        values={keys}
-                        onChange={setKeys}
-                        color="blue"
-                    />
-                    <TagInput
-                        label="Specific Content"
-                        placeholder="e.g. MyPassword123"
-                        values={literalTexts}
-                        onChange={setLiteralTexts}
-                        color="purple"
-                    />
-                    <TagInput
-                        label="Custom Patterns"
-                        placeholder="e.g. \b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b"
-                        values={regexPatterns}
-                        onChange={setRegexPatterns}
-                        color="emerald"
-                    />
+                {/* Advanced Rules */}
+                <div className="space-y-5 pt-5 border-t border-(--border-subtle)">
+                    <div className="space-y-4">
+                        <TagInput
+                            label={
+                                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.12em] text-(--text-muted) mb-1.5">
+                                    <Key className="w-3 h-3 text-blue-500" /> Force Mask Keys
+                                </div>
+                            }
+                            placeholder="e.g. api_key"
+                            values={keys}
+                            onChange={setKeys}
+                            color="blue"
+                        />
+                        <TagInput
+                            label={
+                                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.12em] text-(--text-muted) mb-1.5">
+                                    <Type className="w-3 h-3 text-purple-500" /> Specific Content
+                                </div>
+                            }
+                            placeholder="e.g. MyPassword123"
+                            values={literalTexts}
+                            onChange={setLiteralTexts}
+                            color="purple"
+                        />
+                        <TagInput
+                            label={
+                                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.12em] text-(--text-muted) mb-1.5">
+                                    <Code className="w-3 h-3 text-emerald-500" /> Custom Regex
+                                </div>
+                            }
+                            placeholder="e.g. \b[A-Z0-9._%+-]+@..."
+                            values={regexPatterns}
+                            onChange={setRegexPatterns}
+                            color="emerald"
+                        />
+                    </div>
                 </div>
             </div>
-        </Card>
+        </div>
     );
 };

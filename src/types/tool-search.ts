@@ -42,6 +42,8 @@ export interface ToolMeta {
   status: ToolStatus;
   /** ISO date string — when this tool was added */
   addedAt: string;
+  /** Whether this tool is optimized for mobile devices */
+  mobileOptimized: boolean;
   /** GitHub username of the contributor who built this tool */
   author?: string;
   /** 
@@ -61,6 +63,8 @@ export interface ToolMeta {
      * Keeps the registry lightweight.
      */
     getExecutor: () => Promise<(input: import('@/tip').TIPBundle, config: import('@/tip').TIPConfig, hooks: import('@/tip').TIPHooks) => Promise<import('@/tip').TIPBundle>>;
+    /** Whether this specific operation is optimized for mobile */
+    mobileOptimized: boolean;
     /**
      * INP: when true, this operation requires user interaction before execution.
      * The pipeline ToolNode shows a Configure button and amber indicator.

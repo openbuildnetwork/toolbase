@@ -69,9 +69,9 @@ export function ThemeToggle() {
                 </AnimatePresence>
             </div>
 
-            {/* Toggle Switch */}
+            {/* Desktop: Segmented Pill */}
             <div
-                className="flex items-center rounded-full p-0.5 transition-colors duration-200"
+                className="hidden sm:flex items-center rounded-full p-0.5 transition-colors duration-200"
                 style={{
                     background: 'var(--surface-secondary)',
                     border: '1px solid var(--border-subtle)',
@@ -102,6 +102,26 @@ export function ThemeToggle() {
                         </button>
                     );
                 })}
+            </div>
+
+            {/* Mobile: Single cycling button */}
+            <div className="flex sm:hidden items-center">
+                <button
+                    onClick={() => {
+                        const currentIndex = OPTIONS.findIndex(o => o.value === theme);
+                        const nextIndex = (currentIndex + 1) % OPTIONS.length;
+                        setTheme(OPTIONS[nextIndex].value);
+                    }}
+                    className="flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-150 cursor-pointer"
+                    style={{
+                        background: 'var(--surface-hover)',
+                        color: 'var(--text-muted)',
+                    }}
+                >
+                    {OPTIONS.map(({ value, icon: Icon }) => 
+                        theme === value && <Icon key={value} size={18} strokeWidth={2} />
+                    )}
+                </button>
             </div>
         </div>
     );

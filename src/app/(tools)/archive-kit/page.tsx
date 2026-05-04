@@ -726,12 +726,6 @@ export default function ArchiveKitPage() {
                               </div>
           </div>
           <ReturnToToolsButton />
-          <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-              Running Locally (Browser)
-            </span>
-          </div>
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8">

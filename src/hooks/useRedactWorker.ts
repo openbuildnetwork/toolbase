@@ -24,11 +24,15 @@ export function useRedactWorker() {
 
         redactSecretsWorker.onReadyStateChange = handleReadyStateChange;
         
+        // Trigger initialization
+        redactSecretsWorker.init().catch(err => {
+            console.error('Failed to init redact secrets worker:', err);
+        });
+
         // Initial sync
         handleReadyStateChange(redactSecretsWorker.readyState);
 
         return () => {
-            // Restore if needed, but here we just clear our local listener influence
             if (redactSecretsWorker.onReadyStateChange === handleReadyStateChange) {
                 redactSecretsWorker.onReadyStateChange = undefined;
             }

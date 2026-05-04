@@ -17,6 +17,7 @@ export const pipelineConfig: ToolMeta = {
   pythonPowered: true,
   status: 'beta',
   addedAt: '2026-02-27',
+  mobileOptimized: false,
   tip: [
     {
       id: 'system/human-review',
@@ -25,6 +26,7 @@ export const pipelineConfig: ToolMeta = {
       consumes: [...TIP_CONTENT_TYPES],
       produces: [...TIP_CONTENT_TYPES],
       configSchema: { fields: [] },
+      mobileOptimized: false,
       interactable: true as const,
       getInteractionComponent: async () => {
         const { default: HumanReviewInteraction } = await import('@/components/features/pipeline/nodes/HumanReviewInteraction');

@@ -16,6 +16,7 @@ export const pixelAxeConfig: ToolMeta = {
   pythonPowered: true,
   status: 'stable',
   addedAt: '2025-01-01',
+  mobileOptimized: true,
   tip: [
     {
       id: 'pixel-axe/compress',
@@ -23,6 +24,7 @@ export const pixelAxeConfig: ToolMeta = {
       description: 'Compress PNG, JPEG, or WebP images to reduce file size.',
       consumes: ['image/png', 'image/jpeg', 'image/webp'],
       produces: ['image/png', 'image/jpeg', 'image/webp'],
+      mobileOptimized: true,
       configSchema: {
         fields: [
           {
@@ -101,6 +103,7 @@ export const pixelAxeConfig: ToolMeta = {
       description: 'Resize images to a specific width and height.',
       consumes: ['image/png', 'image/jpeg', 'image/webp'],
       produces: ['image/png', 'image/jpeg', 'image/webp'],
+      mobileOptimized: true,
       configSchema: {
         fields: [
           {
@@ -190,6 +193,7 @@ export const pixelAxeConfig: ToolMeta = {
       description: 'Upscale images to a larger size with quality enhancement. Always outputs PNG.',
       consumes: ['image/png', 'image/jpeg', 'image/webp'],
       produces: ['image/png'],
+      mobileOptimized: true,
       configSchema: {
         fields: [
           {
@@ -277,6 +281,7 @@ export const pixelAxeConfig: ToolMeta = {
       description: 'Hide a secret text message inside an image using steganography. Optionally encrypt it with a password.',
       consumes: ['image/png', 'image/jpeg', 'image/webp'],
       produces: ['image/png'],
+      mobileOptimized: true,
       configSchema: {
         fields: [
           {
@@ -313,6 +318,7 @@ export const pixelAxeConfig: ToolMeta = {
       description: 'Extract and decrypt a hidden text message from an image.',
       consumes: ['image/png', 'image/jpeg', 'image/webp'],
       produces: ['text/plain'],
+      mobileOptimized: true,
       configSchema: {
         fields: [
           {
