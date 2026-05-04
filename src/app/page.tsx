@@ -117,7 +117,9 @@ export default function Home() {
               <div className="w-full max-w-[500px]">
                 <SearchBar value={searchQuery} onChange={setSearchQuery} />
               </div>
-              <TryPipelineButton />
+              <div className="w-full max-w-[500px] md:w-auto">
+                <TryPipelineButton />
+              </div>
             </motion.div>
 
             <div id="tool-grid-section">

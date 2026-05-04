@@ -5,13 +5,21 @@ import { motion } from 'framer-motion';
 import { Zap, ArrowRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
-export function TryPipelineButton() {
+import clsx from 'clsx';
+
+interface TryPipelineButtonProps {
+  className?: string;
+}
+
+export function TryPipelineButton({ className }: TryPipelineButtonProps) {
   return (
-    <Link href="/pipeline">
+    <Link href="/pipeline" className={clsx("block", className)}>
       <motion.button
         whileHover="hover"
         whileTap={{ scale: 0.96 }}
-        className="group relative h-[56px] p-[1.5px] flex items-center justify-center rounded-2xl font-bold transition-all duration-500 cursor-pointer overflow-hidden whitespace-nowrap"
+        className={clsx(
+          "group relative h-[56px] p-[1.5px] flex items-center justify-center rounded-2xl font-bold transition-all duration-500 cursor-pointer overflow-hidden whitespace-nowrap w-full",
+        )}
       >
         {/* 1. The Rotating Border Beam (Background layer) */}
         <div className="absolute inset-0 z-0 opacity-30 group-hover:opacity-100 transition-opacity duration-500">
@@ -51,7 +59,7 @@ export function TryPipelineButton() {
           </div>
 
           {/* Content */}
-          <div className="relative z-10 flex items-center gap-3.5">
+          <div className="relative z-10 flex items-center w-full gap-3.5">
             <motion.div
               variants={{
                 hover: { 
@@ -60,17 +68,17 @@ export function TryPipelineButton() {
                   boxShadow: '0 0 20px rgba(43, 140, 238, 0.4)'
                 }
               }}
-              className="flex items-center justify-center w-[34px] h-[34px] rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-sm"
+              className="flex items-center justify-center w-[34px] h-[34px] rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-sm shrink-0"
             >
               <Zap size={18} fill="currentColor" className="text-current" />
             </motion.div>
 
-            <div className="flex flex-col items-start -space-y-0.5">
+            <div className="flex flex-col items-start -space-y-0.5 flex-1 min-w-0">
                <div className="flex items-center gap-1">
                  <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-primary opacity-60 group-hover:opacity-100 transition-opacity">Beta</span>
                  <Sparkles size={9} className="text-primary/40 group-hover:text-primary transition-colors" />
                </div>
-               <span className="text-[15px] font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-(--text-primary) to-(--text-secondary) group-hover:from-primary group-hover:to-blue-400 transition-all duration-300">
+               <span className="text-[15px] font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-(--text-primary) to-(--text-secondary) group-hover:from-primary group-hover:to-blue-400 transition-all duration-300 truncate">
                  Try Pipeline
                </span>
             </div>
@@ -80,7 +88,7 @@ export function TryPipelineButton() {
                 hover: { x: 3, opacity: 1 }
               }}
               initial={{ x: 0, opacity: 0.3 }}
-              className="text-primary ml-1"
+              className="text-primary ml-auto shrink-0"
             >
               <ArrowRight size={18} strokeWidth={2.5} />
             </motion.div>
