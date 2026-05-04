@@ -19,13 +19,13 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFav
 
     return (
         <header
-            className="sticky top-0 z-100 w-full backdrop-blur-2xl px-6 md:px-20 lg:px-40 py-4 transition-colors duration-200"
+            className="sticky top-0 z-100 w-full backdrop-blur-2xl px-4 md:px-20 lg:px-40 py-4 transition-colors duration-200"
             style={{
                 background: 'var(--surface-overlay)',
                 borderBottom: '1px solid var(--border-subtle)',
             }}
         >
-            <div className="max-w-[1200px] p-2 mx-auto flex items-center justify-between gap-4">
+            <div className="max-w-[1200px] p-2 mx-auto flex items-center justify-between gap-2 sm:gap-4">
                 <Link href="/" className="block">
                     <div className="theme-logo-dark">
                         <div className='flex items-center gap-4'>
@@ -43,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFav
                     </div>
                 </Link>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 sm:gap-3">
                     {/* Cmd+K hint button */}
                     {onOpenPalette && (
                         <button
@@ -113,7 +113,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFav
                                 <Sparkles size={16} style={{ color: '#3457D5' }} />
                             </div>
                         </div>
-                        <div className="text-[13px] font-bold tracking-tight" style={{ color: '#3457D5' }}>
+                        <div className="hidden sm:block text-[13px] font-bold tracking-tight" style={{ color: '#3457D5' }}>
                             Ask Echo ?
                         </div>
 
@@ -175,7 +175,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFav
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="View on GitHub"
-                        className="group h-9 w-9 flex items-center justify-center rounded-xl transition-all duration-150"
+                        className="hidden sm:flex group h-9 w-9 items-center justify-center rounded-xl transition-all duration-150"
                         style={{
                             background: 'var(--surface-hover)',
                             color: 'var(--text-muted)'

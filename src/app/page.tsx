@@ -73,7 +73,7 @@ export default function Home() {
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/10 dark:bg-primary/5 rounded-full blur-[120px] animate-pulse" />
         </div>
 
-        <main className="relative grow z-10 px-6 md:px-20 lg:px-40 py-12 lg:py-24">
+        <main className="relative grow z-10 px-4 md:px-20 lg:px-40 py-10 lg:py-24">
           <div className="max-w-[1200px] mx-auto">
             
             {/* Animated High-Impact Headline */}
@@ -85,7 +85,7 @@ export default function Home() {
             >
               <motion.h1 
                 variants={itemVariants}
-                className="text-5xl md:text-6xl lg:text-8xl font-extrabold tracking-tight text-center leading-[0.95] md:leading-[0.9]"
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-extrabold tracking-tight text-center leading-[1] md:leading-[0.9]"
               >
                 <span className="block text-transparent bg-clip-text bg-gradient-to-br from-primary via-blue-500 to-cyan-400 pb-2 drop-shadow-sm">
                   Your tools.
@@ -97,7 +97,7 @@ export default function Home() {
               
               <motion.p 
                 variants={itemVariants}
-                className="text-center text-xl md:text-2xl lg:text-3xl font-medium opacity-80 max-w-2xl mx-auto mt-6"
+                className="text-center text-lg md:text-2xl lg:text-3xl font-medium opacity-80 max-w-2xl mx-auto mt-4 md:mt-6"
                 style={{ color: 'var(--text-secondary)' }}
               >
                 No servers, no tracking, no compromise.
