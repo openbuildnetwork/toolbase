@@ -27,7 +27,7 @@ export function TryPipelineButton() {
 
         {/* 2. The Glass Surface (The Button Body) */}
         <div 
-          className="relative z-10 w-full h-full flex items-center gap-4 px-6 rounded-[calc(1rem-1.5px)] backdrop-blur-2xl border border-white/5 transition-all duration-500 group-hover:bg-primary/[0.05]"
+          className="relative z-10 w-full h-full flex items-center gap-4 px-6 rounded-[calc(1rem-1.5px)] backdrop-blur-2xl border border-black/15 dark:border-white/10 transition-all duration-500 group-hover:bg-primary/[0.05]"
           style={{
             background: 'var(--surface-overlay)',
           }}
