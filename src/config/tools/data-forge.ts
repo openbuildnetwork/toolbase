@@ -16,4 +16,5 @@ export const dataForgeConfig: ToolMeta = {
   pythonPowered: false,
   status: 'beta',
   addedAt: '2025-01-01',
+  mobileOptimized: false,
 };

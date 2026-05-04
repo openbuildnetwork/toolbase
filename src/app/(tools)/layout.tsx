@@ -1,5 +1,6 @@
 
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { ToolMobileGuard } from "@/components/ui/ToolMobileGuard";
 
 export default function ToolsLayout({
   children,
@@ -9,7 +10,9 @@ export default function ToolsLayout({
   return (
     <>
       <ErrorBoundary>
-        <main>{children}</main>
+        <ToolMobileGuard>
+          <main>{children}</main>
+        </ToolMobileGuard>
       </ErrorBoundary>
     </>
   );

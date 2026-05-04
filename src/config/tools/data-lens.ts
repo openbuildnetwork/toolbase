@@ -16,4 +16,5 @@ export const dataLensConfig: ToolMeta = {
   pythonPowered: true,
   status: 'stable',
   addedAt: '2025-01-01',
+  mobileOptimized: false,
 };

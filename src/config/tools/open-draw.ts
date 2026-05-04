@@ -16,4 +16,5 @@ export const openDrawConfig: ToolMeta = {
   pythonPowered: false,
   status: 'stable',
   addedAt: '2025-01-01',
+  mobileOptimized: false,
 };

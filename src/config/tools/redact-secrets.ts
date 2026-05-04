@@ -16,6 +16,7 @@ export const redactSecretsConfig: ToolMeta = {
   pythonPowered: false,
   status: 'stable',
   addedAt: '2025-01-01',
+  mobileOptimized: true,
   tip: [
     {
       id: 'redact-secrets/redact',
@@ -26,6 +27,7 @@ export const redactSecretsConfig: ToolMeta = {
       configSchema: {
         fields: []
       },
+      mobileOptimized: true,
       interactable: true as const,
       getInteractionComponent: async () => {
         const { default: RedactInteractive } = await import('@/components/features/redact-secrets/RedactInteractive');

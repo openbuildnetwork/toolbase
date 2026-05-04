@@ -16,6 +16,7 @@ export const magicPdfConfig: ToolMeta = {
   pythonPowered: true,
   status: 'stable',
   addedAt: '2025-01-01',
+  mobileOptimized: true,
   tip: [
     {
       id: 'magic-pdf/compress',
@@ -23,6 +24,7 @@ export const magicPdfConfig: ToolMeta = {
       description: 'Reduce PDF file size while preserving quality.',
       consumes: ['application/pdf'],
       produces: ['application/pdf'],
+      mobileOptimized: true,
       configSchema: {
         fields: [
           {
@@ -51,6 +53,7 @@ export const magicPdfConfig: ToolMeta = {
       description: 'Split a PDF into individual pages or custom page ranges.',
       consumes: ['application/pdf'],
       produces: ['application/pdf'],
+      mobileOptimized: true,
       configSchema: {
         fields: [
           {
@@ -129,6 +132,7 @@ export const magicPdfConfig: ToolMeta = {
       description: 'Password-protect a PDF so it requires a password to open.',
       consumes: ['application/pdf'],
       produces: ['application/pdf'],
+      mobileOptimized: true,
       configSchema: {
         fields: [
           {
@@ -213,6 +217,7 @@ export const magicPdfConfig: ToolMeta = {
       description: 'Remove password protection from a PDF.',
       consumes: ['application/pdf'],
       produces: ['application/pdf'],
+      mobileOptimized: true,
       configSchema: {
         fields: [
           {
@@ -333,6 +338,7 @@ export const magicPdfConfig: ToolMeta = {
       description: 'Convert each PDF page to a PNG image. Output is one image per page.',
       consumes: ['application/pdf'],
       produces: ['image/png', 'image/jpeg'],
+      mobileOptimized: true,
       configSchema: {
         fields: [
           {
@@ -389,6 +395,7 @@ export const magicPdfConfig: ToolMeta = {
       description: 'Convert a PDF into an editable Word Document.',
       consumes: ['application/pdf'],
       produces: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+      mobileOptimized: true,
       configSchema: { fields: [] },
       getExecutor: async () => {
         const { createPerPayloadTIPExecutor } = await import('@/tip/executor');

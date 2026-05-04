@@ -16,6 +16,7 @@ export const base64Config: ToolMeta = {
   pythonPowered: false,
   status: 'stable',
   addedAt: '2025-01-01',
+  mobileOptimized: true,
   tip: [
     {
       id: 'base64/encode',
