@@ -9,6 +9,7 @@ import { RedactOutput } from "./RedactOutput";
 import { RedactStats } from "./RedactStats";
 import { EngineLoader } from "@/components/ui/EngineLoader";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 import type { TIPInteractionProps } from "@/tip/protocol";
 import type { ContentType, MaskingStyle } from "@/types/redact";
 
