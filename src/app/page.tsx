@@ -14,19 +14,23 @@ import { ToolCardProps } from '@/types/tool-search';
 import { RecentsDrawer } from '@/components/ui/RecentsDrawer';
 import { FavoritesDrawer } from '@/components/ui/FavoritesDrawer';
 
+import { TryPipelineButton } from '@/components/ui/TryPipelineButton';
+
 /**
  * Map the central tool registry to the ToolCardProps shape expected
  * by ToolGrid / ToolCard. This is the single translation point —
  * add a tool to tools.registry.ts and it automatically appears here.
  */
 function registryToCardProps(tools: ToolMeta[]): ToolCardProps[] {
-  return tools.map((tool) => ({
-    title: tool.name,
-    route: tool.route,
-    icon: tool.thumbnail,
-    metadata: tool.tags,
-    toolId: tool.id,
-  }));
+  return tools
+    .filter((tool) => tool.route !== 'pipeline') // Remove pipeline from grid
+    .map((tool) => ({
+      title: tool.name,
+      route: tool.route,
+      icon: tool.thumbnail,
+      metadata: tool.tags,
+      toolId: tool.id,
+    }));
 }
 
 export default function Home() {
@@ -108,9 +112,12 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 1 }}
-              className="mb-16"
+              className="mb-16 flex flex-col md:flex-row items-center justify-center gap-4"
             >
-              <SearchBar value={searchQuery} onChange={setSearchQuery} />
+              <div className="w-full max-w-[500px]">
+                <SearchBar value={searchQuery} onChange={setSearchQuery} />
+              </div>
+              <TryPipelineButton />
             </motion.div>
 
             <div id="tool-grid-section">
