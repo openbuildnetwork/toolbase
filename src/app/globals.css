@@ -98,8 +98,10 @@
 
 @layer base {
   body {
-    background: var(--background);
+    /* Background is drawn by GlobalBackground canvas */
     color: var(--foreground);
+    position: relative;
+    z-index: 1;
     @apply font-display antialiased selection:bg-primary/30;
   }
 }

@@ -8,6 +8,7 @@ import { AIChatProvider } from "@/hooks/useAIChat";
 import { GlobalAIOverlay } from "@/components/ai/GlobalAIOverlay";
 import { ThemeProvider } from "../components/ui/ThemeProvider";
 import { DaylightManager } from "../components/ui/DaylightManager";
+import { GlobalBackground } from "../components/ui/GlobalBackground";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -66,6 +67,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ThemeProvider>
+          <GlobalBackground />
           <DaylightManager />
           <AIChatProvider>
             {/* Global Header + Cmd+K palette — both managed by the client provider */}
