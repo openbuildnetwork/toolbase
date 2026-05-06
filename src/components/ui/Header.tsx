@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import React from 'react';
-import { Search, Command, MessageSquare, Sparkles, Clock, Heart, Github } from 'lucide-react';
+import { Search, Command, MessageSquare, Sparkles, Clock, Heart, Github, Info } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { useAIChat } from '@/hooks/useAIChat';
 import { useToolPreferences } from '@/hooks/useToolPreferences';
@@ -19,31 +19,31 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFav
 
     return (
         <header
-            className="sticky top-0 z-100 w-full backdrop-blur-2xl px-4 md:px-20 lg:px-40 py-4 transition-colors duration-200"
+            className="sticky top-0 z-100 w-full backdrop-blur-2xl px-2 sm:px-4 md:px-20 lg:px-40 py-3 sm:py-4 transition-colors duration-200"
             style={{
                 background: 'var(--surface-overlay)',
                 borderBottom: '1px solid var(--border-subtle)',
             }}
         >
-            <div className="max-w-[1200px] p-2 mx-auto flex items-center justify-between gap-2 sm:gap-4">
-                <Link href="/" className="block">
+            <div className="max-w-[1200px] p-1 sm:p-2 mx-auto flex items-center justify-between gap-1 sm:gap-4">
+                <Link href="/" className="block shrink-0">
                     <div className="theme-logo-dark">
-                        <div className='flex items-center gap-4'>
-                            <img className="h-5" src="/assets/images/logo-light.png" alt="Toolbase logo" />
-                            <span className="w-px h-5 bg-white/30 rounded-full" />
-                            <img className="h-5" src="/assets/images/logo-toolbase-light.png" alt="Toolbase logo" />
+                        <div className='flex items-center gap-1.5 sm:gap-4'>
+                            <img className="h-4 sm:h-5" src="/assets/images/logo-light.png" alt="Toolbase logo" />
+                            <span className="w-px h-4 sm:h-5 bg-white/30 rounded-full" />
+                            <img className="h-4 sm:h-5" src="/assets/images/logo-toolbase-light.png" alt="Toolbase logo" />
                         </div>
                     </div>
                     <div className="theme-logo-light">
-                        <div className='flex items-center gap-4'>
-                            <img className="h-5" src="/assets/images/logo-dark.png" alt="Toolbase logo" />
-                            <span className="w-px h-5 bg-gray-400/65 rounded-full" />
-                            <img className="h-5" src="/assets/images/logo-toolbase-dark.png" alt="Toolbase logo" />
+                        <div className='flex items-center gap-1.5 sm:gap-4'>
+                            <img className="h-4 sm:h-5" src="/assets/images/logo-dark.png" alt="Toolbase logo" />
+                            <span className="w-px h-4 sm:h-5 bg-gray-400/65 rounded-full" />
+                            <img className="h-4 sm:h-5" src="/assets/images/logo-toolbase-dark.png" alt="Toolbase logo" />
                         </div>
                     </div>
                 </Link>
 
-                <div className="flex items-center gap-1.5 sm:gap-3">
+                <div className="flex items-center gap-1 sm:gap-3">
                     {/* Cmd+K hint button */}
                     {onOpenPalette && (
                         <button
@@ -96,7 +96,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFav
                     <button
                         onClick={toggleChat}
                         aria-label="Ask Echo?"
-                        className="group relative flex items-center gap-2.5 px-4 py-2 rounded-full transition-all duration-300 active:scale-95 cursor-pointer backdrop-blur-md"
+                        className="group relative flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all duration-300 active:scale-95 cursor-pointer backdrop-blur-md"
                         style={{
                             background: 'rgba(52, 87, 213, 0.1)',
                             border: '1px solid rgba(52, 87, 213, 0.4)',
@@ -169,13 +169,26 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFav
                         )}
                     </button>
 
+                    {/* About Link */}
+                    <Link
+                        href="/about"
+                        title="About toolbase"
+                        className="group h-9 w-9 flex items-center justify-center rounded-xl transition-all duration-150 cursor-pointer"
+                        style={{
+                            background: 'var(--surface-hover)',
+                            color: 'var(--text-muted)'
+                        }}
+                    >
+                        <Info size={18} className="group-hover:text-primary transition-colors" />
+                    </Link>
+
                     {/* GitHub Link */}
                     <a
                         href="https://github.com/openbuildnetwork/toolbase"
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="View on GitHub"
-                        className="hidden sm:flex group h-9 w-9 items-center justify-center rounded-xl transition-all duration-150"
+                        className="group flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-150"
                         style={{
                             background: 'var(--surface-hover)',
                             color: 'var(--text-muted)'

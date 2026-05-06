@@ -65,7 +65,7 @@ export const RedactOutput: React.FC<RedactOutputProps> = ({ response }) => {
                     </div>
 
                     {/* Content */}
-                    <div className="p-6 bg-gray-950/40 dark:bg-black/20 min-h-[250px] relative group">
+                    <div className="p-6 bg-gray-950/40 dark:bg-black/20 min-h-[250px] max-h-[500px] overflow-y-auto relative group custom-scrollbar">
                         <pre className="whitespace-pre-wrap font-mono text-xs text-(--text-primary) leading-relaxed selection:bg-emerald-500/20">
                             {response.maskedContent}
                         </pre>
