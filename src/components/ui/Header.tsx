@@ -19,10 +19,13 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFav
 
     return (
         <header
-            className="sticky top-0 z-100 w-full backdrop-blur-2xl px-2 sm:px-4 md:px-20 lg:px-40 py-3 sm:py-4 transition-colors duration-200"
+            className="sticky top-0 z-100 w-full px-2 sm:px-4 md:px-20 lg:px-40 py-3 sm:py-4 transition-all duration-300"
             style={{
-                background: 'var(--surface-overlay)',
-                borderBottom: '1px solid var(--border-subtle)',
+                backdropFilter: 'blur(20px) saturate(200%)',
+                WebkitBackdropFilter: 'blur(20px) saturate(200%)',
+                background: 'var(--glass-surface)',
+                borderBottom: '1px solid var(--glass-border-color)',
+                boxShadow: 'var(--glass-shadow)',
             }}
         >
             <div className="max-w-[1200px] p-1 sm:p-2 mx-auto flex items-center justify-between gap-1 sm:gap-4">

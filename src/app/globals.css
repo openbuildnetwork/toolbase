@@ -37,6 +37,11 @@
   --input-bg-focus: #ffffff;
   --scrollbar-thumb: rgba(156, 163, 175, 0.3);
   --scrollbar-thumb-hover: rgba(156, 163, 175, 0.5);
+
+  /* Glass (light — white tint, very transparent) */
+  --glass-surface: rgba(255, 255, 255, 0.45);
+  --glass-border-color: rgba(255, 255, 255, 0.7);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 /* ── Dark theme (Slate/Charcoal) ────────────────────────────────────── */
@@ -76,6 +81,11 @@
   --input-bg-focus: rgba(255, 255, 255, 0.06);
   --scrollbar-thumb: rgba(156, 163, 175, 0.2);
   --scrollbar-thumb-hover: rgba(156, 163, 175, 0.4);
+
+  /* Glass (dark — near-transparent dark tint) */
+  --glass-surface: rgba(20, 21, 30, 0.35);
+  --glass-border-color: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 @theme {
