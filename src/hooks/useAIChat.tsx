@@ -11,6 +11,7 @@ interface AIChatContextType {
   // WebLLM Engine State
   loadModel: (modelId: string) => Promise<void>;
   generateResponse: (messages: Message[], onToken?: (token: string) => void) => Promise<string>;
+  stopGeneration: () => Promise<void>;
   resetChat: () => Promise<void>;
   uninstallModel: () => Promise<void>;
   progress: string;

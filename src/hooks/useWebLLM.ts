@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { CreateWebWorkerMLCEngine, MLCEngineInterface, InitProgressReport } from "@mlc-ai/web-llm";
+import {
+    CreateWebWorkerMLCEngine,
+    MLCEngineInterface,
+    InitProgressReport,
+    type ChatCompletionMessageParam,
+} from "@mlc-ai/web-llm";
 
 /**
  * useWebLLM Hook
@@ -26,6 +31,7 @@ export function useWebLLM() {
     
     const workerRef = useRef<Worker | null>(null);
     const enginePromiseRef = useRef<Promise<MLCEngineInterface> | null>(null);
+    const stopRequestedRef = useRef(false);
 
     // Initialize the worker on mount
     useEffect(() => {
@@ -116,9 +122,11 @@ export function useWebLLM() {
         }
 
         setIsGenerating(true);
+        stopRequestedRef.current = false;
+        let fullText = "";
         try {
             const completion = await activeEngine.chat.completions.create({
-                messages: messages as any,
+                messages: messages as ChatCompletionMessageParam[],
                 stream: true,
                 temperature: 0.7,
                 max_tokens: 1024,
@@ -126,8 +134,8 @@ export function useWebLLM() {
                 frequency_penalty: 0.0,
             });
 
-            let fullText = "";
             for await (const chunk of completion) {
+                if (stopRequestedRef.current) break;
                 const content = chunk.choices[0]?.delta?.content || "";
                 if (content) {
                     fullText += content;
@@ -137,10 +145,24 @@ export function useWebLLM() {
             
             return fullText;
         } catch (error) {
+            if (stopRequestedRef.current) {
+                return fullText;
+            }
             console.error("Inference error:", error);
             throw error;
         } finally {
             setIsGenerating(false);
+            stopRequestedRef.current = false;
+        }
+    }, [engine]);
+
+    const stopGeneration = useCallback(async () => {
+        stopRequestedRef.current = true;
+        setIsGenerating(false);
+
+        const activeEngine = engine ?? (enginePromiseRef.current ? await enginePromiseRef.current : null);
+        if (activeEngine) {
+            await Promise.resolve(activeEngine.interruptGenerate());
         }
     }, [engine]);
 
@@ -191,6 +213,7 @@ export function useWebLLM() {
     return {
         loadModel,
         generateResponse,
+        stopGeneration,
         resetChat,
         uninstallModel,
         progress,
