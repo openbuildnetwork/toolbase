@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Send, Plus, Trash2, MessageSquare, List, ChevronLeft, MoreVertical, ShieldAlert, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { Markdown } from "@/components/ui/Markdown";
 
 interface ChatInterfaceProps {
   modelName?: string;
@@ -79,7 +80,47 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
     const toolDescriptions = TOOLS.map(t => `- **${t.name}**: ${t.description}`).join('\n');
     const systemPromptMessage = {
       role: "system" as const,
-      content: `You are the AI assistant for OBN Toolbase. Answer concisely, directly, and naturally. Do NOT write markdown links or URLs. Available tools:\n${toolDescriptions}`
+      content: `
+      You are the official AI assistant for Toolbase, built by developers at Open Build Network (OBN).
+
+---
+
+## WHO YOU ARE
+- You assist users with questions about Toolbase, its tools, and OBN.
+- You were built by the team at OBN — an open-source organization that builds tools for developers, by the community.
+- Useful links:
+  - Website: https://openbuildnetwork.com/
+  - GitHub: https://github.com/openbuildnetwork/toolbase
+
+---
+
+## AVAILABLE TOOLS
+${toolDescriptions}
+
+---
+
+## STRICT RULES — FOLLOW EXACTLY
+
+1. **Only answer questions about Toolbase, its tools, or OBN.** If the question is unrelated, politely decline and redirect the user.
+
+2. **Never make up information.** If you do not know the answer, say: "I don't have that information. Please check the official docs or GitHub."
+
+3. **If the question is vague or ambiguous, ask for clarification before answering.** Do not guess what the user meant. Example: "Could you clarify what you mean by X so I can give you the right answer?"
+
+4. **Stay close to the question.** Answer only what was asked. Do not add unrelated details or expand beyond the scope of the question.
+
+5. **Never discuss your internal architecture, development process, training, or any internal Toolbase implementation details.**
+
+6. **Always bold Tool Names** when referencing them — e.g., **ToolName**.
+
+---
+
+## OUTPUT FORMAT
+- Respond in clean **Markdown**.
+- Be concise and direct. Avoid filler phrases like "Great question!" or "Certainly!".
+- If listing tools or steps, use bullet points or numbered lists.
+- Keep answers short unless detail is explicitly requested. 
+      `
     };
 
     const messagesForEngine = [systemPromptMessage, ...history];
@@ -90,7 +131,7 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
         fullResponse += token;
         setStreamBuffer(fullResponse);
       });
-      
+
       addMessageToActive({ role: "assistant", content: fullResponse }, currentActiveId);
       setStreamBuffer("");
       commitActiveConversation();
@@ -110,7 +151,7 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
 
   if (showHistory) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 20 }}
@@ -134,8 +175,8 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
               key={conv.id}
               className={cn(
                 "group flex cursor-pointer items-center justify-between rounded-2xl px-4 py-3.5 text-sm transition-all border",
-                activeId === conv.id 
-                  ? "bg-blue-500/10 border-blue-500/20 text-(--text-primary)" 
+                activeId === conv.id
+                  ? "bg-blue-500/10 border-blue-500/20 text-(--text-primary)"
                   : "bg-(--surface-secondary)/50 border-(--border-subtle) text-(--text-secondary) hover:bg-(--surface-hover) hover:border-blue-500/30"
               )}
               onClick={() => {
@@ -145,7 +186,7 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
             >
               <div className="flex items-center gap-3 overflow-hidden">
                 <div className={cn("p-2 rounded-xl", activeId === conv.id ? "bg-blue-500/20 text-blue-500" : "bg-(--surface-hover) text-(--text-muted)")}>
-                   <MessageSquare className="h-4 w-4 shrink-0" />
+                  <MessageSquare className="h-4 w-4 shrink-0" />
                 </div>
                 <span className="truncate font-medium">{conv.title}</span>
               </div>
@@ -165,7 +206,7 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
           {conversations.length === 0 && (
             <div className="p-12 text-center text-sm text-(--text-muted) flex flex-col items-center gap-4">
               <div className="w-16 h-16 rounded-3xl bg-(--surface-hover) flex items-center justify-center">
-                 <MessageSquare className="h-8 w-8 text-(--text-faint)" />
+                <MessageSquare className="h-8 w-8 text-(--text-faint)" />
               </div>
               <span>No recent conversations found.</span>
             </div>
@@ -182,8 +223,8 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
       <div className="absolute bottom-[-10%] left-[-10%] w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" /> */}
 
       {/* Top Bar - Integrated with Global Title */}
-      <div className="z-20 sticky top-0 p-4 flex justify-between items-center bg-(--background)/80 backdrop-blur-lg border-b border-(--border-subtle)/50">
-        <div className="flex items-center gap-3">
+      <div className="sticky top-0 z-20 flex items-center justify-between px-5 py-3 bg-(--background)/70 backdrop-blur-xl border-b border-(--border-subtle)">
+        {/* <div className="flex items-center gap-3">
            <Button variant="ghost" size="sm" className="bg-(--surface-overlay) hover:bg-(--surface-hover) shadow-sm h-9 px-3 border border-(--border-subtle) rounded-xl font-medium" onClick={() => setShowHistory(true)}>
             <List className="h-4 w-4" />
           </Button>
@@ -191,14 +232,58 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
             <h2 className="text-sm font-bold tracking-tight text-(--text-primary)">Echo</h2>
             <span className="text-[10px] font-black text-blue-500 tracking-widest">Your local assistant</span>
           </div>
+        </div> */}
+        {/* Left Section */}
+        <div className="flex items-center gap-3">
+
+          {/* History Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowHistory(true)}
+            className="border border-(--border-subtle) bg-(--surface-overlay)/60 backdrop-blur-md hover:bg-(--surface-hover)"
+          >
+            <List className="h-4 w-4 text-(--text-secondary)" />
+          </Button>
+
+          {/* Brand / Assistant */}
+          <div className="flex items-center gap-3">
+
+            {/* Echo Icon */}
+            <div className="h-9 w-9 flex items-center justify-center rounded-xl
+        bg-gradient-to-br from-blue-500 to-indigo-600 
+        shadow-md">
+              <span className="text-white text-sm font-semibold">E</span>
+            </div>
+
+            {/* Name + Status */}
+            <div className="flex flex-col leading-tight">
+              <span className="text-sm font-semibold tracking-tight text-(--text-primary)">
+                Echo
+              </span>
+
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                <span className="text-xs text-(--text-secondary)">
+                  Online • Local AI
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* Right Section (optional actions later) */}
+        <div className="flex items-center gap-2">
+          {/* future: settings, model switch, etc */}
+        </div>
+
 
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-9 w-9 p-0 rounded-xl bg-(--surface-overlay) border border-(--border-subtle) hover:bg-(--surface-hover)"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="bg-(--surface-overlay) border border-(--border-subtle) hover:bg-(--surface-hover)"
               onClick={() => setShowMenu(!showMenu)}
             >
               <MoreVertical className="h-4 w-4 text-(--text-muted)" />
@@ -215,8 +300,8 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
                   <button
                     onClick={() => {
                       if (confirm("Uninstall Local AI Engine? This will clear ~2GB of cached model weights.")) {
-                         uninstallModel();
-                         setShowMenu(false);
+                        uninstallModel();
+                        setShowMenu(false);
                       }
                     }}
                     className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-500 hover:bg-red-500/10 rounded-xl transition-colors font-medium text-left"
@@ -230,12 +315,12 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
               )}
             </AnimatePresence>
           </div>
-          
+
           {onClose && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-9 w-9 p-0 rounded-xl bg-(--surface-hover) transition-colors"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="bg-(--surface-hover) transition-colors"
               onClick={onClose}
             >
               <X className="h-4 w-4 text-(--text-muted)" />
@@ -247,7 +332,7 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
       {/* Messages */}
       <div className="flex-1  space-y-5 overflow-y-auto p-4 md:p-6 no-scrollbar">
         {!activeConversation?.messages.length ? (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex h-full flex-col items-center justify-center space-y-6 text-center"
@@ -259,8 +344,8 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
               </div>
             </div>
             <div className="space-y-2">
-               <h2 className="text-2xl font-bold tracking-tight text-(--text-primary)">Local Intelligence Ready</h2>
-               <p className="text-sm text-(--text-muted) max-w-[280px]">Ask me anything. Your data stays 100% on this device.</p>
+              <h2 className="text-2xl font-bold tracking-tight text-(--text-primary)">Local Intelligence Ready</h2>
+              <p className="text-sm text-(--text-muted) max-w-[280px]">Ask me anything. Your data stays 100% on this device.</p>
             </div>
           </motion.div>
         ) : (
@@ -275,10 +360,10 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
               }
 
               return (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 10, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  key={idx} 
+                  key={idx}
                   className={cn("flex w-full", msg.role === "user" ? "justify-end" : "justify-start")}
                 >
                   <div className={cn("flex flex-col gap-2 max-w-[90%]", msg.role === "user" ? "items-end" : "items-start")}>
@@ -290,16 +375,20 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
                           : "rounded-tl-md border border-(--border-subtle) bg-(--surface-overlay) text-(--text-primary)"
                       )}
                     >
-                      <div className="font-sans whitespace-pre-wrap">{msg.content}</div>
+                      {msg.role === "user" ? (
+                        <div className="font-sans whitespace-pre-wrap">{msg.content}</div>
+                      ) : (
+                        <Markdown content={msg.content} />
+                      )}
                     </div>
 
                     {matchedTools.length > 0 && (
                       <div className="flex flex-wrap gap-3 mt-2">
                         {matchedTools.map(t => (
-                          <motion.div 
+                          <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            key={t.id} 
+                            key={t.id}
                             className="w-40 rounded-3xl overflow-hidden shadow-lg border border-(--border-subtle) hover:border-blue-500/50 transition-colors"
                           >
                             <ToolCard
@@ -319,41 +408,41 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
             })}
 
             {streamBuffer && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 10, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 className="flex w-full justify-start"
               >
                 <div className="flex flex-col gap-2 max-w-[90%] items-start">
                   <div className="rounded-[22px] rounded-tl-md border border-(--border-subtle) bg-(--surface-overlay) px-5 py-3.5 text-[15px] leading-relaxed shadow-sm">
-                    <div className="font-sans whitespace-pre-wrap">{streamBuffer}</div>
+                    <Markdown content={streamBuffer} />
                   </div>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         )}
-        
+
         {(isGenerating || (isLoading && !isLoaded)) && !streamBuffer && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="flex justify-start"
           >
-             <div className="rounded-[22px] rounded-tl-md border border-(--border-subtle) bg-(--surface-overlay) px-5 py-3.5 shadow-sm">
-                <div className="flex gap-3 items-center">
-                   <div className="flex gap-1.5 items-center h-5">
-                      <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0 }} className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                      <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                      <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                   </div>
-                   {isLoading && !isLoaded && (
-                     <span className="text-[11px] font-bold text-blue-500 uppercase tracking-widest">
-                        Warming engine ({progressPercentage}%)
-                     </span>
-                   )}
+            <div className="rounded-[22px] rounded-tl-md border border-(--border-subtle) bg-(--surface-overlay) px-5 py-3.5 shadow-sm">
+              <div className="flex gap-3 items-center">
+                <div className="flex gap-1.5 items-center h-5">
+                  <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0 }} className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                  <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                  <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                 </div>
-             </div>
+                {isLoading && !isLoaded && (
+                  <span className="text-[11px] font-bold text-blue-500 uppercase tracking-widest">
+                    Warming engine ({progressPercentage}%)
+                  </span>
+                )}
+              </div>
+            </div>
           </motion.div>
         )}
         <div ref={messagesEndRef} className="pb-4" />
@@ -380,7 +469,7 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
               className={cn(
                 "h-10 w-10 rounded-full p-0 transition-all shadow-md",
                 input.trim() && !isGenerating && isLoaded
-                  ? "bg-blue-600 text-white hover:bg-blue-500 scale-100" 
+                  ? "bg-blue-600 text-white hover:bg-blue-500 scale-100"
                   : "bg-(--surface-hover) text-(--text-muted) scale-90 opacity-50"
               )}
             >
@@ -389,7 +478,7 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
           </div>
         </div>
         <p className="text-[10px] text-center mt-3 text-(--text-faint) uppercase tracking-widest font-bold">
-           Local Engine: Phi-3 Mini (WebGPU)
+          Echo v1.0.0
         </p>
       </div>
     </div>
