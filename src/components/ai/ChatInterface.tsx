@@ -178,8 +178,8 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
   return (
     <div className="flex h-full flex-col bg-(--background) relative overflow-hidden">
       {/* Dynamic Background Accents */}
-      <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+      {/* <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" /> */}
 
       {/* Top Bar - Integrated with Global Title */}
       <div className="z-20 sticky top-0 p-4 flex justify-between items-center bg-(--background)/80 backdrop-blur-lg border-b border-(--border-subtle)/50">
@@ -188,8 +188,8 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
             <List className="h-4 w-4" />
           </Button>
           <div className="flex flex-col">
-            <h2 className="text-sm font-bold tracking-tight text-(--text-primary)">Local Assistant</h2>
-            <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">WebGPU</span>
+            <h2 className="text-sm font-bold tracking-tight text-(--text-primary)">Echo</h2>
+            <span className="text-[10px] font-black text-blue-500 tracking-widest">Your local assistant</span>
           </div>
         </div>
 
@@ -245,7 +245,7 @@ export function ChatInterface({ modelName, onClose, onSetupRequired }: ChatInter
       </div>
 
       {/* Messages */}
-      <div className="flex-1 space-y-6 overflow-y-auto p-4 md:p-6 no-scrollbar">
+      <div className="flex-1  space-y-5 overflow-y-auto p-4 md:p-6 no-scrollbar">
         {!activeConversation?.messages.length ? (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
