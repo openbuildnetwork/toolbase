@@ -538,7 +538,7 @@ ${toolDescriptions}
             </div>
           </div>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] font-medium text-(--text-faint)">
-            <span>Echo v1.0.0</span>
+            <span>Echo v1.0.0 Beta</span>
             <span className="h-1 w-1 rounded-full bg-(--text-faint)" />
             <span>Enter to send</span>
             <span className="h-1 w-1 rounded-full bg-(--text-faint)" />

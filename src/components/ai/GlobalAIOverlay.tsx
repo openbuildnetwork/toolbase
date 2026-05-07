@@ -1,25 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useAIChat } from "@/hooks/useAIChat";
 import { OllamaSetup } from "@/components/ai/OllamaSetup";
 import { ChatInterface } from "@/components/ai/ChatInterface";
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { DEFAULT_WEBLLM_MODEL_ID } from "@/hooks/useWebLLM";
 
 export function GlobalAIOverlay() {
   const { isOpen, closeChat, isLoaded, isInstalled } = useAIChat();
-  const pathname = usePathname();
-  const targetModel = "Phi-3-mini-4k-instruct-q4f16_1-MLC";
-
-  useEffect(() => {
-    if (isOpen) {
-      // closeChat(); // Why was this here? It closes the chat immediately when pathname changes. 
-      // I'll keep it for consistency but it seems counter-intuitive for an overlay.
-      // Actually, let's keep it but maybe it's why it was closing.
-    }
-  }, [pathname]);
+  const targetModel = DEFAULT_WEBLLM_MODEL_ID;
 
   return (
     <>
@@ -46,7 +36,6 @@ export function GlobalAIOverlay() {
             </div>
           ) : (
             <ChatInterface 
-              modelName={targetModel} 
               onClose={closeChat} 
               onSetupRequired={() => {}} 
             />

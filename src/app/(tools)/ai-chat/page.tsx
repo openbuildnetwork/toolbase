@@ -1,13 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { OllamaSetup } from "@/components/ai/OllamaSetup";
 import { ChatInterface } from "@/components/ai/ChatInterface";
 import { Cpu, LockKeyhole, Sparkles } from "lucide-react";
+import { useAIChat } from "@/hooks/useAIChat";
+import { DEFAULT_WEBLLM_MODEL_ID } from "@/hooks/useWebLLM";
 
 export default function AiChatPage() {
-  const [isReady, setIsReady] = useState(false);
-  const targetModel = "phi3:mini";
+  const { isInstalled, isLoaded } = useAIChat();
+  const targetModel = DEFAULT_WEBLLM_MODEL_ID;
+  const modelLabel = "Phi-3 Mini";
+  const showSetup = !isInstalled && !isLoaded;
 
   return (
     <div className="min-h-[calc(100vh-88px)] bg-[linear-gradient(180deg,var(--background)_0%,var(--surface-secondary)_100%)]">
@@ -44,20 +48,20 @@ export default function AiChatPage() {
                   <Cpu className="h-4 w-4" />
                 </div>
                 <p className="text-sm font-semibold text-(--text-primary)">Local model</p>
-                <p className="mt-1 text-xs leading-5 text-(--text-muted)">{targetModel}</p>
+                <p className="mt-1 text-xs leading-5 text-(--text-muted)">{modelLabel}</p>
               </div>
             </div>
           </div>
         </section>
 
         <section className="min-h-0 flex-1">
-          {!isReady ? (
+          {showSetup ? (
             <div className="rounded-lg border border-(--border-subtle) bg-(--surface-overlay)/80 p-4 shadow-[0_16px_50px_var(--shadow-color)] backdrop-blur-xl md:p-8">
-              <OllamaSetup targetModel={targetModel} onReady={() => setIsReady(true)} />
+              <OllamaSetup targetModel={targetModel} />
             </div>
           ) : (
             <div className="h-[calc(100vh-320px)] min-h-[620px] overflow-hidden rounded-lg border border-(--border-subtle) bg-(--surface-overlay)/85 shadow-[0_20px_70px_var(--shadow-color)] backdrop-blur-xl">
-              <ChatInterface modelName={targetModel} />
+              <ChatInterface />
             </div>
           )}
         </section>

@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAIChat } from "@/hooks/useAIChat";
+import { DEFAULT_WEBLLM_MODEL_ID } from "@/hooks/useWebLLM";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { RefreshCw, Cpu, ShieldCheck, Info, Sparkles, X } from "lucide-react";
+import { RefreshCw, Cpu, ShieldCheck, Sparkles, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface OllamaSetupProps {
@@ -11,8 +12,14 @@ interface OllamaSetupProps {
   targetModel?: string;
 }
 
-export function OllamaSetup({ onReady, onClose, targetModel = "Phi-3-mini-4k-instruct-q4f16_1-MLC" }: OllamaSetupProps) {
+export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MODEL_ID }: OllamaSetupProps) {
   const { loadModel, progress, progressPercentage, isLoading, isLoaded } = useAIChat();
+
+  useEffect(() => {
+    if (isLoaded) {
+      onReady?.();
+    }
+  }, [isLoaded, onReady]);
 
   return (
     <div className="relative w-full max-w-md mx-auto h-full flex flex-col justify-center">

@@ -9,7 +9,7 @@ interface AIChatContextType {
   closeChat: () => void;
   toggleChat: () => void;
   // WebLLM Engine State
-  loadModel: (modelId: string) => Promise<void>;
+  loadModel: (modelId?: string, background?: boolean) => Promise<void>;
   generateResponse: (messages: Message[], onToken?: (token: string) => void) => Promise<string>;
   stopGeneration: () => Promise<void>;
   resetChat: () => Promise<void>;
