@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 
 /**
  * GlobalBackground — fixed canvas-based animated background.
@@ -11,9 +12,14 @@ import { useEffect, useRef } from "react";
  * CPU-light: 40 nodes, requestAnimationFrame only. No external deps.
  */
 export function GlobalBackground() {
+  const pathname = usePathname();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const isHomeOrAbout = pathname === "/" || pathname === "/about";
+
   useEffect(() => {
+    if (!isHomeOrAbout) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -165,7 +171,9 @@ export function GlobalBackground() {
       window.removeEventListener("resize", resize);
       observer.disconnect();
     };
-  }, []);
+  }, [isHomeOrAbout]);
+
+  if (!isHomeOrAbout) return null;
 
   return (
     <canvas

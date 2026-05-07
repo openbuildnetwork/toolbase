@@ -19,12 +19,14 @@ import { passwordxConfig } from "./tools/passwordx";
 import { omniParseConfig } from "./tools/omni-parse";
 import { dataForgeConfig } from "./tools/data-forge";
 import { archiveKitConfig } from "./tools/archive-kit";
+import { noteVaultConfig } from "./tools/note-vault";
 
 // ============================================================
 // REGISTERED TOOLS
 // ============================================================
 
 export const TOOLS: ToolMeta[] = [
+  noteVaultConfig,
   magicPdfConfig,
   pixelAxeConfig,
   dataLensConfig,
