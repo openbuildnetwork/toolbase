@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, Variants } from "framer-motion";
 import {
   Shield, Zap, Cpu, Lock, Globe, Heart, ArrowLeft,
   Braces, Code2, Users, GitBranch, Layers,
@@ -11,7 +11,7 @@ import Link from "next/link";
 import Footer from "@/components/ui/Footer";
 
 
-const fadeUp = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 32 },
   visible: (i: number) => ({
     opacity: 1,
