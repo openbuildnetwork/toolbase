@@ -32,6 +32,8 @@ import { TOOLS, searchToolsFromRegistry } from '@/config/tools.registry';
 import { useToolPreferences } from '@/hooks/useToolPreferences';
 import { ToolMeta } from '@/types/tool-search';
 import { cn } from '@/lib/utils';
+import { getPinnedNotes } from '@/hooks/useNoteVault';
+import { Note } from '@/types/note-vault';
 
 // ─── category badge colours ────────────────────────────────────────────────────
 
@@ -45,6 +47,7 @@ const CATEGORY_COLORS: Record<string, string> = {
     network: 'bg-indigo-100 text-indigo-700',
     draw: 'bg-pink-100 text-pink-600',
     utility: 'bg-slate-100 text-slate-600',
+    snippet: 'bg-amber-100 text-amber-700',
 };
 
 function categoryColor(cat: string): string {
@@ -154,6 +157,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     const [highlightedIndex, setHighlightedIndex] = useState(0);
 
     const { recents } = useToolPreferences();
+    const [pinnedNotes, setPinnedNotes] = useState<Note[]>([]);
 
     // ── compute display list ────────────────────────────────────────────────────
 
@@ -165,17 +169,45 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         [recents]
     );
 
+    const snippetTools = useMemo<ToolMeta[]>(() => {
+        return pinnedNotes.map(n => ({
+            id: `snippet-${n.id}`,
+            name: n.title || 'Untitled Snippet',
+            description: `Snippet (${n.format.toUpperCase()}) - Press Enter to copy to clipboard`,
+            category: 'snippet' as any,
+            route: `note-vault?id=${n.id}`,
+            thumbnail: '/assets/thumbnails/developer.png',
+            tags: n.tags || [],
+            isNew: false,
+            isFeatured: false,
+            wasmPowered: false,
+            pythonPowered: false,
+            status: 'stable',
+            addedAt: n.createdAt,
+            mobileOptimized: true,
+            tip: [],
+            // Attach the original note content to the tool meta
+            _originalNote: n,
+        } as ToolMeta & { _originalNote?: Note }));
+    }, [pinnedNotes]);
+
     const searchResults = useMemo(() => {
-        if (!query.trim()) return [];
-        return searchToolsFromRegistry(query);
-    }, [query]);
+        if (!query.trim()) return snippetTools;
+        const lowerQuery = query.toLowerCase();
+        
+        // Match snippets manually alongside tools registry search
+        const matchedSnippets = snippetTools.filter(s => 
+            s.name.toLowerCase().includes(lowerQuery) || 
+            (s as any)._originalNote?.content.toLowerCase().includes(lowerQuery)
+        );
+
+        return [...matchedSnippets, ...searchToolsFromRegistry(query)];
+    }, [query, snippetTools]);
 
     /** The flat list of rows the keyboard navigates */
     const flatList: ToolMeta[] = query.trim()
         ? searchResults
-        : recentTools.length > 0
-            ? recentTools
-            : TOOLS.slice(0, 8); // fallback: top 8 when no recents and no query
+        : [...snippetTools, ...(recentTools.length > 0 ? recentTools : TOOLS.slice(0, 8))];
 
     // ── reset on open ───────────────────────────────────────────────────────────
 
@@ -185,6 +217,8 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             setHighlightedIndex(0);
             // Small delay so the portal has mounted
             setTimeout(() => inputRef.current?.focus(), 30);
+            
+            getPinnedNotes().then(setPinnedNotes);
         }
     }, [isOpen]);
 
@@ -225,9 +259,17 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     // ── navigation ──────────────────────────────────────────────────────────────
 
     const navigate = useCallback(
-        (tool: ToolMeta) => {
-            onClose();
-            router.push(`/${tool.route}`);
+        (tool: ToolMeta & { _originalNote?: Note }) => {
+            if (tool._originalNote) {
+                // If it's a snippet, copy to clipboard instead of navigating
+                navigator.clipboard.writeText(tool._originalNote.content);
+                // Dispatch a custom event to trigger a toast or something similar
+                window.dispatchEvent(new CustomEvent('TOOLBASE_TOAST', { detail: 'Snippet copied to clipboard!' }));
+                onClose();
+            } else {
+                onClose();
+                router.push(`/${tool.route}`);
+            }
         },
         [onClose, router]
     );

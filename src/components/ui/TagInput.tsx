@@ -11,6 +11,7 @@ interface TagInputProps {
     onChange: (values: string[]) => void;
     placeholder?: string;
     color?: string;
+    onClear?: () => void;
 }
 
 import { Label } from "@/components/ui/Label";
@@ -21,6 +22,7 @@ export const TagInput: React.FC<TagInputProps> = ({
     onChange,
     placeholder = "Add...",
     color = "blue",
+    onClear,
 }) => {
     const [inputValue, setInputValue] = useState("");
 
@@ -43,8 +45,18 @@ export const TagInput: React.FC<TagInputProps> = ({
 
     return (
         <div className="space-y-3">
-            <Label>{label}</Label>
-            <div className="flex flex-wrap gap-2 p-2.5 glass-input min-h-[52px]">
+            <div className="flex items-center justify-between">
+                <Label>{label}</Label>
+                {onClear && values.length > 0 && (
+                    <button
+                        onClick={onClear}
+                        className="text-[10px] font-bold text-(--text-muted) hover:text-red-500 transition-colors uppercase tracking-wider haptic-click"
+                    >
+                        Clear
+                    </button>
+                )}
+            </div>
+            <div className="flex flex-wrap gap-2 p-2.5 glass-input min-h-[52px] max-h-[160px] overflow-y-auto scrollbar-thin">
                 <AnimatePresence mode="popLayout">
                     {values.map((v, i) => (
                         <motion.span

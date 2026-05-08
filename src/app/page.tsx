@@ -70,12 +70,8 @@ export default function Home() {
         onOpenFavorites={() => setIsFavoritesOpen(true)}
       />
       <div className="view relative font-display min-h-screen flex flex-col selection:bg-primary/30 antialiased overflow-x-hidden"
-        style={{ background: 'var(--background)', color: 'var(--text-primary)' }}
+        style={{ color: 'var(--text-primary)' }}
       >
-        {/* Background decorative element */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1400px] h-[600px] pointer-events-none overflow-hidden -z-0">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/10 dark:bg-primary/5 rounded-full blur-[120px] animate-pulse" />
-        </div>
 
         <main className="relative grow z-10 px-4 md:px-20 lg:px-40 py-10 lg:py-24">
           <div className="max-w-[1200px] mx-auto">

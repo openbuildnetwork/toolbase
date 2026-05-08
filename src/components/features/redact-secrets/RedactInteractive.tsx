@@ -35,7 +35,7 @@ export default function RedactInteractive({
         literalTexts, setLiteralTexts,
         regexPatterns, setRegexPatterns,
         response, isLoading, isReady,
-        handleRedact,
+        handleRedact, handleRulesUpload, saveToNoteVault
     } = useRedactSecrets({
         content: (seedConfig?.content as string) || "",
         contentType: (seedConfig?.contentType as ContentType) || "text",
@@ -110,6 +110,7 @@ export default function RedactInteractive({
                             setContentType={setContentType}
                             fileName={fileName}
                             onFileUpload={() => {}} // Disabled in modal for now
+                            saveToNoteVault={saveToNoteVault}
                         />
 
                         <AnimatePresence mode="wait">
@@ -145,6 +146,8 @@ export default function RedactInteractive({
                             setLiteralTexts={setLiteralTexts}
                             regexPatterns={regexPatterns}
                             setRegexPatterns={setRegexPatterns}
+                            onRulesUpload={handleRulesUpload}
+                            saveToNoteVault={saveToNoteVault}
                         />
                         <RedactStats response={response} />
                     </div>

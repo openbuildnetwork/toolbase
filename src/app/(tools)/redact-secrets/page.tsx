@@ -25,15 +25,15 @@ export default function RedactSecretsPage() {
         regexPatterns, setRegexPatterns,
         response, error,
         isLoading, isReady, engineLabel,
-        handleRedact, handleFileUpload, clearAll,
+        handleRedact, handleFileUpload, handleRulesUpload, clearAll, saveToNoteVault,
     } = useRedactSecrets();
 
     const isRust = engineLabel === "Rust WASM";
 
     return (
-        <div className="min-h-screen bg-(--background) text-(--text-primary) font-display">
-            <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-6">
-
+        <div className="h-screen bg-(--background) text-(--text-primary) font-display flex flex-col overflow-hidden">
+            {/* Fixed Header & Command Strip */}
+            <div className="max-w-7xl mx-auto w-full px-4 md:px-8 pt-8 pb-4 space-y-6 shrink-0">
                 {/* ── Header ─────────────────────────────────────────── */}
                 <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
@@ -115,52 +115,60 @@ export default function RedactSecretsPage() {
                         </motion.button>
                     </div>
                 </div>
+            </div>
 
-                {/* ── Main grid ───────────────────────────────────────── */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <div className="max-w-7xl mx-auto px-4 md:px-8 pb-8 space-y-6">
+                    {/* ── Main grid ───────────────────────────────────────── */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                    {/* Left: Editor + Output */}
-                    <div className="lg:col-span-8 space-y-5">
-                        <RedactEditor
-                            content={content}
-                            setContent={setContent}
-                            contentType={contentType}
-                            setContentType={setContentType}
-                            fileName={fileName}
-                            onFileUpload={handleFileUpload}
-                        />
+                        {/* Left: Editor + Output */}
+                        <div className="lg:col-span-8 space-y-5">
+                            <RedactEditor
+                                content={content}
+                                setContent={setContent}
+                                contentType={contentType}
+                                setContentType={setContentType}
+                                fileName={fileName}
+                                onFileUpload={handleFileUpload}
+                                saveToNoteVault={saveToNoteVault}
+                            />
 
-                        <RedactOutput response={response} />
+                            <RedactOutput response={response} />
 
-                        {/* Error */}
-                        <AnimatePresence>
-                            {error && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 8 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -8 }}
-                                    className="flex items-center gap-3 p-4 bg-red-500/8 border border-red-500/20 rounded-2xl text-red-500"
-                                >
-                                    <AlertCircle className="w-4 h-4 shrink-0" />
-                                    <p className="text-sm font-semibold">{error}</p>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
+                            {/* Error */}
+                            <AnimatePresence>
+                                {error && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -8 }}
+                                        className="flex items-center gap-3 p-4 bg-red-500/8 border border-red-500/20 rounded-2xl text-red-500"
+                                    >
+                                        <AlertCircle className="w-4 h-4 shrink-0" />
+                                        <p className="text-sm font-semibold">{error}</p>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
 
-                    {/* Right: Config + Stats */}
-                    <div className="lg:col-span-4 space-y-5">
-                        <RedactConfiguration
-                            maskingStyle={maskingStyle}
-                            setMaskingStyle={setMaskingStyle}
-                            keys={keys}
-                            setKeys={setKeys}
-                            literalTexts={literalTexts}
-                            setLiteralTexts={setLiteralTexts}
-                            regexPatterns={regexPatterns}
-                            setRegexPatterns={setRegexPatterns}
-                        />
-                        <RedactStats response={response} />
+                        {/* Right: Config + Stats */}
+                        <div className="lg:col-span-4 space-y-5">
+                            <RedactConfiguration
+                                maskingStyle={maskingStyle}
+                                setMaskingStyle={setMaskingStyle}
+                                keys={keys}
+                                setKeys={setKeys}
+                                literalTexts={literalTexts}
+                                setLiteralTexts={setLiteralTexts}
+                                regexPatterns={regexPatterns}
+                                setRegexPatterns={setRegexPatterns}
+                                onRulesUpload={handleRulesUpload}
+                                saveToNoteVault={saveToNoteVault}
+                            />
+                            <RedactStats response={response} />
+                        </div>
                     </div>
                 </div>
             </div>

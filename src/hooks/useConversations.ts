@@ -40,22 +40,26 @@ export function useConversations() {
   };
 
   const createNewConversation = () => {
+    const newId = crypto.randomUUID();
     const newConv: Conversation = {
-      id: crypto.randomUUID(),
+      id: newId,
       title: "New Chat",
       messages: [],
       updatedAt: Date.now(),
     };
-    saveConversations([newConv, ...conversations]);
-    setActiveId(newConv.id);
+    const updated = [newConv, ...conversations];
+    saveConversations(updated);
+    setActiveId(newId);
+    return newId;
   };
 
-  const addMessageToActive = (message: ChatMessage) => {
-    if (!activeId) return;
+  const addMessageToActive = (message: ChatMessage, idOverride?: string) => {
+    const targetId = idOverride || activeId;
+    if (!targetId) return;
 
     setConversations((prev) => {
       const updated = prev.map((conv) => {
-        if (conv.id === activeId) {
+        if (conv.id === targetId) {
           const newMessages = [...conv.messages, message];
           // Generate title from first user message if title is "New Chat"
           let title = conv.title;

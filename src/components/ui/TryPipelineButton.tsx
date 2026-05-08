@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Zap, ArrowRight, Sparkles } from 'lucide-react';
+import { Workflow, ArrowRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 import clsx from 'clsx';
@@ -13,7 +13,7 @@ interface TryPipelineButtonProps {
 
 export function TryPipelineButton({ className }: TryPipelineButtonProps) {
   return (
-    <Link href="/pipeline" className={clsx("block", className)}>
+    <Link href="/pipeline" className={clsx("hidden md:block", className)}>
       <motion.button
         whileHover="hover"
         whileTap={{ scale: 0.96 }}
@@ -70,7 +70,7 @@ export function TryPipelineButton({ className }: TryPipelineButtonProps) {
               }}
               className="flex items-center justify-center w-[34px] h-[34px] rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-sm shrink-0"
             >
-              <Zap size={18} fill="currentColor" className="text-current" />
+              <Workflow size={18} className="text-current" />
             </motion.div>
 
             <div className="flex flex-col items-start -space-y-0.5 flex-1 min-w-0">

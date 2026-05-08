@@ -6,8 +6,8 @@ import withPWAInit from "@ducanh2912/next-pwa";
 
 const withPWA = withPWAInit({
   dest: "public",
-  // Disable service worker in development — avoids stale cache confusion
-  disable: process.env.NODE_ENV === "development",
+  // Set to true to disable service worker in development
+  disable: false,
   register: true,
   cacheOnFrontEndNav: true,
   aggressiveFrontEndNavCaching: true,
