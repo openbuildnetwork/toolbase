@@ -4,6 +4,7 @@ import Link from 'next/link';
 import React from 'react';
 import { Search, Command, MessageSquare, Sparkles, Clock, Heart, Github, Info } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { InstallAppButton } from './InstallAppButton';
 import { useAIChat } from '@/hooks/useAIChat';
 import { useToolPreferences } from '@/hooks/useToolPreferences';
 
@@ -199,6 +200,9 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFav
                     >
                         <Github size={18} className="group-hover:text-primary transition-colors" />
                     </a>
+
+                    {/* PWA Install */}
+                    <InstallAppButton />
 
                 </div>
             </div>
