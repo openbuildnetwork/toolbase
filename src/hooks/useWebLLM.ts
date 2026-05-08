@@ -18,6 +18,7 @@ import {
  */
 
 export const DEFAULT_WEBLLM_MODEL_ID = "Phi-3-mini-4k-instruct-q4f16_1-MLC";
+export const LIGHTWEIGHT_WEBLLM_MODEL_ID = "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC";
 
 export interface Message {
     role: "user" | "assistant" | "system";
@@ -29,6 +30,7 @@ type SharedRuntime = {
     engine: MLCEngineInterface | null;
     enginePromise: Promise<MLCEngineInterface> | null;
     modelId: string | null;
+    error: string | null;
 };
 
 const sharedRuntime: SharedRuntime = {
@@ -36,7 +38,56 @@ const sharedRuntime: SharedRuntime = {
     engine: null,
     enginePromise: null,
     modelId: null,
+    error: null,
 };
+
+function getLoadedModelIds(engineInstance: MLCEngineInterface | null) {
+    const maybeWorkerEngine = engineInstance as { modelId?: unknown } | null;
+    return Array.isArray(maybeWorkerEngine?.modelId) ? maybeWorkerEngine.modelId : [];
+}
+
+function engineHasModel(engineInstance: MLCEngineInterface | null, modelId: string) {
+    return getLoadedModelIds(engineInstance).includes(modelId);
+}
+
+function isWebLLMAbortError(error: unknown) {
+    const errorLike = error as { name?: unknown; message?: unknown };
+    const name = typeof errorLike?.name === "string" ? errorLike.name : "";
+    const message = typeof errorLike?.message === "string" ? errorLike.message : String(error);
+
+    return (
+        name === "AbortError" ||
+        message.includes("AbortError") ||
+        message.includes("Buffer was unmapped before mapping was resolved") ||
+        (message.includes("mapAsync") && message.includes("unmapped"))
+    );
+}
+
+function isWebLLMDeviceLostError(error: unknown) {
+    const message = String(error).toLowerCase();
+    return (
+        message.includes("device was lost") ||
+        message.includes("gpudevicelostinfo") ||
+        message.includes("device_hung") ||
+        message.includes("out of memory") ||
+        message.includes("vram")
+    );
+}
+
+function isWebLLMModelNotLoadedError(error: unknown) {
+    const errorLike = error as { name?: unknown; message?: unknown };
+    const name = typeof errorLike?.name === "string" ? errorLike.name : "";
+    const message = typeof errorLike?.message === "string" ? errorLike.message : String(error);
+
+    return (
+        name === "ModelNotLoadedError" ||
+        name === "WorkerEngineModelNotLoadedError" ||
+        name === "SpecifiedModelNotFoundError" ||
+        message.includes("Model not loaded before trying to complete") ||
+        message.includes("is not loaded with a model") ||
+        message.includes("is not found in loaded models")
+    );
+}
 
 function getOrCreateWorker() {
     if (typeof window === "undefined") return null;
@@ -53,19 +104,22 @@ function getOrCreateWorker() {
 
 export function useWebLLM() {
     const [engine, setEngine] = useState<MLCEngineInterface | null>(sharedRuntime.engine);
-    const [progress, setProgress] = useState<string>(sharedRuntime.engine ? "Ready" : "");
-    const [isLoaded, setIsLoaded] = useState(Boolean(sharedRuntime.engine));
+    const [progress, setProgress] = useState<string>(sharedRuntime.engine && sharedRuntime.modelId ? "Ready" : "");
+    const [isLoaded, setIsLoaded] = useState(Boolean(sharedRuntime.engine && sharedRuntime.modelId));
     const [isLoading, setIsLoading] = useState(Boolean(sharedRuntime.enginePromise));
     const [progressPercentage, setProgressPercentage] = useState(sharedRuntime.engine ? 100 : 0);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isInstalled, setIsInstalled] = useState(Boolean(sharedRuntime.engine || sharedRuntime.enginePromise));
+    const [error, setError] = useState<string | null>(sharedRuntime.error);
 
     const engineRef = useRef<MLCEngineInterface | null>(sharedRuntime.engine);
     const stopRequestedRef = useRef(false);
+    const generationDoneRef = useRef<Promise<void> | null>(null);
 
     const syncLoadedEngine = useCallback((engineInstance: MLCEngineInterface, modelId: string) => {
         sharedRuntime.engine = engineInstance;
         sharedRuntime.modelId = modelId;
+        sharedRuntime.error = null;
         engineRef.current = engineInstance;
 
         setEngine(engineInstance);
@@ -73,15 +127,59 @@ export function useWebLLM() {
         setIsInstalled(true);
         setProgress("Ready");
         setProgressPercentage(100);
+        setError(null);
 
         if (typeof window !== "undefined") {
             localStorage.setItem("obn_ai_installed", "true");
         }
     }, []);
 
+    const reloadEngine = useCallback(async (
+        engineInstance: MLCEngineInterface,
+        modelId: string,
+        background = false,
+    ) => {
+        setIsLoading(true);
+        setIsLoaded(false);
+        setIsInstalled(true);
+        setError(null);
+        sharedRuntime.error = null;
+        setProgress(background ? "Restoring local AI from browser cache..." : "Reloading local AI engine...");
+        setProgressPercentage(0);
+
+        try {
+            await engineInstance.reload(modelId);
+            syncLoadedEngine(engineInstance, modelId);
+        } catch (error) {
+            console.error("Failed to reload model:", error);
+            sharedRuntime.modelId = null;
+            setIsLoaded(false);
+            
+            const isDeviceLost = isWebLLMDeviceLostError(error);
+            const errorMsg = isDeviceLost 
+                ? "GPU Device Lost: Your hardware might be struggling. Try closing other tabs or using the lightweight model."
+                : "Error: Failed to load model. Ensure your browser supports WebGPU.";
+            
+            setError(errorMsg);
+            sharedRuntime.error = errorMsg;
+            setProgress(errorMsg);
+            throw error;
+        } finally {
+            setIsLoading(false);
+        }
+    }, [syncLoadedEngine]);
+
     const loadModel = useCallback(async (modelId = DEFAULT_WEBLLM_MODEL_ID, background = false) => {
+        setError(null);
+        sharedRuntime.error = null;
+
         if (sharedRuntime.engine && sharedRuntime.modelId === modelId) {
-            syncLoadedEngine(sharedRuntime.engine, modelId);
+            if (engineHasModel(sharedRuntime.engine, modelId)) {
+                syncLoadedEngine(sharedRuntime.engine, modelId);
+            } else {
+                await reloadEngine(sharedRuntime.engine, modelId, background);
+            }
+
             return;
         }
 
@@ -94,7 +192,13 @@ export function useWebLLM() {
                 syncLoadedEngine(engineInstance, sharedRuntime.modelId || modelId);
             } catch (error) {
                 console.error("Failed to load model:", error);
-                setProgress("Error: Failed to load model. Ensure your browser supports WebGPU.");
+                const isDeviceLost = isWebLLMDeviceLostError(error);
+                const errorMsg = isDeviceLost 
+                    ? "GPU Device Lost: Your hardware might be struggling. Try closing other tabs or using the lightweight model."
+                    : "Error: Failed to load model. Ensure your browser supports WebGPU.";
+                setError(errorMsg);
+                sharedRuntime.error = errorMsg;
+                setProgress(errorMsg);
             } finally {
                 setIsLoading(false);
             }
@@ -137,7 +241,13 @@ export function useWebLLM() {
             syncLoadedEngine(engineInstance, modelId);
         } catch (error) {
             console.error("Failed to load model:", error);
-            setProgress("Error: Failed to load model. Ensure your browser supports WebGPU.");
+            const isDeviceLost = isWebLLMDeviceLostError(error);
+            const errorMsg = isDeviceLost 
+                ? "GPU Device Lost: Your hardware might be struggling. Try closing other tabs or using the lightweight model."
+                : "Error: Failed to load model. Ensure your browser supports WebGPU.";
+            setError(errorMsg);
+            sharedRuntime.error = errorMsg;
+            setProgress(errorMsg);
             sharedRuntime.modelId = null;
         } finally {
             if (sharedRuntime.enginePromise === enginePromise) {
@@ -145,7 +255,7 @@ export function useWebLLM() {
             }
             setIsLoading(false);
         }
-    }, [syncLoadedEngine]);
+    }, [reloadEngine, syncLoadedEngine]);
 
     useEffect(() => {
         if (typeof window === "undefined") return;
@@ -191,12 +301,23 @@ export function useWebLLM() {
             throw new Error("Engine not loaded and no background load in progress");
         }
 
+        const activeModelId = sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID;
+        if (!engineHasModel(activeEngine, activeModelId)) {
+            await reloadEngine(activeEngine, activeModelId, true);
+        }
+
         setIsGenerating(true);
         stopRequestedRef.current = false;
+        let resolveGenerationDone!: () => void;
+        const generationDone = new Promise<void>((resolve) => {
+            resolveGenerationDone = resolve;
+        });
+        generationDoneRef.current = generationDone;
         let fullText = "";
 
-        try {
+        const streamCompletion = async () => {
             const completion = await activeEngine.chat.completions.create({
+                model: activeModelId,
                 messages: messages as ChatCompletionMessageParam[],
                 stream: true,
                 temperature: 0.7,
@@ -206,19 +327,39 @@ export function useWebLLM() {
             });
 
             for await (const chunk of completion) {
-                if (stopRequestedRef.current) break;
-
                 const content = chunk.choices[0]?.delta?.content || "";
-                if (content) {
+                if (!stopRequestedRef.current && content) {
                     fullText += content;
                     onToken?.(content);
                 }
             }
 
             return fullText;
+        };
+
+        try {
+            return await streamCompletion();
         } catch (error) {
-            if (stopRequestedRef.current) {
+            if (stopRequestedRef.current || isWebLLMAbortError(error)) {
                 return fullText;
+            }
+
+            if (!fullText && isWebLLMModelNotLoadedError(error)) {
+                await reloadEngine(activeEngine, activeModelId, true);
+                return await streamCompletion();
+            }
+
+            if (isWebLLMDeviceLostError(error)) {
+                const errorMsg = "GPU Device Lost: The engine has crashed. Please refresh or try the lightweight model.";
+                setError(errorMsg);
+                sharedRuntime.error = errorMsg;
+                
+                // Reset engine state as it is now unusable
+                sharedRuntime.engine = null;
+                sharedRuntime.enginePromise = null;
+                engineRef.current = null;
+                setEngine(null);
+                setIsLoaded(false);
             }
 
             console.error("Inference error:", error);
@@ -226,16 +367,19 @@ export function useWebLLM() {
         } finally {
             setIsGenerating(false);
             stopRequestedRef.current = false;
+            if (generationDoneRef.current === generationDone) {
+                generationDoneRef.current = null;
+            }
+            resolveGenerationDone();
         }
-    }, [engine, syncLoadedEngine]);
+    }, [engine, reloadEngine, syncLoadedEngine]);
 
     const stopGeneration = useCallback(async () => {
         stopRequestedRef.current = true;
-        setIsGenerating(false);
 
         const activeEngine = engineRef.current ?? sharedRuntime.engine;
         if (activeEngine) {
-            await Promise.resolve(activeEngine.interruptGenerate());
+            activeEngine.interruptGenerate();
         }
     }, []);
 
@@ -248,13 +392,29 @@ export function useWebLLM() {
 
     const uninstallModel = useCallback(async () => {
         const activeEngine = engineRef.current ?? sharedRuntime.engine;
+        const generationDone = generationDoneRef.current;
+
         if (activeEngine) {
-            await activeEngine.unload();
+            stopRequestedRef.current = true;
+            activeEngine.interruptGenerate();
+        }
+
+        if (generationDone) {
+            await generationDone;
+        }
+
+        if (activeEngine) {
+            try {
+                await activeEngine.unload();
+            } catch (e) {
+                console.warn("Failed to unload engine (might already be lost):", e);
+            }
         }
 
         sharedRuntime.engine = null;
         sharedRuntime.enginePromise = null;
         sharedRuntime.modelId = null;
+        sharedRuntime.error = null;
         engineRef.current = null;
 
         if (sharedRuntime.worker) {
@@ -268,6 +428,7 @@ export function useWebLLM() {
         setIsInstalled(false);
         setProgress("");
         setProgressPercentage(0);
+        setError(null);
 
         if (typeof window !== "undefined") {
             localStorage.removeItem("obn_ai_installed");
@@ -307,5 +468,7 @@ export function useWebLLM() {
         isLoading,
         isInstalled,
         isGenerating,
+        error,
+        activeModelId: sharedRuntime.modelId,
     };
 }

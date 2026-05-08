@@ -20,6 +20,8 @@ interface AIChatContextType {
   isLoading: boolean;
   isInstalled: boolean;
   isGenerating: boolean;
+  error: string | null;
+  activeModelId: string | null;
 }
 
 const AIChatContext = createContext<AIChatContextType | undefined>(undefined);

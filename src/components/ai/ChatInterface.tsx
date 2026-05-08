@@ -5,6 +5,9 @@ import { TOOLS } from "@/config/tools.registry";
 import ToolCard from "@/components/ui/ToolCard";
 import { Button } from "@/components/ui/Button";
 import {
+  AlertTriangle,
+  RotateCcw,
+  Zap,
   Bot,
   ChevronLeft,
   Cpu,
@@ -21,6 +24,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { DEFAULT_WEBLLM_MODEL_ID, LIGHTWEIGHT_WEBLLM_MODEL_ID } from "@/hooks/useWebLLM";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Markdown } from "@/components/ui/Markdown";
@@ -43,7 +47,18 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
     activeConversation,
   } = useConversations();
 
-  const { generateResponse, stopGeneration, isGenerating, uninstallModel, isLoaded, isLoading, progressPercentage } = useAIChat();
+  const { 
+    generateResponse, 
+    stopGeneration, 
+    isGenerating, 
+    uninstallModel, 
+    isLoaded, 
+    isLoading, 
+    progressPercentage,
+    error,
+    loadModel,
+    activeModelId
+  } = useAIChat();
 
   const [input, setInput] = useState("");
   const [streamBuffer, setStreamBuffer] = useState("");
@@ -148,12 +163,15 @@ ${toolDescriptions}
 
     try {
       let fullResponse = "";
-      await generateResponse(messagesForEngine, (token) => {
+      const generatedResponse = await generateResponse(messagesForEngine, (token) => {
         fullResponse += token;
         setStreamBuffer(fullResponse);
       });
+      const responseToSave = fullResponse || generatedResponse;
 
-      addMessageToActive({ role: "assistant", content: fullResponse }, currentActiveId);
+      if (responseToSave.trim()) {
+        addMessageToActive({ role: "assistant", content: responseToSave }, currentActiveId);
+      }
       setStreamBuffer("");
       commitActiveConversation();
     } catch (err) {
@@ -494,6 +512,51 @@ ${toolDescriptions}
               </div>
             </motion.div>
           )}
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mt-5 rounded-2xl border border-red-500/20 bg-red-500/5 p-6 backdrop-blur-sm"
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+                  <AlertTriangle className="h-6 w-6" />
+                </div>
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-red-500 uppercase tracking-wider">Engine Crash</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-(--text-primary)">
+                      {error}
+                    </p>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      size="sm"
+                      onClick={() => loadModel(activeModelId || DEFAULT_WEBLLM_MODEL_ID)}
+                      className="gap-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      Try Again
+                    </Button>
+                    
+                    {activeModelId !== LIGHTWEIGHT_WEBLLM_MODEL_ID && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => loadModel(LIGHTWEIGHT_WEBLLM_MODEL_ID)}
+                        className="gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400"
+                      >
+                        <Zap className="h-4 w-4" />
+                        Switch to Lightweight
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           <div ref={messagesEndRef} className="pb-4" />
         </div>
       </div>

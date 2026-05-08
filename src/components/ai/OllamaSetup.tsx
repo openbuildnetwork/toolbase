@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 import { useAIChat } from "@/hooks/useAIChat";
-import { DEFAULT_WEBLLM_MODEL_ID } from "@/hooks/useWebLLM";
+import { DEFAULT_WEBLLM_MODEL_ID, LIGHTWEIGHT_WEBLLM_MODEL_ID } from "@/hooks/useWebLLM";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { RefreshCw, Cpu, ShieldCheck, Sparkles, X } from "lucide-react";
+import { RefreshCw, Cpu, ShieldCheck, Sparkles, X, AlertTriangle, RotateCcw, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface OllamaSetupProps {
@@ -13,7 +13,7 @@ interface OllamaSetupProps {
 }
 
 export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MODEL_ID }: OllamaSetupProps) {
-  const { loadModel, progress, progressPercentage, isLoading, isLoaded } = useAIChat();
+  const { loadModel, progress, progressPercentage, isLoading, isLoaded, error } = useAIChat();
 
   useEffect(() => {
     if (isLoaded) {
@@ -59,6 +59,47 @@ export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MOD
                      {progressPercentage > 0 ? `${progressPercentage}% Cached` : "Preparing Model Weights"}
                   </div>
                 </div>
+
+                {error && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full space-y-4 pt-2"
+                  >
+                    <div className="flex flex-col gap-3 rounded-2xl border border-red-500/20 bg-red-500/5 p-4">
+                      <div className="flex items-center gap-2 text-red-500 font-bold text-xs uppercase tracking-wider">
+                        <AlertTriangle className="h-4 w-4" />
+                        Initialization Error
+                      </div>
+                      <p className="text-xs text-(--text-primary) leading-relaxed">
+                        {error}
+                      </p>
+                    </div>
+                    
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => loadModel(targetModel)}
+                        className="w-full gap-2 rounded-xl bg-red-500 text-white hover:bg-red-600 h-10"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" />
+                        Retry Activation
+                      </Button>
+                      
+                      {targetModel !== LIGHTWEIGHT_WEBLLM_MODEL_ID && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => loadModel(LIGHTWEIGHT_WEBLLM_MODEL_ID)}
+                          className="w-full gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400 h-10"
+                        >
+                          <Zap className="h-3.5 w-3.5" />
+                          Try Lightweight Model
+                        </Button>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
