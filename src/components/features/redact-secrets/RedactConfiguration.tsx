@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Settings2, Key, Type, Hash, Code } from "lucide-react";
+import { Settings2, Key, Type, Hash, Code, Upload } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { TagInput } from "@/components/ui/TagInput";
@@ -16,6 +16,7 @@ interface RedactConfigurationProps {
     setLiteralTexts: (texts: string[]) => void;
     regexPatterns: string[];
     setRegexPatterns: (patterns: string[]) => void;
+    onRulesUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export const RedactConfiguration: React.FC<RedactConfigurationProps> = ({
@@ -27,13 +28,36 @@ export const RedactConfiguration: React.FC<RedactConfigurationProps> = ({
     setLiteralTexts,
     regexPatterns,
     setRegexPatterns,
+    onRulesUpload,
 }) => {
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
     return (
         <div className="flex flex-col rounded-2xl border border-(--border-medium) bg-(--surface-overlay) backdrop-blur-xl overflow-hidden shadow-sm dark:shadow-black/20">
             {/* Header */}
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-(--border-subtle) bg-(--surface-secondary)/30">
-                <Settings2 className="w-4 h-4 text-(--text-muted)" />
-                <span className="text-xs font-bold uppercase tracking-wider text-(--text-muted)">Configuration</span>
+            <div className="flex items-center justify-between px-5 py-3 border-b border-(--border-subtle) bg-(--surface-secondary)/30">
+                <div className="flex items-center gap-2">
+                    <Settings2 className="w-4 h-4 text-(--text-muted)" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-(--text-muted)">Configuration</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={onRulesUpload}
+                        className="hidden"
+                        accept=".txt,.csv,.json"
+                    />
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-emerald-500/20 bg-emerald-500/8 text-[10px] font-bold text-emerald-600 hover:bg-emerald-500/15 hover:border-emerald-500/30 transition-all active:scale-95 dark:text-emerald-400 dark:bg-emerald-500/10 dark:border-emerald-500/20"
+                        title="Upload a .txt file where secrets are comma-separated"
+                    >
+                        <Upload className="w-3 h-3" />
+                        Import Rules
+                    </button>
+                </div>
             </div>
 
             <div className="p-5 space-y-6">
@@ -90,6 +114,7 @@ export const RedactConfiguration: React.FC<RedactConfigurationProps> = ({
                             placeholder="e.g. api_key"
                             values={keys}
                             onChange={setKeys}
+                            onClear={() => setKeys([])}
                             color="blue"
                         />
                         <TagInput
@@ -101,6 +126,7 @@ export const RedactConfiguration: React.FC<RedactConfigurationProps> = ({
                             placeholder="e.g. MyPassword123"
                             values={literalTexts}
                             onChange={setLiteralTexts}
+                            onClear={() => setLiteralTexts([])}
                             color="purple"
                         />
                         <TagInput
@@ -112,6 +138,7 @@ export const RedactConfiguration: React.FC<RedactConfigurationProps> = ({
                             placeholder="e.g. \b[A-Z0-9._%+-]+@..."
                             values={regexPatterns}
                             onChange={setRegexPatterns}
+                            onClear={() => setRegexPatterns([])}
                             color="emerald"
                         />
                     </div>

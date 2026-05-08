@@ -25,7 +25,7 @@ export default function RedactSecretsPage() {
         regexPatterns, setRegexPatterns,
         response, error,
         isLoading, isReady, engineLabel,
-        handleRedact, handleFileUpload, clearAll,
+        handleRedact, handleFileUpload, handleRulesUpload, clearAll,
     } = useRedactSecrets();
 
     const isRust = engineLabel === "Rust WASM";
@@ -163,6 +163,7 @@ export default function RedactSecretsPage() {
                                 setLiteralTexts={setLiteralTexts}
                                 regexPatterns={regexPatterns}
                                 setRegexPatterns={setRegexPatterns}
+                                onRulesUpload={handleRulesUpload}
                             />
                             <RedactStats response={response} />
                         </div>
