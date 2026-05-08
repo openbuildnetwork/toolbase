@@ -25,7 +25,7 @@ export default function RedactSecretsPage() {
         regexPatterns, setRegexPatterns,
         response, error,
         isLoading, isReady, engineLabel,
-        handleRedact, handleFileUpload, handleRulesUpload, clearAll,
+        handleRedact, handleFileUpload, handleRulesUpload, clearAll, saveToNoteVault,
     } = useRedactSecrets();
 
     const isRust = engineLabel === "Rust WASM";
@@ -132,6 +132,7 @@ export default function RedactSecretsPage() {
                                 setContentType={setContentType}
                                 fileName={fileName}
                                 onFileUpload={handleFileUpload}
+                                saveToNoteVault={saveToNoteVault}
                             />
 
                             <RedactOutput response={response} />
@@ -164,6 +165,7 @@ export default function RedactSecretsPage() {
                                 regexPatterns={regexPatterns}
                                 setRegexPatterns={setRegexPatterns}
                                 onRulesUpload={handleRulesUpload}
+                                saveToNoteVault={saveToNoteVault}
                             />
                             <RedactStats response={response} />
                         </div>

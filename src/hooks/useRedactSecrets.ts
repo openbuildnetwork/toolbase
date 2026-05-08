@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useRedactWorker } from "@/hooks/useRedactWorker";
 import { RedactRequest, RedactResponse, ContentType, MaskingStyle } from "@/types/redact";
+import { Note } from "@/types/note-vault";
 
 const STORAGE_KEY = "toolbase:redact-settings";
 
@@ -190,6 +191,21 @@ export function useRedactSecrets(initial?: {
         handleRedact,
         handleFileUpload,
         handleRulesUpload,
+        saveToNoteVault: async (title: string, data: string, addNote: (note: Note) => Promise<void>) => {
+            const newNote: Note = {
+                id: crypto.randomUUID(),
+                title: title || "Redactor Rules",
+                content: data,
+                format: "text",
+                collectionId: "default",
+                isPinned: false,
+                tags: ["redactor", "rules"],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                revisions: []
+            };
+            await addNote(newNote);
+        },
         clearAll
     };
 }
