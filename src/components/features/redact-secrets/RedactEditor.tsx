@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { FileText, Upload, X, Database, Save } from "lucide-react";
+import { FileText, Upload, X, Vault, Save } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ContentType } from "@/types/redact";
@@ -96,7 +96,7 @@ export const RedactEditor: React.FC<RedactEditorProps> = ({
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold text-(--text-primary) hover:bg-black/5 dark:hover:bg-white/5 transition-all border border-(--border-subtle)"
                             title="Import content from Note Vault"
                         >
-                            <Database className="w-3 h-3 opacity-60" />
+                            <Vault className="w-3 h-3 opacity-60" />
                             Import Vault
                         </button>
                     </div>

@@ -5,6 +5,7 @@ import Header from '@/components/ui/Header';
 import { useNoteVault } from '@/hooks/useNoteVault';
 import { useNoteSearch } from '@/hooks/useNoteSearch';
 import { useNoteWorker } from '@/hooks/useNoteWorker';
+import { Vault } from 'lucide-react';
 import { Note, NoteFormat } from '@/types/note-vault';
 import NoteEditor from '@/components/features/note-vault/NoteEditor';
 import NoteList from '@/components/features/note-vault/NoteList';
@@ -81,8 +82,11 @@ export default function NoteVaultPage() {
   return (
     <div className="flex flex-col h-screen bg-(--background) text-(--text-primary) font-display overflow-hidden">
       <header className="h-14 border-b border-(--border-subtle) bg-(--surface-overlay)/50 backdrop-blur-md flex items-center justify-between px-6 shrink-0">
-         <div className="flex items-center text-sm text-(--text-muted)">
-            <span className="font-semibold text-(--text-primary) mr-2">NoteVault</span>
+         <div className="flex items-center text-sm text-(--text-muted) gap-2">
+            <div className="w-8 h-8 rounded-lg bg-blue-600/10 flex items-center justify-center text-blue-600">
+               <Vault size={16} />
+            </div>
+            <span className="font-semibold text-(--text-primary)">NoteVault</span>
          </div>
          <div className="flex items-center gap-2">
              <button 

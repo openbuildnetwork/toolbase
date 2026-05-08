@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, FileText, X } from "lucide-react";
+import { Search, Vault, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNoteVault } from "@/hooks/useNoteVault";
 import { Note } from "@/types/note-vault";
@@ -56,7 +56,7 @@ export const VaultSelectorModal: React.FC<VaultSelectorModalProps> = ({
                 <div className="px-6 py-4 border-b border-(--border-subtle) flex items-center justify-between bg-(--surface-secondary)/30">
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-500">
-                            <FileText className="w-4 h-4" />
+                            <Vault className="w-4 h-4" />
                         </div>
                         <h2 className="font-bold text-(--text-primary)">{title}</h2>
                     </div>
@@ -108,7 +108,7 @@ export const VaultSelectorModal: React.FC<VaultSelectorModalProps> = ({
                             >
                                 <div className="flex items-center gap-4 min-w-0">
                                     <div className="w-10 h-10 rounded-xl bg-(--surface-secondary) flex items-center justify-center shrink-0 group-hover:bg-violet-500/10 group-hover:text-violet-500 transition-colors">
-                                        <FileText className="w-5 h-5" />
+                                        <Vault className="w-5 h-5" />
                                     </div>
                                     <div className="min-w-0">
                                         <h3 className="font-bold text-sm text-(--text-primary) truncate">{note.title}</h3>
