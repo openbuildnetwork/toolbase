@@ -1,7 +1,7 @@
 /**
  * Generic Worker Client
  *
- * Replaces all bespoke bridge files (magic-pdf-bridge.ts, pixel-axe-bridge.ts, etc).
+ * Replaces all bespoke bridge files (magic-pdf-bridge.ts, pixels-bridge.ts, etc).
  * Manages the lifecycle of a Web Worker (initialization, message passing, error handling).
  *
  * Worker message protocol:

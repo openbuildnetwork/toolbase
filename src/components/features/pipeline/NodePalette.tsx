@@ -25,7 +25,7 @@ export type PaletteFilterContext =
 
 const TOOL_THUMBNAILS: Record<string, string> = {
     'magic-pdf': '/assets/thumbnails/magic-pdf.png',
-    'pixel-axe': '/assets/thumbnails/pixel-axe.png',
+    'pixels': '/assets/thumbnails/pixels.png',
     'redact-secrets': '/assets/thumbnails/redact-secrets.png',
     'base64': '/assets/thumbnails/b64EnDc.png',
     'data-lens': '/assets/thumbnails/data-lens.png',
@@ -42,7 +42,7 @@ const CATEGORY_META: Record<string, { label: string; color: string }> = {
 function getCategoryFromId(id: string): string {
     const prefix = id.split('/')[0];
     if (prefix === 'magic-pdf') return 'pdf';
-    if (prefix === 'pixel-axe') return 'image';
+    if (prefix === 'pixels') return 'image';
     if (prefix === 'redact-secrets') return 'security';
     return 'developer';
 }

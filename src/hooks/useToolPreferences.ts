@@ -8,7 +8,7 @@
  * cross-tab sync via the native `storage` event.
  *
  * localStorage keys:
- *   toolbase:favorites  → string[]  e.g. ['magic-pdf', 'pixel-axe']
+ *   toolbase:favorites  → string[]  e.g. ['magic-pdf', 'pixels']
  *   toolbase:recents    → string[]  e.g. ['data-lens', 'base64']  (max 15)
  */
 

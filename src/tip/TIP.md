@@ -207,7 +207,7 @@ That's it. Your tool is now chainable with every other tool in Toolbase.
 
 ## 5. Handling Multi-File Bundles
 
-When a tool can receive multiple files (e.g., pixel-axe/compress operates
+When a tool can receive multiple files (e.g., pixels/compress operates
 on batches of images), process each payload individually:
 
 ```typescript
