@@ -17,7 +17,7 @@ import { speedTestConfig } from "./tools/speed-test";
 import { pipelineConfig } from "./tools/pipeline";
 import { passwordxConfig } from "./tools/passwordx";
 import { omniParseConfig } from "./tools/omni-parse";
-import { dataForgeConfig } from "./tools/data-forge";
+import { dataBuilderConfig } from "./tools/data-builder";
 import { archiveKitConfig } from "./tools/archive-kit";
 import { noteVaultConfig } from "./tools/note-vault";
 
@@ -39,7 +39,7 @@ export const TOOLS: ToolMeta[] = [
   pipelineConfig,
   passwordxConfig,
   omniParseConfig,
-  dataForgeConfig,
+  dataBuilderConfig,
   archiveKitConfig,
 ];
 
