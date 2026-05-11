@@ -40,7 +40,10 @@ type FormatterStudioProps = {
   formatterRecipes: FormatterRecipe[];
   onLoadFormatterRecipe: (id: string) => void;
   onRunSavedRecipe: (id: string) => void;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 72de4f4 (fix: remove duplicate prop type in FormatterStudio)
   languageMap: Record<string, string>;
 };
 
