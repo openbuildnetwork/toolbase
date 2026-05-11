@@ -1,7 +1,9 @@
 import React, { useRef, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useConversations } from "@/hooks/useConversations";
 import { useAIChat } from "@/hooks/useAIChat";
 import { TOOLS } from "@/config/tools.registry";
+import { buildSystemPrompt } from "@/config/echo-knowledge";
 import ToolCard from "@/components/ui/ToolCard";
 import { Button } from "@/components/ui/Button";
 import {
@@ -27,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Markdown } from "@/components/ui/Markdown";
 import Image from "next/image";
+import { ModelPicker } from "./ModelPicker";
 
 
 interface ChatInterfaceProps {
@@ -36,6 +39,7 @@ interface ChatInterfaceProps {
 }
 
 export function ChatInterface({ onClose }: ChatInterfaceProps) {
+  const currentRoute = usePathname();
   const {
     conversations,
     activeId,
@@ -113,53 +117,15 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
     const previousMessages = conversations.find((c) => c.id === currentActiveId)?.messages || [];
     const history = [...previousMessages, { role: "user" as const, content: userMsg }];
 
-    const toolDescriptions = TOOLS.map((t) => `- **${t.name}**: ${t.description}`).join("\n");
     const systemPromptMessage = {
       role: "system" as const,
-      content: `
-      Your name is **Echo**. You are the official AI assistant for Toolbase, built by developers at Open Build Network (OBN).
-
----
-
-## WHO YOU ARE
-- You assist users with questions about Toolbase, its tools, and OBN.
-- You were built by the team at OBN - an open-source organization that builds tools for developers, by the community.
-- Useful links:
-  - Website: https://openbuildnetwork.com/
-  - GitHub: https://github.com/openbuildnetwork/toolbase
-
----
-
-## AVAILABLE TOOLS
-${toolDescriptions}
-
----
-
-## STRICT RULES - FOLLOW EXACTLY
-
-1. **Only answer questions about Toolbase, its tools, or OBN.** If the question is unrelated, politely decline and redirect the user.
-
-2. **Never make up information.** If you do not know the answer, say: "I don't have that information. Please check the official docs or GitHub."
-
-3. **If the question is vague or ambiguous, ask for clarification before answering.** Do not guess what the user meant. Example: "Could you clarify what you mean by X so I can give you the right answer?"
-
-4. **Stay close to the question.** Answer only what was asked. Do not add unrelated details or expand beyond the scope of the question.
-
-5. **Never discuss your internal architecture, development process, training, or any internal Toolbase implementation details.**
-
-6. **Always bold Tool Names** when referencing them - e.g., **ToolName**.
-
----
-
-## OUTPUT FORMAT
-- Respond in clean **Markdown**.
-- Be concise and direct. Avoid filler phrases like "Great question!" or "Certainly!".
-- If listing tools or steps, use bullet points or numbered lists.
-- Keep answers short unless detail is explicitly requested.
-      `,
+      content: buildSystemPrompt(TOOLS, currentRoute ?? undefined),
     };
 
-    const messagesForEngine = [systemPromptMessage, ...history];
+    // Filter out any existing system messages from history to ensure only the latest 
+    // system instructions from buildSystemPrompt are used.
+    const cleanHistory = history.filter(msg => msg.role !== "system");
+    const messagesForEngine = [systemPromptMessage, ...cleanHistory];
 
     try {
       let fullResponse = "";
@@ -339,6 +305,9 @@ ${toolDescriptions}
         </div>
 
         <div className="flex items-center gap-2">
+          <div className="hidden sm:block">
+            <ModelPicker />
+          </div>
           <div className="relative">
             <Button
               variant="ghost"

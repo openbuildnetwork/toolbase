@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from "@/components/ui/Button";
 import { RefreshCw, Cpu, ShieldCheck, Sparkles, X, AlertTriangle, RotateCcw, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ModelPicker } from "./ModelPicker";
 
 interface OllamaSetupProps {
   onReady?: () => void;
@@ -79,7 +80,7 @@ export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MOD
                     <div className="flex flex-col gap-2">
                       <Button
                         size="sm"
-                        onClick={() => loadModel(targetModel)}
+                        onClick={() => loadModel(targetModel, true)}
                         className="w-full gap-2 rounded-xl bg-red-500 text-white hover:bg-red-600 h-10"
                       >
                         <RotateCcw className="h-3.5 w-3.5" />
@@ -90,7 +91,7 @@ export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MOD
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => loadModel(LIGHTWEIGHT_WEBLLM_MODEL_ID)}
+                          onClick={() => loadModel(LIGHTWEIGHT_WEBLLM_MODEL_ID, true)}
                           className="w-full gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400 h-10"
                         >
                           <Zap className="h-3.5 w-3.5" />
@@ -162,22 +163,16 @@ export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MOD
                 <div className="flex flex-col gap-2.5 pt-2">
                   <div className="flex justify-between text-[10px] text-(--text-faint) uppercase tracking-widest font-black">
                     <span>Engine</span>
-                    <span className="text-blue-500">Phi-3 Mini (4-bit)</span>
                   </div>
-                  <div className="h-1.5 w-full bg-(--surface-hover) rounded-full overflow-hidden">
-                     <motion.div 
-                        initial={{ x: "-100%" }}
-                        animate={{ x: "0%" }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full bg-linear-to-r from-blue-500 to-indigo-500 w-1/3 shadow-[0_0_8px_rgba(59,130,246,0.5)]" 
-                     />
+                  <div className="w-full">
+                    <ModelPicker />
                   </div>
                 </div>
               </CardContent>
 
               <CardFooter className="pb-10 pt-6 px-8">
                 <Button 
-                  onClick={() => loadModel(targetModel)} 
+                  onClick={() => loadModel(targetModel, true)} 
                   className="w-full h-14 text-lg font-black bg-blue-600 hover:bg-blue-500 text-white rounded-2xl shadow-xl shadow-blue-500/30 transition-all hover:scale-[1.02] active:scale-95"
                 >
                   Activate Assistant

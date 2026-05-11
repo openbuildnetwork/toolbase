@@ -26,6 +26,8 @@ const inter = Inter({
   display: "swap",
 });
 
+import { EchoFAB } from "@/components/ai/EchoFAB";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -77,6 +79,9 @@ export default function RootLayout({
 
             {/* AI Chat Drawer rendered globally */}
             <GlobalAIOverlay />
+            
+            {/* Quick access FAB */}
+            <EchoFAB />
           </AIChatProvider>
         </ThemeProvider>
       </body>

@@ -20,6 +20,42 @@ import {
 export const DEFAULT_WEBLLM_MODEL_ID = "Phi-3-mini-4k-instruct-q4f16_1-MLC";
 export const LIGHTWEIGHT_WEBLLM_MODEL_ID = "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC";
 
+export interface WebLLMModel {
+    id: string;
+    name: string;
+    description: string;
+    vramMb: number;
+    recommended?: boolean;
+}
+
+export const SUPPORTED_MODELS: WebLLMModel[] = [
+    {
+        id: "Phi-3-mini-4k-instruct-q4f16_1-MLC",
+        name: "Phi-3 Mini (4K)",
+        description: "Fast, great for simple tasks. Low memory footprint.",
+        vramMb: 2048,
+        recommended: true,
+    },
+    {
+        id: "Llama-3.1-8B-Instruct-q4f32_1-MLC",
+        name: "Llama 3.1 8B",
+        description: "High quality, complex reasoning. Requires strong GPU.",
+        vramMb: 6144,
+    },
+    {
+        id: "Qwen2.5-7B-Instruct-q4f16_1-MLC",
+        name: "Qwen 2.5 7B",
+        description: "Strong at coding and logic. Requires moderate GPU.",
+        vramMb: 5120,
+    },
+    {
+        id: "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC",
+        name: "TinyLlama 1.1B",
+        description: "Fallback lightweight model. Very fast, lower accuracy.",
+        vramMb: 1024,
+    }
+];
+
 export interface Message {
     role: "user" | "assistant" | "system";
     content: string;
@@ -43,7 +79,8 @@ const sharedRuntime: SharedRuntime = {
 
 function getLoadedModelIds(engineInstance: MLCEngineInterface | null) {
     const maybeWorkerEngine = engineInstance as { modelId?: unknown } | null;
-    return Array.isArray(maybeWorkerEngine?.modelId) ? maybeWorkerEngine.modelId : [];
+    const modelId = maybeWorkerEngine?.modelId;
+    return Array.isArray(modelId) ? modelId : [];
 }
 
 function engineHasModel(engineInstance: MLCEngineInterface | null, modelId: string) {
@@ -69,8 +106,31 @@ function isWebLLMDeviceLostError(error: unknown) {
         message.includes("device was lost") ||
         message.includes("gpudevicelostinfo") ||
         message.includes("device_hung") ||
+        message.includes("hung") ||
+        message.includes("0x887a0006") ||
         message.includes("out of memory") ||
         message.includes("vram")
+    );
+}
+
+function isWebLLMDisposedError(error: unknown) {
+    const message = String(error).toLowerCase();
+    return (
+        message.includes("already been disposed") ||
+        message.includes("object is disposed") ||
+        message.includes("cannot use disposed") ||
+        message.includes("tokenizer instance already deleted") ||
+        message.includes("instance already deleted") ||
+        message.includes("worker terminated")
+    );
+}
+
+function isWebLLMContextOverflowError(error: unknown) {
+    const message = String(error);
+    return (
+        message.includes("ContextWindowSizeExceededError") ||
+        message.includes("exceed context window size") ||
+        message.includes("prompt tokens")
     );
 }
 
@@ -89,8 +149,15 @@ function isWebLLMModelNotLoadedError(error: unknown) {
     );
 }
 
-function getOrCreateWorker() {
+function getOrCreateWorker(forceReload = false) {
     if (typeof window === "undefined") return null;
+
+    if (forceReload && sharedRuntime.worker) {
+        sharedRuntime.worker.terminate();
+        sharedRuntime.worker = null;
+        sharedRuntime.engine = null;
+        sharedRuntime.enginePromise = null;
+    }
 
     if (!sharedRuntime.worker) {
         sharedRuntime.worker = new Worker(
@@ -169,11 +236,15 @@ export function useWebLLM() {
         }
     }, [syncLoadedEngine]);
 
-    const loadModel = useCallback(async (modelId = DEFAULT_WEBLLM_MODEL_ID, background = false) => {
+    const loadModel = useCallback(async (
+        modelId = DEFAULT_WEBLLM_MODEL_ID, 
+        forceReload = false,
+        background = false
+    ) => {
         setError(null);
         sharedRuntime.error = null;
 
-        if (sharedRuntime.engine && sharedRuntime.modelId === modelId) {
+        if (sharedRuntime.engine && sharedRuntime.modelId === modelId && !forceReload) {
             if (engineHasModel(sharedRuntime.engine, modelId)) {
                 syncLoadedEngine(sharedRuntime.engine, modelId);
             } else {
@@ -206,7 +277,7 @@ export function useWebLLM() {
             return;
         }
 
-        const worker = getOrCreateWorker();
+        const worker = getOrCreateWorker(forceReload);
         if (!worker) return;
 
         setIsLoading(true);
@@ -242,9 +313,23 @@ export function useWebLLM() {
         } catch (error) {
             console.error("Failed to load model:", error);
             const isDeviceLost = isWebLLMDeviceLostError(error);
+            const isDisposed = isWebLLMDisposedError(error);
+            
+            if (isDisposed || isDeviceLost) {
+                // If the engine or GPU device is in a corrupted state,
+                // we must flush the shared runtime entirely so the next attempt starts fresh.
+                sharedRuntime.worker?.terminate();
+                sharedRuntime.worker = null;
+                sharedRuntime.engine = null;
+                sharedRuntime.enginePromise = null;
+            }
+
             const errorMsg = isDeviceLost 
                 ? "GPU Device Lost: Your hardware might be struggling. Try closing other tabs or using the lightweight model."
-                : "Error: Failed to load model. Ensure your browser supports WebGPU.";
+                : isDisposed
+                    ? "Local engine was stale. Resetting... please try again."
+                    : "Error: Failed to load model. Ensure your browser supports WebGPU.";
+            
             setError(errorMsg);
             sharedRuntime.error = errorMsg;
             setProgress(errorMsg);
@@ -266,14 +351,14 @@ export function useWebLLM() {
         }
 
         if (sharedRuntime.enginePromise) {
-            void loadModel(sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID, true);
+            void loadModel(sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID, false);
             return;
         }
 
         const installedFlag = localStorage.getItem("obn_ai_installed") === "true";
         if (installedFlag) {
             setIsInstalled(true);
-            void loadModel(DEFAULT_WEBLLM_MODEL_ID, true);
+            void loadModel(DEFAULT_WEBLLM_MODEL_ID, false);
             return;
         }
 
@@ -282,7 +367,7 @@ export function useWebLLM() {
 
             localStorage.setItem("obn_ai_installed", "true");
             setIsInstalled(true);
-            void loadModel(DEFAULT_WEBLLM_MODEL_ID, true);
+            void loadModel(DEFAULT_WEBLLM_MODEL_ID, false);
         });
     }, [loadModel, syncLoadedEngine]);
 
@@ -316,7 +401,7 @@ export function useWebLLM() {
         let fullText = "";
 
         const streamCompletion = async () => {
-            const completion = await activeEngine.chat.completions.create({
+            const completion = await activeEngine!.chat.completions.create({
                 model: activeModelId,
                 messages: messages as ChatCompletionMessageParam[],
                 stream: true,
@@ -349,8 +434,20 @@ export function useWebLLM() {
                 return await streamCompletion();
             }
 
-            if (isWebLLMDeviceLostError(error)) {
-                const errorMsg = "GPU Device Lost: The engine has crashed. Please refresh or try the lightweight model.";
+            if (isWebLLMContextOverflowError(error)) {
+                // Context window exceeded — reset chat context and let user retry
+                const activeEngineRef = engineRef.current ?? sharedRuntime.engine;
+                if (activeEngineRef) {
+                    try { await activeEngineRef.resetChat(); } catch { /* ignore */ }
+                }
+                const errorMsg = "Message too long for this model's context window. Chat history has been reset — please try a shorter message.";
+                setError(errorMsg);
+                sharedRuntime.error = errorMsg;
+            } else if (isWebLLMDisposedError(error) || isWebLLMDeviceLostError(error)) {
+                const isDisposed = isWebLLMDisposedError(error);
+                const errorMsg = isDisposed
+                    ? "Engine was disposed after a previous error. Reloading automatically..."
+                    : "GPU Device Lost: The engine has crashed. Please refresh or try the lightweight model.";
                 setError(errorMsg);
                 sharedRuntime.error = errorMsg;
                 
@@ -360,9 +457,23 @@ export function useWebLLM() {
                 engineRef.current = null;
                 setEngine(null);
                 setIsLoaded(false);
+
+                // Auto-reload for disposed engines (recoverable)
+                if (isDisposed) {
+                    try {
+                        // Pass true for forceReload, false for background
+                        await loadModel(activeModelId, true, false);
+                        setError(null);
+                        sharedRuntime.error = null;
+                    } catch {
+                        // reload failed — user sees the error message
+                    }
+                }
+            } else {
+                // For other errors, log it normally
+                console.error("Inference error:", error);
             }
 
-            console.error("Inference error:", error);
             throw error;
         } finally {
             setIsGenerating(false);
@@ -372,7 +483,7 @@ export function useWebLLM() {
             }
             resolveGenerationDone();
         }
-    }, [engine, reloadEngine, syncLoadedEngine]);
+    }, [engine, loadModel, reloadEngine, syncLoadedEngine]);
 
     const stopGeneration = useCallback(async () => {
         stopRequestedRef.current = true;
