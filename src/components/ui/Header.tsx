@@ -100,22 +100,15 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFav
                     <button
                         onClick={toggleChat}
                         aria-label="Ask Echo?"
-                        className="group relative flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all duration-300 active:scale-95 cursor-pointer backdrop-blur-md"
+                        className="group relative flex items-center gap-1.5 sm:gap-2.5 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full transition-all duration-300 active:scale-95 cursor-pointer backdrop-blur-md"
                         style={{
                             background: 'rgba(52, 87, 213, 0.1)',
                             border: '1px solid rgba(52, 87, 213, 0.4)',
                             boxShadow: 'none',
                         }}
                     >
-                        <div className="relative">
-                            <MessageSquare
-                                size={16}
-                                style={{ color: '#3457D5' }}
-                                className="group-hover:opacity-0 transition-opacity duration-300"
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-0.5 group-hover:translate-y-0">
-                                <Sparkles size={16} style={{ color: '#3457D5' }} />
-                            </div>
+                        <div className="h-6 w-6 sm:h-7 sm:w-7 overflow-hidden rounded-full border border-blue-500/30 bg-blue-500/10 p-0.5 transition-transform duration-300 group-hover:scale-110">
+                            <img src="/assets/images/echo_basic.png" alt="Echo" className="h-full w-full object-cover" />
                         </div>
                         <div className="hidden sm:block text-[13px] font-bold tracking-tight" style={{ color: '#3457D5' }}>
                             Ask Echo ?

@@ -6,7 +6,7 @@
 
 import { ToolCategory, ToolMeta } from "@/types/tool-search";
 import { magicPdfConfig } from "./tools/magic-pdf";
-import { pixelAxeConfig } from "./tools/pixel-axe";
+import { pixelsConfig } from "./tools/pixels";
 import { dataLensConfig } from "./tools/data-lens";
 import { redactSecretsConfig } from "./tools/redact-secrets";
 import { base64Config } from "./tools/base64";
@@ -16,8 +16,8 @@ import { pingTesterConfig } from "./tools/ping-tester";
 import { speedTestConfig } from "./tools/speed-test";
 import { pipelineConfig } from "./tools/pipeline";
 import { passwordxConfig } from "./tools/passwordx";
-import { omniParseConfig } from "./tools/omni-parse";
-import { dataForgeConfig } from "./tools/data-forge";
+import { formatStudioConfig } from "./tools/format-studio";
+import { dataBuilderConfig } from "./tools/data-builder";
 import { archiveKitConfig } from "./tools/archive-kit";
 import { noteVaultConfig } from "./tools/note-vault";
 
@@ -28,7 +28,7 @@ import { noteVaultConfig } from "./tools/note-vault";
 export const TOOLS: ToolMeta[] = [
   noteVaultConfig,
   magicPdfConfig,
-  pixelAxeConfig,
+  pixelsConfig,
   dataLensConfig,
   redactSecretsConfig,
   base64Config,
@@ -38,8 +38,8 @@ export const TOOLS: ToolMeta[] = [
   speedTestConfig,
   pipelineConfig,
   passwordxConfig,
-  omniParseConfig,
-  dataForgeConfig,
+  formatStudioConfig,
+  dataBuilderConfig,
   archiveKitConfig,
 ];
 

@@ -19,7 +19,7 @@ export function getTypeColor(type: string): string {
 
 const TOOL_THUMBNAILS: Record<string, string> = {
     'magic-pdf': '/assets/thumbnails/magic-pdf.png',
-    'pixel-axe': '/assets/thumbnails/pixel-axe.png',
+    'pixels': '/assets/thumbnails/pixels.png',
     'redact-secrets': '/assets/thumbnails/redact-secrets.png',
     'base64': '/assets/thumbnails/b64EnDc.png',
     'data-lens': '/assets/thumbnails/data-lens.png',

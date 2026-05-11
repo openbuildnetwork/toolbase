@@ -217,7 +217,7 @@ export interface TIPHooks {
 export interface TIPTool {
   /**
    * Unique identifier — use kebab-case with a namespace prefix.
-   * Examples: 'magic-pdf/compress', 'pixel-axe/resize', 'base64/encode'
+   * Examples: 'magic-pdf/compress', 'pixels/resize', 'base64/encode'
    */
   id: string;
 
