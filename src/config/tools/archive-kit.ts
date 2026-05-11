@@ -8,7 +8,7 @@ export const archiveKitConfig: ToolMeta = {
     'Archive Kit helps you package files into ZIP/TAR archives, inspect archive contents, and extract files locally in your browser. It is designed for private, client-side workflows where no data should leave your machine.',
   category: 'developer',
   route: 'archive-kit',
-  thumbnail: '/assets/thumbnails/archive-kit.svg',
+  thumbnail: '/assets/thumbnails/archive-kit.png',
   tags: ['archive', 'zip', 'tar', 'extract', 'list', 'pack', 'unpack', 'developer'],
   isNew: true,
   isFeatured: false,

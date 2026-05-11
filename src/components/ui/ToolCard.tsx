@@ -82,7 +82,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ title, route, icon, toolId }) => {
                             alt={title}
                             width={80}
                             height={80}
-                            className="w-20 h-20 rounded-[28px] p-2 object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)]"
+                            className="w-20 h-20 rounded-[25px] p-1.5 object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)]"
                         />
                     </motion.div>
                 </div>

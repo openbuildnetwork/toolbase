@@ -8,7 +8,6 @@ import {
   AlertTriangle,
   RotateCcw,
   Zap,
-  Bot,
   ChevronLeft,
   Cpu,
   History,
@@ -19,7 +18,6 @@ import {
   Plus,
   Send,
   ShieldAlert,
-  Sparkles,
   Square,
   Trash2,
   X,
@@ -28,6 +26,8 @@ import { DEFAULT_WEBLLM_MODEL_ID, LIGHTWEIGHT_WEBLLM_MODEL_ID } from "@/hooks/us
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Markdown } from "@/components/ui/Markdown";
+import Image from "next/image";
+
 
 interface ChatInterfaceProps {
   modelName?: string;
@@ -305,8 +305,14 @@ ${toolDescriptions}
             <Menu className="h-4 w-4" />
           </Button>
 
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white shadow-lg shadow-blue-500/20">
-            <Bot className="h-5 w-5" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 shadow-lg shadow-blue-500/10 overflow-hidden border border-blue-500/20">
+            <Image 
+              src="/assets/images/echo_basic.png" 
+              alt="Echo" 
+              width={40} 
+              height={40} 
+              className="h-full w-full object-cover"
+            />
           </div>
 
           <div className="min-w-0">
@@ -393,8 +399,14 @@ ${toolDescriptions}
               animate={{ opacity: 1, y: 0 }}
               className="flex flex-1 flex-col items-center justify-center text-center"
             >
-              <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-lg bg-blue-600 text-white shadow-xl shadow-blue-500/20">
-                <Sparkles className="h-8 w-8" />
+              <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/10 shadow-xl shadow-blue-500/10 overflow-hidden border border-blue-500/20">
+                <Image 
+                  src="/assets/images/echo_basic.png" 
+                  alt="Echo" 
+                  width={64} 
+                  height={64} 
+                  className="h-full w-full object-cover p-1"
+                />
               </div>
               <h2 className="text-2xl font-semibold tracking-tight text-(--text-primary)">What can Echo help with?</h2>
               <p className="mt-2 max-w-md text-sm leading-6 text-(--text-muted)">
@@ -433,8 +445,14 @@ ${toolDescriptions}
                       className={cn("flex w-full gap-3", msg.role === "user" ? "justify-end" : "justify-start")}
                     >
                       {msg.role === "assistant" && (
-                        <div className="mt-1 hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm sm:flex">
-                          <Bot className="h-4 w-4" />
+                        <div className="mt-1 hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 shadow-sm overflow-hidden border border-blue-500/20 sm:flex">
+                          <Image 
+                            src="/assets/images/echo_basic.png" 
+                            alt="Echo" 
+                            width={32} 
+                            height={32} 
+                            className="h-full w-full object-cover"
+                          />
                         </div>
                       )}
 
@@ -485,8 +503,14 @@ ${toolDescriptions}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     className="flex w-full justify-start gap-3"
                   >
-                    <div className="mt-1 hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm sm:flex">
-                      <Bot className="h-4 w-4" />
+                    <div className="mt-1 hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 shadow-sm overflow-hidden border border-blue-500/20 sm:flex">
+                      <Image 
+                        src="/assets/images/echo_basic.png" 
+                        alt="Echo" 
+                        width={32} 
+                        height={32} 
+                        className="h-full w-full object-cover"
+                      />
                     </div>
                     <div className="max-w-[88%] rounded-2xl rounded-tl-md border border-(--border-subtle) bg-(--surface-elevated)/86 px-4 py-3 text-[15px] leading-relaxed shadow-sm">
                       <Markdown content={streamBuffer} />
@@ -499,8 +523,14 @@ ${toolDescriptions}
 
           {(isGenerating || (isLoading && !isLoaded)) && !streamBuffer && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-5 flex justify-start gap-3">
-              <div className="mt-1 hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm sm:flex">
-                <Bot className="h-4 w-4" />
+              <div className="mt-1 hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 shadow-sm overflow-hidden border border-blue-500/20 sm:flex">
+                <Image 
+                  src="/assets/images/echo_basic.png" 
+                  alt="Echo" 
+                  width={32} 
+                  height={32} 
+                  className="h-full w-full object-cover"
+                />
               </div>
               <div className="rounded-2xl rounded-tl-md border border-(--border-subtle) bg-(--surface-elevated)/86 px-4 py-3 shadow-sm">
                 <div className="flex items-center gap-3">

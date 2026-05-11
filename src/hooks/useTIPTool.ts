@@ -6,7 +6,7 @@ import { createBundle, createPayload } from '@/tip/bundle';
 /**
  * useTIPTool — The Universal Tool Runner Hook
  * 
- * This hook is used by Standalone UI component pages (e.g. /tools/pixel-axe)
+ * This hook is used by Standalone UI component pages (e.g. /tools/pixels)
  * to execute the exact same tool pipeline logic that the Builder Engine runs.
  * 
  * It abstracts away the complexity of building a TIPBundle, reporting progress,

@@ -21,8 +21,10 @@ export default function AiChatPage() {
           <div className="absolute inset-0 opacity-[0.22] [background-image:linear-gradient(var(--border-subtle)_1px,transparent_1px),linear-gradient(90deg,var(--border-subtle)_1px,transparent_1px)] [background-size:32px_32px]" />
           <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-blue-600 dark:text-blue-300">
-                <Sparkles className="h-3.5 w-3.5" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 py-1 pl-1 pr-3 text-xs font-semibold uppercase tracking-[0.16em] text-blue-600 dark:text-blue-300">
+                <div className="h-5 w-5 overflow-hidden rounded-full border border-blue-500/20 bg-blue-500/10 p-0.5">
+                  <img src="/assets/images/echo_basic.png" alt="Echo" className="h-full w-full object-cover" />
+                </div>
                 Echo Workspace
               </div>
               <div className="space-y-2">
