@@ -40,6 +40,7 @@ type FormatterStudioProps = {
   formatterRecipes: FormatterRecipe[];
   onLoadFormatterRecipe: (id: string) => void;
   onRunSavedRecipe: (id: string) => void;
+
   languageMap: Record<string, string>;
 };
 
