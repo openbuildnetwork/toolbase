@@ -129,7 +129,6 @@ export default function FormatStudioPage() {
                 onFormatterPreset={validate.handleFormatterPreset}
                 onSaveFormatterRecipe={formatRecipes.saveFormatterRecipe}
                 onRunDraftRecipe={formatRecipes.runDraftRecipe}
-                onAddCurrentAsFixture={formatRecipes.addCurrentAsFixture}
                 onFlatten={validate.handleFlatten}
                 onUnflatten={validate.handleUnflatten}
                 onJsonEscape={validate.handleJsonEscape}
@@ -148,13 +147,6 @@ export default function FormatStudioPage() {
                 formatterRecipes={formatRecipes.formatterRecipes}
                 onLoadFormatterRecipe={formatRecipes.loadFormatterRecipe}
                 onRunSavedRecipe={formatRecipes.runSavedRecipe}
-                fixtureCases={formatRecipes.fixtureCases}
-                setFixtureCases={formatRecipes.setFixtureCases}
-                fixtureResults={formatRecipes.fixtureResults}
-                onRunFixtureTests={formatRecipes.runFixtureTests}
-                onExportFixturePack={formatRecipes.exportFixturePack}
-                onImportFixturePack={formatRecipes.handleImportFixturePack}
-                fixtureImportRef={formatRecipes.fixtureImportRef}
                 languageMap={languageMap}
               />
             )}

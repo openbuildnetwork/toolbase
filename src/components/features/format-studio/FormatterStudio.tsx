@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import type { FormatterRecipe, OmniFixture, RecipeStep, RecipeStepOp } from "./types";
+import type { FormatterRecipe, RecipeStep, RecipeStepOp } from "./types";
 
 type FormatterStudioProps = {
   validateFormat: "json" | "xml" | "yaml";
@@ -22,7 +22,6 @@ type FormatterStudioProps = {
   onFormatterPreset: (preset: "clean" | "normalize" | "apiReady") => void;
   onSaveFormatterRecipe: () => void;
   onRunDraftRecipe: () => void;
-  onAddCurrentAsFixture: () => void;
   onFlatten: () => void;
   onUnflatten: () => void;
   onJsonEscape: () => void;
@@ -41,13 +40,6 @@ type FormatterStudioProps = {
   formatterRecipes: FormatterRecipe[];
   onLoadFormatterRecipe: (id: string) => void;
   onRunSavedRecipe: (id: string) => void;
-  fixtureCases: OmniFixture[];
-  setFixtureCases: React.Dispatch<React.SetStateAction<OmniFixture[]>>;
-  fixtureResults: { id: string; name: string; passed: boolean; detail: string }[];
-  onRunFixtureTests: () => void;
-  onExportFixturePack: () => void;
-  onImportFixturePack: (file: File) => void;
-  fixtureImportRef: React.RefObject<HTMLInputElement | null>;
   languageMap: Record<string, string>;
 };
 
@@ -63,7 +55,6 @@ export function FormatterStudio({
   onFormatterPreset,
   onSaveFormatterRecipe,
   onRunDraftRecipe,
-  onAddCurrentAsFixture,
   onFlatten,
   onUnflatten,
   onJsonEscape,
@@ -82,13 +73,6 @@ export function FormatterStudio({
   formatterRecipes,
   onLoadFormatterRecipe,
   onRunSavedRecipe,
-  fixtureCases,
-  setFixtureCases,
-  fixtureResults,
-  onRunFixtureTests,
-  onExportFixturePack,
-  onImportFixturePack,
-  fixtureImportRef,
   languageMap,
 }: FormatterStudioProps) {
   const { editorTheme } = useActualTheme();
@@ -119,63 +103,70 @@ export function FormatterStudio({
 
           <div className="p-5 space-y-4">
             <div className="rounded-2xl border border-(--border-subtle) bg-(--surface-secondary) p-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-(--text-muted)">Format</span>
-                <Select
-                  value={validateFormat}
-                  onChange={(e) => setValidateFormat(e.target.value as "json" | "xml" | "yaml")}
-                  className="w-28"
-                >
-                  <option value="json">JSON</option>
-                  <option value="xml">XML</option>
-                  <option value="yaml">YAML</option>
-                </Select>
-                <Button variant="secondary" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={() => onFormat("beautify")}>
-                  Beautify
-                </Button>
-                <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={() => onFormat("minify")}>
-                  Minify
-                </Button>
-                <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={onSortKeys}>
-                  Sort Keys
-                </Button>
-                <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={() => onFormatterPreset("clean")}>
-                  Clean Payload
-                </Button>
-                <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={() => onFormatterPreset("normalize")}>
-                  Normalize Keys
-                </Button>
-                <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={() => onFormatterPreset("apiReady")}>
-                  API Ready
-                </Button>
-                <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={onAddCurrentAsFixture}>
-                  Add Fixture
-                </Button>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-(--text-muted)">Format</span>
+                  <Select
+                    value={validateFormat}
+                    onChange={(e) => setValidateFormat(e.target.value as "json" | "xml" | "yaml")}
+                    className="w-28 h-8 text-xs py-0"
+                  >
+                    <option value="json">JSON</option>
+                    <option value="xml">XML</option>
+                    <option value="yaml">YAML</option>
+                  </Select>
+                </div>
+
+                <div className="hidden sm:block w-px h-6 bg-(--border-medium)" />
+
+                {/* Core Tools */}
+                <div className="flex items-center gap-1 p-1 bg-(--surface-elevated) border border-(--border-subtle) rounded-xl shadow-sm">
+                  <Button variant="secondary" className="h-7 rounded-lg px-3 text-xs font-semibold" onClick={() => onFormat("beautify")}>
+                    Beautify
+                  </Button>
+                  <Button variant="ghost" className="h-7 rounded-lg px-3 text-xs font-medium" onClick={() => onFormat("minify")}>
+                    Minify
+                  </Button>
+                  <Button variant="ghost" className="h-7 rounded-lg px-3 text-xs font-medium" onClick={onSortKeys}>
+                    Sort Keys
+                  </Button>
+                </div>
+
+                {/* Presets */}
+                <div className="flex items-center gap-1 p-1 bg-(--surface-elevated) border border-(--border-subtle) rounded-xl shadow-sm">
+                  <span className="pl-2 pr-1 text-[10px] font-semibold uppercase tracking-wider text-(--text-muted) hidden md:inline-block">Presets</span>
+                  <Button variant="ghost" className="h-7 rounded-lg px-2.5 text-xs font-medium" onClick={() => onFormatterPreset("clean")}>
+                    Clean
+                  </Button>
+                  <Button variant="ghost" className="h-7 rounded-lg px-2.5 text-xs font-medium" onClick={() => onFormatterPreset("normalize")}>
+                    Normalize
+                  </Button>
+                  <Button variant="ghost" className="h-7 rounded-lg px-2.5 text-xs font-medium" onClick={() => onFormatterPreset("apiReady")}>
+                    API Ready
+                  </Button>
+                </div>
+
+                {/* JSON Specific Tools */}
                 {validateFormat === "json" ? (
-                  <>
+                  <div className="flex items-center gap-1 p-1 bg-(--surface-elevated) border border-(--border-subtle) rounded-xl shadow-sm">
+                    <span className="pl-2 pr-1 text-[10px] font-semibold uppercase tracking-wider text-(--text-muted) hidden lg:inline-block">JSON Tools</span>
                     {jsonToolState.canFlatten && (
-                      <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={onFlatten}>
-                        Flatten
-                      </Button>
+                      <Button variant="ghost" className="h-7 rounded-lg px-2.5 text-xs font-medium" onClick={onFlatten}>Flatten</Button>
                     )}
                     {jsonToolState.canUnflatten && (
-                      <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={onUnflatten}>
-                        Unflatten
-                      </Button>
+                      <Button variant="ghost" className="h-7 rounded-lg px-2.5 text-xs font-medium" onClick={onUnflatten}>Unflatten</Button>
                     )}
                     {jsonToolState.canEscape && (
-                      <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={onJsonEscape}>
-                        JSON Escape
-                      </Button>
+                      <Button variant="ghost" className="h-7 rounded-lg px-2.5 text-xs font-medium" onClick={onJsonEscape}>Escape</Button>
                     )}
                     {jsonToolState.canUnescape && (
-                      <Button variant="outline" className="h-8 rounded-full px-3 text-xs font-semibold" onClick={onJsonUnescape}>
-                        JSON Unescape
-                      </Button>
+                      <Button variant="ghost" className="h-7 rounded-lg px-2.5 text-xs font-medium" onClick={onJsonUnescape}>Unescape</Button>
                     )}
-                  </>
+                  </div>
                 ) : (
-                  <span className="text-xs text-(--text-muted)">JSON-only: Flatten, Unflatten, Escape, Unescape.</span>
+                  <div className="hidden xl:flex items-center px-3 py-1.5 bg-(--surface-elevated) border border-(--border-subtle) rounded-xl">
+                    <span className="text-[11px] text-(--text-muted)">JSON tools unavailable</span>
+                  </div>
                 )}
               </div>
             </div>
@@ -236,8 +227,8 @@ export function FormatterStudio({
                 ))}
               </div>
             </div>
-            {(formatterRecipes.length > 0 || fixtureCases.length > 0) && (
-              <div className="grid lg:grid-cols-2 gap-3">
+            {formatterRecipes.length > 0 && (
+              <div className="grid grid-cols-1 gap-3">
                 <div className="rounded-xl border border-(--border-subtle) bg-(--surface-overlay) p-3">
                   <div className="flex items-center justify-between">
                     <div className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Saved Recipes</div>
@@ -251,58 +242,6 @@ export function FormatterStudio({
                           <Button variant="outline" size="sm" onClick={() => onLoadFormatterRecipe(recipe.id)}>Load</Button>
                           <Button variant="outline" size="sm" onClick={() => onRunSavedRecipe(recipe.id)}>Run</Button>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-xl border border-(--border-subtle) bg-(--surface-overlay) p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Fixture Tests</div>
-                    <div className="flex items-center gap-1">
-                      <Button variant="outline" size="sm" onClick={onRunFixtureTests}>Run</Button>
-                      <Button variant="outline" size="sm" onClick={onExportFixturePack}>Export</Button>
-                      <Button variant="outline" size="sm" onClick={() => fixtureImportRef.current?.click()}>
-                        <Upload className="w-3 h-3 mr-1" />
-                        Import
-                      </Button>
-                      <input
-                        ref={fixtureImportRef}
-                        type="file"
-                        accept="application/json,.json"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) onImportFixturePack(file);
-                          e.currentTarget.value = "";
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-2 max-h-48 overflow-auto space-y-1">
-                    {fixtureCases.slice(-20).reverse().map((fx) => (
-                      <div key={fx.id} className="flex items-center justify-between rounded-md border border-(--border-subtle) px-2 py-1 text-xs">
-                        <span className="truncate text-(--text-primary)">{fx.name} ({fx.format}) - expect {fx.expectedValid ? "valid" : "invalid"}</span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            className="text-sky-600 dark:text-sky-400 hover:underline"
-                            onClick={() => setFixtureCases((prev) => prev.map((item) => item.id === fx.id ? { ...item, expectedValid: !item.expectedValid } : item))}
-                          >
-                            Toggle
-                          </button>
-                          <button
-                            type="button"
-                            className="text-sky-600 dark:text-sky-400 hover:underline"
-                            onClick={() => setFixtureCases((prev) => prev.filter((item) => item.id !== fx.id))}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    {fixtureResults.slice(-10).map((res) => (
-                      <div key={res.id} className={`rounded-md px-2 py-1 text-xs mt-1 ${res.passed ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 text-red-600 dark:text-red-400"}`}>
-                        {res.name}: {res.detail}
                       </div>
                     ))}
                   </div>
