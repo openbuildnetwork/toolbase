@@ -61,7 +61,8 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
     progressPercentage,
     error,
     loadModel,
-    activeModelId
+    activeModelId,
+    toolState
   } = useAIChat();
 
   const [input, setInput] = useState("");
@@ -119,7 +120,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
 
     const systemPromptMessage = {
       role: "system" as const,
-      content: buildSystemPrompt(TOOLS, currentRoute ?? undefined),
+      content: buildSystemPrompt(TOOLS, currentRoute ?? undefined, toolState),
     };
 
     // Filter out any existing system messages from history to ensure only the latest 

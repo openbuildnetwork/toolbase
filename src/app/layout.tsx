@@ -27,6 +27,12 @@ const inter = Inter({
 });
 
 import { EchoFAB } from "@/components/ai/EchoFAB";
+import { useUIIntelligence } from "@/hooks/useUIIntelligence";
+
+function UIIntelligenceInitializer() {
+  useUIIntelligence();
+  return null;
+}
 
 export default function RootLayout({
   children,
@@ -72,6 +78,7 @@ export default function RootLayout({
           <GlobalBackground />
           <DaylightManager />
           <AIChatProvider>
+            <UIIntelligenceInitializer />
             {/* Global Header + Cmd+K palette — both managed by the client provider */}
             <CommandPaletteProvider />
 

@@ -567,9 +567,35 @@ export function useWebLLM() {
         }
     }, []);
 
+    const rawInference = useCallback(async (
+        messages: Message[],
+        max_tokens = 256
+    ) => {
+        let activeEngine = engineRef.current ?? sharedRuntime.engine ?? engine;
+        if (!activeEngine) return "";
+
+        const activeModelId = sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID;
+        
+        try {
+            const completion = await activeEngine.chat.completions.create({
+                model: activeModelId,
+                messages: messages as ChatCompletionMessageParam[],
+                stream: false,
+                temperature: 0.7,
+                max_tokens,
+            });
+
+            return completion.choices[0]?.message?.content || "";
+        } catch (error) {
+            console.error("Raw inference error:", error);
+            return "";
+        }
+    }, [engine]);
+
     return {
         loadModel,
         generateResponse,
+        rawInference,
         stopGeneration,
         resetChat,
         uninstallModel,

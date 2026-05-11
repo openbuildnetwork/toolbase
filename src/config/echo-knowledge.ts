@@ -70,10 +70,15 @@ const ECHO_DIRECTIVES = `
 - CRITICAL: Respond ONLY with the answer.
 </SYSTEM_DIRECTIVES>`;
 
-export function buildSystemPrompt(tools: ToolMeta[], currentRoute?: string): string {
+export function buildSystemPrompt(tools: ToolMeta[], currentRoute?: string, toolState?: any): string {
     const identity = "You are Echo, the Toolbase AI.";
     const context = generateUserContext(tools, currentRoute);
     const toolKnowledge = generateToolKnowledge(tools);
+
+    let stateContext = "";
+    if (toolState && Object.keys(toolState).length > 0) {
+        stateContext = `\n<TOOL_STATE>\nUser is currently interacting with tool data:\n${JSON.stringify(toolState, null, 2)}\n</TOOL_STATE>`;
+    }
 
     return `
 ${identity}
@@ -84,7 +89,7 @@ ${ECHO_CORE_KNOWLEDGE}
 
 ${toolKnowledge}
 
-${context}
+${context}${stateContext}
 
 IMPORTANT: Start your response directly. No preamble.
 `.trim();
