@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Editor } from "@monaco-editor/react";
+import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
 import { ArrowRightLeft, XCircle, CheckCircle2 } from "lucide-react";
 import { useActualTheme } from "@/hooks/useActualTheme";
 import { Button } from "@/components/ui/Button";

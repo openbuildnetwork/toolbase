@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef } from "react";
+import Image from "next/image";
 import { motion, useScroll, useTransform, Variants } from "framer-motion";
 import {
   Shield, Zap, Cpu, Lock, Globe, Heart, ArrowLeft,
@@ -146,16 +147,22 @@ export default function AboutPage() {
             className="flex flex-col items-center gap-2"
           >
             {/* Light mode logo */}
-            <img
+            <Image
               src="/assets/images/logo-dark.png"
               alt="Open Build Network"
-              className="h-10 theme-logo-light"
+              width={372}
+              height={136}
+              className="h-10 w-auto theme-logo-light"
+              priority
             />
             {/* Dark mode logo */}
-            <img
+            <Image
               src="/assets/images/logo-light.png"
               alt="Open Build Network"
-              className="h-10 theme-logo-dark"
+              width={479}
+              height={183}
+              className="h-10 w-auto theme-logo-dark"
+              priority
             />
             <span
               className="text-[11px] font-black uppercase tracking-[0.3em]"
