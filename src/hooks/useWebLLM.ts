@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import {
-    CreateWebWorkerMLCEngine,
+import type {
     MLCEngineInterface,
     InitProgressReport,
-    hasModelInCache,
-    type ChatCompletionMessageParam,
+    ChatCompletionMessageParam,
 } from "@mlc-ai/web-llm";
 
 /**
@@ -150,7 +148,7 @@ export function useWebLLM() {
         try {
             await engineInstance.reload(modelId);
             syncLoadedEngine(engineInstance, modelId);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to reload model:", error);
             sharedRuntime.modelId = null;
             setIsLoaded(false);
@@ -218,6 +216,9 @@ export function useWebLLM() {
         setProgressPercentage(0);
 
         sharedRuntime.modelId = modelId;
+        
+        const { CreateWebWorkerMLCEngine } = await import("@mlc-ai/web-llm");
+        
         const enginePromise = CreateWebWorkerMLCEngine(
             worker,
             modelId,
@@ -260,30 +261,36 @@ export function useWebLLM() {
     useEffect(() => {
         if (typeof window === "undefined") return;
 
-        if (sharedRuntime.engine) {
-            syncLoadedEngine(sharedRuntime.engine, sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID);
-            return;
-        }
+        // Defer heavy initial checks to avoid blocking LCP
+        const timer = setTimeout(async () => {
+            if (sharedRuntime.engine) {
+                syncLoadedEngine(sharedRuntime.engine, sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID);
+                return;
+            }
 
-        if (sharedRuntime.enginePromise) {
-            void loadModel(sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID, true);
-            return;
-        }
+            if (sharedRuntime.enginePromise) {
+                void loadModel(sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID, true);
+                return;
+            }
 
-        const installedFlag = localStorage.getItem("obn_ai_installed") === "true";
-        if (installedFlag) {
-            setIsInstalled(true);
-            void loadModel(DEFAULT_WEBLLM_MODEL_ID, true);
-            return;
-        }
+            const installedFlag = localStorage.getItem("obn_ai_installed") === "true";
+            if (installedFlag) {
+                setIsInstalled(true);
+                void loadModel(DEFAULT_WEBLLM_MODEL_ID, true);
+                return;
+            }
 
-        void hasModelInCache(DEFAULT_WEBLLM_MODEL_ID).then((cached) => {
-            if (!cached) return;
+            const { hasModelInCache } = await import("@mlc-ai/web-llm");
+            void hasModelInCache(DEFAULT_WEBLLM_MODEL_ID).then((cached) => {
+                if (!cached) return;
 
-            localStorage.setItem("obn_ai_installed", "true");
-            setIsInstalled(true);
-            void loadModel(DEFAULT_WEBLLM_MODEL_ID, true);
-        });
+                localStorage.setItem("obn_ai_installed", "true");
+                setIsInstalled(true);
+                void loadModel(DEFAULT_WEBLLM_MODEL_ID, true);
+            });
+        }, 2000); // 2 second delay to prioritize initial render
+
+        return () => clearTimeout(timer);
     }, [loadModel, syncLoadedEngine]);
 
     const generateResponse = useCallback(async (
