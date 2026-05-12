@@ -5,11 +5,13 @@ import { ToolSidebar, ToolSidebarItem } from "@/components/ui/ToolSidebar";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { cn } from "@/lib/utils";
 import type { DataFormat } from "@/lib/format-studio";
-import { ConvertStudio } from "@/components/features/format-studio/ConvertStudio";
-import { ValidatorStudio } from "@/components/features/format-studio/ValidatorStudio";
-import { FormatterStudio } from "@/components/features/format-studio/FormatterStudio";
-import { DiffLab } from "@/components/features/format-studio/DiffLab";
-import { GeneratorHub } from "@/components/features/format-studio/GeneratorHub";
+import dynamic from "next/dynamic";
+
+const ConvertStudio = dynamic(() => import("@/components/features/format-studio/ConvertStudio").then(mod => mod.ConvertStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const ValidatorStudio = dynamic(() => import("@/components/features/format-studio/ValidatorStudio").then(mod => mod.ValidatorStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const FormatterStudio = dynamic(() => import("@/components/features/format-studio/FormatterStudio").then(mod => mod.FormatterStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const DiffLab = dynamic(() => import("@/components/features/format-studio/DiffLab").then(mod => mod.DiffLab), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const GeneratorHub = dynamic(() => import("@/components/features/format-studio/GeneratorHub").then(mod => mod.GeneratorHub), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
 import {
   ArrowRightLeft,
   CheckCircle2,
