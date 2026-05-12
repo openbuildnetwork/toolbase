@@ -306,9 +306,6 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden sm:block">
-            <ModelPicker />
-          </div>
           <div className="relative">
             <Button
               variant="ghost"
@@ -563,7 +560,10 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
 
       <div className="relative z-10 border-t border-(--border-subtle) bg-(--surface-overlay)/90 p-3 backdrop-blur-xl md:p-4">
         <div className="mx-auto max-w-4xl">
-          <div className="rounded-[28px] border border-(--border-subtle) bg-(--surface-elevated)/95 p-2 shadow-[0_16px_50px_var(--shadow-color)] ring-1 ring-white/40 transition focus-within:border-blue-500/50 focus-within:ring-4 focus-within:ring-blue-500/10 dark:ring-white/5">
+          <div className="rounded-[32px] border border-(--border-subtle) bg-(--surface-elevated)/95 p-1.5 shadow-[0_16px_50px_var(--shadow-color)] ring-1 ring-white/40 transition focus-within:border-blue-500/50 focus-within:ring-4 focus-within:ring-blue-500/10 dark:ring-white/5">
+            <div className="px-2 pt-1 pb-0.5">
+              <ModelPicker />
+            </div>
             <div className="flex items-end gap-2">
               <textarea
                 ref={textareaRef}
