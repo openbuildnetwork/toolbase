@@ -1,15 +1,28 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useAIChat } from "@/hooks/useAIChat";
-import { OllamaSetup } from "@/components/ai/OllamaSetup";
-import { ChatInterface } from "@/components/ai/ChatInterface";
 import { cn } from "@/lib/utils";
 import { DEFAULT_WEBLLM_MODEL_ID } from "@/hooks/useWebLLM";
 
+const ChatInterface = dynamic(() => import("@/components/ai/ChatInterface").then(mod => mod.ChatInterface), {
+  loading: () => <div className="flex h-full w-full items-center justify-center">Loading Chat...</div>
+});
+
+const OllamaSetup = dynamic(() => import("@/components/ai/OllamaSetup").then(mod => mod.OllamaSetup), {
+  loading: () => <div className="flex h-full w-full items-center justify-center">Loading Setup...</div>
+});
+
 export function GlobalAIOverlay() {
   const { isOpen, closeChat, isLoaded, isInstalled } = useAIChat();
+  const [hasOpened, setHasOpened] = useState(false);
   const targetModel = DEFAULT_WEBLLM_MODEL_ID;
+
+  // Record if chat has ever been opened to keep it in DOM for transitions
+  useEffect(() => {
+    if (isOpen) setHasOpened(true);
+  }, [isOpen]);
 
   return (
     <>
@@ -28,17 +41,19 @@ export function GlobalAIOverlay() {
         )}
       >
         <div className="flex-1 overflow-hidden">
-          {(!isLoaded && !isInstalled) ? (
-            <div className="flex h-full w-full items-center p-4 py-8">
-              <div className="w-full">
-                <OllamaSetup targetModel={targetModel} onReady={() => {}} onClose={closeChat} />
+          {hasOpened && (
+            (!isLoaded && !isInstalled) ? (
+              <div className="flex h-full w-full items-center p-4 py-8">
+                <div className="w-full">
+                  <OllamaSetup targetModel={targetModel} onReady={() => {}} onClose={closeChat} />
+                </div>
               </div>
-            </div>
-          ) : (
-            <ChatInterface 
-              onClose={closeChat} 
-              onSetupRequired={() => {}} 
-            />
+            ) : (
+              <ChatInterface 
+                onClose={closeChat} 
+                onSetupRequired={() => {}} 
+              />
+            )
           )}
         </div>
       </div>

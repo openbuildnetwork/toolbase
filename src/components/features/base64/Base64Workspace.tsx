@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/Label';
 import { Input } from '@/components/ui/Input';
 import { FileDropZone } from '@/components/ui/FileDropZone';
 import { CopyToClipboard } from '@/components/ui/CopyToClipboard';
-import Editor from '@monaco-editor/react';
+import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
 import {
     FileText,
     FileCode,

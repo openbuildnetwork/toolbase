@@ -2,8 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useDataLens } from "@/hooks/useDataLens";
-import { JsonTreeViewer } from "./JsonTreeViewer";
-import { ChartBuilder } from "./ChartBuilder";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/Button";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import {
@@ -12,9 +11,12 @@ import {
     ScanSearch, PanelLeft, PanelLeftClose, Database, FileSpreadsheet, Trash2, Info, Plus
 } from "lucide-react";
 import Image from "next/image";
-import { SqlView } from "./SqlView";
-import { PythonView } from "./PythonView";
-import { DataView } from "./DataView";
+
+const JsonTreeViewer = dynamic(() => import("./JsonTreeViewer").then(mod => mod.JsonTreeViewer), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const ChartBuilder = dynamic(() => import("./ChartBuilder").then(mod => mod.ChartBuilder), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const SqlView = dynamic(() => import("./SqlView").then(mod => mod.SqlView), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const PythonView = dynamic(() => import("./PythonView").then(mod => mod.PythonView), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const DataView = dynamic(() => import("./DataView").then(mod => mod.DataView), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
 
 // ============================================================================
 // MAIN DATALENS VIEW - WHITE THEME

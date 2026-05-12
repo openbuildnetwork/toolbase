@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Editor } from "@monaco-editor/react";
+import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
 import { Button } from "@/components/ui/Button";
 import { Play, Database, FileSpreadsheet, HelpCircle, ChevronUp, ChevronDown, CheckCircle2, GripHorizontal } from "lucide-react";
 import { useTheme } from "next-themes";

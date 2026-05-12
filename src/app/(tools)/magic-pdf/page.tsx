@@ -1,19 +1,21 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import MergePdf from '@/components/features/magic-pdf/MergePdf';
-import SplitPdf from '@/components/features/magic-pdf/SplitPdf';
-import CompressPdf from '@/components/features/magic-pdf/CompressPdf';
-import RearrangePdf from '@/components/features/magic-pdf/RearrangePdf';
-import ProtectPdf from '@/components/features/magic-pdf/ProtectPdf';
-import UnlockPdf from '@/components/features/magic-pdf/UnlockPdf';
-import SignPdf from '@/components/features/magic-pdf/SignPdf';
-import EditPdf from '@/components/features/magic-pdf/EditPdf';
-import PdfToWord from '@/components/features/magic-pdf/PdfToWord';
-import PdfToImage from '@/components/features/magic-pdf/PdfToImage';
-import ImageToPdf from '@/components/features/magic-pdf/ImageToPdf';
-import HtmlToPdf from '@/components/features/magic-pdf/HtmlToPdf';
-import MaskPdf from '@/components/features/magic-pdf/MaskPdf';
+import dynamic from 'next/dynamic';
+
+const MergePdf = dynamic(() => import('@/components/features/magic-pdf/MergePdf'), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const SplitPdf = dynamic(() => import('@/components/features/magic-pdf/SplitPdf'), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const CompressPdf = dynamic(() => import('@/components/features/magic-pdf/CompressPdf'), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const RearrangePdf = dynamic(() => import('@/components/features/magic-pdf/RearrangePdf'), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const ProtectPdf = dynamic(() => import('@/components/features/magic-pdf/ProtectPdf'), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const UnlockPdf = dynamic(() => import('@/components/features/magic-pdf/UnlockPdf'), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const SignPdf = dynamic(() => import('@/components/features/magic-pdf/SignPdf'), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const EditPdf = dynamic(() => import('@/components/features/magic-pdf/EditPdf'), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const PdfToWord = dynamic(() => import('@/components/features/magic-pdf/PdfToWord'), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const PdfToImage = dynamic(() => import('@/components/features/magic-pdf/PdfToImage'), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const ImageToPdf = dynamic(() => import('@/components/features/magic-pdf/ImageToPdf'), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const HtmlToPdf = dynamic(() => import('@/components/features/magic-pdf/HtmlToPdf'), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const MaskPdf = dynamic(() => import('@/components/features/magic-pdf/MaskPdf'), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
 import {
   Merge,
   Scissors,

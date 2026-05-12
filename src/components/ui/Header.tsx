@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import React from 'react';
 import { Search, Command, MessageSquare, Sparkles, Clock, Heart, Github, Info } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
@@ -33,16 +34,16 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFav
                 <Link href="/" className="block shrink-0">
                     <div className="theme-logo-dark">
                         <div className='flex items-center gap-1.5 sm:gap-4'>
-                            <img className="h-4 sm:h-5" src="/assets/images/logo-light.png" alt="Toolbase logo" />
+                            <Image className="h-4 sm:h-5 w-auto" src="/assets/images/logo-light.png" alt="Toolbase logo" width={479} height={183} priority />
                             <span className="w-px h-4 sm:h-5 bg-white/30 rounded-full" />
-                            <img className="h-4 sm:h-5" src="/assets/images/logo-toolbase-light.png" alt="Toolbase logo" />
+                            <Image className="h-4 sm:h-5 w-auto" src="/assets/images/logo-toolbase-light.png" alt="Toolbase logo" width={867} height={188} priority />
                         </div>
                     </div>
                     <div className="theme-logo-light">
                         <div className='flex items-center gap-1.5 sm:gap-4'>
-                            <img className="h-4 sm:h-5" src="/assets/images/logo-dark.png" alt="Toolbase logo" />
+                            <Image className="h-4 sm:h-5 w-auto" src="/assets/images/logo-dark.png" alt="Toolbase logo" width={372} height={136} priority />
                             <span className="w-px h-4 sm:h-5 bg-gray-400/65 rounded-full" />
-                            <img className="h-4 sm:h-5" src="/assets/images/logo-toolbase-dark.png" alt="Toolbase logo" />
+                            <Image className="h-4 sm:h-5 w-auto" src="/assets/images/logo-toolbase-dark.png" alt="Toolbase logo" width={1390} height={355} priority />
                         </div>
                     </div>
                 </Link>
@@ -108,7 +109,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFav
                         }}
                     >
                         <div className="h-6 w-6 sm:h-7 sm:w-7 overflow-hidden rounded-full border border-blue-500/30 bg-blue-500/10 p-0.5 transition-transform duration-300 group-hover:scale-110">
-                            <img src="/assets/images/echo_basic.png" alt="Echo" className="h-full w-full object-cover" />
+                            <Image src="/assets/images/echo_basic.png" alt="Echo" width={985} height={922} className="h-full w-full object-cover" priority />
                         </div>
                         <div className="hidden sm:block text-[13px] font-bold tracking-tight" style={{ color: '#3457D5' }}>
                             Ask Echo ?

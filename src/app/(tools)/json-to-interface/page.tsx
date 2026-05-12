@@ -25,7 +25,7 @@ import { Label } from "@/components/ui/Label";
 import { generateModels } from "@/lib/json-to-interface";
 import Image from "next/image";
 import { appIcons } from "@/config/icons";
-import { Editor } from "@monaco-editor/react";
+import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { Tabs, TabItem } from "@/components/ui/Tabs";
