@@ -8,7 +8,7 @@ import { AIChatProvider } from "@/hooks/useAIChat";
 import { CommandPaletteProvider } from "../ui/CommandPaletteProvider";
 import { GlobalAIOverlay } from "@/components/ai/GlobalAIOverlay";
 
-import { LazyMotion, domMax } from 'framer-motion';
+import { LazyMotion, domAnimation } from 'framer-motion';
 
 export function ClientProviders({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -29,7 +29,7 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
     <ThemeProvider>
       <GlobalBackground />
       <DaylightManager />
-      <LazyMotion features={domMax} strict>
+      <LazyMotion features={domAnimation} strict>
         <AIChatProvider>
           {/* Global UI elements that need context */}
           <CommandPaletteProvider />
