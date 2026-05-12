@@ -73,10 +73,10 @@ export function workerForTool(toolId: string): WorkerClient | null {
 if (typeof window !== 'undefined') {
   const preloadWorkers = () => {
     magicPdfWorker.init().catch(console.error);
-    setTimeout(() => pixelsWorker.init().catch(console.error), 2000);
-    setTimeout(() => dataLensWorker.init().catch(console.error), 4000);
-    setTimeout(() => openDrawWorker.init().catch(console.error), 6000);
-    setTimeout(() => redactSecretsWorker.init().catch(console.error), 8000);
+    setTimeout(() => pixelsWorker.init().catch(console.error), 800);
+    setTimeout(() => dataLensWorker.init().catch(console.error), 1600);
+    setTimeout(() => openDrawWorker.init().catch(console.error), 2400);
+    setTimeout(() => redactSecretsWorker.init().catch(console.error), 3200);
   };
 
   if ('requestIdleCallback' in window) {

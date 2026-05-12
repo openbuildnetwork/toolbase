@@ -4,7 +4,6 @@ import React from "react";
 import { Shield, Trash2, AlertCircle, Cpu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/Button";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 
 import { useRedactSecrets } from "@/hooks/useRedactSecrets";
@@ -39,7 +38,7 @@ export default function RedactSecretsPage() {
             preview: content.slice(0, 500), // Only send a snippet for context
             maskingStyle,
             isProcessed: !!response,
-            stats: response?.stats || null
+            stats: response?.summary || null
         });
         return () => updateToolState(null);
     }, [content, maskingStyle, response, updateToolState]);

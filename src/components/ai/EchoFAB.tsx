@@ -20,6 +20,7 @@ export function EchoFAB() {
     isGenerating, 
     isLoading, 
     isLoaded, 
+    loadModel,
     progressPercentage,
     suggestions,
     isIdle
@@ -45,7 +46,7 @@ export function EchoFAB() {
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: i * 0.1 }}
                     onClick={toggleChat}
-                    className="px-4 py-2 rounded-2xl bg-blue-600 text-white text-sm font-medium shadow-xl hover:bg-blue-700 transition-colors whitespace-nowrap border border-blue-400/30"
+                    className="px-4 py-2 rounded-2xl bg-blue-600 text-white text-sm font-medium shadow-xl hover:bg-blue-700 transition-colors text-right max-w-[220px] border border-blue-400/30"
                   >
                     {text}
                   </motion.button>
@@ -60,6 +61,7 @@ export function EchoFAB() {
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
+            onMouseEnter={() => !isLoaded && !isLoading && loadModel(undefined, false, true)}
             onClick={toggleChat}
             className={cn(
               "relative flex h-14 w-14 items-center justify-center rounded-full shadow-2xl transition-all duration-300 pointer-events-auto",

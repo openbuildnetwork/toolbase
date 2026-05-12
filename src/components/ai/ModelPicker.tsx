@@ -75,12 +75,20 @@ export function ModelPicker() {
                             Recommended
                           </span>
                         )}
+                        <span className={cn(
+                          "text-[9px] px-1.5 py-0.5 rounded-sm uppercase font-bold tracking-wider",
+                          model.lowResource
+                            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                            : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                        )}>
+                          {model.lowResource ? "4GB Safe" : "Tight"}
+                        </span>
                       </div>
                       <div className="text-xs text-(--text-muted) mt-0.5 leading-relaxed group-hover:text-(--text-secondary) transition-colors">
                         {model.description}
                       </div>
                       <div className="text-[10px] text-(--text-faint) mt-1 font-mono">
-                        VRAM: ~{(model.vramMb / 1024).toFixed(1)} GB
+                        VRAM: ~{(model.vramMb / 1024).toFixed(1)} GB | Context: {model.contextWindowTokens.toLocaleString()} tokens
                       </div>
                     </div>
                   </button>

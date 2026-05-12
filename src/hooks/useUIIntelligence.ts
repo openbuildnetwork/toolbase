@@ -4,7 +4,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { useAIChat } from "./useAIChat";
 import { usePathname } from "next/navigation";
 
-const IDLE_TIMEOUT = 8000; // 8 seconds of inactivity
+const IDLE_TIMEOUT = 2000; // 2 seconds of inactivity
 
 /**
  * useUIIntelligence
@@ -51,34 +51,37 @@ export function useUIIntelligence() {
       isGeneratingRef.current = true;
       
       const contextPrompt = `
-You are Echo, a proactive UI assistant. Provide 2 extremely short (max 4 words each) helpful suggestions for the user based on their current state.
+You are Echo, a friendly and empathetic AI companion for the Toolbase platform. 
+Your goal is to offer a supportive "nudge" or a friendly comment to the user when they seem to be thinking or waiting.
 
-USER STATE:
-- Current Page: ${pathname}
-- Tool Context: ${JSON.stringify(toolState)}
-- UI Focus: ${uiContext?.targetElement || "none"} ${uiContext?.action || ""}
+USER CONTEXT:
+- Page: ${pathname}
+- Interaction: ${uiContext?.targetElement || "viewing"} ${uiContext?.action || ""}
+- Tool Data: ${JSON.stringify(toolState)}
 
-RULES:
-- Respond ONLY with a JSON array of strings.
-- Example: ["Redact now?", "Save to Vault?"]
-- No preamble. Just the JSON array.
+INSTRUCTIONS:
+- Provide 1 or 2 friendly, conversational suggestions or comments.
+- Tone: Helpful, companion-like, slightly casual.
+- CRITICAL: Mention the specific field or button if the user is focused on one (e.g., "Need help with the '${uiContext?.action || "field"}' input?").
+- Example: "Stuck on what secrets to hide?", "Hey, need a hand with the ${uiContext?.action || "input"}?", "Ready to redact those values?"
+- Format: Return ONLY a JSON array of strings. Max 8 words per string.
 `.trim();
 
       try {
         const response = await rawInference([
-          { role: "system", content: "You are a proactive UI assistant. Return JSON array only." },
+          { role: "system", content: "You are a friendly AI companion. Respond with a JSON array of short, conversational nudges." },
           { role: "user", content: contextPrompt }
-        ], 64);
+        ], 96);
 
         // Try to parse JSON array from response
-        const match = response.match(/\[.*\]/s);
+        const match = response.match(/\[[\s\S]*\]/);
         if (match) {
           try {
             const parsed = JSON.parse(match[0]);
             if (Array.isArray(parsed)) {
               setSuggestions(parsed.slice(0, 2));
             }
-          } catch (e) {
+        } catch {
             // If JSON parse fails, fallback to line splitting
             const lines = response.split("\n").filter(l => l.trim().length > 3).slice(0, 2);
             setSuggestions(lines.map(l => l.replace(/^[-*0-9."']+\s*/, "").replace(/[",\]]/g, "").trim()));
@@ -120,14 +123,14 @@ RULES:
     };
   }, [resetIdleTimer]);
 
-  // Track hover context
+  // Track hover and focus context
   useEffect(() => {
-    const handleMouseOver = (e: MouseEvent) => {
+    const handleInteraction = (e: Event) => {
       const target = e.target as HTMLElement;
       const button = target.closest("button");
-      const input = target.closest("input, textarea");
+      const input = target.closest("input, textarea") as HTMLInputElement | HTMLTextAreaElement;
 
-      let context: any = null;
+      let context: { targetElement: string; action: string } | null = null;
 
       if (button) {
         const text = button.innerText || button.getAttribute("aria-label") || button.title;
@@ -136,10 +139,14 @@ RULES:
           lastElementRef.current = text;
         }
       } else if (input) {
-        const placeholder = (input as HTMLInputElement).placeholder;
-        if (placeholder && placeholder !== lastElementRef.current) {
-          context = { targetElement: "input", action: `typing in ${placeholder}` };
-          lastElementRef.current = placeholder;
+        const label = document.querySelector(`label[for="${input.id}"]`)?.textContent || 
+                      input.placeholder || 
+                      input.name || 
+                      "this field";
+        
+        if (label && label !== lastElementRef.current) {
+          context = { targetElement: "input", action: label.trim() };
+          lastElementRef.current = label;
         }
       }
 
@@ -148,7 +155,12 @@ RULES:
       }
     };
 
-    window.addEventListener("mouseover", handleMouseOver);
-    return () => window.removeEventListener("mouseover", handleMouseOver);
+    window.addEventListener("mouseover", handleInteraction);
+    window.addEventListener("focusin", handleInteraction);
+    
+    return () => {
+      window.removeEventListener("mouseover", handleInteraction);
+      window.removeEventListener("focusin", handleInteraction);
+    };
   }, [setUIContext]);
 }

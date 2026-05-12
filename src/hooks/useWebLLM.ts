@@ -17,42 +17,90 @@ import {
  * and in-flight load promise alive across React remounts and route changes.
  */
 
-export const DEFAULT_WEBLLM_MODEL_ID = "Phi-3-mini-4k-instruct-q4f16_1-MLC";
-export const LIGHTWEIGHT_WEBLLM_MODEL_ID = "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC";
+export const DEFAULT_WEBLLM_MODEL_ID = "Llama-3.2-3B-Instruct-q4f16_1-MLC";
+export const LIGHTWEIGHT_WEBLLM_MODEL_ID = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC";
+export const EMERGENCY_WEBLLM_MODEL_ID = "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC";
+
+const APPROX_CHARS_PER_TOKEN = 4;
+const PROMPT_SAFETY_MARGIN_TOKENS = 256;
+const DEFAULT_CONTEXT_WINDOW_TOKENS = 4096;
+const DEFAULT_RESPONSE_MAX_TOKENS = 640;
 
 export interface WebLLMModel {
     id: string;
     name: string;
     description: string;
     vramMb: number;
+    contextWindowTokens: number;
+    responseMaxTokens: number;
+    lowResource: boolean;
     recommended?: boolean;
 }
 
 export const SUPPORTED_MODELS: WebLLMModel[] = [
     {
-        id: "Phi-3-mini-4k-instruct-q4f16_1-MLC",
-        name: "Phi-3 Mini (4K)",
-        description: "Fast, great for simple tasks. Low memory footprint.",
-        vramMb: 2048,
+        id: "Llama-3.2-3B-Instruct-q4f16_1-MLC",
+        name: "Llama 3.2 3B",
+        description: "Best 4GB default: strong quality with safer memory headroom.",
+        vramMb: 2264,
+        contextWindowTokens: 4096,
+        responseMaxTokens: 640,
+        lowResource: true,
         recommended: true,
     },
     {
-        id: "Llama-3.1-8B-Instruct-q4f32_1-MLC",
-        name: "Llama 3.1 8B",
-        description: "High quality, complex reasoning. Requires strong GPU.",
-        vramMb: 6144,
+        id: "Qwen2.5-3B-Instruct-q4f16_1-MLC",
+        name: "Qwen 2.5 3B",
+        description: "Good instruction following and coding within a 4GB budget.",
+        vramMb: 2505,
+        contextWindowTokens: 4096,
+        responseMaxTokens: 640,
+        lowResource: true,
     },
     {
-        id: "Qwen2.5-7B-Instruct-q4f16_1-MLC",
-        name: "Qwen 2.5 7B",
-        description: "Strong at coding and logic. Requires moderate GPU.",
-        vramMb: 5120,
+        id: "Phi-3-mini-4k-instruct-q4f16_1-MLC-1k",
+        name: "Phi-3 Mini (1K)",
+        description: "Phi quality with a shorter context for lower memory pressure.",
+        vramMb: 2520,
+        contextWindowTokens: 1024,
+        responseMaxTokens: 256,
+        lowResource: true,
+    },
+    {
+        id: "Qwen2.5-1.5B-Instruct-q4f16_1-MLC",
+        name: "Qwen 2.5 1.5B",
+        description: "Faster fallback with solid accuracy for short responses.",
+        vramMb: 1630,
+        contextWindowTokens: 4096,
+        responseMaxTokens: 512,
+        lowResource: true,
+    },
+    {
+        id: "Qwen2.5-0.5B-Instruct-q4f16_1-MLC",
+        name: "Qwen 2.5 0.5B",
+        description: "Lightweight fallback for low VRAM or busy GPUs.",
+        vramMb: 945,
+        contextWindowTokens: 4096,
+        responseMaxTokens: 384,
+        lowResource: true,
     },
     {
         id: "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC",
         name: "TinyLlama 1.1B",
-        description: "Fallback lightweight model. Very fast, lower accuracy.",
-        vramMb: 1024,
+        description: "Emergency fallback. Very fast, lower answer quality.",
+        vramMb: 697,
+        contextWindowTokens: 2048,
+        responseMaxTokens: 256,
+        lowResource: true,
+    },
+    {
+        id: "Phi-3-mini-4k-instruct-q4f16_1-MLC",
+        name: "Phi-3 Mini (4K)",
+        description: "Higher Phi context, but tight on 4GB GPUs.",
+        vramMb: 3672,
+        contextWindowTokens: 4096,
+        responseMaxTokens: 512,
+        lowResource: false,
     }
 ];
 
@@ -85,6 +133,86 @@ function getLoadedModelIds(engineInstance: MLCEngineInterface | null) {
 
 function engineHasModel(engineInstance: MLCEngineInterface | null, modelId: string) {
     return getLoadedModelIds(engineInstance).includes(modelId);
+}
+
+function getModelProfile(modelId: string | null) {
+    return SUPPORTED_MODELS.find((model) => model.id === modelId) || SUPPORTED_MODELS[0];
+}
+
+function estimateTokenCount(text: string) {
+    return Math.ceil(text.length / APPROX_CHARS_PER_TOKEN);
+}
+
+function trimToTokenBudget(content: string, tokenBudget: number) {
+    if (tokenBudget <= 0) return "";
+    const maxChars = tokenBudget * APPROX_CHARS_PER_TOKEN;
+    if (content.length <= maxChars) return content;
+    return content.slice(-maxChars);
+}
+
+function trimSystemPromptToBudget(content: string, tokenBudget: number) {
+    if (tokenBudget <= 0) return "";
+
+    const maxChars = tokenBudget * APPROX_CHARS_PER_TOKEN;
+    if (content.length <= maxChars) return content;
+
+    const marker = "\n\n[System prompt compacted to fit the local model context.]\n\n";
+    const usableChars = Math.max(0, maxChars - marker.length);
+    const headChars = Math.floor(usableChars * 0.58);
+    const tailChars = usableChars - headChars;
+
+    const tail = tailChars > 0 ? content.slice(-tailChars) : "";
+    return `${content.slice(0, headChars)}${marker}${tail}`;
+}
+
+function fitMessagesToModel(messages: Message[], modelId: string) {
+    const profile = getModelProfile(modelId);
+    const contextWindow = profile.contextWindowTokens || DEFAULT_CONTEXT_WINDOW_TOKENS;
+    const responseMaxTokens = profile.responseMaxTokens || DEFAULT_RESPONSE_MAX_TOKENS;
+    const promptBudget = Math.max(
+        256,
+        contextWindow - responseMaxTokens - PROMPT_SAFETY_MARGIN_TOKENS,
+    );
+
+    const systemMessages = messages.filter((message) => message.role === "system");
+    const latestSystemMessage = systemMessages.at(-1);
+    const systemPromptBudget = latestSystemMessage ? Math.floor(promptBudget * 0.62) : 0;
+    const systemMessageForModel = latestSystemMessage
+        ? {
+            ...latestSystemMessage,
+            content: trimSystemPromptToBudget(latestSystemMessage.content, systemPromptBudget),
+        }
+        : undefined;
+    const chatMessages = messages.filter((message) => message.role !== "system");
+    const fittedChatMessages: Message[] = [];
+
+    let remainingTokens = promptBudget;
+    if (systemMessageForModel) {
+        const systemTokenCost = estimateTokenCount(systemMessageForModel.content) + 16;
+        remainingTokens -= systemTokenCost;
+    }
+
+    for (let index = chatMessages.length - 1; index >= 0; index -= 1) {
+        const message = chatMessages[index];
+        const messageTokenCost = estimateTokenCount(message.content) + 8;
+
+        if (messageTokenCost <= remainingTokens) {
+            fittedChatMessages.unshift(message);
+            remainingTokens -= messageTokenCost;
+            continue;
+        }
+
+        if (message.role === "user" && fittedChatMessages.length === 0) {
+            fittedChatMessages.unshift({
+                ...message,
+                content: trimToTokenBudget(message.content, Math.max(64, remainingTokens - 8)),
+            });
+        }
+
+        break;
+    }
+
+    return systemMessageForModel ? [systemMessageForModel, ...fittedChatMessages] : fittedChatMessages;
 }
 
 function isWebLLMAbortError(error: unknown) {
@@ -147,6 +275,13 @@ function isWebLLMModelNotLoadedError(error: unknown) {
         message.includes("is not loaded with a model") ||
         message.includes("is not found in loaded models")
     );
+}
+
+function getFallbackModelId(modelId: string, error: unknown) {
+    if (!isWebLLMDeviceLostError(error)) return null;
+    if (modelId === EMERGENCY_WEBLLM_MODEL_ID) return null;
+    if (modelId === LIGHTWEIGHT_WEBLLM_MODEL_ID) return EMERGENCY_WEBLLM_MODEL_ID;
+    return LIGHTWEIGHT_WEBLLM_MODEL_ID;
 }
 
 function getOrCreateWorker(forceReload = false) {
@@ -307,6 +442,8 @@ export function useWebLLM() {
 
         sharedRuntime.enginePromise = enginePromise;
 
+        let fallbackModelId: string | null = null;
+
         try {
             const engineInstance = await enginePromise;
             syncLoadedEngine(engineInstance, modelId);
@@ -334,11 +471,18 @@ export function useWebLLM() {
             sharedRuntime.error = errorMsg;
             setProgress(errorMsg);
             sharedRuntime.modelId = null;
+            fallbackModelId = getFallbackModelId(modelId, error);
         } finally {
             if (sharedRuntime.enginePromise === enginePromise) {
                 sharedRuntime.enginePromise = null;
             }
             setIsLoading(false);
+        }
+
+        if (fallbackModelId) {
+            const fallbackProfile = getModelProfile(fallbackModelId);
+            setProgress(`GPU memory pressure detected. Switching to ${fallbackProfile.name}...`);
+            await loadModel(fallbackModelId, true, background);
         }
     }, [reloadEngine, syncLoadedEngine]);
 
@@ -351,14 +495,14 @@ export function useWebLLM() {
         }
 
         if (sharedRuntime.enginePromise) {
-            void loadModel(sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID, false);
+            void loadModel(sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID, false, true);
             return;
         }
 
         const installedFlag = localStorage.getItem("obn_ai_installed") === "true";
         if (installedFlag) {
             setIsInstalled(true);
-            void loadModel(DEFAULT_WEBLLM_MODEL_ID, false);
+            void loadModel(DEFAULT_WEBLLM_MODEL_ID, false, true);
             return;
         }
 
@@ -367,7 +511,7 @@ export function useWebLLM() {
 
             localStorage.setItem("obn_ai_installed", "true");
             setIsInstalled(true);
-            void loadModel(DEFAULT_WEBLLM_MODEL_ID, false);
+            void loadModel(DEFAULT_WEBLLM_MODEL_ID, false, true);
         });
     }, [loadModel, syncLoadedEngine]);
 
@@ -391,6 +535,9 @@ export function useWebLLM() {
             await reloadEngine(activeEngine, activeModelId, true);
         }
 
+        const modelProfile = getModelProfile(activeModelId);
+        const messagesForModel = fitMessagesToModel(messages, activeModelId) as ChatCompletionMessageParam[];
+
         setIsGenerating(true);
         stopRequestedRef.current = false;
         let resolveGenerationDone!: () => void;
@@ -403,10 +550,10 @@ export function useWebLLM() {
         const streamCompletion = async () => {
             const completion = await activeEngine!.chat.completions.create({
                 model: activeModelId,
-                messages: messages as ChatCompletionMessageParam[],
+                messages: messagesForModel,
                 stream: true,
                 temperature: 0.7,
-                max_tokens: 1024,
+                max_tokens: modelProfile.responseMaxTokens,
                 presence_penalty: 0.0,
                 frequency_penalty: 0.0,
             });
@@ -571,18 +718,20 @@ export function useWebLLM() {
         messages: Message[],
         max_tokens = 256
     ) => {
-        let activeEngine = engineRef.current ?? sharedRuntime.engine ?? engine;
+        const activeEngine = engineRef.current ?? sharedRuntime.engine ?? engine;
         if (!activeEngine) return "";
 
         const activeModelId = sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID;
+        const modelProfile = getModelProfile(activeModelId);
+        const messagesForModel = fitMessagesToModel(messages, activeModelId) as ChatCompletionMessageParam[];
         
         try {
             const completion = await activeEngine.chat.completions.create({
                 model: activeModelId,
-                messages: messages as ChatCompletionMessageParam[],
+                messages: messagesForModel,
                 stream: false,
                 temperature: 0.7,
-                max_tokens,
+                max_tokens: Math.min(max_tokens, modelProfile.responseMaxTokens),
             });
 
             return completion.choices[0]?.message?.content || "";

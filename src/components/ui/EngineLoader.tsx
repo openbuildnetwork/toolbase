@@ -63,7 +63,7 @@ export function EngineLoader({
         if (isReady) return;
         const interval = setInterval(() => {
             setMsgIndex(i => Math.min(i + 1, msgs.length - 1));
-        }, 1600);
+        }, 1000);
         return () => clearInterval(interval);
     }, [isReady, msgs.length]);
 
