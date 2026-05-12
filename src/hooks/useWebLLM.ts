@@ -262,6 +262,7 @@ export function useWebLLM() {
     // The engine will now only initialize when loadModel() is explicitly called (e.g., when opening chat).
 
 
+
     const generateResponse = useCallback(async (
         messages: Message[],
         onToken?: (token: string) => void,
