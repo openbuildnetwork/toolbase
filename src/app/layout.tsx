@@ -63,13 +63,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://unpkg.com" />
         <link rel="preconnect" href="https://api.allorigins.win" />
-        
-        {/* Preload the most likely LCP candidate (note-vault) */}
-        <link rel="preload" as="image" href="/assets/thumbnails/note-vault.png" />
 
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
           rel="stylesheet"
+          media="print"
+          // @ts-ignore
+          onLoad="this.media='all'"
         />
         {/* PWA */}
         <link rel="manifest" href="/manifest.json" />

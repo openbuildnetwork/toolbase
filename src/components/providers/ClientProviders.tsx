@@ -7,6 +7,7 @@ import { DaylightManager } from "../ui/DaylightManager";
 import { AIChatProvider } from "@/hooks/useAIChat";
 import { CommandPaletteProvider } from "../ui/CommandPaletteProvider";
 import { GlobalAIOverlay } from "@/components/ai/GlobalAIOverlay";
+import { WorkerPrewarmer } from "./WorkerPrewarmer";
 
 import { LazyMotion, domAnimation } from 'framer-motion';
 
@@ -29,6 +30,7 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
     <ThemeProvider>
       <GlobalBackground />
       <DaylightManager />
+      <WorkerPrewarmer />
       <LazyMotion features={domAnimation} strict>
         <AIChatProvider>
           {/* Global UI elements that need context */}
@@ -37,6 +39,9 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
           <GlobalAIOverlay />
         </AIChatProvider>
       </LazyMotion>
+    </ThemeProvider>
+  );
+}
     </ThemeProvider>
   );
 }
