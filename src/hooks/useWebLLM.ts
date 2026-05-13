@@ -258,40 +258,9 @@ export function useWebLLM() {
         }
     }, [reloadEngine, syncLoadedEngine]);
 
-    useEffect(() => {
-        if (typeof window === "undefined") return;
+    // Removed auto-loading useEffect to prevent blocking initial LCP with AI worker initialization.
+    // The engine will now only initialize when loadModel() is explicitly called (e.g., when opening chat).
 
-        // Defer heavy initial checks to avoid blocking LCP
-        const timer = setTimeout(async () => {
-            if (sharedRuntime.engine) {
-                syncLoadedEngine(sharedRuntime.engine, sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID);
-                return;
-            }
-
-            if (sharedRuntime.enginePromise) {
-                void loadModel(sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID, true);
-                return;
-            }
-
-            const installedFlag = localStorage.getItem("obn_ai_installed") === "true";
-            if (installedFlag) {
-                setIsInstalled(true);
-                void loadModel(DEFAULT_WEBLLM_MODEL_ID, true);
-                return;
-            }
-
-            const { hasModelInCache } = await import("@mlc-ai/web-llm");
-            void hasModelInCache(DEFAULT_WEBLLM_MODEL_ID).then((cached) => {
-                if (!cached) return;
-
-                localStorage.setItem("obn_ai_installed", "true");
-                setIsInstalled(true);
-                void loadModel(DEFAULT_WEBLLM_MODEL_ID, true);
-            });
-        }, 2000); // 2 second delay to prioritize initial render
-
-        return () => clearTimeout(timer);
-    }, [loadModel, syncLoadedEngine]);
 
     const generateResponse = useCallback(async (
         messages: Message[],
