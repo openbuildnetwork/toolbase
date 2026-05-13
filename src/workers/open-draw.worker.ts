@@ -130,5 +130,5 @@ self.onmessage = async (event: MessageEvent) => {
     }
 };
 
-// Start initialization immediately to begin pre-warming as soon as the worker spawns
-initPyodide().catch(console.error);
+// Removed top-level initialization to prevent background loading on the home page.
+// initPyodide().catch(console.error);

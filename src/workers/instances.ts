@@ -60,32 +60,9 @@ export function workerForTool(toolId: string): WorkerClient | null {
 
 // ─── Idle Pre-Warm ────────────────────────────────────────────────────────────
 
-/**
- * Pre-warm all heavy WASM runtimes silently in the background
- * after the main application has finished loading its initial paint.
- *
- * Staggered by 2 s each to avoid CPU spikes at startup.
- * Order is heaviest → lightest (magic-pdf installs PyMuPDF + Pillow).
- *
- * If the user adds a node first, `workerForTool` triggers init earlier
- * and this becomes a no-op (WorkerClient.init() is idempotent).
- */
-if (typeof window !== 'undefined') {
-  const preloadWorkers = () => {
-    magicPdfWorker.init().catch(console.error);
-    setTimeout(() => pixelsWorker.init().catch(console.error), 2000);
-    setTimeout(() => dataLensWorker.init().catch(console.error), 4000);
-    setTimeout(() => openDrawWorker.init().catch(console.error), 6000);
-    setTimeout(() => redactSecretsWorker.init().catch(console.error), 8000);
-  };
+// Background pre-warming is disabled on the home page to maximize TBT/LCP performance.
+// Workers will initialize lazily when a tool is actually opened or a node is added to the pipeline.
 
-  if ('requestIdleCallback' in window) {
-    const ric = window.requestIdleCallback as (cb: () => void, opts?: { timeout: number }) => void;
-    ric(preloadWorkers, { timeout: 5000 });
-  } else {
-    setTimeout(preloadWorkers, 3000);
-  }
-}
 
 import { useEffect, useState } from 'react';
 
