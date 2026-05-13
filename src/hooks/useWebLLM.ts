@@ -232,11 +232,14 @@ export function useWebLLM() {
         }
 
         const supportStatus = await checkWebGPUSupport();
-        if (!supportStatus.supported) {
-            const msg = supportStatus.message || "WebGPU is not available.";
-            setError(msg);
-            setProgress(msg);
-            return;
+        let useWasmFallback = !supportStatus.supported;
+        
+        // If no WebGPU, we MUST use the lightweight model to prevent hanging the CPU
+        const targetModelId = useWasmFallback ? LIGHTWEIGHT_WEBLLM_MODEL_ID : modelId;
+
+        if (useWasmFallback) {
+            console.warn("WebGPU not found. Falling back to WASM (CPU) mode. Performance will be limited.");
+            setProgress("Starting in Compatibility Mode (CPU)...");
         }
 
         const worker = getOrCreateWorker();
@@ -250,13 +253,13 @@ export function useWebLLM() {
         setProgress(background ? "Restoring local AI from browser cache..." : "Initializing WebGPU...");
         setProgressPercentage(0);
 
-        sharedRuntime.modelId = modelId;
+        sharedRuntime.modelId = targetModelId;
         
         const { CreateWebWorkerMLCEngine } = await import("@mlc-ai/web-llm");
         
         const enginePromise = CreateWebWorkerMLCEngine(
             worker,
-            modelId,
+            targetModelId,
             {
                 initProgressCallback: (report: InitProgressReport) => {
                     setProgress(report.text);
@@ -274,13 +277,13 @@ export function useWebLLM() {
 
         try {
             const engineInstance = await enginePromise;
-            syncLoadedEngine(engineInstance, modelId);
+            syncLoadedEngine(engineInstance, targetModelId);
         } catch (error) {
             console.error("Failed to load model:", error);
             const isDeviceLost = isWebLLMDeviceLostError(error);
             const errorMsg = isDeviceLost 
                 ? "GPU Device Lost: Your hardware might be struggling. Try closing other tabs or using the lightweight model."
-                : "Error: Failed to load model. Ensure your browser supports WebGPU.";
+                : "Error: Failed to load model. Ensure your browser supports WebGPU or try Compatibility Mode.";
             setError(errorMsg);
             sharedRuntime.error = errorMsg;
             setProgress(errorMsg);
