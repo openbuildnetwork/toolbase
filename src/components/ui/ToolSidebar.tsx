@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import {
     Search,
     Menu,
@@ -54,7 +54,7 @@ export const ToolSidebar = ({
             {/* Mobile Overlay */}
             <AnimatePresence>
                 {isOpen && (
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -65,7 +65,7 @@ export const ToolSidebar = ({
             </AnimatePresence>
 
             {/* Sidebar */}
-            <motion.aside
+            <m.aside
                 initial={false}
                 animate={{
                     width: isOpen ? 280 : 0,
@@ -139,12 +139,12 @@ export const ToolSidebar = ({
                         {title} {version}
                     </div>
                 </div>
-            </motion.aside>
+            </m.aside>
 
             {/* Floating Toggle Button - only visible when closed */}
             <AnimatePresence>
                 {!isOpen && (
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
@@ -156,7 +156,7 @@ export const ToolSidebar = ({
                         >
                             <SidebarIcon className="w-4 h-4" />
                         </button>
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </>

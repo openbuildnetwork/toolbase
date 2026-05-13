@@ -16,7 +16,7 @@
  * zero code duplication between the two use-cases.
  */
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { FileUploader } from '@/components/ui/FileUploader';
 import { PdfPreview } from '@/components/ui/PdfPreview';
 import { Button } from '@/components/ui/Button';
@@ -123,7 +123,7 @@ export default function MergePdf({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             <AnimatePresence>
                 {files.map((file, index) => (
-                    <motion.div
+                    <m.div
                         key={`${file.name}-${index}`}
                         layout
                         initial={{ opacity: 0, scale: 0.9, y: 10 }}
@@ -212,7 +212,7 @@ export default function MergePdf({
                             {/* Hover glow effect */}
                             <div className="absolute inset-0 bg-linear-to-t from-(--primary)/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                         </Card>
-                    </motion.div>
+                    </m.div>
                 ))}
             </AnimatePresence>
         </div>
@@ -221,7 +221,7 @@ export default function MergePdf({
     // ── Workspace (files loaded) ──────────────────────────────────────────────────
 
     const workspace = (
-        <motion.div
+        <m.div
             key="workspace"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -281,7 +281,7 @@ export default function MergePdf({
                 <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-20">
                     <AnimatePresence>
                         {files.length > 0 && !mergedPdfUrl && (
-                            <motion.div
+                            <m.div
                                 initial={{ y: 100, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 exit={{ y: 100, opacity: 0 }}
@@ -303,18 +303,18 @@ export default function MergePdf({
                                         </div>
                                     )}
                                 </Button>
-                            </motion.div>
+                            </m.div>
                         )}
                     </AnimatePresence>
                 </div>
             )}
-        </motion.div>
+        </m.div>
     );
 
     // ── Empty state (upload prompt) ───────────────────────────────────────────────
 
     const uploadPrompt = (
-        <motion.div
+        <m.div
             key="upload"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -333,14 +333,14 @@ export default function MergePdf({
                 </div>
                 <FileUploader onFilesSelected={addFiles} accept=".pdf,application/pdf" multiple className="max-w-2xl mx-auto" />
             </Card>
-        </motion.div>
+        </m.div>
     );
 
     // ── Standalone: merged result overlay ────────────────────────────────────────
 
     const resultOverlay = !isInteractionMode && mergedPdfUrl && (
         <AnimatePresence>
-            <motion.div
+            <m.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
@@ -371,7 +371,7 @@ export default function MergePdf({
                         </a>
                     </div>
                 </Card>
-            </motion.div>
+            </m.div>
         </AnimatePresence>
     );
 

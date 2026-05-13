@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface EmptyStateProps {
@@ -73,7 +73,7 @@ export function EmptyState({
     }, [onFileSelect]);
 
     return (
-        <motion.div
+        <m.div
             initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -90,7 +90,7 @@ export function EmptyState({
             onDrop={handleDrop}
         >
             {/* Animated Icon */}
-            <motion.div
+            <m.div
                 animate={isDragging ? { scale: 1.15, rotate: -4 } : { scale: 1, rotate: 0 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 18 }}
                 className={cn(
@@ -105,7 +105,7 @@ export function EmptyState({
                 }}
             >
                 {icon}
-            </motion.div>
+            </m.div>
 
             {/* Text */}
             <div className="space-y-2 max-w-xs">
@@ -146,12 +146,12 @@ export function EmptyState({
 
             {/* Drag overlay label */}
             {isDragging && (
-                <motion.div
+                <m.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="absolute inset-0 rounded-3xl border-2 border-primary/40 pointer-events-none"
                 />
             )}
-        </motion.div>
+        </m.div>
     );
 }

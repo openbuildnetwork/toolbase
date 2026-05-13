@@ -4,7 +4,7 @@ import NextImage from 'next/image';
 import SearchBar from "../components/ui/SearchBar";
 import ToolGrid from "../components/ui/ToolGrid";
 import { useState, useMemo } from 'react';
-import { motion, Variants } from 'framer-motion';
+import { m, Variants } from 'framer-motion';
 import BottomNav from "../components/ui/BottomNav";
 import Header from '@/components/ui/Header';
 import Footer from '@/components/ui/Footer';
@@ -77,13 +77,13 @@ export default function Home() {
           <div className="max-w-[1200px] mx-auto">
 
             {/* Animated High-Impact Headline */}
-            <motion.div
+            <m.div
               variants={containerVariants}
               initial="hidden"
               animate="visible"
               className="mb-16 md:mb-24"
             >
-              <motion.h1
+              <m.h1
                 variants={itemVariants}
                 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-extrabold tracking-tight text-center leading-[1] md:leading-[0.9]"
               >
@@ -93,18 +93,18 @@ export default function Home() {
                 <span className="block text-transparent bg-clip-text bg-gradient-to-br from-primary/80 via-blue-600 to-indigo-500 pb-4">
                   Your browser.
                 </span>
-              </motion.h1>
+              </m.h1>
 
-              <motion.p
+              <m.p
                 variants={itemVariants}
                 className="text-center text-lg md:text-2xl lg:text-3xl font-medium opacity-80 max-w-2xl mx-auto mt-4 md:mt-6"
                 style={{ color: 'var(--text-secondary)' }}
               >
                 No servers, no tracking, no compromise.
-              </motion.p>
-            </motion.div>
+              </m.p>
+            </m.div>
 
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 1 }}
@@ -116,7 +116,7 @@ export default function Home() {
               <div className="w-full max-w-[500px] md:w-auto">
                 <TryPipelineButton />
               </div>
-            </motion.div>
+            </m.div>
 
             <div id="tool-grid-section">
               <ToolGrid searchQuery={searchQuery} tools={tools} />

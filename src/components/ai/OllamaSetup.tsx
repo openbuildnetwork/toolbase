@@ -4,7 +4,7 @@ import { DEFAULT_WEBLLM_MODEL_ID, LIGHTWEIGHT_WEBLLM_MODEL_ID } from "@/hooks/us
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { RefreshCw, Cpu, ShieldCheck, Sparkles, X, AlertTriangle, RotateCcw, Zap } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 
 interface OllamaSetupProps {
   onReady?: () => void;
@@ -25,7 +25,7 @@ export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MOD
     <div className="relative w-full max-w-md mx-auto h-full flex flex-col justify-center">
       <AnimatePresence mode="wait">
         {isLoading ? (
-          <motion.div
+          <m.div
             key="loading"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -44,7 +44,7 @@ export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MOD
                   <h3 className="text-xl font-bold text-(--text-primary)">Booting Engine</h3>
                   <div className="w-full space-y-4">
                     <div className="h-2 w-full bg-blue-500/10 rounded-full overflow-hidden border border-blue-500/10">
-                       <motion.div 
+                       <m.div 
                           initial={{ width: 0 }}
                           animate={{ width: `${progressPercentage}%` }}
                           className="h-full bg-linear-to-r from-blue-500 to-indigo-500 shadow-[0_0_12px_rgba(59,130,246,0.4)]"
@@ -61,7 +61,7 @@ export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MOD
                 </div>
 
                 {error && (
-                  <motion.div 
+                  <m.div 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="w-full space-y-4 pt-2"
@@ -98,13 +98,13 @@ export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MOD
                         </Button>
                       )}
                     </div>
-                  </motion.div>
+                  </m.div>
                 )}
               </CardContent>
             </Card>
-          </motion.div>
+          </m.div>
         ) : (
-          <motion.div
+          <m.div
             key="setup"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -165,7 +165,7 @@ export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MOD
                     <span className="text-blue-500">Phi-3 Mini (4-bit)</span>
                   </div>
                   <div className="h-1.5 w-full bg-(--surface-hover) rounded-full overflow-hidden">
-                     <motion.div 
+                     <m.div 
                         initial={{ x: "-100%" }}
                         animate={{ x: "0%" }}
                         transition={{ duration: 1, ease: "easeOut" }}
@@ -184,7 +184,7 @@ export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MOD
                 </Button>
               </CardFooter>
             </Card>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

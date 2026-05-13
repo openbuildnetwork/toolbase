@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { FileUploader } from '@/components/ui/FileUploader';
 import { Button } from '@/components/ui/Button';
 import {
@@ -428,7 +428,7 @@ export default function MaskPdf({
         <div className="w-full max-w-7xl mx-auto space-y-8 h-full flex flex-col">
             <AnimatePresence mode="wait">
                 {!file ? (
-                    <motion.div key="upload" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="flex-1 flex flex-col items-center justify-center p-4">
+                    <m.div key="upload" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="flex-1 flex flex-col items-center justify-center p-4">
                         <Card className="max-w-3xl w-full p-12 border-none shadow-2xl bg-surface-elevated/50 backdrop-blur-xl">
                             <div className="text-center mb-10">
                                 <div className="inline-flex items-center justify-center w-20 h-20 bg-red-50 rounded-3xl mb-6 shadow-inner">
@@ -443,9 +443,9 @@ export default function MaskPdf({
                             </div>
                             <FileUploader onFilesSelected={handleFileSelected} accept=".pdf" multiple={false} className="max-w-xl mx-auto" />
                         </Card>
-                    </motion.div>
+                    </m.div>
                 ) : (
-                    <motion.div key="workspace" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-6 h-full flex-1 min-h-0">
+                    <m.div key="workspace" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-6 h-full flex-1 min-h-0">
                         <div className="flex flex-1 gap-6 min-h-0 relative">
                             {/* Left Viewport */}
                             <div className="flex-1 bg-surface-secondary/50 rounded-3xl flex flex-col overflow-hidden border border-border-medium/50 shadow-inner relative group">
@@ -632,7 +632,7 @@ export default function MaskPdf({
 
                         {resultPdfUrl && (
                             <div className="absolute inset-0 bg-surface-elevated/60 backdrop-blur-2xl z-[100] flex items-center justify-center p-8">
-                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md w-full bg-surface-elevated rounded-3xl p-10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] text-center space-y-8 border border-border-subtle">
+                                <m.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md w-full bg-surface-elevated rounded-3xl p-10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] text-center space-y-8 border border-border-subtle">
                                     <div className="w-20 h-20 bg-green-500/5 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
                                         <CheckCircle className="w-10 h-10 text-green-500" />
                                     </div>
@@ -644,10 +644,10 @@ export default function MaskPdf({
                                         <a href={resultPdfUrl} download={`${file.name.replace('.pdf', '')}_masked.pdf`} className="flex-1"><Button className="w-full h-14 rounded-2xl text-lg"><Download className="w-5 h-5 mr-2" /> Download</Button></a>
                                         <Button variant="ghost" className="h-14 rounded-2xl px-6" onClick={() => setResultPdfUrl(null)}>Close</Button>
                                     </div>
-                                </motion.div>
+                                </m.div>
                             </div>
                         )}
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </div>

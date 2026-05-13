@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { TIPInteractionProps } from '@/tip/protocol';
 import { Check, X, FileText, AlertCircle, Eye, Download } from 'lucide-react';
 import { PdfPreview } from '@/components/ui/PdfPreview';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 
 /**
  * HumanReviewInteraction — The UI for the Human Review (Gate) node.

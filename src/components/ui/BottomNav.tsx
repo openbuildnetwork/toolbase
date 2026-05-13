@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence, useScroll, useMotionValueEvent, Variants } from 'framer-motion';
+import { m, AnimatePresence, useScroll, useMotionValueEvent, Variants } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ToolCardProps } from '@/types/tool-search';
@@ -126,7 +126,7 @@ export default function BottomNav({ tools, className, triggerId = "tool-grid-sec
     return (
         <AnimatePresence>
             {isVisible && (
-                <motion.div
+                <m.div
                     variants={variants}
                     initial="hidden"
                     animate="visible"
@@ -137,6 +137,7 @@ export default function BottomNav({ tools, className, triggerId = "tool-grid-sec
                         "bg-black/10 backdrop-blur-sm border border-white/30",
                         "flex items-center gap-2",
                         "will-change-transform origin-center", // GPU hint
+                        "max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-hide",
                         className
                     )}
                 >
@@ -144,7 +145,7 @@ export default function BottomNav({ tools, className, triggerId = "tool-grid-sec
                     <div className="flex items-center">
                         <AnimatePresence mode="wait">
                             {!isSearchOpen ? (
-                                <motion.button
+                                <m.button
                                     key="search-icon"
                                     layout
                                     initial={{ scale: 0.8, opacity: 0 }}
@@ -156,9 +157,9 @@ export default function BottomNav({ tools, className, triggerId = "tool-grid-sec
                                     className="p-2 rounded-xl hover:bg-black/20 cursor-pointer transition-colors text-black/80"
                                 >
                                     <Search size={20} />
-                                </motion.button>
+                                </m.button>
                             ) : (
-                                <motion.div
+                                <m.div
                                     key="search-input"
                                     layout
                                     initial={{ width: 0, opacity: 0 }}
@@ -185,7 +186,7 @@ export default function BottomNav({ tools, className, triggerId = "tool-grid-sec
                                     >
                                         <X size={14} className="text-black/60" />
                                     </button>
-                                </motion.div>
+                                </m.div>
                             )}
                         </AnimatePresence>
                     </div>
@@ -198,7 +199,7 @@ export default function BottomNav({ tools, className, triggerId = "tool-grid-sec
                         {filteredTools.map((tool) => {
                             const isActive = pathname === `/tools/${tool.toolFolderName}`;
                             return (
-                                <motion.div
+                                <m.div
                                     key={tool.title}
                                     layout
                                     initial={{ scale: 0, opacity: 0, width: 0 }}
@@ -211,7 +212,7 @@ export default function BottomNav({ tools, className, triggerId = "tool-grid-sec
                                         title={tool.title}
                                         className="relative group p-2 rounded-xl transition-colors block"
                                     >
-                                        <motion.div
+                                        <m.div
                                             className="relative w-10 h-10 origin-bottom"
                                             whileHover={{ scale: 1.25, transition: { type: "spring", stiffness: 400, damping: 15 } }}
                                             whileTap={{ scale: 0.9, transition: { duration: 0.1 } }}
@@ -222,7 +223,7 @@ export default function BottomNav({ tools, className, triggerId = "tool-grid-sec
                                                 fill
                                                 className="object-contain drop-shadow-sm rounded-[14px]"
                                             />
-                                        </motion.div>
+                                        </m.div>
                                         {isActive && (
                                             <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-black/50" />
                                         )}
@@ -233,7 +234,7 @@ export default function BottomNav({ tools, className, triggerId = "tool-grid-sec
                                             <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-black/80"></div>
                                         </div>
                                     </Link>
-                                </motion.div>
+                                </m.div>
                             );
                         })}
                     </AnimatePresence>
@@ -243,7 +244,7 @@ export default function BottomNav({ tools, className, triggerId = "tool-grid-sec
                             No tools found
                         </div>
                     )}
-                </motion.div>
+                </m.div>
             )}
         </AnimatePresence>
     );

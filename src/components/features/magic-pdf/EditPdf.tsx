@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { FileUploader } from '@/components/ui/FileUploader';
 import { Button } from '@/components/ui/Button';
 import {
@@ -309,7 +309,7 @@ export default function EditPdf() {
         <div className="w-full max-w-7xl mx-auto space-y-8 h-full flex flex-col">
             <AnimatePresence mode="wait">
                 {!file ? (
-                    <motion.div key="upload" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}>
+                    <m.div key="upload" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}>
                         <Card className="p-8">
                             <div className="text-center mb-8">
                                 <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
@@ -320,9 +320,9 @@ export default function EditPdf() {
                             </div>
                             <FileUploader onFilesSelected={handleFileSelected} accept=".pdf" multiple={false} className="max-w-2xl mx-auto" />
                         </Card>
-                    </motion.div>
+                    </m.div>
                 ) : (
-                    <motion.div key="workspace" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 h-[80vh]">
+                    <m.div key="workspace" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 h-[80vh]">
                         {/* Notice Banner */}
                         <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm shrink-0">
                             <div className="bg-amber-100 p-1.5 rounded-full shrink-0">
@@ -483,7 +483,7 @@ export default function EditPdf() {
 
                                 {resultPdfUrl && (
                                     <div className="absolute inset-0 bg-surface-elevated/95 backdrop-blur-md z-40 flex items-center justify-center p-8">
-                                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md w-full text-center space-y-6">
+                                        <m.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md w-full text-center space-y-6">
                                             <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
                                             <h3 className="text-2xl font-bold">PDF Updated!</h3>
                                             <p className="text-text-muted">Your edits have been applied successfully.</p>
@@ -491,12 +491,12 @@ export default function EditPdf() {
                                                 <a href={resultPdfUrl} download={`edited_${file.name}`} className="flex-1"><Button className="w-full">Download</Button></a>
                                                 <Button variant="ghost" onClick={() => setResultPdfUrl(null)}>Close</Button>
                                             </div>
-                                        </motion.div>
+                                        </m.div>
                                     </div>
                                 )}
                             </div>
                         </div>
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </div>

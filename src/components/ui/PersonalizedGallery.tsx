@@ -13,7 +13,7 @@
  */
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, Clock, X, ChevronDown, Trash2 } from 'lucide-react';
@@ -66,7 +66,7 @@ interface MiniCardProps {
 
 function MiniCard({ card, index, onRemove, removeLabel }: MiniCardProps) {
     return (
-        <motion.div
+        <m.div
             variants={cardVariants}
             custom={index}
             initial="hidden"
@@ -122,7 +122,7 @@ function MiniCard({ card, index, onRemove, removeLabel }: MiniCardProps) {
                     {card.title}
                 </span>
             </Link>
-        </motion.div>
+        </m.div>
     );
 }
 
@@ -166,13 +166,13 @@ function SectionLabel({
                     ({count})
                 </span>
                 {collapsible && (
-                    <motion.span
+                    <m.span
                         animate={{ rotate: collapsed ? -90 : 0 }}
                         transition={{ duration: 0.2 }}
                         className="ml-1" style={{ color: 'var(--text-faint)' }}
                     >
                         <ChevronDown size={12} />
-                    </motion.span>
+                    </m.span>
                 )}
             </button>
 
@@ -230,7 +230,7 @@ export function PersonalizedGallery({ allTools }: PersonalizedGalleryProps) {
                 {/* ── Favourites ───────────────────────────────────────── */}
                 <AnimatePresence initial={false}>
                     {favoriteCards.length > 0 && (
-                        <motion.div
+                        <m.div
                             key="favorites-section"
                             variants={slideVariants}
                             initial="hidden"
@@ -251,7 +251,7 @@ export function PersonalizedGallery({ allTools }: PersonalizedGalleryProps) {
                             {/* Collapsible cards area */}
                             <AnimatePresence initial={false}>
                                 {!favoritesCollapsed && (
-                                    <motion.div
+                                    <m.div
                                         key="favorites-cards"
                                         initial={{ opacity: 0, height: 0 }}
                                         animate={{
@@ -266,7 +266,7 @@ export function PersonalizedGallery({ allTools }: PersonalizedGalleryProps) {
                                         }}
                                         className="overflow-hidden"
                                     >
-                                        <motion.div className="flex flex-wrap gap-5 pt-0.5" layout>
+                                        <m.div className="flex flex-wrap gap-5 pt-0.5" layout>
                                             <AnimatePresence mode="popLayout">
                                                 {favoriteCards.map((card, i) => (
                                                     <MiniCard
@@ -278,11 +278,11 @@ export function PersonalizedGallery({ allTools }: PersonalizedGalleryProps) {
                                                     />
                                                 ))}
                                             </AnimatePresence>
-                                        </motion.div>
-                                    </motion.div>
+                                        </m.div>
+                                    </m.div>
                                 )}
                             </AnimatePresence>
-                        </motion.div>
+                        </m.div>
                     )}
                 </AnimatePresence>
 

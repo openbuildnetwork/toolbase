@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Copy, Check, ShieldCheck, Download } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { RedactResponse } from "@/types/redact";
 
 interface RedactOutputProps {
@@ -33,7 +33,7 @@ export const RedactOutput: React.FC<RedactOutputProps> = ({ response }) => {
     return (
         <AnimatePresence mode="wait">
             {response && (
-                <motion.div
+                <m.div
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.98 }}
@@ -76,7 +76,7 @@ export const RedactOutput: React.FC<RedactOutputProps> = ({ response }) => {
                             <span className="text-[10px] font-mono tracking-tight">Verified Secure</span>
                         </div>
                     </div>
-                </motion.div>
+                </m.div>
             )}
         </AnimatePresence>
     );

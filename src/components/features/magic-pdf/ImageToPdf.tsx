@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { FileUploader } from '@/components/ui/FileUploader';
 import { Button } from '@/components/ui/Button';
 import {
@@ -151,7 +151,7 @@ export default function ImageToPdf() {
         <div className="w-full max-w-4xl mx-auto space-y-8">
             <AnimatePresence mode="wait">
                 {!resultPdfUrl ? (
-                    <motion.div
+                    <m.div
                         key="setup"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -253,9 +253,9 @@ export default function ImageToPdf() {
                                 </Button>
                             </div>
                         </Card>
-                    </motion.div>
+                    </m.div>
                 ) : (
-                    <motion.div
+                    <m.div
                         key="result"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -294,7 +294,7 @@ export default function ImageToPdf() {
                                 </Button>
                             </div>
                         </Card>
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </div>

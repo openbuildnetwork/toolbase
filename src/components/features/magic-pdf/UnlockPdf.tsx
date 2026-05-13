@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { FileUploader } from '@/components/ui/FileUploader';
 import { Button } from '@/components/ui/Button';
 import {
@@ -114,7 +114,7 @@ export default function UnlockPdf({
         <div className="w-full max-w-4xl mx-auto space-y-8">
             <AnimatePresence mode="wait">
                 {!file ? (
-                    <motion.div
+                    <m.div
                         key="upload"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -135,9 +135,9 @@ export default function UnlockPdf({
                                 className="max-w-2xl mx-auto"
                             />
                         </Card>
-                    </motion.div>
+                    </m.div>
                 ) : (
-                    <motion.div
+                    <m.div
                         key="workspace"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -165,7 +165,7 @@ export default function UnlockPdf({
 
                         {/* Result Section */}
                         {unlockedPdfUrl && (
-                            <motion.div
+                            <m.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                             >
@@ -198,7 +198,7 @@ export default function UnlockPdf({
                                         </div>
                                     </div>
                                 </Card>
-                            </motion.div>
+                            </m.div>
                         )}
 
                         {/* Error Display */}
@@ -293,7 +293,7 @@ export default function UnlockPdf({
                                 </div>
                             </Card>
                         )}
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </div>

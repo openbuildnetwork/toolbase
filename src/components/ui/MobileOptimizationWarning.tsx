@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Monitor, ArrowRight, Home, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -16,13 +16,13 @@ export function MobileOptimizationWarning({ isOpen, onProceed }: MobileOptimizat
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md"
         >
-          <motion.div
+          <m.div
             initial={{ scale: 0.9, y: 20, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.9, y: 20, opacity: 0 }}
@@ -85,8 +85,8 @@ export function MobileOptimizationWarning({ isOpen, onProceed }: MobileOptimizat
               <AlertCircle size={12} />
               <span>Some features may be disabled on mobile</span>
             </div>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       )}
     </AnimatePresence>
   );
