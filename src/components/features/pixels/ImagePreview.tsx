@@ -1,6 +1,6 @@
 
 import React, { useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { cn, formatBytes } from "@/lib/utils";
 import { ImageIcon, MoveHorizontal, ZoomIn, Info } from "lucide-react";
 import { Button } from "@/components/ui/Button";

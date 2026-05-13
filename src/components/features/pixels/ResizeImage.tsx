@@ -5,7 +5,7 @@ import {
     Download, RefreshCw, Zap, Settings2, Lock, Unlock,
     Smartphone, Monitor
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { formatBytes, cn } from "@/lib/utils";
 import { ImagePreview } from "@/components/features/pixels/ImagePreview";
 import { Label } from "@/components/ui/Label";
@@ -196,7 +196,7 @@ export function ResizeImage() {
     return (
         <AnimatePresence mode="wait">
             {!originalFile ? (
-                <motion.div
+                <m.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
@@ -230,9 +230,9 @@ export function ResizeImage() {
                             disabled={!isReady || isProcessing}
                         />
                     </div>
-                </motion.div>
+                </m.div>
             ) : (
-                <motion.div
+                <m.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full"
@@ -481,7 +481,7 @@ export function ResizeImage() {
                             </button>
                         </div>
                     </div>
-                </motion.div>
+                </m.div>
             )}
         </AnimatePresence>
     );

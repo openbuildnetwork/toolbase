@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { X, Download, FileText, Maximize2, Minimize2, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { PdfPreview } from './PdfPreview';
 import type { TIPPayload } from '@/tip/protocol';
@@ -73,7 +73,7 @@ export function FilePreviewModal({ file, onClose }: FilePreviewModalProps) {
 
     return (
         <AnimatePresence>
-            <motion.div
+            <m.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -90,7 +90,7 @@ export function FilePreviewModal({ file, onClose }: FilePreviewModalProps) {
                 } as any}
                 onClick={onClose}
             >
-                <motion.div
+                <m.div
                     initial={{ scale: 0.9, opacity: 0, y: 20 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -207,7 +207,7 @@ export function FilePreviewModal({ file, onClose }: FilePreviewModalProps) {
                     }}>
                         <div style={{ margin: 'auto' }}>
                             {isImage && previewUrl ? (
-                                <motion.img
+                                <m.img
                                     animate={{ scale: imageZoom }}
                                     transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                                     src={previewUrl}
@@ -280,8 +280,8 @@ export function FilePreviewModal({ file, onClose }: FilePreviewModalProps) {
                             )}
                         </div>
                     </div>
-                </motion.div>
-            </motion.div>
+                </m.div>
+            </m.div>
         </AnimatePresence>
     );
 }

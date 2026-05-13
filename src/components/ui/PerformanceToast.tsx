@@ -10,7 +10,7 @@
  */
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Zap, Cpu, Sparkles } from 'lucide-react';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { cn } from '@/lib/utils';
@@ -22,7 +22,7 @@ export function PerformanceToast() {
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
             <AnimatePresence>
                 {result && (
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, y: 12, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
@@ -68,7 +68,7 @@ export function PerformanceToast() {
                         >
                             <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
                         </button>
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </div>

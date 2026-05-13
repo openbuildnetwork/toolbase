@@ -10,7 +10,7 @@
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { Sun, Moon, Monitor, SunMoon } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 type ThemeOption = 'light' | 'dark' | 'system' | 'daylight';
@@ -50,7 +50,7 @@ export function ThemeToggle() {
             <div className="absolute top-10 left-1/2 -translate-x-1/2 flex justify-center w-full pointer-events-none">
                 <AnimatePresence>
                     {hoveredOption && (
-                        <motion.div
+                        <m.div
                             initial={{ opacity: 0, y: -4, scale: 0.9 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -4, scale: 0.9 }}
@@ -64,7 +64,7 @@ export function ThemeToggle() {
                             }}
                         >
                             {OPTIONS.find(o => o.value === hoveredOption)?.label}
-                        </motion.div>
+                        </m.div>
                     )}
                 </AnimatePresence>
             </div>
@@ -112,6 +112,7 @@ export function ThemeToggle() {
                         const nextIndex = (currentIndex + 1) % OPTIONS.length;
                         setTheme(OPTIONS[nextIndex].value);
                     }}
+                    aria-label="Cycle theme"
                     className="flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-150 cursor-pointer"
                     style={{
                         background: 'var(--surface-hover)',

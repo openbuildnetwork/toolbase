@@ -6,7 +6,7 @@ import {
     AlertCircle, CheckCircle2, Clock, WifiOff,
     ChevronRight, Signal,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
@@ -354,14 +354,14 @@ function StatusOrb({ isRunning, lastStatus }: { isRunning: boolean; lastStatus: 
     return (
         <div className="relative flex items-center justify-center w-14 h-14 shrink-0">
             {isRunning && (
-                <motion.div
+                <m.div
                     className="absolute inset-0 rounded-full"
                     style={{ background: color, opacity: 0.12 }}
                     animate={{ scale: [1, 1.7, 1], opacity: [0.12, 0, 0.12] }}
                     transition={{ duration: 1.6, repeat: Infinity }}
                 />
             )}
-            <motion.div
+            <m.div
                 className="absolute inset-1.5 rounded-full"
                 style={{ border: `1.5px solid ${color}`, opacity: 0.3 }}
                 animate={isRunning ? { scale: [1, 1.25, 1], opacity: [0.3, 0.05, 0.3] } : {}}
@@ -471,7 +471,7 @@ export default function PingTesterPage() {
                         <AnimatePresence mode="wait">
                             {!isRunning ? (
                                 /* ── Start ── */
-                                <motion.button
+                                <m.button
                                     key="start"
                                     id="ping-start-btn"
                                     onClick={handleStart}
@@ -505,10 +505,10 @@ export default function PingTesterPage() {
                                         <Play className="w-3.5 h-3.5 relative fill-white stroke-none" />
                                     </span>
                                     <span className="relative">Start Ping</span>
-                                </motion.button>
+                                </m.button>
                             ) : (
                                 /* ── Stop ── */
-                                <motion.button
+                                <m.button
                                     key="stop"
                                     id="ping-stop-btn"
                                     onClick={stopPing}
@@ -523,7 +523,7 @@ export default function PingTesterPage() {
                                 >
                                     <Square className="w-3.5 h-3.5 fill-red-400 stroke-none" />
                                     <span>Stop</span>
-                                </motion.button>
+                                </m.button>
                             )}
                         </AnimatePresence>
 
@@ -595,7 +595,7 @@ export default function PingTesterPage() {
                         {/* Min / Max */}
                         <AnimatePresence>
                             {results.length > 0 && (
-                                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                                <m.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                                     className="grid grid-cols-2 gap-3">
                                     {[
                                         { id: "stat-min", label: "Min", value: `${stats.min}ms`, accent: "#10b981" },
@@ -607,7 +607,7 @@ export default function PingTesterPage() {
                                             <span className="text-sm font-bold tabular-nums">{s.value}</span>
                                         </div>
                                     ))}
-                                </motion.div>
+                                </m.div>
                             )}
                         </AnimatePresence>
                     </div>
@@ -667,12 +667,12 @@ export default function PingTesterPage() {
                             {/* Live bar */}
                             <AnimatePresence>
                                 {isRunning && (
-                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                    <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                                         className="mx-5 mb-4 px-4 py-2 rounded-xl bg-blue-500/5 border border-blue-500/15 flex items-center gap-2">
-                                        <motion.span className="w-1.5 h-1.5 rounded-full bg-blue-500"
+                                        <m.span className="w-1.5 h-1.5 rounded-full bg-blue-500"
                                             animate={{ opacity: [1, 0.2, 1] }} transition={{ duration: 0.9, repeat: Infinity }} />
                                         <span className="text-[11px] font-bold text-blue-500 uppercase tracking-wider">Measuring latency…</span>
-                                    </motion.div>
+                                    </m.div>
                                 )}
                             </AnimatePresence>
                         </div>
@@ -696,7 +696,7 @@ export default function PingTesterPage() {
                                             {isRunning ? "Starting…" : "Enter a host above and press Start."}
                                         </span>
                                     ) : results.map((res, i) => (
-                                        <motion.div key={i}
+                                        <m.div key={i}
                                             initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }}
                                             transition={{ duration: 0.18 }}
                                             className="flex items-center gap-3 py-0.5 border-b border-white/[0.04] last:border-0">
@@ -719,16 +719,16 @@ export default function PingTesterPage() {
                                                     <WifiOff className="w-3 h-3" />ERROR
                                                 </span>
                                             )}
-                                        </motion.div>
+                                        </m.div>
                                     ))}
                                     <AnimatePresence>
                                         {isRunning && (
-                                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                            <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                                                 className="flex items-center gap-2 pt-1">
-                                                <motion.span className="w-1.5 h-3.5 bg-blue-400 inline-block rounded-sm"
+                                                <m.span className="w-1.5 h-3.5 bg-blue-400 inline-block rounded-sm"
                                                     animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.8, repeat: Infinity }} />
                                                 <span className="text-blue-400/50 text-[10px]">sending request…</span>
-                                            </motion.div>
+                                            </m.div>
                                         )}
                                     </AnimatePresence>
                                 </div>

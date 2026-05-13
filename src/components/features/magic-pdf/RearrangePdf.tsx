@@ -10,7 +10,7 @@
  *   → Confirm saves pageOrder+operations as config (no execution here)
  */
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { FileUploader } from '@/components/ui/FileUploader';
 import { Button } from '@/components/ui/Button';
 import {
@@ -222,7 +222,7 @@ export default function RearrangePdf({
         <div className="w-full max-w-7xl mx-auto space-y-8">
             <AnimatePresence mode="wait">
                 {!file ? (
-                    <motion.div
+                    <m.div
                         key="upload"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -240,9 +240,9 @@ export default function RearrangePdf({
                                 className="max-w-2xl mx-auto"
                             />
                         </Card>
-                    </motion.div>
+                    </m.div>
                 ) : (
-                    <motion.div
+                    <m.div
                         key="workspace"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -291,7 +291,7 @@ export default function RearrangePdf({
 
                         {/* Result Section */}
                         {resultPdfUrl && (
-                            <motion.div
+                            <m.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                             >
@@ -324,7 +324,7 @@ export default function RearrangePdf({
                                         </div>
                                     </div>
                                 </Card>
-                            </motion.div>
+                            </m.div>
                         )}
 
                         {/* Pages Grid */}
@@ -404,7 +404,7 @@ export default function RearrangePdf({
                                 )}
                             </>
                         )}
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
 
@@ -754,7 +754,7 @@ const PagePreviewModal = ({ page, currentIndex, totalPages, onClose, onNext, onP
     };
 
     return (
-        <motion.div
+        <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -856,7 +856,7 @@ const PagePreviewModal = ({ page, currentIndex, totalPages, onClose, onNext, onP
                 onClick={(e) => e.stopPropagation()}
                 onWheel={handleWheel}
             >
-                <motion.div
+                <m.div
                     key={`${page.id}-${zoom}`}
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -893,8 +893,8 @@ const PagePreviewModal = ({ page, currentIndex, totalPages, onClose, onNext, onP
                             </span>
                         </div>
                     )}
-                </motion.div>
+                </m.div>
             </div>
-        </motion.div>
+        </m.div>
     );
 };

@@ -16,7 +16,7 @@
  * Mode is detected by the presence of `onConfirm`.
  */
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { FileUploader } from '@/components/ui/FileUploader';
 import { PdfPreview } from '@/components/ui/PdfPreview';
 import { Button } from '@/components/ui/Button';
@@ -227,7 +227,7 @@ export default function SplitPdf({
 
     // ── Empty state (upload prompt) ───────────────────────────────────────────────
     const uploadPrompt = (
-        <motion.div
+        <m.div
             key="upload"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -254,12 +254,12 @@ export default function SplitPdf({
                     className="max-w-full sm:max-w-2xl mx-auto"
                 />
             </Card>
-        </motion.div>
+        </m.div>
     );
 
     // ── Workspace (file loaded) ───────────────────────────────────────────────────
     const workspace = (
-        <motion.div
+        <m.div
             key="workspace"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -336,7 +336,7 @@ export default function SplitPdf({
 
             {/* Download results (standalone only) */}
             {!isInteractionMode && splitResult.length > 0 && (
-                <motion.div
+                <m.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
@@ -399,7 +399,7 @@ export default function SplitPdf({
                     ))}
 
                     {/* Success summary */}
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className="sm:col-span-2 lg:col-span-3"
@@ -409,8 +409,8 @@ export default function SplitPdf({
                                 ✓ Successfully split into {splitResult.length} file{splitResult.length > 1 ? 's' : ''}
                             </span>
                         </div>
-                    </motion.div>
-                </motion.div>
+                    </m.div>
+                </m.div>
             )}
 
             {/* Page selector (shown when no results yet) */}
@@ -430,7 +430,7 @@ export default function SplitPdf({
                     Select at least one split point to confirm.
                 </p>
             )}
-        </motion.div>
+        </m.div>
     );
 
     // ── Root ─────────────────────────────────────────────────────────────────────

@@ -20,7 +20,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Shield, ChevronDown, ChevronUp, X, Zap } from 'lucide-react';
 import { getToolById } from '@/config/tools.registry';
 import { usePrivacyMonitor } from '@/hooks/usePrivacyMonitor';
@@ -103,7 +103,7 @@ export function PrivacyBadge({ toolId, className }: PrivacyBadgeProps) {
             {/* ── Expanded panel ───────────────────────────────────────────────── */}
             <AnimatePresence>
                 {isExpanded && (
-                    <motion.div
+                    <m.div
                         key="privacy-panel"
                         initial={{ opacity: 0, y: 8, scale: 0.97 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -173,14 +173,14 @@ export function PrivacyBadge({ toolId, className }: PrivacyBadgeProps) {
                                 while using this tool. You'll see zero file upload requests.
                             </span>
                         </div>
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
 
             {/* ── Collapsed badge (always visible, unless dismissed) ───────────── */}
             <AnimatePresence mode="wait">
                 {!isDismissed ? (
-                    <motion.button
+                    <m.button
                         key="badge"
                         layout
                         onClick={() => setIsExpanded((v) => !v)}
@@ -199,7 +199,7 @@ export function PrivacyBadge({ toolId, className }: PrivacyBadgeProps) {
                         )}
                     >
                         {/* Shield icon — green flash on processing complete */}
-                        <motion.div
+                        <m.div
                             animate={
                                 justProcessed
                                     ? { scale: [1, 1.15, 1], transition: { duration: 0.4 } }
@@ -213,12 +213,12 @@ export function PrivacyBadge({ toolId, className }: PrivacyBadgeProps) {
                                     justProcessed ? 'text-emerald-500 fill-emerald-100' : 'text-emerald-600 fill-emerald-50'
                                 )}
                             />
-                        </motion.div>
+                        </m.div>
 
                         {/* Label — switches between normal and flash text */}
                         <AnimatePresence mode="wait">
                             {justProcessed ? (
-                                <motion.span
+                                <m.span
                                     key="processed"
                                     initial={{ opacity: 0, y: 4 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -226,9 +226,9 @@ export function PrivacyBadge({ toolId, className }: PrivacyBadgeProps) {
                                     className="text-[11px] font-semibold text-emerald-600 whitespace-nowrap"
                                 >
                                     Processed locally ✓
-                                </motion.span>
+                                </m.span>
                             ) : (
-                                <motion.span
+                                <m.span
                                     key="local"
                                     initial={{ opacity: 0, y: 4 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -236,21 +236,21 @@ export function PrivacyBadge({ toolId, className }: PrivacyBadgeProps) {
                                     className="text-[11px] font-semibold text-[#1c1c1e] whitespace-nowrap"
                                 >
                                     100% Local
-                                </motion.span>
+                                </m.span>
                             )}
                         </AnimatePresence>
 
                         {/* Toggle chevron */}
-                        <motion.div
+                        <m.div
                             animate={{ rotate: isExpanded ? 180 : 0 }}
                             transition={{ duration: 0.2 }}
                         >
                             <ChevronDown size={12} className="text-black/30" />
-                        </motion.div>
-                    </motion.button>
+                        </m.div>
+                    </m.button>
                 ) : (
                     /* Minimised dot when dismissed — click to restore */
-                    <motion.button
+                    <m.button
                         key="dot"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
@@ -263,7 +263,7 @@ export function PrivacyBadge({ toolId, className }: PrivacyBadgeProps) {
                         className="w-8 h-8 rounded-full bg-white/80 backdrop-blur-xl border border-black/6 shadow-sm flex items-center justify-center hover:bg-white/95 transition-colors"
                     >
                         <Shield size={13} className="text-emerald-600 fill-emerald-50" />
-                    </motion.button>
+                    </m.button>
                 )}
             </AnimatePresence>
         </div>

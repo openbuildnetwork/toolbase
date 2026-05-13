@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Shield, Trash2, AlertCircle, Cpu } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
@@ -85,7 +85,7 @@ export default function RedactSecretsPage() {
                         </button>
 
                         {/* Redact Now */}
-                        <motion.button
+                        <m.button
                             onClick={handleRedact}
                             disabled={isLoading || !isReady || !content}
                             whileTap={{ scale: 0.96 }}
@@ -112,7 +112,7 @@ export default function RedactSecretsPage() {
                             <span className="relative">
                                 {isLoading ? "Redacting…" : "Redact Now"}
                             </span>
-                        </motion.button>
+                        </m.button>
                     </div>
                 </div>
             </div>
@@ -140,7 +140,7 @@ export default function RedactSecretsPage() {
                             {/* Error */}
                             <AnimatePresence>
                                 {error && (
-                                    <motion.div
+                                    <m.div
                                         initial={{ opacity: 0, y: 8 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -8 }}
@@ -148,7 +148,7 @@ export default function RedactSecretsPage() {
                                     >
                                         <AlertCircle className="w-4 h-4 shrink-0" />
                                         <p className="text-sm font-semibold">{error}</p>
-                                    </motion.div>
+                                    </m.div>
                                 )}
                             </AnimatePresence>
                         </div>

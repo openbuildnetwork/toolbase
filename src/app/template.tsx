@@ -10,11 +10,11 @@
  * Animation: subtle fade + 12px slide-up, 220ms ease-out.
  */
 
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
 export default function Template({ children }: { children: React.ReactNode }) {
     return (
-        <motion.div
+        <m.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
@@ -23,6 +23,6 @@ export default function Template({ children }: { children: React.ReactNode }) {
             }}
         >
             {children}
-        </motion.div>
+        </m.div>
     );
 }

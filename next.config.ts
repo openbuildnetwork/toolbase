@@ -69,6 +69,9 @@ const nextConfig: NextConfig = {
   // @ducanh2912/next-pwa injects a webpack plugin; the app runs fine
   // under Turbopack with no additional Turbopack-specific config.
   turbopack: {},
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion"],
+  },
 };
 
 export default withPWA(nextConfig);

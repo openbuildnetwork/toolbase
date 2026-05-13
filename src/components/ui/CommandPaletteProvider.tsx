@@ -7,12 +7,13 @@
  * Renders NO visible UI — the palette only appears when triggered by keyboard.
  */
 
-import React from 'react';
+import dynamic from 'next/dynamic';
 import { useCommandPalette } from '@/hooks/useCommandPalette';
-import { CommandPalette } from '@/components/ui/CommandPalette';
 import { PerformanceToast } from '@/components/ui/PerformanceToast';
-// TIP tools are now declaratively registered in TOOLS registry.
 
+const CommandPalette = dynamic(() => import('@/components/ui/CommandPalette').then(mod => mod.CommandPalette), {
+    ssr: false,
+});
 
 export function CommandPaletteProvider() {
     const palette = useCommandPalette();

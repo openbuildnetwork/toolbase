@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Heart, X, Trash2, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -27,7 +27,7 @@ export function FavoritesDrawer({ isOpen, onClose }: FavoritesDrawerProps) {
             {isOpen && (
                 <>
                     {/* Backdrop */}
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -36,7 +36,7 @@ export function FavoritesDrawer({ isOpen, onClose }: FavoritesDrawerProps) {
                     />
 
                     {/* Drawer */}
-                    <motion.div
+                    <m.div
                         initial={{ x: '100%' }}
                         animate={{ x: 0 }}
                         exit={{ x: '100%' }}
@@ -73,7 +73,7 @@ export function FavoritesDrawer({ isOpen, onClose }: FavoritesDrawerProps) {
                                 <div className="space-y-2">
                                     <AnimatePresence mode="popLayout">
                                         {favoriteTools.map((tool) => (
-                                            <motion.div
+                                            <m.div
                                                 key={tool.id}
                                                 layout
                                                 initial={{ opacity: 0, y: 10 }}
@@ -122,7 +122,7 @@ export function FavoritesDrawer({ isOpen, onClose }: FavoritesDrawerProps) {
                                                 >
                                                     <X size={14} />
                                                 </button>
-                                            </motion.div>
+                                            </m.div>
                                         ))}
                                     </AnimatePresence>
                                 </div>
@@ -154,7 +154,7 @@ export function FavoritesDrawer({ isOpen, onClose }: FavoritesDrawerProps) {
                                 </button>
                             </div>
                         )}
-                    </motion.div>
+                    </m.div>
                 </>
             )}
         </AnimatePresence>

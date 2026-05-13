@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { Tabs, TabItem } from '@/components/ui/Tabs';
 import type { Base64Mode, Base64Response } from '@/types/base64';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 
 export interface Base64WorkspaceProps {
@@ -350,7 +350,7 @@ export function Base64Workspace({
 
             <AnimatePresence>
                 {showAdvanced && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                    <m.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                         <Card className="p-4 bg-(--surface-overlay) border border-(--border-subtle)">
                             <div className="flex items-center gap-3">
                                 <Switch checked={addMimeHeader} onChange={(e) => setAddMimeHeader(e.target.checked)} />
@@ -365,13 +365,13 @@ export function Base64Workspace({
                                 )}
                             </div>
                         </Card>
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
 
             <div className="grid lg:grid-cols-2 gap-6 flex-1 min-h-0">
                 {/* LEFT: INPUT */}
-                <motion.div
+                <m.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.4, delay: 0.1 }}
@@ -433,10 +433,10 @@ export function Base64Workspace({
                             )}
                         </div>
                     </Card>
-                </motion.div>
+                </m.div>
 
                 {/* RIGHT: OUTPUT */}
-                <motion.div
+                <m.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.4, delay: 0.2 }}
@@ -526,13 +526,13 @@ export function Base64Workspace({
                                     <div className="text-center p-8">
                                         <div className="relative mb-6">
                                             <Sparkles className="h-16 w-16 mx-auto text-(--primary) opacity-20" />
-                                            <motion.div
+                                            <m.div
                                                 animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
                                                 transition={{ duration: 4, repeat: Infinity }}
                                                 className="absolute inset-0 flex items-center justify-center"
                                             >
                                                 <Sparkles className="h-16 w-16 text-(--primary) blur-xl" />
-                                            </motion.div>
+                                            </m.div>
                                         </div>
                                         <h3 className="text-lg font-bold text-(--text-primary) mb-2">Ready to Process</h3>
                                         <p className="text-sm font-medium text-(--text-tertiary) max-w-[200px] mx-auto leading-relaxed">
@@ -543,7 +543,7 @@ export function Base64Workspace({
                             )}
                         </div>
                     </Card>
-                </motion.div>
+                </m.div>
             </div>
         </div>
     );

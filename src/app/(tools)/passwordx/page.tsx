@@ -13,7 +13,7 @@ import {
     ChevronRight,
     Binary
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
@@ -52,13 +52,13 @@ const StrengthMeter = ({ strength }: { strength: number }) => {
             </div>
             <div className="flex gap-1.5">
                 {[0, 1, 2, 3, 4].map((i) => (
-                    <motion.div
+                    <m.div
                         key={i}
                         className="flex-1 h-1.5 rounded-full bg-(--surface-active)"
                         initial={false}
                     >
                         {i <= strength && (
-                            <motion.div
+                            <m.div
                                 layoutId="strength-bar"
                                 className={cn("h-full rounded-full", current.color)}
                                 initial={{ width: 0 }}
@@ -66,7 +66,7 @@ const StrengthMeter = ({ strength }: { strength: number }) => {
                                 transition={{ type: "spring", bounce: 0, duration: 0.4 }}
                             />
                         )}
-                    </motion.div>
+                    </m.div>
                 ))}
             </div>
         </div>
@@ -173,7 +173,7 @@ export default function PasswordXPage() {
                                 {/* The Vaulted Text */}
                                 <div className="relative min-h-[120px] flex items-center justify-center py-4 px-6 bg-(--surface-secondary)/30 rounded-2xl border border-(--border-subtle) overflow-hidden group/pass">
                                     <AnimatePresence mode="wait">
-                                        <motion.div
+                                        <m.div
                                             key={password}
                                             initial={{ opacity: 0, scale: 0.98, filter: "blur(4px)" }}
                                             animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
@@ -181,7 +181,7 @@ export default function PasswordXPage() {
                                             className="font-mono text-2xl md:text-4xl lg:text-5xl font-medium tracking-tight text-center break-all select-all selection:bg-indigo-500/30"
                                         >
                                             {password}
-                                        </motion.div>
+                                        </m.div>
                                     </AnimatePresence>
 
                                     {/* Action Hover Overlay */}
@@ -215,7 +215,7 @@ export default function PasswordXPage() {
 
                                 <AnimatePresence>
                                     {showToast && (
-                                        <motion.div
+                                        <m.div
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
@@ -223,7 +223,7 @@ export default function PasswordXPage() {
                                         >
                                             <CheckCircle2 className="w-4 h-4" />
                                             Copied to clipboard
-                                        </motion.div>
+                                        </m.div>
                                     )}
                                 </AnimatePresence>
                             </div>

@@ -5,7 +5,7 @@ import { Play, Square, Timer, Download, Upload, Info, Activity, RefreshCw } from
 import { cn } from "@/lib/utils";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { useSpeedTest, TestStage } from "@/hooks/useSpeedTest";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 
 /* ── Components ──────────────────────────────────────────────────────────── */
 
@@ -69,7 +69,7 @@ const SpeedGauge = ({ value, maxValue = 100, label, color, status, speedHistory 
                 />
 
                 {/* Active Segment */}
-                <motion.path
+                <m.path
                     d="M 60 240 A 120 120 0 1 1 240 240"
                     fill="none"
                     stroke="url(#gaugeGradient)"
@@ -101,7 +101,7 @@ const SpeedGauge = ({ value, maxValue = 100, label, color, status, speedHistory 
                 })}
 
                 {/* Needle */}
-                <motion.g
+                <m.g
                     initial={{ rotate: -135 }}
                     animate={{ rotate: needleRotation }}
                     transition={{ type: "spring", damping: 15, stiffness: 45 }}
@@ -116,13 +116,13 @@ const SpeedGauge = ({ value, maxValue = 100, label, color, status, speedHistory 
                         filter="url(#needleGlow)"
                         style={{ transition: 'stroke 0.5s ease' }}
                     />
-                </motion.g>
+                </m.g>
             </svg>
 
             {/* Central Content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center translate-y-8 z-20">
                 <div className="flex flex-col items-center">
-                    <motion.span 
+                    <m.span 
                         key={status === 'idle' ? 'idle' : 'active'}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -133,7 +133,7 @@ const SpeedGauge = ({ value, maxValue = 100, label, color, status, speedHistory 
                         }}
                     >
                         {status === 'idle' ? '0' : Math.round(value)}
-                    </motion.span>
+                    </m.span>
                     <span className="text-xs font-black tracking-[0.2em] text-(--text-muted) -mt-2 opacity-50">
                         {label}
                     </span>
@@ -144,7 +144,7 @@ const SpeedGauge = ({ value, maxValue = 100, label, color, status, speedHistory 
                     {(speedHistory.length > 0 ? speedHistory : [...Array(12)]).map((val, i) => {
                         const h = typeof val === 'number' ? Math.max(4, (val / (maxValue || 1)) * 24) : 4;
                         return (
-                            <motion.div
+                            <m.div
                                 key={i}
                                 initial={{ height: 4 }}
                                 animate={{ height: h }}
@@ -277,7 +277,7 @@ export default function SpeedTestPage() {
                         {/* Controls */}
                         <div className="flex items-center gap-4">
                             {!isRunning ? (
-                                <motion.button
+                                <m.button
                                     onClick={startTest}
                                     whileTap={{ scale: 0.96 }}
                                     className="group relative inline-flex items-center gap-3 h-14 pl-6 pr-8 rounded-2xl
@@ -290,7 +290,7 @@ export default function SpeedTestPage() {
                                         <Play className="w-4 h-4 fill-current" />
                                     </div>
                                     {status === 'complete' ? 'Test Again' : 'Begin Test'}
-                                </motion.button>
+                                </m.button>
                             ) : (
                                 <button
                                     onClick={stopTest}

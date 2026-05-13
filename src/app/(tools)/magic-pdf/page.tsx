@@ -31,7 +31,7 @@ import {
   FileCode2,
   ShieldAlert,
 } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
@@ -98,7 +98,7 @@ const MagicPdf = () => {
           <div className="h-full w-full">
             <AnimatePresence mode="wait">
               {activeTool === 'merge' && (
-                <motion.div
+                <m.div
                   key="merge"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -107,11 +107,11 @@ const MagicPdf = () => {
                   className="h-full"
                 >
                   <MergePdf />
-                </motion.div>
+                </m.div>
               )}
 
               {activeTool === 'split' && (
-                <motion.div
+                <m.div
                   key="split"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -120,11 +120,11 @@ const MagicPdf = () => {
                   className="h-full"
                 >
                   <SplitPdf />
-                </motion.div>
+                </m.div>
               )}
 
               {activeTool === 'compress' && (
-                <motion.div
+                <m.div
                   key="compress"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -133,11 +133,11 @@ const MagicPdf = () => {
                   className="h-full"
                 >
                   <CompressPdf />
-                </motion.div>
+                </m.div>
               )}
 
               {activeTool === 'rearrange' && (
-                <motion.div
+                <m.div
                   key="rearrange"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -146,11 +146,11 @@ const MagicPdf = () => {
                   className="h-full"
                 >
                   <RearrangePdf />
-                </motion.div>
+                </m.div>
               )}
 
               {activeTool === 'protect' && (
-                <motion.div
+                <m.div
                   key="protect"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -159,11 +159,11 @@ const MagicPdf = () => {
                   className="h-full"
                 >
                   <ProtectPdf />
-                </motion.div>
+                </m.div>
               )}
 
               {activeTool === 'unlock' && (
-                <motion.div
+                <m.div
                   key="unlock"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -172,11 +172,11 @@ const MagicPdf = () => {
                   className="h-full"
                 >
                   <UnlockPdf />
-                </motion.div>
+                </m.div>
               )}
 
               {activeTool === 'sign' && (
-                <motion.div
+                <m.div
                   key="sign"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -185,11 +185,11 @@ const MagicPdf = () => {
                   className="h-full"
                 >
                   <SignPdf />
-                </motion.div>
+                </m.div>
               )}
 
               {activeTool === 'edit' && (
-                <motion.div
+                <m.div
                   key="edit"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -198,11 +198,11 @@ const MagicPdf = () => {
                   className="h-full"
                 >
                   <EditPdf />
-                </motion.div>
+                </m.div>
               )}
 
               {activeTool === 'word' && (
-                <motion.div
+                <m.div
                   key="word"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -211,11 +211,11 @@ const MagicPdf = () => {
                   className="h-full"
                 >
                   <PdfToWord />
-                </motion.div>
+                </m.div>
               )}
 
               {activeTool === 'redact' && (
-                <motion.div
+                <m.div
                   key="redact"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -224,11 +224,11 @@ const MagicPdf = () => {
                   className="h-full"
                 >
                   <MaskPdf />
-                </motion.div>
+                </m.div>
               )}
 
               {activeTool === 'convert' && (
-                <motion.div
+                <m.div
                   key="convert"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -237,11 +237,11 @@ const MagicPdf = () => {
                   className="h-full"
                 >
                   <PdfToImage />
-                </motion.div>
+                </m.div>
               )}
 
               {activeTool === 'img2pdf' && (
-                <motion.div
+                <m.div
                   key="img2pdf"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -250,11 +250,11 @@ const MagicPdf = () => {
                   className="h-full"
                 >
                   <ImageToPdf />
-                </motion.div>
+                </m.div>
               )}
 
               {activeTool === 'html2pdf' && (
-                <motion.div
+                <m.div
                   key="html2pdf"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -263,11 +263,11 @@ const MagicPdf = () => {
                   className="h-full"
                 >
                   <HtmlToPdf />
-                </motion.div>
+                </m.div>
               )}
 
               {activeTool !== 'merge' && activeTool !== 'split' && activeTool !== 'compress' && activeTool !== 'rearrange' && activeTool !== 'protect' && activeTool !== 'unlock' && activeTool !== 'sign' && activeTool !== 'edit' && activeTool !== 'redact' && activeTool !== 'word' && activeTool !== 'convert' && activeTool !== 'img2pdf' && activeTool !== 'html2pdf' && (
-                <motion.div
+                <m.div
                   key="placeholder"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -289,7 +289,7 @@ const MagicPdf = () => {
                       Go to Merge Tool
                     </Button>
                   </Card>
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
           </div>

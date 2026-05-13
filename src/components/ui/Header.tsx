@@ -171,7 +171,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFav
                     <Link
                         href="/about"
                         title="About toolbase"
-                        className="group h-9 w-9 flex items-center justify-center rounded-xl transition-all duration-150 cursor-pointer"
+                        className="group hidden sm:flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-150 cursor-pointer"
                         style={{
                             background: 'var(--surface-hover)',
                             color: 'var(--text-muted)'
@@ -186,7 +186,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFav
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="View on GitHub"
-                        className="group flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-150"
+                        className="group hidden sm:flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-150"
                         style={{
                             background: 'var(--surface-hover)',
                             color: 'var(--text-muted)'

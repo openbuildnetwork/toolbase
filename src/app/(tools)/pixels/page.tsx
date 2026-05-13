@@ -4,7 +4,7 @@ import React, { useState } from "react";
 
 import { Zap, ShieldCheck, Scaling, Image } from "lucide-react";
 import { ToolSidebar, ToolSidebarItem } from "@/components/ui/ToolSidebar";
-import { AnimatePresence, motion } from "framer-motion";
+import { m, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 
@@ -61,7 +61,7 @@ export default function PixelsPage() {
                     <div className="max-w-7xl mx-auto h-full">
                         <AnimatePresence mode="wait">
                             {activeTool === 'compress' && (
-                                <motion.div
+                                <m.div
                                     key="compress"
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -70,11 +70,11 @@ export default function PixelsPage() {
                                     className="h-full"
                                 >
                                     <CompressImage />
-                                </motion.div>
+                                </m.div>
                             )}
 
                             {activeTool === 'upscale' && (
-                                <motion.div
+                                <m.div
                                     key="upscale"
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -83,10 +83,10 @@ export default function PixelsPage() {
                                     className="h-full"
                                 >
                                     <UpscaleImage />
-                                </motion.div>
+                                </m.div>
                             )}
                             {activeTool === 'resize' && (
-                                <motion.div
+                                <m.div
                                     key="resize"
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -95,10 +95,10 @@ export default function PixelsPage() {
                                     className="h-full"
                                 >
                                     <ResizeImage />
-                                </motion.div>
+                                </m.div>
                             )}
                             {activeTool === 'stego' && (
-                                <motion.div
+                                <m.div
                                     key="stego"
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -107,7 +107,7 @@ export default function PixelsPage() {
                                     className="h-full"
                                 >
                                     <Steganography />
-                                </motion.div>
+                                </m.div>
                             )}
                         </AnimatePresence>
                     </div>

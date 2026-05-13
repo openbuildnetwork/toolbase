@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { DEFAULT_WEBLLM_MODEL_ID, LIGHTWEIGHT_WEBLLM_MODEL_ID } from "@/hooks/useWebLLM";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Markdown } from "@/components/ui/Markdown";
 import Image from "next/image";
 
@@ -197,7 +197,7 @@ ${toolDescriptions}
 
   if (showHistory) {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 20 }}
@@ -233,7 +233,7 @@ ${toolDescriptions}
         <div className="flex-1 overflow-y-auto p-4 scrollbar-thin">
           <div className="mx-auto max-w-3xl space-y-2">
             {conversations.map((conv) => (
-              <motion.div
+              <m.div
                 layout
                 key={conv.id}
                 className={cn(
@@ -273,7 +273,7 @@ ${toolDescriptions}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
-              </motion.div>
+              </m.div>
             ))}
             {conversations.length === 0 && (
               <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-(--border-medium) bg-(--surface-elevated)/45 p-10 text-center">
@@ -283,7 +283,7 @@ ${toolDescriptions}
             )}
           </div>
         </div>
-      </motion.div>
+      </m.div>
     );
   }
 
@@ -352,7 +352,7 @@ ${toolDescriptions}
 
             <AnimatePresence>
               {showMenu && (
-                <motion.div
+                <m.div
                   initial={{ opacity: 0, scale: 0.97, y: 8 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.97, y: 8 }}
@@ -372,7 +372,7 @@ ${toolDescriptions}
                     </span>
                     Uninstall local engine
                   </button>
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
           </div>
@@ -394,7 +394,7 @@ ${toolDescriptions}
       <div className="relative z-10 flex-1 overflow-y-auto px-4 py-5 scrollbar-thin md:px-6">
         <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col">
           {!activeConversation?.messages.length ? (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               className="flex flex-1 flex-col items-center justify-center text-center"
@@ -423,7 +423,7 @@ ${toolDescriptions}
                   </button>
                 ))}
               </div>
-            </motion.div>
+            </m.div>
           ) : (
             <div className="space-y-5">
               <AnimatePresence initial={false}>
@@ -438,7 +438,7 @@ ${toolDescriptions}
                   }
 
                   return (
-                    <motion.div
+                    <m.div
                       initial={{ opacity: 0, y: 10, scale: 0.99 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       key={idx}
@@ -475,7 +475,7 @@ ${toolDescriptions}
                         {matchedTools.length > 0 && (
                           <div className="mt-1 flex flex-wrap gap-3">
                             {matchedTools.map((t) => (
-                              <motion.div
+                              <m.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 key={t.id}
@@ -488,17 +488,17 @@ ${toolDescriptions}
                                   toolId={t.id}
                                   metadata={t.tags}
                                 />
-                              </motion.div>
+                              </m.div>
                             ))}
                           </div>
                         )}
                       </div>
-                    </motion.div>
+                    </m.div>
                   );
                 })}
 
                 {streamBuffer && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, y: 10, scale: 0.99 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     className="flex w-full justify-start gap-3"
@@ -515,14 +515,14 @@ ${toolDescriptions}
                     <div className="max-w-[88%] rounded-2xl rounded-tl-md border border-(--border-subtle) bg-(--surface-elevated)/86 px-4 py-3 text-[15px] leading-relaxed shadow-sm">
                       <Markdown content={streamBuffer} />
                     </div>
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
             </div>
           )}
 
           {(isGenerating || (isLoading && !isLoaded)) && !streamBuffer && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-5 flex justify-start gap-3">
+            <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-5 flex justify-start gap-3">
               <div className="mt-1 hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 shadow-sm overflow-hidden border border-blue-500/20 sm:flex">
                 <Image 
                   src="/assets/images/echo_basic.png" 
@@ -540,10 +540,10 @@ ${toolDescriptions}
                   </span>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           )}
           {error && (
-            <motion.div 
+            <m.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               className="mt-5 rounded-2xl border border-red-500/20 bg-red-500/5 p-6 backdrop-blur-sm"
@@ -584,7 +584,7 @@ ${toolDescriptions}
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           )}
 
           <div ref={messagesEndRef} className="pb-4" />
