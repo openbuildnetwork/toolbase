@@ -31,7 +31,7 @@ import {
   FileCode2,
   ShieldAlert,
 } from 'lucide-react';
-import { AnimatePresence, m } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";

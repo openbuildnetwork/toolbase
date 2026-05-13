@@ -4,7 +4,7 @@ import React, { useState } from "react";
 
 import { Zap, ShieldCheck, Scaling, Image } from "lucide-react";
 import { ToolSidebar, ToolSidebarItem } from "@/components/ui/ToolSidebar";
-import { AnimatePresence, m } from "framer-motion";
+import { m, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 
