@@ -19,6 +19,7 @@ This folder is the central documentation hub for the full Toolbase product.
 - [ADR Template](./architecture/decisions/ADR-TEMPLATE.md)
 - Standards:
   - [UI Shell](./architecture/standards/ui-shell.md)
+  - [WebGPU & Universal Performance](./engineering/webgpu-architecture.md)
   - [Error Handling](./architecture/standards/error-handling.md)
   - [Testing Strategy](./architecture/standards/testing-strategy.md)
 
