@@ -34,6 +34,21 @@ export const metadata: Metadata = {
   title: "toolbase | All-in-one Private Web Utilities",
   description: "A growing suite of professional, private-by-design web utilities that run entirely in your browser. No servers, no uploads, no accounts.",
   manifest: "/manifest.json",
+  metadataBase: new URL("https://dev.toolbase.in"),
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
