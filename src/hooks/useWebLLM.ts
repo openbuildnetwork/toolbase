@@ -109,6 +109,33 @@ export function useWebLLM() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [isInstalled, setIsInstalled] = useState(Boolean(sharedRuntime.engine || sharedRuntime.enginePromise));
     const [error, setError] = useState<string | null>(sharedRuntime.error);
+    const [webGPUSupport, setWebGPUSupport] = useState<{ supported: boolean; message?: string }>({ supported: true });
+
+    const checkWebGPUSupport = useCallback(async () => {
+        if (typeof navigator === "undefined" || !("gpu" in navigator)) {
+            const msg = "WebGPU is not supported by your browser. Please use Chrome, Edge, or a recent version of Safari.";
+            setWebGPUSupport({ supported: false, message: msg });
+            return { supported: false, message: msg };
+        }
+
+        try {
+            const adapter = await navigator.gpu.requestAdapter();
+            if (!adapter) {
+                const msg = "WebGPU is supported but failed to initialize. Your GPU might be disabled or busy.";
+                setWebGPUSupport({ supported: false, message: msg });
+                return { supported: false, message: msg };
+            }
+            return { supported: true };
+        } catch (e) {
+            const msg = "Failed to access WebGPU. Check your browser settings.";
+            setWebGPUSupport({ supported: false, message: msg });
+            return { supported: false, message: msg };
+        }
+    }, []);
+
+    useEffect(() => {
+        void checkWebGPUSupport();
+    }, [checkWebGPUSupport]);
 
     const engineRef = useRef<MLCEngineInterface | null>(sharedRuntime.engine);
     const stopRequestedRef = useRef(false);
@@ -201,6 +228,14 @@ export function useWebLLM() {
                 setIsLoading(false);
             }
 
+            return;
+        }
+
+        const supportStatus = await checkWebGPUSupport();
+        if (!supportStatus.supported) {
+            const msg = supportStatus.message || "WebGPU is not available.";
+            setError(msg);
+            setProgress(msg);
             return;
         }
 
@@ -446,6 +481,7 @@ export function useWebLLM() {
         isInstalled,
         isGenerating,
         error,
+        webGPUSupport,
         activeModelId: sharedRuntime.modelId,
     };
 }
