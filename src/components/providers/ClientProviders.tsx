@@ -11,6 +11,8 @@ import { WorkerPrewarmer } from "./WorkerPrewarmer";
 
 import { LazyMotion, domAnimation } from 'framer-motion';
 
+import { CapabilityProvider } from "./CapabilityProvider";
+
 export function ClientProviders({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (
@@ -30,15 +32,17 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
     <ThemeProvider>
       <GlobalBackground />
       <DaylightManager />
-      <WorkerPrewarmer />
-      <LazyMotion features={domAnimation} strict>
-        <AIChatProvider>
-          {/* Global UI elements that need context */}
-          <CommandPaletteProvider />
-          {children}
-          <GlobalAIOverlay />
-        </AIChatProvider>
-      </LazyMotion>
+      <CapabilityProvider>
+        <WorkerPrewarmer />
+        <LazyMotion features={domAnimation} strict>
+          <AIChatProvider>
+            {/* Global UI elements that need context */}
+            <CommandPaletteProvider />
+            {children}
+            <GlobalAIOverlay />
+          </AIChatProvider>
+        </LazyMotion>
+      </CapabilityProvider>
     </ThemeProvider>
   );
 }
