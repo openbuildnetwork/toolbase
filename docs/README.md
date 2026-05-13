@@ -26,6 +26,8 @@ This folder is the central documentation hub for the full Toolbase product.
 
 ## Engineering
 - [Adding a New Tool (Tutorial)](./engineering/ADDING-A-NEW-TOOL.md)
+  - [How-to: Rust (WASM)](./engineering/HOW-TO-RUST.md)
+  - [How-to: Python (Pyodide)](./engineering/HOW-TO-PYTHON.md)
 - [Python & Pyodide Integration](./engineering/PYTHON-PYODIDE.md)
 - [Development Workflow](./engineering/DEVELOPMENT.md)
 - [Codebase Map](./engineering/CODEBASE-MAP.md)
