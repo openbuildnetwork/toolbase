@@ -61,6 +61,7 @@ const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery, tools }) => {
                                 icon={tool.icon}
                                 metadata={tool.metadata}
                                 toolId={tool.toolId}
+                                priority={index < 6}
                             />
                         </m.div>
                     ))}
