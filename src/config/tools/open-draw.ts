@@ -13,7 +13,7 @@ export const openDrawConfig: ToolMeta = {
   isNew: false,
   isFeatured: true,
   wasmPowered: false,
-  pythonPowered: false,
+  pythonPowered: true,
   status: 'stable',
   addedAt: '2025-01-01',
   mobileOptimized: false,
