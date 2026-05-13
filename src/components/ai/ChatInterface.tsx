@@ -30,6 +30,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Markdown } from "@/components/ui/Markdown";
 import Image from "next/image";
 import { ModelPicker } from "./ModelPicker";
+import { PipelineSuggestion } from "./PipelineSuggestion";
 
 
 interface ChatInterfaceProps {
@@ -396,12 +397,36 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
               <AnimatePresence initial={false}>
                 {activeConversation.messages.map((msg, idx) => {
                   let matchedTools: typeof TOOLS = [];
+                  let pipelineData = null;
+                  let contentToRender = msg.content;
+
                   if (msg.role === "assistant") {
+                    // Tool matching
                     matchedTools = TOOLS.filter(
                       (t) =>
                         msg.content.toLowerCase().includes(t.name.toLowerCase()) ||
                         msg.content.toLowerCase().includes(`/${t.route.toLowerCase()}`),
                     );
+
+                    // Pipeline suggestion detection (Loose matching for reliability)
+                    const pipelineRegex = /```[\s\S]*?```/g;
+                    let match;
+                    while ((match = pipelineRegex.exec(msg.content)) !== null) {
+                      const blockContent = match[0];
+                      if (blockContent.includes("tip-pipeline")) {
+                        try {
+                          // Extract the JSON part (everything between the first { and the last })
+                          const jsonMatch = blockContent.match(/\{[\s\S]*\}/);
+                          if (jsonMatch) {
+                            pipelineData = JSON.parse(jsonMatch[0]);
+                            contentToRender = msg.content.replace(blockContent, "").trim();
+                            break; // Stop after first valid pipeline
+                          }
+                        } catch (e) {
+                          console.error("Failed to parse pipeline suggestion:", e);
+                        }
+                      }
+                    }
                   }
 
                   return (
@@ -433,9 +458,12 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                           )}
                         >
                           {msg.role === "user" ? (
-                            <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
+                            <div className="whitespace-pre-wrap font-sans">{contentToRender}</div>
                           ) : (
-                            <Markdown content={msg.content} />
+                            <>
+                              <Markdown content={contentToRender} />
+                              {pipelineData && <PipelineSuggestion data={pipelineData} />}
+                            </>
                           )}
                         </div>
 
