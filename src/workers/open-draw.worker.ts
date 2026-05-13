@@ -130,5 +130,7 @@ self.onmessage = async (event: MessageEvent) => {
     }
 };
 
-// Removed top-level initialization to prevent background loading on the home page.
-// initPyodide().catch(console.error);
+// Re-enabled top-level initialization.
+// This is safe because the worker itself is lazily spawned by the singleton factory
+// only when the user actually navigates to the OpenDraw tool.
+initPyodide().catch(console.error);

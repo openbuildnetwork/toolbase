@@ -100,6 +100,8 @@ function getOrCreateWorker() {
     return sharedRuntime.worker;
 }
 
+import { getSystemCapabilities, CapabilityReport } from "@/utils/SystemCapabilities";
+
 export function useWebLLM() {
     const [engine, setEngine] = useState<MLCEngineInterface | null>(sharedRuntime.engine);
     const [progress, setProgress] = useState<string>(sharedRuntime.engine && sharedRuntime.modelId ? "Ready" : "");
@@ -109,33 +111,11 @@ export function useWebLLM() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [isInstalled, setIsInstalled] = useState(Boolean(sharedRuntime.engine || sharedRuntime.enginePromise));
     const [error, setError] = useState<string | null>(sharedRuntime.error);
-    const [webGPUSupport, setWebGPUSupport] = useState<{ supported: boolean; message?: string }>({ supported: true });
-
-    const checkWebGPUSupport = useCallback(async () => {
-        if (typeof navigator === "undefined" || !("gpu" in navigator)) {
-            const msg = "WebGPU is not supported by your browser. Please use Chrome, Edge, or a recent version of Safari.";
-            setWebGPUSupport({ supported: false, message: msg });
-            return { supported: false, message: msg };
-        }
-
-        try {
-            const adapter = await navigator.gpu.requestAdapter();
-            if (!adapter) {
-                const msg = "WebGPU is supported but failed to initialize. Your GPU might be disabled or busy.";
-                setWebGPUSupport({ supported: false, message: msg });
-                return { supported: false, message: msg };
-            }
-            return { supported: true };
-        } catch (e) {
-            const msg = "Failed to access WebGPU. Check your browser settings.";
-            setWebGPUSupport({ supported: false, message: msg });
-            return { supported: false, message: msg };
-        }
-    }, []);
+    const [capabilities, setCapabilities] = useState<CapabilityReport | null>(null);
 
     useEffect(() => {
-        void checkWebGPUSupport();
-    }, [checkWebGPUSupport]);
+        void getSystemCapabilities().then(setCapabilities);
+    }, []);
 
     const engineRef = useRef<MLCEngineInterface | null>(sharedRuntime.engine);
     const stopRequestedRef = useRef(false);
@@ -231,12 +211,15 @@ export function useWebLLM() {
             return;
         }
 
-        const supportStatus = await checkWebGPUSupport();
-        if (!supportStatus.supported) {
-            const msg = supportStatus.message || "WebGPU is not available.";
-            setError(msg);
-            setProgress(msg);
-            return;
+        const caps = capabilities || await getSystemCapabilities();
+        let useWasmFallback = !caps.webGPU;
+        
+        // If no WebGPU, we MUST use the lightweight model to prevent hanging the CPU
+        const targetModelId = useWasmFallback ? LIGHTWEIGHT_WEBLLM_MODEL_ID : modelId;
+
+        if (useWasmFallback) {
+            console.warn("WebGPU not found. Falling back to WASM (CPU) mode. Performance will be limited.");
+            setProgress("Starting in Compatibility Mode (CPU)...");
         }
 
         const worker = getOrCreateWorker();
@@ -250,13 +233,13 @@ export function useWebLLM() {
         setProgress(background ? "Restoring local AI from browser cache..." : "Initializing WebGPU...");
         setProgressPercentage(0);
 
-        sharedRuntime.modelId = modelId;
+        sharedRuntime.modelId = targetModelId;
         
         const { CreateWebWorkerMLCEngine } = await import("@mlc-ai/web-llm");
         
         const enginePromise = CreateWebWorkerMLCEngine(
             worker,
-            modelId,
+            targetModelId,
             {
                 initProgressCallback: (report: InitProgressReport) => {
                     setProgress(report.text);
@@ -274,13 +257,13 @@ export function useWebLLM() {
 
         try {
             const engineInstance = await enginePromise;
-            syncLoadedEngine(engineInstance, modelId);
+            syncLoadedEngine(engineInstance, targetModelId);
         } catch (error) {
             console.error("Failed to load model:", error);
             const isDeviceLost = isWebLLMDeviceLostError(error);
             const errorMsg = isDeviceLost 
                 ? "GPU Device Lost: Your hardware might be struggling. Try closing other tabs or using the lightweight model."
-                : "Error: Failed to load model. Ensure your browser supports WebGPU.";
+                : "Error: Failed to load model. Ensure your browser supports WebGPU or try Compatibility Mode.";
             setError(errorMsg);
             sharedRuntime.error = errorMsg;
             setProgress(errorMsg);
@@ -481,7 +464,7 @@ export function useWebLLM() {
         isInstalled,
         isGenerating,
         error,
-        webGPUSupport,
+        capabilities,
         activeModelId: sharedRuntime.modelId,
     };
 }

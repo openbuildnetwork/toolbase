@@ -106,7 +106,7 @@ export function EngineLoader({
                             </m.span>
                         </AnimatePresence>
                         <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>
-                            {ENGINE_LABEL[engine]} · 100% Local
+                            {ENGINE_LABEL[engine]}
                         </span>
                     </div>
                 </m.div>
