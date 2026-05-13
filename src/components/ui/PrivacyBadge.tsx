@@ -21,9 +21,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { Shield, ChevronDown, ChevronUp, X, Zap } from 'lucide-react';
+import { Shield, ChevronDown, ChevronUp, X, Zap, Activity } from 'lucide-react';
 import { getToolById } from '@/config/tools.registry';
 import { usePrivacyMonitor } from '@/hooks/usePrivacyMonitor';
+import { useCapabilities } from '@/components/providers/CapabilityProvider';
 import { cn } from '@/lib/utils';
 
 const DISMISSED_KEY = 'toolbase:privacy-panel-seen';
@@ -57,6 +58,7 @@ function getEngineDetail(wasm?: boolean, python?: boolean): string {
 
 export function PrivacyBadge({ toolId, className }: PrivacyBadgeProps) {
     const { justProcessed } = usePrivacyMonitor();
+    const capabilities = useCapabilities();
     const [isExpanded, setIsExpanded] = useState(false);
     const [isDismissed, setIsDismissed] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -145,17 +147,33 @@ export function PrivacyBadge({ toolId, className }: PrivacyBadgeProps) {
                             </span>
                         </div>
 
-                        {/* Engine badge */}
-                        <div className="flex items-center gap-1.5 mb-3">
-                            {isWasm && (
-                                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-50 border border-yellow-200 text-[10px] font-semibold text-yellow-700">
-                                    <Zap size={9} className="fill-yellow-500" />
-                                    WASM
+                        {/* Performance & Engine */}
+                        <div className="space-y-2 mb-3">
+                            <div className="flex items-center gap-1.5">
+                                {isWasm && (
+                                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-50 border border-yellow-200 text-[10px] font-semibold text-yellow-700">
+                                        <Zap size={9} className="fill-yellow-500" />
+                                        WASM
+                                    </span>
+                                )}
+                                <span className="text-[11px] font-medium text-[#636366]">
+                                    {engineLabel}
                                 </span>
+                            </div>
+
+                            {capabilities && (
+                                <div className="flex items-center gap-1.5">
+                                    <span className={cn(
+                                        "flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold",
+                                        capabilities.webGPU 
+                                            ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                                            : "bg-orange-50 border border-orange-200 text-orange-700"
+                                    )}>
+                                        <Activity size={9} className={cn(capabilities.webGPU ? "text-emerald-500" : "text-orange-500")} />
+                                        {capabilities.webGPU ? "WebGPU Accelerated" : "Compatibility Mode"}
+                                    </span>
+                                </div>
                             )}
-                            <span className="text-[11px] font-medium text-[#636366]">
-                                {engineLabel}
-                            </span>
                         </div>
 
                         {/* Explanation */}
@@ -235,7 +253,7 @@ export function PrivacyBadge({ toolId, className }: PrivacyBadgeProps) {
                                     exit={{ opacity: 0, y: -4 }}
                                     className="text-[11px] font-semibold text-[#1c1c1e] whitespace-nowrap"
                                 >
-                                    100% Local
+                                    Private & Local
                                 </m.span>
                             )}
                         </AnimatePresence>

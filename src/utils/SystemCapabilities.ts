@@ -36,7 +36,8 @@ export async function getSystemCapabilities(): Promise<CapabilityReport> {
   
   if (webGPUSupported) {
     try {
-      const adapter = await navigator.gpu.requestAdapter();
+      const nav = navigator as any;
+      const adapter = await nav.gpu.requestAdapter();
       webGPUActive = !!adapter;
     } catch (e) {
       webGPUActive = false;

@@ -18,7 +18,7 @@ Boost your productivity by instantly converting JSON data into type-safe code fo
 
 ## Privacy Guarantee
 
-- **100% Local**: Parsing and code generation happen entirely within your browser.
+- **Private & Local**: Parsing and code generation happen entirely within your browser.
 - **Secure**: Your API responses and data structures are never shared.
 
 ## Usage
