@@ -24,8 +24,8 @@ import { useFlowEngineSync } from './hooks/useFlowEngineSync';
 import { useUndoRedo } from './hooks/useUndoRedo';
 import { useGraphSerializer } from './hooks/useGraphSerializer';
 import { SavedPipelinesModal } from './SavedPipelinesModal';
-import { FilePreviewModal } from '@/components/ui/FilePreviewModal';
-import type { TIPPayload } from '@/tip/protocol';
+import { FilePreviewModal } from '@/shared/ui/FilePreviewModal';
+import type { TIPPayload } from '@/platform/tip/protocol';
 
 import { ToolNode } from './nodes/ToolNode';
 import { FileInputNode } from './nodes/FileInputNode';
@@ -33,13 +33,13 @@ import { OutputNode } from './nodes/OutputNode';
 import { HumanReviewNode } from './nodes/HumanReviewNode';
 import { TIPEdge } from './edges/TIPEdge';
 
-import { usePipelineEngine } from '@/hooks/usePipelineEngine';
-import { usePipelines } from '@/hooks/usePipelines';
-import { TIPToolRegistry } from '@/tip/registry';
-import { workerForTool } from '@/workers/instances';
-import { ReviewSync } from '@/lib/review-sync';
+import { usePipelineEngine } from '@/modules/pipeline/hooks/usePipelineEngine';
+import { usePipelines } from '@/modules/pipeline/hooks/usePipelines';
+import { TIPToolRegistry } from '@/platform/tip/registry';
+import { workerForTool } from '@/platform/workers/instances';
+import { ReviewSync } from '@/shared/lib/review-sync';
 
-import { PipelineDefinition } from '@/types/pipeline';
+import { PipelineDefinition } from '@/modules/pipeline/types';
 
 const nodeTypes = {
     tool: ToolNode,
@@ -754,7 +754,7 @@ function FlowCanvasBuilder() {
                             // Run the executor in the background to generate preview data for downstream nodes
                             if (interactionTool && result.files.length > 0) {
                                 try {
-                                    const { bundleFromFiles } = await import('@/tip/bundle');
+                                    const { bundleFromFiles } = await import('@/platform/tip/bundle');
                                     const inputBundle = bundleFromFiles(result.files);
 
                                     const dummyHooks = {

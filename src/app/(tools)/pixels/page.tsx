@@ -3,10 +3,10 @@
 import React, { useState } from "react";
 
 import { Zap, ShieldCheck, Scaling, Image } from "lucide-react";
-import { ToolSidebar, ToolSidebarItem } from "@/components/ui/ToolSidebar";
+import { ToolSidebar, ToolSidebarItem } from "@/shared/ui/ToolSidebar";
 import { m, AnimatePresence } from 'framer-motion';
-import { cn } from "@/lib/utils";
-import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
+import { cn } from "@/shared/lib/utils";
+import { ReturnToToolsButton } from "@/shared/ui/ReturnToToolsButton";
 
 // Features
 import dynamic from "next/dynamic";

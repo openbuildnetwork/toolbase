@@ -1,15 +1,15 @@
 "use client";
 
 import React from "react";
-import { useActualTheme } from "@/hooks/useActualTheme";
-import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
+import { useActualTheme } from "@/shared/hooks/useActualTheme";
+import { LazyEditor as Editor } from "@/shared/ui/LazyEditor";
 import { Wand2, Download, Braces } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
-import { Textarea } from "@/components/ui/Textarea";
-import { DataGraph } from "@/components/ui/DataGraph";
+import { Button } from "@/shared/ui/Button";
+import { Card } from "@/shared/ui/Card";
+import { Input } from "@/shared/ui/Input";
+import { Select } from "@/shared/ui/Select";
+import { Textarea } from "@/shared/ui/Textarea";
+import { DataGraph } from "@/shared/ui/DataGraph";
 
 type GeneratorHubProps = {
   docInputFormat: "json" | "xml" | "yaml";

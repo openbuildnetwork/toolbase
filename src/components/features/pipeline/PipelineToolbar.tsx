@@ -1,7 +1,7 @@
 import React from 'react';
 import { Play, Square, RotateCcw, Save, Download, Minus, Plus, Maximize2, Pause, Folder, Undo, Redo } from 'lucide-react';
 import { useReactFlow } from '@xyflow/react';
-import { useAnyWorkerWarming } from '@/workers/instances';
+import { useAnyWorkerWarming } from '@/platform/workers/instances';
 
 interface PipelineToolbarProps {
     onRun: () => void;

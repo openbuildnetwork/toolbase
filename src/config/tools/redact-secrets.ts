@@ -1,4 +1,4 @@
-import { ToolMeta } from "@/types/tool-search";
+import { ToolMeta } from "@/shared/types/tool-search";
 
 export const redactSecretsConfig: ToolMeta = {
   id: 'redact-secrets',
@@ -34,8 +34,8 @@ export const redactSecretsConfig: ToolMeta = {
         return RedactInteractive;
       },
       getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { redactSecretsWorker } = await import('@/workers/instances');
+        const { createPerPayloadTIPExecutor } = await import('@/platform/tip/executor');
+        const { redactSecretsWorker } = await import('@/platform/workers/instances');
         return createPerPayloadTIPExecutor(
           redactSecretsWorker,
           'redact',

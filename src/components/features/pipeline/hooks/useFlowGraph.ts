@@ -9,9 +9,9 @@ import {
   EdgeChange,
   Connection,
 } from '@xyflow/react';
-import { TIPToolRegistry } from '@/tip/registry';
-import { canTransform } from '@/tip/transformers';
-import type { TIPContentType } from '@/tip/protocol';
+import { TIPToolRegistry } from '@/platform/tip/registry';
+import { canTransform } from '@/platform/tip/transformers';
+import type { TIPContentType } from '@/platform/tip/protocol';
 
 export function useFlowGraph() {
   const [nodes, setNodes] = useState<Node[]>([

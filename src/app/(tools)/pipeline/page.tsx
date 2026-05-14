@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { FlowCanvas } from '@/components/features/pipeline/FlowCanvas';
-import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
+import { ReturnToToolsButton } from "@/shared/ui/ReturnToToolsButton";
 
 /**
  * Pipeline page — full-screen canvas with floating UI panels.

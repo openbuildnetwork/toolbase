@@ -1,17 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import Header from '@/components/ui/Header';
-import { useNoteVault } from '@/hooks/useNoteVault';
-import { useNoteSearch } from '@/hooks/useNoteSearch';
-import { useNoteWorker } from '@/hooks/useNoteWorker';
+import Header from '@/shared/ui/Header';
+import { useNoteVault } from '@/modules/note-vault/hooks/useNoteVault';
+import { useNoteSearch } from '@/modules/note-vault/hooks/useNoteSearch';
+import { useNoteWorker } from '@/modules/note-vault/hooks/useNoteWorker';
 import { Vault } from 'lucide-react';
-import { Note, NoteFormat } from '@/types/note-vault';
+import { Note, NoteFormat } from '@/modules/note-vault/types';
 import NoteEditor from '@/components/features/note-vault/NoteEditor';
 import NoteList from '@/components/features/note-vault/NoteList';
 import NoteToolbar from '@/components/features/note-vault/NoteToolbar';
 import NoteStats from '@/components/features/note-vault/NoteStats';
-import { ReturnToToolsButton } from '@/components/ui/ReturnToToolsButton';
+import { ReturnToToolsButton } from '@/shared/ui/ReturnToToolsButton';
 
 export default function NoteVaultPage() {
   const { notes, collections, isReady, addNote, updateNote, deleteNote, addCollection, deleteCollection } = useNoteVault();

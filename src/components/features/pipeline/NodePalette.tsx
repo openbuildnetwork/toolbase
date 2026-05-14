@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
-import { TIPToolRegistry } from '@/tip/registry';
-import type { TIPContentType } from '@/tip/protocol';
+import { TIPToolRegistry } from '@/platform/tip/registry';
+import type { TIPContentType } from '@/platform/tip/protocol';
 import {
     Search, Upload, PackageCheck, ChevronLeft, ChevronRight,
     X, GripHorizontal, Zap, Filter, ShieldCheck

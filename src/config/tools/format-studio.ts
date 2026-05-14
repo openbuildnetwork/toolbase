@@ -1,4 +1,4 @@
-import { ToolMeta } from "@/types/tool-search";
+import { ToolMeta } from "@/shared/types/tool-search";
 
 export const formatStudioConfig: ToolMeta = {
   id: 'format-studio',
@@ -41,7 +41,7 @@ export const formatStudioConfig: ToolMeta = {
         ],
       },
       getExecutor: async () => {
-        const { createFormatStudioTipExecutor } = await import('@/tip/format-studio-executor');
+        const { createFormatStudioTipExecutor } = await import('@/platform/tip/format-studio-executor');
         return createFormatStudioTipExecutor('beautify');
       },
     },
@@ -68,7 +68,7 @@ export const formatStudioConfig: ToolMeta = {
         ],
       },
       getExecutor: async () => {
-        const { createFormatStudioTipExecutor } = await import('@/tip/format-studio-executor');
+        const { createFormatStudioTipExecutor } = await import('@/platform/tip/format-studio-executor');
         return createFormatStudioTipExecutor('minify');
       },
     },
@@ -95,7 +95,7 @@ export const formatStudioConfig: ToolMeta = {
         ],
       },
       getExecutor: async () => {
-        const { createFormatStudioTipExecutor } = await import('@/tip/format-studio-executor');
+        const { createFormatStudioTipExecutor } = await import('@/platform/tip/format-studio-executor');
         return createFormatStudioTipExecutor('clean');
       },
     },
@@ -122,7 +122,7 @@ export const formatStudioConfig: ToolMeta = {
         ],
       },
       getExecutor: async () => {
-        const { createFormatStudioTipExecutor } = await import('@/tip/format-studio-executor');
+        const { createFormatStudioTipExecutor } = await import('@/platform/tip/format-studio-executor');
         return createFormatStudioTipExecutor('normalize');
       },
     },

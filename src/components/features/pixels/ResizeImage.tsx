@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { FileUploader } from "@/components/ui/FileUploader";
-import { Button } from "@/components/ui/Button";
+import { FileUploader } from "@/shared/ui/FileUploader";
+import { Button } from "@/shared/ui/Button";
 import {
     Download, RefreshCw, Zap, Settings2, Lock, Unlock,
     Smartphone, Monitor
 } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
-import { formatBytes, cn } from "@/lib/utils";
+import { formatBytes, cn } from "@/shared/lib/utils";
 import { ImagePreview } from "@/components/features/pixels/ImagePreview";
-import { Label } from "@/components/ui/Label";
-import { Input } from "@/components/ui/Input";
-import { Slider } from "@/components/ui/Slider";
-import { ColorPicker } from "@/components/ui/ColorPicker";
-import { useTIPTool } from "@/hooks/useTIPTool";
-import { getImageInfo } from "@/lib/image-utils";
+import { Label } from "@/shared/ui/Label";
+import { Input } from "@/shared/ui/Input";
+import { Slider } from "@/shared/ui/Slider";
+import { ColorPicker } from "@/shared/ui/ColorPicker";
+import { useTIPTool } from "@/platform/hooks/useTIPTool";
+import { getImageInfo } from "@/shared/lib/image-utils";
 
 
 const SOCIAL_PRESETS = [

@@ -1,7 +1,7 @@
 import { NodeProps, NodeResizer, useReactFlow } from '@xyflow/react';
 import { BaseNode } from './BaseNode';
 import { useState, useEffect, ChangeEvent, useMemo } from 'react';
-import type { NodeData } from '@/types/open-draw.types';
+import type { NodeData } from '@/modules/open-draw/types/open-draw.types';
 
 // --- Types ---
 interface CustomNodeProps extends NodeProps {

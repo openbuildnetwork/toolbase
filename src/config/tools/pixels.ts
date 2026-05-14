@@ -1,4 +1,4 @@
-import { ToolMeta } from "@/types/tool-search";
+import { ToolMeta } from "@/shared/types/tool-search";
 
 export const pixelsConfig: ToolMeta = {
   id: 'pixels',
@@ -78,8 +78,8 @@ export const pixelsConfig: ToolMeta = {
         ]
       },
       getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { pixelsWorker } = await import('@/workers/instances');
+        const { createPerPayloadTIPExecutor } = await import('@/platform/tip/executor');
+        const { pixelsWorker } = await import('@/platform/workers/instances');
         return createPerPayloadTIPExecutor(
           pixelsWorker,
           'compress',
@@ -167,8 +167,8 @@ export const pixelsConfig: ToolMeta = {
         ]
       },
       getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { pixelsWorker } = await import('@/workers/instances');
+        const { createPerPayloadTIPExecutor } = await import('@/platform/tip/executor');
+        const { pixelsWorker } = await import('@/platform/workers/instances');
         return createPerPayloadTIPExecutor(
           pixelsWorker,
           'resize',
@@ -254,8 +254,8 @@ export const pixelsConfig: ToolMeta = {
         ]
       },
       getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { pixelsWorker } = await import('@/workers/instances');
+        const { createPerPayloadTIPExecutor } = await import('@/platform/tip/executor');
+        const { pixelsWorker } = await import('@/platform/workers/instances');
         return createPerPayloadTIPExecutor(
           pixelsWorker,
           'compress', // upscale goes through the 'compress' action in main.py (which routes to upscale_image when resize_factor > 1)
@@ -301,8 +301,8 @@ export const pixelsConfig: ToolMeta = {
         ]
       },
       getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { pixelsWorker } = await import('@/workers/instances');
+        const { createPerPayloadTIPExecutor } = await import('@/platform/tip/executor');
+        const { pixelsWorker } = await import('@/platform/workers/instances');
         return createPerPayloadTIPExecutor(
           pixelsWorker,
           'hide_text',
@@ -331,8 +331,8 @@ export const pixelsConfig: ToolMeta = {
         ]
       },
       getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { pixelsWorker } = await import('@/workers/instances');
+        const { createPerPayloadTIPExecutor } = await import('@/platform/tip/executor');
+        const { pixelsWorker } = await import('@/platform/workers/instances');
         return createPerPayloadTIPExecutor(
           pixelsWorker,
           'reveal_text',

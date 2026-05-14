@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { FileUploader } from "@/components/ui/FileUploader";
-import { Button } from "@/components/ui/Button";
+import { FileUploader } from "@/shared/ui/FileUploader";
+import { Button } from "@/shared/ui/Button";
 import { Download, RefreshCw, Zap, Settings2 } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
-import { formatBytes, cn } from "@/lib/utils";
+import { formatBytes, cn } from "@/shared/lib/utils";
 import { ImagePreview } from "@/components/features/pixels/ImagePreview";
 import { CompressionSettings } from "@/components/features/pixels/CompressionSettings";
 
-import { useTIPTool } from "@/hooks/useTIPTool";
-import { getImageInfo } from "@/lib/image-utils";
+import { useTIPTool } from "@/platform/hooks/useTIPTool";
+import { getImageInfo } from "@/shared/lib/image-utils";
 
 
 export function CompressImage() {

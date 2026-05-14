@@ -17,18 +17,18 @@
  */
 import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { FileUploader } from '@/components/ui/FileUploader';
-import { PdfPreview } from '@/components/ui/PdfPreview';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { FileUploader } from '@/shared/ui/FileUploader';
+import { PdfPreview } from '@/shared/ui/PdfPreview';
+import { Button } from '@/shared/ui/Button';
+import { Card } from '@/shared/ui/Card';
 import {
     Trash2, FilePlus, Merge, Download, Eye,
     ArrowDown, ArrowUp, CheckCheck, X,
 } from 'lucide-react';
-import { useTIPTool } from '@/hooks/useTIPTool';
-import { createTimer } from '@/lib/performance';
-import { cn } from '@/lib/utils';
-import type { TIPInteractionProps } from '@/tip/protocol';
+import { useTIPTool } from '@/platform/hooks/useTIPTool';
+import { createTimer } from '@/shared/lib/performance';
+import { cn } from '@/shared/lib/utils';
+import type { TIPInteractionProps } from '@/platform/tip/protocol';
 
 /** Props for MergePdf — all fields optional so it works as a bare <MergePdf /> too */
 export type MergePdfProps = Partial<TIPInteractionProps>;

@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { Binary, CheckCircle } from 'lucide-react';
 import { Base64Workspace } from './Base64Workspace';
-import { Button } from '@/components/ui/Button';
-import type { TIPInteractionProps } from '@/tip/protocol';
+import { Button } from '@/shared/ui/Button';
+import type { TIPInteractionProps } from '@/platform/tip/protocol';
 
 /**
  * TIP Interaction Component for Base64 Tool.

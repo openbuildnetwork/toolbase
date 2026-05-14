@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { FileUploader } from '@/components/ui/FileUploader';
-import { Button } from '@/components/ui/Button';
+import { FileUploader } from '@/shared/ui/FileUploader';
+import { Button } from '@/shared/ui/Button';
 import {
     Download,
     RefreshCw,
@@ -15,10 +15,10 @@ import {
     Shield,
     AlertCircle
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { useTIPTool } from '@/hooks/useTIPTool';
-import { useWorkerState } from '@/hooks/useWorkerState';
-import type { TIPInteractionProps } from '@/tip/protocol';
+import { Card } from '@/shared/ui/Card';
+import { useTIPTool } from '@/platform/hooks/useTIPTool';
+import { useWorkerState } from '@/shared/hooks/useWorkerState';
+import type { TIPInteractionProps } from '@/platform/tip/protocol';
 
 /** Props for UnlockPdf — all optional so it works as a bare <UnlockPdf /> */
 export type UnlockPdfProps = Partial<TIPInteractionProps>;

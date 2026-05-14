@@ -7,11 +7,11 @@ import {
     ChevronRight, Signal,
 } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
-import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
-import { Input } from "@/components/ui/Input";
-import { Label } from "@/components/ui/Label";
-import { usePingTester } from "@/hooks/usePingTester";
-import type { PingResult } from "@/lib/ping";
+import { ReturnToToolsButton } from "@/shared/ui/ReturnToToolsButton";
+import { Input } from "@/shared/ui/Input";
+import { Label } from "@/shared/ui/Label";
+import { usePingTester } from "@/modules/ping-tester/hooks/usePingTester";
+import type { PingResult } from "@/modules/ping-tester/lib/ping";
 
 // ─── Colour helpers ──────────────────────────────────────────────────────────
 

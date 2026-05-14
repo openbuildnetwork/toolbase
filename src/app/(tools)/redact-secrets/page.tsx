@@ -3,16 +3,16 @@
 import React from "react";
 import { Shield, Trash2, AlertCircle, Cpu } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/Button";
-import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
+import { cn } from "@/shared/lib/utils";
+import { Button } from "@/shared/ui/Button";
+import { ReturnToToolsButton } from "@/shared/ui/ReturnToToolsButton";
 
-import { useRedactSecrets } from "@/hooks/useRedactSecrets";
+import { useRedactSecrets } from "@/modules/redact-secrets/hooks/useRedactSecrets";
 import { RedactEditor } from "@/components/features/redact-secrets/RedactEditor";
 import { RedactConfiguration } from "@/components/features/redact-secrets/RedactConfiguration";
 import { RedactOutput } from "@/components/features/redact-secrets/RedactOutput";
 import { RedactStats } from "@/components/features/redact-secrets/RedactStats";
-import { EngineLoader } from "@/components/ui/EngineLoader";
+import { EngineLoader } from "@/shared/ui/EngineLoader";
 
 export default function RedactSecretsPage() {
     const {

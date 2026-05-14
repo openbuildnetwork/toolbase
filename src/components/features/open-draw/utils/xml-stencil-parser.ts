@@ -1,5 +1,5 @@
 
-import { ShapeDefinition } from '@/types/open-draw.types';
+import { ShapeDefinition } from '@/modules/open-draw/types/open-draw.types';
 
 /**
  * Parses a simple XML shape definition (mimicking draw.io/mxGraph style)

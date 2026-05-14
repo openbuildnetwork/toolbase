@@ -1,13 +1,13 @@
 "use client";
 
 import React from "react";
-import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
+import { LazyEditor as Editor } from "@/shared/ui/LazyEditor";
 import { ArrowRightLeft, XCircle, CheckCircle2 } from "lucide-react";
-import { useActualTheme } from "@/hooks/useActualTheme";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Select } from "@/components/ui/Select";
-import type { DataFormat } from "@/lib/format-studio";
+import { useActualTheme } from "@/shared/hooks/useActualTheme";
+import { Button } from "@/shared/ui/Button";
+import { Card } from "@/shared/ui/Card";
+import { Select } from "@/shared/ui/Select";
+import type { DataFormat } from "@/modules/format-studio";
 
 type ConvertStudioProps = {
   inputFormat: DataFormat;

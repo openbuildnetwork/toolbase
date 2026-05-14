@@ -1,4 +1,4 @@
-import { ToolMeta } from "@/types/tool-search";
+import { ToolMeta } from "@/shared/types/tool-search";
 
 export const dataBuilderConfig: ToolMeta = {
   id: 'data-builder',

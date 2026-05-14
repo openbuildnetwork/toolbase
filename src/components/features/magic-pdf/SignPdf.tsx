@@ -11,8 +11,8 @@
  */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { FileUploader } from '@/components/ui/FileUploader';
-import { Button } from '@/components/ui/Button';
+import { FileUploader } from '@/shared/ui/FileUploader';
+import { Button } from '@/shared/ui/Button';
 import {
     Download,
     RefreshCw,
@@ -29,11 +29,11 @@ import {
     ZoomIn,
     ZoomOut
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { cn } from '@/lib/utils';
-import { signPdf } from '@/lib/pdf-actions';
-import { PdfPreview } from '@/components/ui/PdfPreview';
-import type { TIPInteractionProps } from '@/tip/protocol';
+import { Card } from '@/shared/ui/Card';
+import { cn } from '@/shared/lib/utils';
+import { signPdf } from '@/shared/lib/pdf-actions';
+import { PdfPreview } from '@/shared/ui/PdfPreview';
+import type { TIPInteractionProps } from '@/platform/tip/protocol';
 
 /**
  * Converts a data URL to a Uint8Array without any network requests.

@@ -1,4 +1,4 @@
-import { ToolMeta } from "@/types/tool-search";
+import { ToolMeta } from "@/shared/types/tool-search";
 
 export const magicPdfConfig: ToolMeta = {
   id: 'magic-pdf',
@@ -42,8 +42,8 @@ export const magicPdfConfig: ToolMeta = {
         ]
       },
       getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { magicPdfWorker } = await import('@/workers/instances');
+        const { createPerPayloadTIPExecutor } = await import('@/platform/tip/executor');
+        const { magicPdfWorker } = await import('@/platform/workers/instances');
         return createPerPayloadTIPExecutor(magicPdfWorker, 'compress', (b, c) => ({ file_bytes: b, level: c.level ?? 'recommended' }), () => 'application/pdf', 'Compress PDF');
       }
     },
@@ -73,8 +73,8 @@ export const magicPdfConfig: ToolMeta = {
         return SplitPdf;
       },
       getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { magicPdfWorker } = await import('@/workers/instances');
+        const { createPerPayloadTIPExecutor } = await import('@/platform/tip/executor');
+        const { magicPdfWorker } = await import('@/platform/workers/instances');
         return createPerPayloadTIPExecutor(magicPdfWorker, 'split', (b, c) => ({ file_bytes: b, page_ranges: c.pageRanges || '' }), () => 'application/pdf', 'Split PDF');
       }
     },
@@ -93,8 +93,8 @@ export const magicPdfConfig: ToolMeta = {
         return MergePdf;
       },
       getExecutor: async () => {
-        const { createBatchTIPExecutor } = await import('@/tip/executor');
-        const { magicPdfWorker } = await import('@/workers/instances');
+        const { createBatchTIPExecutor } = await import('@/platform/tip/executor');
+        const { magicPdfWorker } = await import('@/platform/workers/instances');
         return createBatchTIPExecutor(magicPdfWorker, 'merge', (b, c) => ({ files_bytes: b, ...c }), () => 'application/pdf', 'Merge PDFs', 'merged.pdf');
       }
     },
@@ -115,9 +115,9 @@ export const magicPdfConfig: ToolMeta = {
       },
       // Pure pdf-lib executor — no Python WASM needed
       getExecutor: async () => {
-        return async (input: import('@/tip/protocol').TIPBundle, config: import('@/tip/protocol').TIPConfig) => {
-          const { rearrangePdf } = await import('@/lib/pdf-actions');
-          const { bundleFromFile } = await import('@/tip/bundle');
+        return async (input: import('@/platform/tip/protocol').TIPBundle, config: import('@/platform/tip/protocol').TIPConfig) => {
+          const { rearrangePdf } = await import('@/shared/lib/pdf-actions');
+          const { bundleFromFile } = await import('@/platform/tip/bundle');
           const payload = input.payloads[0];
           const file = new File([payload.data], payload.meta.filename || 'input.pdf', { type: 'application/pdf' });
           const pageOrder = JSON.parse((config.pageOrder as string) || '[]') as number[];
@@ -190,8 +190,8 @@ export const magicPdfConfig: ToolMeta = {
         ]
       },
       getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { magicPdfWorker } = await import('@/workers/instances');
+        const { createPerPayloadTIPExecutor } = await import('@/platform/tip/executor');
+        const { magicPdfWorker } = await import('@/platform/workers/instances');
         return createPerPayloadTIPExecutor(
           magicPdfWorker,
           'protect',
@@ -233,8 +233,8 @@ export const magicPdfConfig: ToolMeta = {
         ]
       },
       getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { magicPdfWorker } = await import('@/workers/instances');
+        const { createPerPayloadTIPExecutor } = await import('@/platform/tip/executor');
+        const { magicPdfWorker } = await import('@/platform/workers/instances');
         return createPerPayloadTIPExecutor(
           magicPdfWorker,
           'unlock',
@@ -263,8 +263,8 @@ export const magicPdfConfig: ToolMeta = {
         return MaskPdf;
       },
       getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { magicPdfWorker } = await import('@/workers/instances');
+        const { createPerPayloadTIPExecutor } = await import('@/platform/tip/executor');
+        const { magicPdfWorker } = await import('@/platform/workers/instances');
         return createPerPayloadTIPExecutor(
           magicPdfWorker,
           'apply_edits',
@@ -296,9 +296,9 @@ export const magicPdfConfig: ToolMeta = {
       },
       // Pure pdf-lib executor — no Python WASM needed
       getExecutor: async () => {
-        return async (input: import('@/tip/protocol').TIPBundle, config: import('@/tip/protocol').TIPConfig) => {
+        return async (input: import('@/platform/tip/protocol').TIPBundle, config: import('@/platform/tip/protocol').TIPConfig) => {
           const { PDFDocument } = await import('pdf-lib');
-          const { bundleFromFile } = await import('@/tip/bundle');
+          const { bundleFromFile } = await import('@/platform/tip/bundle');
           const payload = input.payloads[0];
           const fileBytes = await payload.data.arrayBuffer();
           const pdfDoc = await PDFDocument.load(fileBytes);
@@ -369,8 +369,8 @@ export const magicPdfConfig: ToolMeta = {
         ]
       },
       getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { magicPdfWorker } = await import('@/workers/instances');
+        const { createPerPayloadTIPExecutor } = await import('@/platform/tip/executor');
+        const { magicPdfWorker } = await import('@/platform/workers/instances');
         return createPerPayloadTIPExecutor(
           magicPdfWorker,
           'pdf_to_images',
@@ -389,8 +389,8 @@ export const magicPdfConfig: ToolMeta = {
       mobileOptimized: true,
       configSchema: { fields: [] },
       getExecutor: async () => {
-        const { createBatchTIPExecutor } = await import('@/tip/executor');
-        const { magicPdfWorker } = await import('@/workers/instances');
+        const { createBatchTIPExecutor } = await import('@/platform/tip/executor');
+        const { magicPdfWorker } = await import('@/platform/workers/instances');
         return createBatchTIPExecutor(magicPdfWorker, 'images_to_pdf', (b, c) => ({ files_bytes: b, ...c }), () => 'application/pdf', 'Images to PDF', 'images.pdf');
       }
     },
@@ -403,8 +403,8 @@ export const magicPdfConfig: ToolMeta = {
       mobileOptimized: true,
       configSchema: { fields: [] },
       getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { magicPdfWorker } = await import('@/workers/instances');
+        const { createPerPayloadTIPExecutor } = await import('@/platform/tip/executor');
+        const { magicPdfWorker } = await import('@/platform/workers/instances');
         return createPerPayloadTIPExecutor(magicPdfWorker, 'pdf_to_word', (b, c) => ({ file_bytes: b, ...c }), () => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'PDF to Word');
       }
     }

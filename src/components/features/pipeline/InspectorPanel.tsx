@@ -1,10 +1,10 @@
 import React from 'react';
 import Image from 'next/image';
-import { TIPToolRegistry } from '@/tip/registry';
+import { TIPToolRegistry } from '@/platform/tip/registry';
 import type { Node } from '@xyflow/react';
 import { SlidersHorizontal, Info, AlertOctagon, PackageCheck, Upload, X } from 'lucide-react';
 import { getTypeColor, getToolThumbnail } from './nodes/ToolNode';
-import type { TIPBundle } from '@/tip/protocol';
+import type { TIPBundle } from '@/platform/tip/protocol';
 
 interface InspectorPanelProps {
     selectedNode: Node | null;

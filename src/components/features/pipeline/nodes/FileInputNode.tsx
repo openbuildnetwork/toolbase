@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Handle, Position, useReactFlow } from '@xyflow/react';
 import { Upload, FileCheck, X, FileText, Eye } from 'lucide-react';
 import { getTypeColor } from './ToolNode';
-import { PdfPreview } from '../../../ui/PdfPreview';
+import { PdfPreview } from '@/shared/ui/PdfPreview';
 
 /**
  * FileInputNode — The pipeline starting node where a user drops/selects their file.

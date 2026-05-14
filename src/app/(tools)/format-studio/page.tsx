@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { ToolSidebar, ToolSidebarItem } from "@/components/ui/ToolSidebar";
-import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
-import { cn } from "@/lib/utils";
-import type { DataFormat } from "@/lib/format-studio";
+import { ToolSidebar, ToolSidebarItem } from "@/shared/ui/ToolSidebar";
+import { ReturnToToolsButton } from "@/shared/ui/ReturnToToolsButton";
+import { cn } from "@/shared/lib/utils";
+import type { DataFormat } from "@/modules/format-studio";
 import dynamic from "next/dynamic";
 
 const ConvertStudio = dynamic(() => import("@/components/features/format-studio/ConvertStudio").then(mod => mod.ConvertStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
@@ -19,11 +19,11 @@ import {
   Braces,
   Wand2,
 } from "lucide-react";
-import { useFormatStudioConvert } from "@/hooks/format-studio/useFormatStudioConvert";
-import { useFormatStudioValidate } from "@/hooks/format-studio/useFormatStudioValidate";
-import { useFormatStudioFormatRecipes } from "@/hooks/format-studio/useFormatStudioFormatRecipes";
-import { useFormatStudioDiff } from "@/hooks/format-studio/useFormatStudioDiff";
-import { useFormatStudioGenerator } from "@/hooks/format-studio/useFormatStudioGenerator";
+import { useFormatStudioConvert } from "@/modules/format-studio/useFormatStudioConvert";
+import { useFormatStudioValidate } from "@/modules/format-studio/useFormatStudioValidate";
+import { useFormatStudioFormatRecipes } from "@/modules/format-studio/useFormatStudioFormatRecipes";
+import { useFormatStudioDiff } from "@/modules/format-studio/useFormatStudioDiff";
+import { useFormatStudioGenerator } from "@/modules/format-studio/useFormatStudioGenerator";
 
 const formatOptions: { id: DataFormat; label: string }[] = [
   { id: "json", label: "JSON" },

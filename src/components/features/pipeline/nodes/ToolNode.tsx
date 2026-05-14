@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { TIPToolRegistry } from '@/tip/registry';
+import { TIPToolRegistry } from '@/platform/tip/registry';
 import { Loader2, CheckCircle2, AlertCircle, Settings2, PauseCircle, Zap } from 'lucide-react';
 import Image from 'next/image';
-import { useWorkerState } from '@/hooks/useWorkerState';
-import { workerForTool } from '@/workers/instances';
-import type { WorkerReadyState } from '@/workers/client';
+import { useWorkerState } from '@/shared/hooks/useWorkerState';
+import { workerForTool } from '@/platform/workers/instances';
+import type { WorkerReadyState } from '@/platform/workers/client';
 
 export function getTypeColor(type: string): string {
     if (type === 'application/pdf') return '#ef4444';

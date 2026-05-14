@@ -1,5 +1,5 @@
-import { ToolMeta } from "@/types/tool-search";
-import { TIP_CONTENT_TYPES } from "@/tip/protocol";
+import { ToolMeta } from "@/shared/types/tool-search";
+import { TIP_CONTENT_TYPES } from "@/platform/tip/protocol";
 
 export const pipelineConfig: ToolMeta = {
   id: 'pipeline',
@@ -34,7 +34,7 @@ export const pipelineConfig: ToolMeta = {
       },
       getExecutor: async () => {
         return async (input, config) => {
-          const { ReviewSync } = await import('@/lib/review-sync');
+          const { ReviewSync } = await import('@/shared/lib/review-sync');
           const nodeId = config.__nodeId as string;
           if (!nodeId) {
             // Fallback if nodeId not injected

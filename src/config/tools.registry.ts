@@ -4,7 +4,7 @@
 // This file aggregates individual configurations from src/config/tools/*
 // ============================================================
 
-import { ToolCategory, ToolMeta } from "@/types/tool-search";
+import { ToolCategory, ToolMeta } from "@/shared/types/tool-search";
 import { magicPdfConfig } from "./tools/magic-pdf";
 import { pixelsConfig } from "./tools/pixels";
 import { dataLensConfig } from "./tools/data-lens";

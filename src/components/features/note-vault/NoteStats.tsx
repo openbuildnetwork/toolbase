@@ -1,5 +1,5 @@
 import React from 'react';
-import { Note } from '@/types/note-vault';
+import { Note } from '@/modules/note-vault/types';
 
 export default function NoteStats({ note }: { note: Note }) {
   const content = note.content || '';

@@ -1,9 +1,9 @@
 
 import React, { useRef, useState } from "react";
 import { m } from "framer-motion";
-import { cn, formatBytes } from "@/lib/utils";
+import { cn, formatBytes } from "@/shared/lib/utils";
 import { ImageIcon, MoveHorizontal, ZoomIn, Info } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/shared/ui/Button";
 
 interface ImagePreviewProps {
     originalUrl: string | null;

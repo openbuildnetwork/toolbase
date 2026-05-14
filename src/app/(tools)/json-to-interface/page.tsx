@@ -17,19 +17,19 @@ import {
     Cpu,
     Monitor
 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
-import { Card } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
-import { Label } from "@/components/ui/Label";
-import { generateModels } from "@/lib/json-to-interface";
+import { Button } from "@/shared/ui/Button";
+import { ReturnToToolsButton } from "@/shared/ui/ReturnToToolsButton";
+import { Card } from "@/shared/ui/Card";
+import { Input } from "@/shared/ui/Input";
+import { Label } from "@/shared/ui/Label";
+import { generateModels } from "@/shared/lib/json-to-interface";
 import Image from "next/image";
 import { appIcons } from "@/config/icons";
-import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
+import { LazyEditor as Editor } from "@/shared/ui/LazyEditor";
 import { useTheme } from "next-themes";
 import { m, AnimatePresence, Variants } from "framer-motion";
-import { Tabs, TabItem } from "@/components/ui/Tabs";
-import { Switch } from "@/components/ui/Switch";
+import { Tabs, TabItem } from "@/shared/ui/Tabs";
+import { Switch } from "@/shared/ui/Switch";
 
 type Language = 'typescript' | 'python' | 'dart' | 'java' | 'kotlin' | 'swift' | 'go';
 

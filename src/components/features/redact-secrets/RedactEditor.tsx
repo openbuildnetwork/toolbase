@@ -1,9 +1,9 @@
 import React, { useRef, useState } from "react";
 import { FileText, Upload, X, Vault, Save } from "lucide-react";
 import { m } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { ContentType } from "@/types/redact";
-import { useNoteVault } from "@/hooks/useNoteVault";
+import { cn } from "@/shared/lib/utils";
+import { ContentType } from "@/modules/redact-secrets/types";
+import { useNoteVault } from "@/modules/note-vault/hooks/useNoteVault";
 import { VaultSelectorModal } from "./VaultSelectorModal";
 
 interface RedactEditorProps {

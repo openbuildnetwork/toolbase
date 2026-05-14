@@ -14,11 +14,11 @@ import {
     Binary
 } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/Button";
-import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
-import { Slider } from "@/components/ui/Slider";
-import { Checkbox } from "@/components/ui/Checkbox";
+import { cn } from "@/shared/lib/utils";
+import { Button } from "@/shared/ui/Button";
+import { ReturnToToolsButton } from "@/shared/ui/ReturnToToolsButton";
+import { Slider } from "@/shared/ui/Slider";
+import { Checkbox } from "@/shared/ui/Checkbox";
 
 /* ── Components ──────────────────────────────────────────────────────────── */
 

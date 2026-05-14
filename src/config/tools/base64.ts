@@ -1,4 +1,4 @@
-import { ToolMeta } from "@/types/tool-search";
+import { ToolMeta } from "@/shared/types/tool-search";
 
 export const base64Config: ToolMeta = {
   id: 'base64',
@@ -37,8 +37,8 @@ export const base64Config: ToolMeta = {
         return Base64Interactive;
       },
       getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { base64Worker } = await import('@/workers/instances');
+        const { createPerPayloadTIPExecutor } = await import('@/platform/tip/executor');
+        const { base64Worker } = await import('@/platform/workers/instances');
         return createPerPayloadTIPExecutor(
           base64Worker,
           'process',
@@ -71,8 +71,8 @@ export const base64Config: ToolMeta = {
         return Base64Interactive;
       },
       getExecutor: async () => {
-        const { createPerPayloadTIPExecutor } = await import('@/tip/executor');
-        const { base64Worker } = await import('@/workers/instances');
+        const { createPerPayloadTIPExecutor } = await import('@/platform/tip/executor');
+        const { base64Worker } = await import('@/platform/workers/instances');
         return createPerPayloadTIPExecutor(
           base64Worker,
           'process',

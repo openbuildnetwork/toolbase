@@ -1,13 +1,13 @@
 "use client";
 
 import React from "react";
-import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
+import { LazyEditor as Editor } from "@/shared/ui/LazyEditor";
 import { Upload, Wand2 } from "lucide-react";
-import { useActualTheme } from "@/hooks/useActualTheme";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
+import { useActualTheme } from "@/shared/hooks/useActualTheme";
+import { Button } from "@/shared/ui/Button";
+import { Card } from "@/shared/ui/Card";
+import { Input } from "@/shared/ui/Input";
+import { Select } from "@/shared/ui/Select";
 import type { FormatterRecipe, RecipeStep, RecipeStepOp } from "./types";
 
 type FormatterStudioProps = {

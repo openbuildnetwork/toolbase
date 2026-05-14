@@ -9,7 +9,7 @@ import {
   MousePointer2, Binary, Workflow, ExternalLink, Sparkles
 } from "lucide-react";
 import Link from "next/link";
-import Footer from "@/components/ui/Footer";
+import Footer from "@/shared/ui/Footer";
 
 
 const fadeUp: Variants = {

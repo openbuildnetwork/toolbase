@@ -1,11 +1,11 @@
 
 import React from "react";
-import { Slider } from "@/components/ui/Slider";
-import { Switch } from "@/components/ui/Switch";
-import { Tabs } from "@/components/ui/Tabs";
-import { Card, CardContent } from "@/components/ui/Card";
+import { Slider } from "@/shared/ui/Slider";
+import { Switch } from "@/shared/ui/Switch";
+import { Tabs } from "@/shared/ui/Tabs";
+import { Card, CardContent } from "@/shared/ui/Card";
 import { Info, Zap, Settings2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 interface CompressionSettingsProps {
     mode: 'compress' | 'upscale';

@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
-import { ToolSidebar, ToolSidebarItem } from "@/components/ui/ToolSidebar";
-import { cn } from "@/lib/utils";
+import { Card } from "@/shared/ui/Card";
+import { Button } from "@/shared/ui/Button";
+import { ReturnToToolsButton } from "@/shared/ui/ReturnToToolsButton";
+import { Input } from "@/shared/ui/Input";
+import { Select } from "@/shared/ui/Select";
+import { ToolSidebar, ToolSidebarItem } from "@/shared/ui/ToolSidebar";
+import { cn } from "@/shared/lib/utils";
 import {
   Archive,
   Ban,
@@ -25,12 +25,12 @@ import {
   ArchiveFormat,
   ArchiveInputFile,
   ZipCompressionMode,
-} from "@/lib/archive-kit";
+} from "@/modules/archive-kit/lib/archive-kit";
 import {
   createArchiveRust,
   extractArchiveRust,
-} from "@/lib/archive-kit-rust";
-import { useArchiveKitWorker } from "@/hooks/useArchiveKitWorker";
+} from "@/modules/archive-kit/lib/archive-kit-rust";
+import { useArchiveKitWorker } from "@/modules/archive-kit/hooks/useArchiveKitWorker";
 
 function bytesToHuman(size: number): string {
   if (size < 1024) return `${size} B`;

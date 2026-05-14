@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { FileUploader } from '@/components/ui/FileUploader';
-import { Button } from '@/components/ui/Button';
+import { FileUploader } from '@/shared/ui/FileUploader';
+import { Button } from '@/shared/ui/Button';
 import {
     FileText,
     Download,
@@ -12,8 +12,8 @@ import {
     ArrowRightLeft,
     FileCode
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { useTIPTool } from '@/hooks/useTIPTool';
+import { Card } from '@/shared/ui/Card';
+import { useTIPTool } from '@/platform/hooks/useTIPTool';
 
 export default function PdfToWord() {
     const [file, setFile] = useState<File | null>(null);

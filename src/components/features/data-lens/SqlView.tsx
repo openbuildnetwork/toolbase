@@ -1,14 +1,14 @@
 "use client";
 
 import React from "react";
-import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
-import { Button } from "@/components/ui/Button";
+import { LazyEditor as Editor } from "@/shared/ui/LazyEditor";
+import { Button } from "@/shared/ui/Button";
 import { Play, Database, FileSpreadsheet, HelpCircle, ChevronUp, ChevronDown, CheckCircle2, GripHorizontal } from "lucide-react";
 import { useTheme } from "next-themes";
-import { TableSchema } from "@/hooks/useDataLens";
+import { TableSchema } from "@/modules/data-lens/hooks/useDataLens";
 import { HelpPanel } from "./HelpPanel";
 import { DataTable } from "./DataTable";
-import { useResizablePanel } from "@/hooks/useResizablePanel";
+import { useResizablePanel } from "@/shared/hooks/useResizablePanel";
 
 interface SqlViewProps {
     sqlQuery: string;

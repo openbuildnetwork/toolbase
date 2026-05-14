@@ -2,9 +2,9 @@
 
 import React, { useMemo } from "react";
 import { Play, Square, Timer, Download, Upload, Info, Activity, RefreshCw } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
-import { useSpeedTest, TestStage } from "@/hooks/useSpeedTest";
+import { cn } from "@/shared/lib/utils";
+import { ReturnToToolsButton } from "@/shared/ui/ReturnToToolsButton";
+import { useSpeedTest, TestStage } from "@/modules/speed-test/hooks/useSpeedTest";
 import { m, AnimatePresence } from "framer-motion";
 
 /* ── Components ──────────────────────────────────────────────────────────── */

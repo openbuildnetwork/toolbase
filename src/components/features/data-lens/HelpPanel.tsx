@@ -2,7 +2,7 @@
 
 import React from "react";
 import { X, Copy, Check } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/shared/ui/Button";
 
 interface HelpExample {
     title: string;

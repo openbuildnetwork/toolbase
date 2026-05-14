@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Settings2, Key, Type, Hash, Code, Upload, Database, Save, FolderOpen } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { TagInput } from "@/components/ui/TagInput";
-import { MaskingStyle } from "@/types/redact";
-import { useNoteVault } from "@/hooks/useNoteVault";
+import { cn } from "@/shared/lib/utils";
+import { TagInput } from "@/shared/ui/TagInput";
+import { MaskingStyle } from "@/modules/redact-secrets/types";
+import { useNoteVault } from "@/modules/note-vault/hooks/useNoteVault";
 import { VaultSelectorModal } from "./VaultSelectorModal";
 
 interface RedactConfigurationProps {

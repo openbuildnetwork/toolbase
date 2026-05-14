@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useBase64 } from '@/hooks/useBase64Worker';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Switch } from '@/components/ui/Switch';
-import { Label } from '@/components/ui/Label';
-import { Input } from '@/components/ui/Input';
-import { FileDropZone } from '@/components/ui/FileDropZone';
-import { CopyToClipboard } from '@/components/ui/CopyToClipboard';
-import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
+import { useBase64 } from '@/modules/base64/hooks/useBase64Worker';
+import { Card } from '@/shared/ui/Card';
+import { Button } from '@/shared/ui/Button';
+import { Switch } from '@/shared/ui/Switch';
+import { Label } from '@/shared/ui/Label';
+import { Input } from '@/shared/ui/Input';
+import { FileDropZone } from '@/shared/ui/FileDropZone';
+import { CopyToClipboard } from '@/shared/ui/CopyToClipboard';
+import { LazyEditor as Editor } from "@/shared/ui/LazyEditor";
 import {
     FileText,
     FileCode,
@@ -26,8 +26,8 @@ import {
     Cpu,
     Upload
 } from 'lucide-react';
-import { Tabs, TabItem } from '@/components/ui/Tabs';
-import type { Base64Mode, Base64Response } from '@/types/base64';
+import { Tabs, TabItem } from '@/shared/ui/Tabs';
+import type { Base64Mode, Base64Response } from '@/modules/base64/types';
 import { m, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 

@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { TIPInteractionProps } from '@/tip/protocol';
+import { TIPInteractionProps } from '@/platform/tip/protocol';
 import { Check, X, FileText, AlertCircle, Eye, Download } from 'lucide-react';
-import { PdfPreview } from '@/components/ui/PdfPreview';
+import { PdfPreview } from '@/shared/ui/PdfPreview';
 import { m, AnimatePresence } from 'framer-motion';
 
 /**

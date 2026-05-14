@@ -17,17 +17,17 @@
  */
 import React, { useState, useEffect } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { FileUploader } from '@/components/ui/FileUploader';
-import { PdfPreview } from '@/components/ui/PdfPreview';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { cn } from '@/lib/utils';
+import { FileUploader } from '@/shared/ui/FileUploader';
+import { PdfPreview } from '@/shared/ui/PdfPreview';
+import { Button } from '@/shared/ui/Button';
+import { Card } from '@/shared/ui/Card';
+import { cn } from '@/shared/lib/utils';
 import {
     Scissors, Download, RefreshCw,
     SplitSquareHorizontal, Eye, CheckCheck,
 } from 'lucide-react';
-import { useTIPTool } from '@/hooks/useTIPTool';
-import type { TIPInteractionProps } from '@/tip/protocol';
+import { useTIPTool } from '@/platform/hooks/useTIPTool';
+import type { TIPInteractionProps } from '@/platform/tip/protocol';
 
 /** Props for SplitPdf — all optional so it works as a bare <SplitPdf /> */
 export type SplitPdfProps = Partial<TIPInteractionProps>;

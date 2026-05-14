@@ -1,20 +1,20 @@
 'use client';
 
 import NextImage from 'next/image';
-import SearchBar from "../components/ui/SearchBar";
-import ToolGrid from "../components/ui/ToolGrid";
+import SearchBar from "@/shared/ui/SearchBar";
+import ToolGrid from "@/shared/ui/ToolGrid";
 import { useState, useMemo } from 'react';
 import { m, Variants } from 'framer-motion';
-import BottomNav from "../components/ui/BottomNav";
-import Header from '@/components/ui/Header';
-import Footer from '@/components/ui/Footer';
+import BottomNav from "@/shared/ui/BottomNav";
+import Header from '@/shared/ui/Header';
+import Footer from '@/shared/ui/Footer';
 import { TOOLS } from '@/config/tools.registry';
-import type { ToolMeta } from '@/types/tool-search';
-import { ToolCardProps } from '@/types/tool-search';
-import { RecentsDrawer } from '@/components/ui/RecentsDrawer';
-import { FavoritesDrawer } from '@/components/ui/FavoritesDrawer';
+import type { ToolMeta } from '@/shared/types/tool-search';
+import { ToolCardProps } from '@/shared/types/tool-search';
+import { RecentsDrawer } from '@/shared/ui/RecentsDrawer';
+import { FavoritesDrawer } from '@/shared/ui/FavoritesDrawer';
 
-import { TryPipelineButton } from '@/components/ui/TryPipelineButton';
+import { TryPipelineButton } from '@/shared/ui/TryPipelineButton';
 
 /**
  * Map the central tool registry to the ToolCardProps shape expected

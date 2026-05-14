@@ -1,7 +1,7 @@
 'use client';
 
 import { OpenDrawLayout } from '@/components/features/open-draw/layouts/MainLayout';
-import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
+import { ReturnToToolsButton } from "@/shared/ui/ReturnToToolsButton";
 
 function OpenDrawView() {
     return (

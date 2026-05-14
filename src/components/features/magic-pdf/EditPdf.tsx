@@ -2,8 +2,8 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { FileUploader } from '@/components/ui/FileUploader';
-import { Button } from '@/components/ui/Button';
+import { FileUploader } from '@/shared/ui/FileUploader';
+import { Button } from '@/shared/ui/Button';
 import {
     Download,
     RefreshCw,
@@ -31,10 +31,10 @@ import {
     RotateCw,
     RotateCcw
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { cn } from '@/lib/utils';
-import { PdfPreview } from '@/components/ui/PdfPreview';
-import { magicPdfWorker } from '@/workers/instances';
+import { Card } from '@/shared/ui/Card';
+import { cn } from '@/shared/lib/utils';
+import { PdfPreview } from '@/shared/ui/PdfPreview';
+import { magicPdfWorker } from '@/platform/workers/instances';
 
 type ElementType = 'text' | 'image' | 'shape' | 'drawing' | 'whiteout';
 type ShapeType = 'rectangle' | 'circle' | 'line';

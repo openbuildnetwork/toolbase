@@ -11,7 +11,7 @@
 import React, { useEffect, useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
-import type { TIPTool, TIPInteractionProps, TIPInteractionResult } from '@/tip/protocol';
+import type { TIPTool, TIPInteractionProps, TIPInteractionResult } from '@/platform/tip/protocol';
 
 interface InteractionModalProps {
     /** The tool whose getInteractionComponent() will be rendered */

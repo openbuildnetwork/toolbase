@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
+import { LazyEditor as Editor } from "@/shared/ui/LazyEditor";
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
-import { useActualTheme } from "@/hooks/useActualTheme";
-import { Card } from "@/components/ui/Card";
-import { Select } from "@/components/ui/Select";
-import type { ValidationResult } from "@/lib/format-studio";
+import { useActualTheme } from "@/shared/hooks/useActualTheme";
+import { Card } from "@/shared/ui/Card";
+import { Select } from "@/shared/ui/Select";
+import type { ValidationResult } from "@/modules/format-studio";
 import type { ValidationIssue } from "./types";
 
 type ValidatorStudioProps = {

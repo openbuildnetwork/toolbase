@@ -11,8 +11,8 @@
  */
 import React, { useState, useEffect } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { FileUploader } from '@/components/ui/FileUploader';
-import { Button } from '@/components/ui/Button';
+import { FileUploader } from '@/shared/ui/FileUploader';
+import { Button } from '@/shared/ui/Button';
 import {
     Download,
     RefreshCw,
@@ -27,10 +27,10 @@ import {
     ChevronRight,
     Eye
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { cn } from '@/lib/utils';
-import { rearrangePdf, getPdfPageCount, renderPdfPageToImage, PageOperation } from '@/lib/pdf-actions';
-import type { TIPInteractionProps } from '@/tip/protocol';
+import { Card } from '@/shared/ui/Card';
+import { cn } from '@/shared/lib/utils';
+import { rearrangePdf, getPdfPageCount, renderPdfPageToImage, PageOperation } from '@/shared/lib/pdf-actions';
+import type { TIPInteractionProps } from '@/platform/tip/protocol';
 
 export type RearrangePdfProps = Partial<TIPInteractionProps>;
 

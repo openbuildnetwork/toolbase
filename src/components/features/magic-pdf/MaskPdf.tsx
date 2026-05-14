@@ -2,8 +2,8 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { FileUploader } from '@/components/ui/FileUploader';
-import { Button } from '@/components/ui/Button';
+import { FileUploader } from '@/shared/ui/FileUploader';
+import { Button } from '@/shared/ui/Button';
 import {
     Download,
     RefreshCw,
@@ -37,14 +37,14 @@ import {
     Layers,
     Type as TypeIcon
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { cn } from '@/lib/utils';
-import { PdfPreview } from '@/components/ui/PdfPreview';
-import { magicPdfWorker } from '@/workers/instances';
+import { Card } from '@/shared/ui/Card';
+import { cn } from '@/shared/lib/utils';
+import { PdfPreview } from '@/shared/ui/PdfPreview';
+import { magicPdfWorker } from '@/platform/workers/instances';
 import { ShieldAlert, Fingerprint, Eye, EyeOff } from 'lucide-react';
-import { Slider } from '@/components/ui/Slider';
-import { useDebounce } from '@/hooks/useDebounce';
-import type { TIPInteractionProps } from '@/tip/protocol';
+import { Slider } from '@/shared/ui/Slider';
+import { useDebounce } from '@/shared/hooks/useDebounce';
+import type { TIPInteractionProps } from '@/platform/tip/protocol';
 
 /** Props for MaskPdf — all optional so it works as a bare <MaskPdf /> */
 export type MaskPdfProps = Partial<TIPInteractionProps>;

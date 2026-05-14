@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { FlaskConical, Layers3, Sparkles } from "lucide-react";
-import type { ToolSidebarItem } from "@/components/ui/ToolSidebar";
+import type { ToolSidebarItem } from "@/shared/ui/ToolSidebar";
 
 export type DataBuilderSection = "fields" | "blueprint" | "testing";
 

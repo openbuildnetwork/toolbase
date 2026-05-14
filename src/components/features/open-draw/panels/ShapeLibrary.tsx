@@ -5,7 +5,7 @@ import { Search, ChevronDown, ChevronRight, icons } from 'lucide-react';
 
 // Local type for shape items to handle both standard shapes and dynamic icons
 // We need to import ShapeDefinition but since it's a type only import, we can rely on existing import or add it
-import type { ShapeDefinition } from '@/types/open-draw.types';
+import type { ShapeDefinition } from '@/modules/open-draw/types/open-draw.types';
 
 type ShapeLibraryItem =
     | (ShapeDefinition & { type: string; icon?: undefined; data?: undefined })

@@ -32,11 +32,11 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { m, AnimatePresence } from 'framer-motion';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
-import { ToolSidebar, ToolSidebarItem } from '@/components/ui/ToolSidebar';
-import { cn } from '@/lib/utils';
+import { Card } from '@/shared/ui/Card';
+import { Button } from '@/shared/ui/Button';
+import { ReturnToToolsButton } from "@/shared/ui/ReturnToToolsButton";
+import { ToolSidebar, ToolSidebarItem } from '@/shared/ui/ToolSidebar';
+import { cn } from '@/shared/lib/utils';
 
 const MagicPdf = () => {
   const [activeTool, setActiveTool] = useState('merge');

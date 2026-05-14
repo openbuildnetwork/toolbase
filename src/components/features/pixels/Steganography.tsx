@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { FileUploader } from "@/components/ui/FileUploader";
-import { Button } from "@/components/ui/Button";
-import { Card, CardContent } from "@/components/ui/Card";
-import { Tabs } from "@/components/ui/Tabs";
+import { FileUploader } from "@/shared/ui/FileUploader";
+import { Button } from "@/shared/ui/Button";
+import { Card, CardContent } from "@/shared/ui/Card";
+import { Tabs } from "@/shared/ui/Tabs";
 import { Lock, Unlock, Download, RefreshCw, Eye, EyeOff } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
-import { useTIPTool } from "@/hooks/useTIPTool";
+import { useTIPTool } from "@/platform/hooks/useTIPTool";
 
 
 export function Steganography() {

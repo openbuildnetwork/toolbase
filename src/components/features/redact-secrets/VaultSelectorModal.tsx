@@ -3,9 +3,9 @@
 import React, { useState } from "react";
 import { Search, Vault, X } from "lucide-react";
 import { m } from "framer-motion";
-import { useNoteVault } from "@/hooks/useNoteVault";
-import { Note } from "@/types/note-vault";
-import { Button } from "@/components/ui/Button";
+import { useNoteVault } from "@/modules/note-vault/hooks/useNoteVault";
+import { Note } from "@/modules/note-vault/types";
+import { Button } from "@/shared/ui/Button";
 
 interface VaultSelectorModalProps {
     isOpen: boolean;

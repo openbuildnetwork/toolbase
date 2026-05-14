@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { FileUploader } from '@/components/ui/FileUploader';
-import { Button } from '@/components/ui/Button';
+import { FileUploader } from '@/shared/ui/FileUploader';
+import { Button } from '@/shared/ui/Button';
 import {
     Download,
     RefreshCw,
@@ -14,9 +14,9 @@ import {
     Shield,
     AlertCircle
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { cn } from '@/lib/utils';
-import { useTIPTool } from '@/hooks/useTIPTool';
+import { Card } from '@/shared/ui/Card';
+import { cn } from '@/shared/lib/utils';
+import { useTIPTool } from '@/platform/hooks/useTIPTool';
 
 export default function ProtectPdf() {
     const [file, setFile] = useState<File | null>(null);

@@ -5,8 +5,8 @@ import {
     Copy, Save, RotateCcw, Sparkles, Search, Hash, Calendar,
     Type, ToggleLeft, AlertCircle
 } from "lucide-react";
-import { TableSchema } from "@/hooks/useDataLens";
-import { Button } from "@/components/ui/Button";
+import { TableSchema } from "@/modules/data-lens/hooks/useDataLens";
+import { Button } from "@/shared/ui/Button";
 
 export interface FilterCondition {
     id: string;

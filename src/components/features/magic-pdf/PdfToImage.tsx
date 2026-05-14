@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { FileUploader } from '@/components/ui/FileUploader';
-import { Button } from '@/components/ui/Button';
+import { FileUploader } from '@/shared/ui/FileUploader';
+import { Button } from '@/shared/ui/Button';
 import {
     Image as ImageIcon,
     Download,
@@ -13,9 +13,9 @@ import {
     Type,
     Settings2
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { useTIPTool } from '@/hooks/useTIPTool';
-import { cn } from '@/lib/utils';
+import { Card } from '@/shared/ui/Card';
+import { useTIPTool } from '@/platform/hooks/useTIPTool';
+import { cn } from '@/shared/lib/utils';
 
 export default function PdfToImage() {
     const [file, setFile] = useState<File | null>(null);

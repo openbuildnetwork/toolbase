@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { ToolPageTracker } from "@/components/ui/ToolPageTracker";
-import { PrivacyBadge } from "@/components/ui/PrivacyBadge";
+import { ToolPageTracker } from "@/shared/ui/ToolPageTracker";
+import { PrivacyBadge } from "@/shared/ui/PrivacyBadge";
 
 export const metadata: Metadata = {
   title: "Archive Kit | OBN",

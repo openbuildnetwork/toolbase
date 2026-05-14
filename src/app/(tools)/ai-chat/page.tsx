@@ -2,11 +2,11 @@
 
 import React from "react";
 import Image from "next/image";
-import { OllamaSetup } from "@/components/ai/OllamaSetup";
-import { ChatInterface } from "@/components/ai/ChatInterface";
+import { OllamaSetup } from "@/modules/ai-assistant/components/OllamaSetup";
+import { ChatInterface } from "@/modules/ai-assistant/components/ChatInterface";
 import { Cpu, LockKeyhole, Sparkles } from "lucide-react";
-import { useAIChat } from "@/hooks/useAIChat";
-import { DEFAULT_WEBLLM_MODEL_ID } from "@/hooks/useWebLLM";
+import { useAIChat } from "@/modules/ai-assistant/hooks/useAIChat";
+import { DEFAULT_WEBLLM_MODEL_ID } from "@/modules/ai-assistant/hooks/useWebLLM";
 
 export default function AiChatPage() {
   const { isInstalled, isLoaded } = useAIChat();

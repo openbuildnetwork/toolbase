@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { Node, Edge } from '@xyflow/react';
-import type { PipelineStep, PipelineDefinition } from '@/types/pipeline';
-import { TIPToolRegistry } from '@/tip/registry';
+import type { PipelineStep, PipelineDefinition } from '@/modules/pipeline/types';
+import { TIPToolRegistry } from '@/platform/tip/registry';
 
 function getTypeColor(type?: string): string {
     if (!type) return '#9ca3af';

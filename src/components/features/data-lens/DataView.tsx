@@ -3,9 +3,9 @@
 import React from "react";
 import { FilterBuilder, FilterCondition } from "./FilterBuilder";
 import { DataTable } from "./DataTable";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/shared/ui/Button";
 import { Table as TableIcon, Code2, Terminal } from "lucide-react";
-import { TableSchema } from "@/hooks/useDataLens";
+import { TableSchema } from "@/modules/data-lens/hooks/useDataLens";
 
 interface DataViewProps {
     tableData: any[];

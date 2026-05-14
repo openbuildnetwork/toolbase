@@ -1,12 +1,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
-import { useOpenDraw } from '@/hooks/useOpenDraw';
+import { useOpenDraw } from '@/modules/open-draw/hooks/useOpenDraw';
 import { DrawCanvas } from '../canvas/DrawCanvas';
 import { ShapeLibrary } from '../panels/ShapeLibrary';
 import { PropertiesPanel } from '../panels/PropertiesPanel';
 import { Undo2, Redo2, Download, Upload, Moon, Sun, Menu, ChevronLeft, ChevronRight, FileText, ChevronDown, FileCode, FileImage, X, Check } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/shared/ui/Button';
 import { exportAsPng, exportAsSvg, exportAsPdf } from '../utils/export-utils';
 
 export function OpenDrawLayout() {
