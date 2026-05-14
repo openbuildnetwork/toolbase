@@ -53,7 +53,7 @@ const withPWA = withPWAInit({
       },
       // Tool pages — network-first for fresh content, falls back to cache
       {
-        urlPattern: /^https?:\/\/.*\/(?:magic-pdf|pixel-axe|data-lens|redact-secrets|base64|json-to-interface|open-draw|ping-tester|speed-test|passwordx)/,
+        urlPattern: /^https?:\/\/.*\/(?:magic-pdf|pixel-axe|data-lens|redact-secrets|base64|json-to-interface|open-draw|ping-tester|speed-test|passwordx|bgremover)/,
         handler: "NetworkFirst",
         options: {
           cacheName: "tool-pages",
@@ -81,6 +81,19 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/imgly/:path*",
+        headers: [
+          {
+            key: "Cross-Origin-Resource-Policy",
+            value: "cross-origin",
+          },
+          {
+            key: "Cross-Origin-Embedder-Policy",
+            value: "require-corp",
+          },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: [
           {
@@ -90,15 +103,6 @@ const nextConfig: NextConfig = {
           {
             key: "Cross-Origin-Embedder-Policy",
             value: "require-corp",
-          },
-        ],
-      },
-      {
-        source: "/imgly/(.*)",
-        headers: [
-          {
-            key: "Cross-Origin-Resource-Policy",
-            value: "cross-origin",
           },
         ],
       },
