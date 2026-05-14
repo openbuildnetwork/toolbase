@@ -38,6 +38,11 @@ export const redactSecretsWorker = new WorkerClient(
   'Redact Secrets'
 );
 
+export const qrForgeWorker = new WorkerClient(
+  () => new Worker(new URL('./qr-forge.worker.ts', import.meta.url)),
+  'QR Forge'
+);
+
 // ─── Tool → Worker mapping ────────────────────────────────────────────────────
 
 /**
@@ -55,6 +60,7 @@ export function workerForTool(toolId: string): WorkerClient | null {
   if (toolId.startsWith('open-draw')) return openDrawWorker;
   if (toolId.startsWith('redact-secrets')) return redactSecretsWorker;
   if (toolId.startsWith('base64')) return base64Worker;
+  if (toolId.startsWith('qr-forge')) return qrForgeWorker;
   return null;
 }
 
@@ -91,7 +97,7 @@ import { useEffect, useState } from 'react';
  * Useful for disabling global UI actions (like saving) during boot.
  */
 export function useAnyWorkerWarming(): boolean {
-  const allWorkers = [magicPdfWorker, pixelsWorker, dataLensWorker, openDrawWorker, base64Worker, redactSecretsWorker];
+  const allWorkers = [magicPdfWorker, pixelsWorker, dataLensWorker, openDrawWorker, base64Worker, redactSecretsWorker, qrForgeWorker];
   
   const checkWarming = () => allWorkers.some(w => w.readyState === 'warming');
   const [isWarming, setIsWarming] = useState(false);
