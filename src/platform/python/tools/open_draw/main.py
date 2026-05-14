@@ -155,3 +155,9 @@ def process_command(command: Dict[str, Any]) -> Dict[str, Any]:
     """
     engine = get_engine()
     return engine.process(command)
+
+
+def handle_request(action: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Standardized entry point for Toolbase Python workers."""
+    return process_command({"type": action, "data": data})
+

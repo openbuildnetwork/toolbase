@@ -2,8 +2,8 @@ import fs from "fs";
 import path from "path";
 
 const ROOT = process.cwd();
-const TOOLS_DIR = path.join(ROOT, "src/python/tools");
-const OUTPUT_DIR = path.join(ROOT, "src/python/bundles");
+const TOOLS_DIR = path.join(ROOT, "src/platform/python/tools");
+const OUTPUT_DIR = path.join(ROOT, "src/platform/python/bundles");
 
 function getAllPythonFiles(dir) {
   let results = [];
@@ -38,7 +38,7 @@ function buildBundle() {
     const filesRecord = {};
 
     for (const fullPath of pythonFiles) {
-      let relativePath = path.relative(path.join(ROOT, "src/python"), fullPath);
+      let relativePath = path.relative(path.join(ROOT, "src/platform/python"), fullPath);
       relativePath = relativePath.replace(/\\/g, "/").replace(/-/g, "_");
       const code = fs.readFileSync(fullPath, "utf8");
       filesRecord[relativePath] = code;
