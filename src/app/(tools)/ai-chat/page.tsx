@@ -5,7 +5,7 @@ import Image from "next/image";
 import { OllamaSetup } from "@/components/ai/OllamaSetup";
 import { ChatInterface } from "@/components/ai/ChatInterface";
 import { Cpu, LockKeyhole } from "lucide-react";
-import { useAIChat } from "@/hooks/useAIChat";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 import { DEFAULT_WEBLLM_MODEL_ID, SUPPORTED_MODELS } from "@/hooks/useWebLLM";
 
 export default function AiChatPage() {

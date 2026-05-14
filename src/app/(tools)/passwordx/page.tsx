@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { 
     RefreshCw, 
     CheckCircle2, 
@@ -10,7 +10,6 @@ import {
     Zap, 
     ShieldCheck, 
     ShieldAlert,
-    ChevronRight,
     Binary
 } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
@@ -18,7 +17,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { Slider } from "@/components/ui/Slider";
-import { Checkbox } from "@/components/ui/Checkbox";
 
 /* ── Components ──────────────────────────────────────────────────────────── */
 
@@ -138,8 +136,10 @@ export default function PasswordXPage() {
 
     // Generate on load
     useEffect(() => {
-        generatePassword();
-    }, []);
+        Promise.resolve().then(() => {
+            generatePassword();
+        });
+    }, [generatePassword]);
 
     return (
         <div className="min-h-screen bg-(--background) text-(--text-primary) font-display overflow-x-hidden">

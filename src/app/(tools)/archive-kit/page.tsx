@@ -17,7 +17,6 @@ import {
   Info,
   PackageOpen,
   ShieldCheck,
-  ShieldAlert,
   XCircle,
 } from "lucide-react";
 import {
@@ -25,12 +24,12 @@ import {
   ArchiveFormat,
   ArchiveInputFile,
   ZipCompressionMode,
-} from "@/lib/archive-kit";
+} from "@/app/(tools)/archive-kit/lib/archive-kit";
 import {
   createArchiveRust,
   extractArchiveRust,
-} from "@/lib/archive-kit-rust";
-import { useArchiveKitWorker } from "@/hooks/useArchiveKitWorker";
+} from "@/app/(tools)/archive-kit/lib/archive-kit-rust";
+import { useArchiveKitWorker } from "@/app/(tools)/archive-kit/hooks/useArchiveKitWorker";
 
 function bytesToHuman(size: number): string {
   if (size < 1024) return `${size} B`;
@@ -827,7 +826,7 @@ export default function ArchiveKitPage() {
                             Compression
                             <Info className="w-3 h-3 text-gray-400 cursor-help" />
                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-gray-900 text-white text-[10px] rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                              Choose between speed and file size. "Best" uses maximal DEFLATE compression.
+                              Choose between speed and file size. &quot;Best&quot; uses maximal DEFLATE compression.
                             </div>
                           </label>
                           <Select

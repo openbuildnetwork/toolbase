@@ -4,14 +4,14 @@ import React, { useMemo, useState, useEffect } from "react";
 import { ToolSidebar, ToolSidebarItem } from "@/components/ui/ToolSidebar";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { cn } from "@/lib/utils";
-import type { DataFormat } from "@/lib/format-studio";
+import type { DataFormat } from "@/app/(tools)/format-studio/lib/format-studio";
 import dynamic from "next/dynamic";
 
-const ConvertStudio = dynamic(() => import("@/components/features/format-studio/ConvertStudio").then(mod => mod.ConvertStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
-const ValidatorStudio = dynamic(() => import("@/components/features/format-studio/ValidatorStudio").then(mod => mod.ValidatorStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
-const FormatterStudio = dynamic(() => import("@/components/features/format-studio/FormatterStudio").then(mod => mod.FormatterStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
-const DiffLab = dynamic(() => import("@/components/features/format-studio/DiffLab").then(mod => mod.DiffLab), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
-const GeneratorHub = dynamic(() => import("@/components/features/format-studio/GeneratorHub").then(mod => mod.GeneratorHub), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const ConvertStudio = dynamic(() => import("@/app/(tools)/format-studio/components/ConvertStudio").then(mod => mod.ConvertStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const ValidatorStudio = dynamic(() => import("@/app/(tools)/format-studio/components/ValidatorStudio").then(mod => mod.ValidatorStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const FormatterStudio = dynamic(() => import("@/app/(tools)/format-studio/components/FormatterStudio").then(mod => mod.FormatterStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const DiffLab = dynamic(() => import("@/app/(tools)/format-studio/components/DiffLab").then(mod => mod.DiffLab), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const GeneratorHub = dynamic(() => import("@/app/(tools)/format-studio/components/GeneratorHub").then(mod => mod.GeneratorHub), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
 import {
   ArrowRightLeft,
   CheckCircle2,
@@ -19,12 +19,12 @@ import {
   Braces,
   Wand2,
 } from "lucide-react";
-import { useFormatStudioConvert } from "@/hooks/format-studio/useFormatStudioConvert";
-import { useFormatStudioValidate } from "@/hooks/format-studio/useFormatStudioValidate";
-import { useFormatStudioFormatRecipes } from "@/hooks/format-studio/useFormatStudioFormatRecipes";
-import { useFormatStudioDiff } from "@/hooks/format-studio/useFormatStudioDiff";
-import { useFormatStudioGenerator } from "@/hooks/format-studio/useFormatStudioGenerator";
-import { useAIChat } from "@/hooks/useAIChat";
+import { useFormatStudioConvert } from "@/app/(tools)/format-studio/hooks/useFormatStudioConvert";
+import { useFormatStudioValidate } from "@/app/(tools)/format-studio/hooks/useFormatStudioValidate";
+import { useFormatStudioFormatRecipes } from "@/app/(tools)/format-studio/hooks/useFormatStudioFormatRecipes";
+import { useFormatStudioDiff } from "@/app/(tools)/format-studio/hooks/useFormatStudioDiff";
+import { useFormatStudioGenerator } from "@/app/(tools)/format-studio/hooks/useFormatStudioGenerator";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 
 const formatOptions: { id: DataFormat; label: string }[] = [
   { id: "json", label: "JSON" },

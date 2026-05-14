@@ -6,6 +6,7 @@ import type {
     InitProgressReport,
     ChatCompletionMessageParam,
 } from "@mlc-ai/web-llm";
+import { getSystemCapabilities, CapabilityReport } from "@/lib/system-capabilities";
 
 /**
  * useWebLLM Hook
@@ -302,7 +303,6 @@ function getOrCreateWorker(forceReload = false) {
     return sharedRuntime.worker;
 }
 
-import { getSystemCapabilities, CapabilityReport } from "@/utils/SystemCapabilities";
 
 export function useWebLLM() {
     const [engine, setEngine] = useState<MLCEngineInterface | null>(sharedRuntime.engine);
@@ -357,7 +357,7 @@ export function useWebLLM() {
         try {
             await engineInstance.reload(modelId);
             syncLoadedEngine(engineInstance, modelId);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Failed to reload model:", error);
             sharedRuntime.modelId = null;
             setIsLoaded(false);
@@ -418,7 +418,7 @@ export function useWebLLM() {
         }
 
         const caps = capabilities || await getSystemCapabilities();
-        let useWasmFallback = !caps.webGPU;
+        const useWasmFallback = !caps.webGPU;
         
         // If no WebGPU, we MUST use the lightweight model to prevent hanging the CPU
         const targetModelId = useWasmFallback ? LIGHTWEIGHT_WEBLLM_MODEL_ID : modelId;
@@ -502,7 +502,7 @@ export function useWebLLM() {
             setProgress(`GPU memory pressure detected. Switching to ${fallbackProfile.name}...`);
             await loadModel(fallbackModelId, true, background);
         }
-    }, [reloadEngine, syncLoadedEngine]);
+    }, [reloadEngine, syncLoadedEngine, capabilities]);
 
     // Removed auto-loading useEffect to prevent blocking initial LCP with AI worker initialization.
     // The engine will now only initialize when loadModel() is explicitly called (e.g., when opening chat).

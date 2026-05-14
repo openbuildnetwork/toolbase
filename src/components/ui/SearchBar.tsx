@@ -13,7 +13,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        setIsMac(navigator.platform.toUpperCase().indexOf('MAC') >= 0);
+        Promise.resolve().then(() => {
+            setIsMac(navigator.platform.toUpperCase().indexOf('MAC') >= 0);
+        });
 
         const handleKeyDown = (e: KeyboardEvent) => {
             // Check for Cmd+K / Ctrl+K

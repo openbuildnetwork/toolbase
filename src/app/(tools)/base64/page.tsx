@@ -3,7 +3,7 @@
 import React from 'react';
 import { Binary } from 'lucide-react';
 import { m } from 'framer-motion';
-import { Base64Workspace } from '@/components/features/base64/Base64Workspace';
+import { Base64Workspace } from '@/app/(tools)/base64/components/Base64Workspace';
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 
 export default function Base64Page() {

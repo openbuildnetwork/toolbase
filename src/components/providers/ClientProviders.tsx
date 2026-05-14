@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import { ThemeProvider } from "../ui/ThemeProvider";
 import { GlobalBackground } from "../ui/GlobalBackground";
 import { DaylightManager } from "../ui/DaylightManager";
-import { AIChatProvider } from "@/hooks/useAIChat";
+import { AIChatProvider } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 import { CommandPaletteProvider } from "../ui/CommandPaletteProvider";
 import { GlobalAIOverlay } from "@/components/ai/GlobalAIOverlay";
 import { WorkerPrewarmer } from "./WorkerPrewarmer";

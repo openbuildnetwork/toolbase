@@ -28,7 +28,7 @@ export function usePWA(forceShow = false) {
     const checkStandalone = () => {
       if (typeof window !== 'undefined') {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                          (window.navigator as any).standalone === true;
+                          (window.navigator as { standalone?: boolean }).standalone === true;
         setIsInstalled(isStandalone);
       }
     };

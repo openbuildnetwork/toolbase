@@ -32,8 +32,8 @@ import { TOOLS, searchToolsFromRegistry } from '@/config/tools.registry';
 import { useToolPreferences } from '@/hooks/useToolPreferences';
 import { ToolMeta } from '@/types/tool-search';
 import { cn } from '@/lib/utils';
-import { getPinnedNotes } from '@/hooks/useNoteVault';
-import { Note } from '@/types/note-vault';
+import { getPinnedNotes } from '@/app/(tools)/note-vault/hooks/useNoteVault';
+import { Note } from '@/app/(tools)/note-vault/types/note-vault';
 
 // ─── category badge colours ────────────────────────────────────────────────────
 
@@ -174,7 +174,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             id: `snippet-${n.id}`,
             name: n.title || 'Untitled Snippet',
             description: `Snippet (${n.format.toUpperCase()}) - Press Enter to copy to clipboard`,
-            category: 'snippet' as any,
+            category: 'snippet' as unknown as ToolMeta['category'],
             route: `note-vault?id=${n.id}`,
             thumbnail: '/assets/thumbnails/developer.png',
             tags: n.tags || [],
@@ -198,63 +198,41 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         // Match snippets manually alongside tools registry search
         const matchedSnippets = snippetTools.filter(s => 
             s.name.toLowerCase().includes(lowerQuery) || 
-            (s as any)._originalNote?.content.toLowerCase().includes(lowerQuery)
+            (s as ToolMeta & { _originalNote?: Note })._originalNote?.content.toLowerCase().includes(lowerQuery)
         );
 
         return [...matchedSnippets, ...searchToolsFromRegistry(query)];
     }, [query, snippetTools]);
 
     /** The flat list of rows the keyboard navigates */
-    const flatList: ToolMeta[] = query.trim()
-        ? searchResults
-        : [...snippetTools, ...(recentTools.length > 0 ? recentTools : TOOLS.slice(0, 8))];
+    const flatList: ToolMeta[] = useMemo(() =>
+        query.trim()
+            ? searchResults
+            : [...snippetTools, ...(recentTools.length > 0 ? recentTools : TOOLS.slice(0, 8))],
+        [query, searchResults, snippetTools, recentTools]
+    );
 
-    // ── reset on open ───────────────────────────────────────────────────────────
+    // ── reset on open (synchronous render-time reset to avoid setState in effect) ─
+    const [prevOpen, setPrevOpen] = useState(false);
+    if (isOpen && !prevOpen) {
+        setQuery('');
+        setHighlightedIndex(0);
+    }
+    if (isOpen !== prevOpen) {
+        setPrevOpen(isOpen);
+    }
 
+    // Side-effects that genuinely need the effect lifecycle (DOM focus + async data)
     useEffect(() => {
         if (isOpen) {
-            setQuery('');
-            setHighlightedIndex(0);
             // Small delay so the portal has mounted
             setTimeout(() => inputRef.current?.focus(), 30);
-            
             getPinnedNotes().then(setPinnedNotes);
         }
     }, [isOpen]);
 
     // ── reset highlight when list changes ──────────────────────────────────────
-
-    useEffect(() => {
-        setHighlightedIndex(0);
-    }, [query]);
-
-    // ── keyboard navigation ─────────────────────────────────────────────────────
-
-    const handleKeyDown = useCallback(
-        (e: React.KeyboardEvent) => {
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                setHighlightedIndex((i) => Math.min(i + 1, flatList.length - 1));
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                setHighlightedIndex((i) => Math.max(i - 1, 0));
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                const selected = flatList[highlightedIndex];
-                if (selected) navigate(selected);
-            }
-        },
-        [flatList, highlightedIndex] // eslint-disable-line react-hooks/exhaustive-deps
-    );
-
-    // ── scroll highlighted row into view ───────────────────────────────────────
-
-    useEffect(() => {
-        const list = listRef.current;
-        if (!list) return;
-        const highlighted = list.querySelector('[aria-selected="true"]') as HTMLElement;
-        highlighted?.scrollIntoView({ block: 'nearest' });
-    }, [highlightedIndex]);
+    // highlight reset is done in the query setter below to avoid setState-in-effect
 
     // ── navigation ──────────────────────────────────────────────────────────────
 
@@ -274,9 +252,38 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         [onClose, router]
     );
 
+    // ── keyboard navigation ─────────────────────────────────────────────────────
+
+    const handleKeyDown = useCallback(
+        (e: React.KeyboardEvent) => {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setHighlightedIndex((i) => Math.min(i + 1, flatList.length - 1));
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setHighlightedIndex((i) => Math.max(i - 1, 0));
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                const selected = flatList[highlightedIndex];
+                if (selected) navigate(selected);
+            }
+        },
+        [flatList, highlightedIndex, navigate]
+    );
+
+    // ── scroll highlighted row into view ───────────────────────────────────────
+
+    useEffect(() => {
+        const list = listRef.current;
+        if (!list) return;
+        const highlighted = list.querySelector('[aria-selected="true"]') as HTMLElement;
+        highlighted?.scrollIntoView({ block: 'nearest' });
+    }, [highlightedIndex]);
+
     // ── portal target ───────────────────────────────────────────────────────────
 
     const [mounted, setMounted] = useState(false);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => setMounted(true), []);
     if (!mounted) return null;
 
@@ -326,7 +333,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                 ref={inputRef}
                                 type="text"
                                 value={query}
-                                onChange={(e) => setQuery(e.target.value)}
+                                onChange={(e) => { setQuery(e.target.value); setHighlightedIndex(0); }}
                                 onKeyDown={handleKeyDown}
                                 placeholder="Search tools…"
                                 autoComplete="off"

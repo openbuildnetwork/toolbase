@@ -3,7 +3,7 @@
 import React from "react";
 import { m, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { useAIChat } from "@/hooks/useAIChat";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 import { cn } from "@/lib/utils";
 
 /**

@@ -51,7 +51,7 @@ export function useOllama(modelName: string = "phi3:mini") {
   }, [modelName]);
 
   useEffect(() => {
-    checkStatus();
+    Promise.resolve().then(() => checkStatus());
   }, [checkStatus]);
 
   return {

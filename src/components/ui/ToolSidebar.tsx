@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import {
     Search,
-    Menu,
     Sidebar as SidebarIcon,
     LucideIcon
 } from 'lucide-react';

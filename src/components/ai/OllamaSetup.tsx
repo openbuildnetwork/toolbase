@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useAIChat } from "@/hooks/useAIChat";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 import { DEFAULT_WEBLLM_MODEL_ID, LIGHTWEIGHT_WEBLLM_MODEL_ID } from "@/hooks/useWebLLM";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";

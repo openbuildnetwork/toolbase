@@ -4,9 +4,9 @@ import { TIPError } from './errors';
 
 import type { WorkerClient } from '@/workers/client';
 
-type OutputTypeResolver = (inputPayload: TIPPayload, config: Record<string, any>) => TIPContentType;
-type PayloadFormatter = (buffer: Uint8Array, config: Record<string, any>) => Record<string, any>;
-type BatchPayloadFormatter = (buffers: Uint8Array[], config: Record<string, any>) => Record<string, any>;
+type OutputTypeResolver = (inputPayload: TIPPayload, config: Record<string, unknown>) => TIPContentType;
+type PayloadFormatter = (buffer: Uint8Array, config: Record<string, unknown>) => Record<string, unknown>;
+type BatchPayloadFormatter = (buffers: Uint8Array[], config: Record<string, unknown>) => Record<string, unknown>;
 
 /**
  * Parses the raw worker return payload into an array of Uint8Arrays.
@@ -18,11 +18,12 @@ function extractWorkerResultBytes(result: unknown, toolNameForLogs: string, file
   
   // If result has a 'data' (split), 'images' (pdf-to-images), or 'result' (base64) property
   if (result && typeof result === 'object') {
-    const d = (result as any).images || (result as any).data || (result as any).result;
+    const r = result as Record<string, unknown>;
+    const d = r.images || r.data || r.result;
     
     // If it's an array of sub-arrays (1-to-N response)
     if (Array.isArray(d) && (d[0] instanceof Uint8Array || Array.isArray(d[0]))) {
-      return d.map(item => item instanceof Uint8Array ? item : new Uint8Array(item));
+      return d.map(item => item instanceof Uint8Array ? item : new Uint8Array(item as number[]));
     }
     
     // If it's a single array representing one file
@@ -34,7 +35,7 @@ function extractWorkerResultBytes(result: unknown, toolNameForLogs: string, file
   if (Array.isArray(result)) {
     // If it's an array of sub-arrays or Uint8Arrays (1-to-N response)
     if (result.length > 0 && (result[0] instanceof Uint8Array || Array.isArray(result[0]))) {
-      return result.map(item => item instanceof Uint8Array ? item : new Uint8Array(item));
+      return result.map(item => item instanceof Uint8Array ? item : new Uint8Array(item as number[]));
     }
     // Otherwise it's a single file represented as an array of numbers
     return [new Uint8Array(result as number[])];
@@ -54,7 +55,7 @@ export function createPerPayloadTIPExecutor(
   outputTypeResolver: OutputTypeResolver,
   toolNameForLogs: string
 ) {
-  return async (input: TIPBundle, config: Record<string, any>, hooks: TIPHooks) => {
+  return async (input: TIPBundle, config: Record<string, unknown>, hooks: TIPHooks) => {
     hooks.onProgress(0, `Starting ${toolNameForLogs}...`);
 
     if (input.payloads.length === 0) {
@@ -79,13 +80,14 @@ export function createPerPayloadTIPExecutor(
           // Pass the underlying ArrayBuffer as a transferable to avoid blocking the main thread during structured clone
           result = await workerClient.execute(actionName, formattedKwargs, [buffer]);
           if (hooks.signal.aborted) throw new TIPError('CANCELLED', 'Cancelled after worker execution');
-        } catch (err: any) {
-           throw new TIPError('EXECUTION_FAILED', `Runtime error in ${actionName}: ${err.message || String(err)}`);
+        } catch (err: unknown) {
+           const message = err instanceof Error ? err.message : String(err);
+           throw new TIPError('EXECUTION_FAILED', `Runtime error in ${actionName}: ${message}`);
         }
 
         const outFormat = outputTypeResolver(payload, config);
         
-        const stringPayload = typeof result === 'string' ? result : (result && typeof result === 'object' && typeof (result as any).result === 'string' ? (result as any).result : null);
+        const stringPayload = typeof result === 'string' ? result : (result && typeof result === 'object' && typeof (result as Record<string, unknown>).result === 'string' ? (result as Record<string, unknown>).result as string : null);
         
         if (stringPayload !== null) {
           const blob = new Blob([stringPayload], { type: outFormat });
@@ -99,7 +101,7 @@ export function createPerPayloadTIPExecutor(
         
         return outBytesArray.map((bytes, idx) => {
           const blob = new Blob([bytes.buffer as ArrayBuffer], { type: outFormat });
-          let baseName = payload.meta.filename.replace(/\.[^/.]+$/, "");
+          const baseName = payload.meta.filename.replace(/\.[^/.]+$/, "");
           
           let suffix = '';
           if (outBytesArray.length > 1) {
@@ -135,11 +137,11 @@ export function createBatchTIPExecutor(
   workerClient: WorkerClient,
   actionName: string,
   payloadFormatter: BatchPayloadFormatter,
-  outputTypeResolver: (config: Record<string, any>) => TIPContentType,
+  outputTypeResolver: (config: Record<string, unknown>) => TIPContentType,
   toolNameForLogs: string,
   outputFilename: string = 'output'
 ) {
-  return async (input: TIPBundle, config: Record<string, any>, hooks: TIPHooks) => {
+  return async (input: TIPBundle, config: Record<string, unknown>, hooks: TIPHooks) => {
     hooks.onProgress(0, `Starting ${toolNameForLogs}...`);
 
     if (input.payloads.length === 0) {
@@ -162,8 +164,9 @@ export function createBatchTIPExecutor(
       const transferables = buffers.map(b => b.buffer as ArrayBuffer);
       result = await workerClient.execute(actionName, formattedKwargs, transferables);
       if (hooks.signal.aborted) throw new TIPError('CANCELLED', 'Cancelled after worker execution');
-    } catch (err: any) {
-       throw new TIPError('EXECUTION_FAILED', `Runtime error in ${actionName}: ${err.message || String(err)}`);
+    } catch (err: unknown) {
+       const message = err instanceof Error ? err.message : String(err);
+       throw new TIPError('EXECUTION_FAILED', `Runtime error in ${actionName}: ${message}`);
     }
 
     const outFormat = outputTypeResolver(config);

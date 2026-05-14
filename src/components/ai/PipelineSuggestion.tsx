@@ -5,8 +5,6 @@ import { m } from "framer-motion";
 import { 
     Zap, 
     ChevronRight, 
-    ArrowRight, 
-    PlayCircle, 
     Settings2,
     FileCode,
     ShieldCheck,
@@ -14,15 +12,15 @@ import {
     ExternalLink,
     Plus
 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+
 import { useRouter, usePathname } from "next/navigation";
 import { TIPToolRegistry } from "@/tip/registry";
-import { useGraphSerializer } from "@/components/features/pipeline/hooks/useGraphSerializer";
+import { useGraphSerializer } from "@/app/(tools)/pipeline/components/hooks/useGraphSerializer";
 import { cn } from "@/lib/utils";
 
 interface PipelineStep {
     toolId: string;
-    config: Record<string, any>;
+    config: Record<string, unknown>;
 }
 
 interface PipelineData {
@@ -52,7 +50,7 @@ export function PipelineSuggestion({ data }: PipelineSuggestionProps) {
                 id: `step-${i}`,
                 ...s
             }))
-        } as any);
+        } as unknown as Parameters<typeof pipelineToGraph>[0]);
 
         // 2. Save to draft storage for cross-page navigation
         localStorage.setItem('toolbase:pipeline-draft', JSON.stringify({ nodes, edges }));

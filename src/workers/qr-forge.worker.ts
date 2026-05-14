@@ -13,7 +13,27 @@ function hexToRgba(hex: string): [number, number, number, number] {
   return [num >> 16, (num >> 8) & 255, num & 255, 255];
 }
 
-async function process_generate(request: any): Promise<any> {
+interface GenerateRequest {
+  data?: Uint8Array;
+  text?: string;
+  size?: number;
+  error_correction?: 'L' | 'M' | 'Q' | 'H';
+  dark_color?: string;
+  light_color?: string;
+  logo_size?: number;
+}
+
+interface DecodeRequest {
+  data: Uint8Array;
+}
+
+interface WorkerResult {
+  success: boolean;
+  result?: number[] | string;
+  error?: string;
+}
+
+async function process_generate(request: GenerateRequest): Promise<WorkerResult> {
   const { data, text, size = 220, error_correction = 'Q', dark_color = '#000000', light_color = '#ffffff', logo_size = 22 } = request;
   
   // Create raw QR matrix
@@ -56,7 +76,7 @@ async function process_generate(request: any): Promise<any> {
   // Toolbase TIP payloads: data is Uint8Array
   if (data && data.length > 0) {
     try {
-      const blob = new Blob([data]);
+      const blob = new Blob([data as unknown as BlobPart]);
       const bitmap = await createImageBitmap(blob);
       
       const ls = Math.round(finalSize * (logo_size / 100));
@@ -95,11 +115,11 @@ async function process_generate(request: any): Promise<any> {
   };
 }
 
-async function process_decode(request: any): Promise<any> {
+async function process_decode(request: DecodeRequest): Promise<WorkerResult> {
   const { data } = request;
   if (!data || data.length === 0) throw new Error('No image data provided for decoding');
 
-  const blob = new Blob([data]);
+  const blob = new Blob([data as unknown as BlobPart]);
   const bitmap = await createImageBitmap(blob);
   
   const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
@@ -130,7 +150,7 @@ self.onmessage = async (event: MessageEvent) => {
   if (type !== "EXECUTE") return;
 
   try {
-    let result;
+    let result: WorkerResult;
     if (action === "generate") {
       result = await process_generate(data);
     } else if (action === "decode") {
@@ -139,8 +159,9 @@ self.onmessage = async (event: MessageEvent) => {
       throw new Error(`Unknown action: ${action}`);
     }
     self.postMessage({ type: "RESULT", data: result, id });
-  } catch (err: any) {
-    self.postMessage({ type: "RESULT", data: { success: false, error: err.message || String(err) }, id });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    self.postMessage({ type: "RESULT", data: { success: false, error: message }, id });
   }
 };
 

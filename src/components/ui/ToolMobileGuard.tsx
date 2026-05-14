@@ -39,9 +39,9 @@ export function ToolMobileGuard({ children }: ToolMobileGuardProps) {
     const tool = TOOLS.find(t => t.route === toolRoute);
 
     if (isMobile && tool && !tool.mobileOptimized && !dismissed) {
-      setShowWarning(true);
+      Promise.resolve().then(() => setShowWarning(true));
     } else {
-      setShowWarning(false);
+      Promise.resolve().then(() => setShowWarning(false));
     }
   }, [pathname, isMobile, dismissed]);
 

@@ -1,5 +1,6 @@
 import {
     ReactNode,
+    useCallback,
     useEffect,
     useLayoutEffect,
     useRef,
@@ -132,7 +133,7 @@ export function Tabs<T extends string>({
 
     /* ---------- Indicator positioning ---------- */
 
-    const updateIndicator = () => {
+    const updateIndicator = useCallback(() => {
         const activeTab = tabRefs.current[value];
         const container = containerRef.current;
         if (!activeTab || !container) return;
@@ -146,14 +147,14 @@ export function Tabs<T extends string>({
             left: a.left - c.left,
             top: a.top - c.top,
         });
-    };
+    }, [value]);
 
-    useLayoutEffect(updateIndicator, [value, tabs]);
+    useLayoutEffect(updateIndicator, [updateIndicator]);
     useEffect(() => {
         window.addEventListener("resize", updateIndicator);
         return () =>
             window.removeEventListener("resize", updateIndicator);
-    }, []);
+    }, [updateIndicator]);
 
     /* ---------- Keyboard navigation ---------- */
 

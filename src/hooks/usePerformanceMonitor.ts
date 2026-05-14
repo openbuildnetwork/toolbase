@@ -27,8 +27,8 @@ export function usePerformanceMonitor() {
   }, []);
 
   useEffect(() => {
-    const handleEvent = (e: any) => {
-      const data = e.detail as PerformanceResult;
+    const handleEvent = (e: Event | CustomEvent<PerformanceResult>) => {
+      const data = (e as CustomEvent<PerformanceResult>).detail;
       
       // Only show if it took > 100ms to avoid noise for instant actions
       if (data.durationMs < 100) return;

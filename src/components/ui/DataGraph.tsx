@@ -95,7 +95,7 @@ function buildNodeLines(value: unknown, kind: GraphNodeKind): string[] {
   return lines;
 }
 
-function buildChildren(value: unknown, path: string, kind: GraphNodeKind): ChildSpec[] {
+function buildChildren(value: unknown, path: string): ChildSpec[] {
   if (Array.isArray(value)) {
     return value
       .map((item, idx): ChildSpec | null => {
@@ -253,7 +253,7 @@ export function DataGraph({
       }
 
       const id = `n_${nodeCounter++}`;
-      const children = buildChildren(currentValue, path, kind);
+      const children = buildChildren(currentValue, path);
       const canExpand = children.length > 0 && depth < safeMaxDepth;
       const isManuallyExpanded = expandedPaths?.has(path) ?? false;
       const isExpanded = canExpand && (isManuallyExpanded || depth < safeDefaultExpandDepth);
@@ -316,7 +316,7 @@ export function DataGraph({
     };
 
     let rootKind: GraphNodeKind = "root";
-    let rootValue = value;
+    const rootValue = value;
     const rootPath = "$";
 
     if (Array.isArray(value)) {

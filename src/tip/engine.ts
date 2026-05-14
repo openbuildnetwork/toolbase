@@ -201,7 +201,7 @@ export async function executeTIPPipeline(
       }
 
       // Verify the content type is known to the protocol.
-      if (!TIP_CONTENT_TYPES.includes(result.contentType as any)) {
+      if (!TIP_CONTENT_TYPES.includes(result.contentType as TIPContentType)) {
         throw new TIPError(
           'EXECUTION_FAILED',
           `Tool "${tool.name}" produced unknown content type "${result.contentType}".`,
@@ -214,7 +214,7 @@ export async function executeTIPPipeline(
 
       // Null out input immediately after tool.invoke starts/completes
       // so it can be GC'd while engineHooks are firing or if the next step is slow.
-      (input as any) = null;
+      (input as unknown) = null;
 
       // Stamp the output with producer info before passing to the next step
       current = stampBundle(result, tool.id, durationMs);

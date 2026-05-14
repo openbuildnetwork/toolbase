@@ -8,15 +8,11 @@ import {
     Download,
     Image as ImageIcon,
     Link as LinkIcon,
-    Loader2,
-    Wand2,
     Trash2,
-    AlertCircle,
     Check,
     Copy,
     ChevronRight,
-    Sparkles,
-    MousePointer2
+    Sparkles
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -208,7 +204,7 @@ export default function BgRemoverPage() {
                     } else {
                         processedUrl = URL.createObjectURL(blob);
                     }
-                } catch (e) {
+                } catch {
                     processedUrl = URL.createObjectURL(blob);
                 }
 
@@ -281,7 +277,7 @@ export default function BgRemoverPage() {
 
             setImages(prev => [...prev, newItem]);
             setUrlInput('');
-        } catch (error) {
+        } catch {
             alert("Failed to import URL.");
         }
     };

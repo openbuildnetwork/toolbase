@@ -1,6 +1,6 @@
 'use client';
 
-import NextImage from 'next/image';
+
 import SearchBar from "../components/ui/SearchBar";
 import ToolGrid from "../components/ui/ToolGrid";
 import { useState, useMemo } from 'react';

@@ -37,9 +37,11 @@ export function FilePreviewModal({ file, onClose }: FilePreviewModalProps) {
     useEffect(() => {
         if (blob) {
             const url = URL.createObjectURL(blob);
-            setPreviewUrl(url);
-            setPdfPage(1); // Reset page on file change
-            setImageZoom(1); // Reset zoom
+            Promise.resolve().then(() => {
+                setPreviewUrl(url);
+                setPdfPage(1); // Reset page on file change
+                setImageZoom(1); // Reset zoom
+            });
             return () => URL.revokeObjectURL(url);
         }
     }, [blob]);
@@ -87,7 +89,7 @@ export function FilePreviewModal({ file, onClose }: FilePreviewModalProps) {
                     alignItems: 'center',
                     justifyContent: 'center',
                     padding: isMaximized ? 0 : '40px',
-                } as any}
+                } as React.CSSProperties}
                 onClick={onClose}
             >
                 <m.div
@@ -107,7 +109,7 @@ export function FilePreviewModal({ file, onClose }: FilePreviewModalProps) {
                         flexDirection: 'column',
                         overflow: 'hidden',
                         boxShadow: '0 40px 120px rgba(0,0,0,0.9)',
-                    } as any}
+                    } as React.CSSProperties}
                     onClick={e => e.stopPropagation()}
                 >
                     {/* Toolbar */}
@@ -218,7 +220,7 @@ export function FilePreviewModal({ file, onClose }: FilePreviewModalProps) {
                                         objectFit: 'contain',
                                         boxShadow: '0 32px 100px rgba(0,0,0,0.6)',
                                         cursor: 'zoom-in',
-                                    } as any}
+                                    } as React.CSSProperties}
                                     onClick={() => setImageZoom(z => z === 1 ? 2 : 1)}
                                 />
                             ) : isPdf ? (

@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { CopyToClipboard } from "@/components/ui/CopyToClipboard";
 import { ToolSidebar } from "@/components/ui/ToolSidebar";
 import { cn } from "@/lib/utils";
-import type { GenerationProfile, MockFieldType } from "@/lib/data-builder";
+import type { GenerationProfile, MockFieldType } from "@/app/(tools)/data-builder/lib/data-builder";
 import { FlaskConical, Layers3, Plus, Sparkles, Trash2 } from "lucide-react";
 import { useDataBuilderLayout, type DataBuilderSection } from "./hooks/use-data-builder-layout";
 import { MOCK_FIELD_TYPES, POPULAR_EMAIL_DOMAINS, useDataBuilderFields } from "./hooks/use-data-builder-fields";

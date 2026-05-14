@@ -3,10 +3,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import React from 'react';
-import { Search, Command, MessageSquare, Sparkles, Clock, Heart, Github, Info } from 'lucide-react';
+import { Search, Command, Clock, Heart, Github, Info } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { InstallAppButton } from './InstallAppButton';
-import { useAIChat } from '@/hooks/useAIChat';
+import { useAIChat } from '@/app/(tools)/ai-chat/hooks/useAIChat';
 import { useToolPreferences } from '@/hooks/useToolPreferences';
 
 interface HeaderProps {
@@ -16,7 +16,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onOpenPalette, onOpenRecents, onOpenFavorites }) => {
-    const { toggleChat } = useAIChat();
+    useAIChat();
     const { recents, favorites } = useToolPreferences();
 
     return (

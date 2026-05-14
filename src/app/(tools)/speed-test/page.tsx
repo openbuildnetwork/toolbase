@@ -4,8 +4,8 @@ import React, { useMemo } from "react";
 import { Play, Square, Timer, Download, Upload, Info, Activity, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
-import { useSpeedTest, TestStage } from "@/hooks/useSpeedTest";
-import { m, AnimatePresence } from "framer-motion";
+import { useSpeedTest, TestStage } from "@/app/(tools)/speed-test/hooks/useSpeedTest";
+import { m } from "framer-motion";
 
 /* ── Components ──────────────────────────────────────────────────────────── */
 
@@ -180,7 +180,7 @@ const SpeedGauge = ({ value, maxValue = 100, label, color, status, speedHistory 
 };
 
 export default function SpeedTestPage() {
-    const { status, results, currentSpeed, error, startTest, stopTest, speedHistory } = useSpeedTest();
+    const { status, results, currentSpeed, startTest, stopTest, speedHistory } = useSpeedTest();
 
     const isRunning = status === 'ping' || status === 'download' || status === 'upload';
 

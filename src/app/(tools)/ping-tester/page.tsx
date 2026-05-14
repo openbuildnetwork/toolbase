@@ -10,8 +10,8 @@ import { m, AnimatePresence } from "framer-motion";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
-import { usePingTester } from "@/hooks/usePingTester";
-import type { PingResult } from "@/lib/ping";
+import { usePingTester } from "@/app/(tools)/ping-tester/hooks/usePingTester";
+import type { PingResult } from "@/app/(tools)/ping-tester/lib/ping";
 
 // ─── Colour helpers ──────────────────────────────────────────────────────────
 

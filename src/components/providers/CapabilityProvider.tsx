@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { getSystemCapabilities, CapabilityReport } from '@/utils/SystemCapabilities';
+import { getSystemCapabilities, CapabilityReport } from '@/lib/system-capabilities';
 
 const CapabilityContext = createContext<CapabilityReport | null>(null);
 

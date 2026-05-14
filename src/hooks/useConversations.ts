@@ -20,10 +20,12 @@ export function useConversations() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored) as Conversation[];
-        setConversations(parsed);
-        if (parsed.length > 0) {
-          setActiveId(parsed[0].id);
-        }
+        Promise.resolve().then(() => {
+          setConversations(parsed);
+          if (parsed.length > 0) {
+            setActiveId(parsed[0].id);
+          }
+        });
       } catch (e) {
         console.error("Failed to parse conversations", e);
       }

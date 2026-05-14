@@ -42,7 +42,7 @@ export default function BottomNav({ tools, className, triggerId = "tool-grid-sec
     }, [triggerId]);
 
     useEffect(() => {
-        checkVisibility();
+        Promise.resolve().then(() => checkVisibility());
         const toolGrid = document.getElementById(triggerId);
         if (!toolGrid) return;
 
@@ -68,7 +68,7 @@ export default function BottomNav({ tools, className, triggerId = "tool-grid-sec
             inputRef.current.focus();
         }
         if (!isSearchOpen) {
-            setSearchQuery(''); // Clear search when closed
+            Promise.resolve().then(() => setSearchQuery('')); // Clear search when closed
         }
     }, [isSearchOpen]);
 
