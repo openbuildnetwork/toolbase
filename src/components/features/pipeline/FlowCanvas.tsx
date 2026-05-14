@@ -120,6 +120,8 @@ function FlowCanvasBuilder() {
 
     useFlowEngineSync(nodes, edges, setNodes, setEdges, state, output, graphToPipeline);
 
+
+
     const onSelectionChange = useCallback((params: { nodes: Node[] }) => {
         if (params.nodes.length > 0) setSelectedNodeId(params.nodes[0].id);
         else setSelectedNodeId(null);
@@ -166,7 +168,61 @@ function FlowCanvasBuilder() {
             }
             return n;
         });
-    }, [setInteractionNodeId, updateNodeData]);
+    }, [setInteractionNodeId, updateNodeData, setPreviewFile]);
+
+    // AI Injection & Recovery Logic
+    useEffect(() => {
+        // 1. Initial Load from Draft (if navigating from AI chat)
+        const draft = localStorage.getItem('toolbase:pipeline-draft');
+        if (draft) {
+            try {
+                const { nodes: dNodes, edges: dEdges } = JSON.parse(draft);
+                if (dNodes && dEdges) {
+                    setNodes(injectNodeCallbacks(dNodes));
+                    setEdges(dEdges);
+                    setTimeout(() => fitView({ padding: 0.2 }), 100);
+                }
+                localStorage.removeItem('toolbase:pipeline-draft'); // Consume it
+            } catch (e) {
+                console.error("Failed to load pipeline draft:", e);
+            }
+        }
+
+        // 2. Listen for real-time injection (Add to Canvas)
+        const handleInject = (e: any) => {
+            const { nodes: iNodes, edges: iEdges } = e.detail;
+            if (iNodes && iEdges) {
+                // Append nodes with an offset if canvas is not empty
+                const offset = nodes.length > 2 ? { x: 0, y: 300 } : { x: 0, y: 0 };
+                
+                // Remap IDs to ensure uniqueness while maintaining connections
+                const idMap = new Map<string, string>();
+                const shiftedNodes = iNodes.map((n: any) => {
+                    const newId = `${n.id}-${Date.now()}`;
+                    idMap.set(n.id, newId);
+                    return {
+                        ...n,
+                        id: newId,
+                        position: { x: n.position.x + offset.x, y: n.position.y + offset.y }
+                    };
+                });
+                
+                const shiftedEdges = iEdges.map((e: any) => ({
+                    ...e,
+                    id: `edge-${idMap.get(e.source) || e.source}-${idMap.get(e.target) || e.target}-${Date.now()}`,
+                    source: idMap.get(e.source) || e.source,
+                    target: idMap.get(e.target) || e.target
+                }));
+
+                setNodes(nds => nds.concat(injectNodeCallbacks(shiftedNodes)));
+                setEdges(eds => eds.concat(shiftedEdges));
+                setTimeout(() => fitView({ padding: 0.2 }), 100);
+            }
+        };
+
+        window.addEventListener('toolbase:inject-pipeline' as any, handleInject);
+        return () => window.removeEventListener('toolbase:inject-pipeline' as any, handleInject);
+    }, [setNodes, setEdges, injectNodeCallbacks, fitView, nodes.length]);
 
     const serializeGraph = useCallback(() => {
         const cleanNodes = nodes.map(n => ({

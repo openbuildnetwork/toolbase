@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { ToolSidebar, ToolSidebarItem } from "@/components/ui/ToolSidebar";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,7 @@ import { useFormatStudioValidate } from "@/hooks/format-studio/useFormatStudioVa
 import { useFormatStudioFormatRecipes } from "@/hooks/format-studio/useFormatStudioFormatRecipes";
 import { useFormatStudioDiff } from "@/hooks/format-studio/useFormatStudioDiff";
 import { useFormatStudioGenerator } from "@/hooks/format-studio/useFormatStudioGenerator";
+import { useAIChat } from "@/hooks/useAIChat";
 
 const formatOptions: { id: DataFormat; label: string }[] = [
   { id: "json", label: "JSON" },
@@ -40,6 +41,7 @@ const languageMap: Record<DataFormat, string> = {
 };
 
 export default function FormatStudioPage() {
+  const { updateToolState } = useAIChat();
   const [activeTab, setActiveTab] = useState<"transpile" | "validate" | "format" | "diff" | "generate">("transpile");
   const [isSidebarOpen, setSidebarOpen] = useState(true);
 
@@ -64,6 +66,19 @@ export default function FormatStudioPage() {
   });
   const diff = useFormatStudioDiff();
   const generator = useFormatStudioGenerator();
+
+  // Push state to AI context for real-time awareness
+  useEffect(() => {
+    updateToolState({
+      toolName: "Format Studio",
+      activeTab,
+      transpileInput: convert.inputText.slice(0, 500),
+      validateInput: validate.validateInput.slice(0, 500),
+      diffLeft: diff.diffLeft.slice(0, 500),
+      generatorInput: generator.docInput.slice(0, 500)
+    });
+    return () => updateToolState(null);
+  }, [activeTab, convert.inputText, validate.validateInput, diff.diffLeft, generator.docInput, updateToolState]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-(--background) relative font-display text-(--text-primary)">

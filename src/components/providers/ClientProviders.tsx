@@ -13,6 +13,14 @@ import { LazyMotion, domAnimation } from 'framer-motion';
 
 import { CapabilityProvider } from "./CapabilityProvider";
 
+import { EchoFAB } from "@/components/ai/EchoFAB";
+import { useUIIntelligence } from "@/hooks/useUIIntelligence";
+
+function UIIntelligenceInitializer() {
+  useUIIntelligence();
+  return null;
+}
+
 export function ClientProviders({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (
@@ -36,10 +44,12 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
         <WorkerPrewarmer />
         <LazyMotion features={domAnimation} strict>
           <AIChatProvider>
+            <UIIntelligenceInitializer />
             {/* Global UI elements that need context */}
             <CommandPaletteProvider />
             {children}
             <GlobalAIOverlay />
+            <EchoFAB />
           </AIChatProvider>
         </LazyMotion>
       </CapabilityProvider>

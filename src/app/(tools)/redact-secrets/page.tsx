@@ -4,7 +4,6 @@ import React from "react";
 import { Shield, Trash2, AlertCircle, Cpu } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/Button";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 
 import { useRedactSecrets } from "@/hooks/useRedactSecrets";
@@ -14,7 +13,10 @@ import { RedactOutput } from "@/components/features/redact-secrets/RedactOutput"
 import { RedactStats } from "@/components/features/redact-secrets/RedactStats";
 import { EngineLoader } from "@/components/ui/EngineLoader";
 
+import { useAIChat } from "@/hooks/useAIChat";
+
 export default function RedactSecretsPage() {
+    const { updateToolState } = useAIChat();
     const {
         content, setContent,
         contentType, setContentType,
@@ -27,6 +29,19 @@ export default function RedactSecretsPage() {
         isLoading, isReady, engineLabel,
         handleRedact, handleFileUpload, handleRulesUpload, clearAll, saveToNoteVault,
     } = useRedactSecrets();
+
+    // Push state to AI context for real-time awareness
+    React.useEffect(() => {
+        updateToolState({
+            toolName: "Secret Redactor",
+            inputLength: content.length,
+            preview: content.slice(0, 500), // Only send a snippet for context
+            maskingStyle,
+            isProcessed: !!response,
+            stats: response?.summary || null
+        });
+        return () => updateToolState(null);
+    }, [content, maskingStyle, response, updateToolState]);
 
     const isRust = engineLabel === "Rust WASM";
 

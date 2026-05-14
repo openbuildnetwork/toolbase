@@ -1,7 +1,9 @@
 import React, { useRef, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useConversations } from "@/hooks/useConversations";
 import { useAIChat } from "@/hooks/useAIChat";
 import { TOOLS } from "@/config/tools.registry";
+import { buildSystemPrompt } from "@/config/echo-knowledge";
 import ToolCard from "@/components/ui/ToolCard";
 import { Button } from "@/components/ui/Button";
 import {
@@ -27,6 +29,8 @@ import { cn } from "@/lib/utils";
 import { m, AnimatePresence } from "framer-motion";
 import { Markdown } from "@/components/ui/Markdown";
 import Image from "next/image";
+import { ModelPicker } from "./ModelPicker";
+import { PipelineSuggestion } from "./PipelineSuggestion";
 
 
 interface ChatInterfaceProps {
@@ -35,7 +39,58 @@ interface ChatInterfaceProps {
   onSetupRequired?: () => void;
 }
 
+const PIPELINE_LOADING_MESSAGES = [
+  "Architecting your workflow...",
+  "Great ideas take time...",
+  "Connecting the toolchain...",
+  "Optimizing interoperability...",
+  "Polishing the pipeline nodes...",
+  "Securing the data flow...",
+  "Almost there..."
+];
+
+function PipelineLoading() {
+  const [index, setIndex] = React.useState(0);
+  
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((i) => (i + 1) % PIPELINE_LOADING_MESSAGES.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <m.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex items-center gap-3 py-2 px-1"
+    >
+      <div className="flex gap-1">
+        <m.span 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+          transition={{ repeat: Infinity, duration: 1, delay: 0 }}
+          className="w-1.5 h-1.5 rounded-full bg-blue-500" 
+        />
+        <m.span 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+          transition={{ repeat: Infinity, duration: 1, delay: 0.2 }}
+          className="w-1.5 h-1.5 rounded-full bg-blue-500" 
+        />
+        <m.span 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+          transition={{ repeat: Infinity, duration: 1, delay: 0.4 }}
+          className="w-1.5 h-1.5 rounded-full bg-blue-500" 
+        />
+      </div>
+      <span className="text-sm text-(--text-muted) italic font-medium">
+        {PIPELINE_LOADING_MESSAGES[index]}
+      </span>
+    </m.div>
+  );
+}
+
 export function ChatInterface({ onClose }: ChatInterfaceProps) {
+  const currentRoute = usePathname();
   const {
     conversations,
     activeId,
@@ -57,7 +112,8 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
     progressPercentage,
     error,
     loadModel,
-    activeModelId
+    activeModelId,
+    toolState
   } = useAIChat();
 
   const [input, setInput] = useState("");
@@ -113,53 +169,15 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
     const previousMessages = conversations.find((c) => c.id === currentActiveId)?.messages || [];
     const history = [...previousMessages, { role: "user" as const, content: userMsg }];
 
-    const toolDescriptions = TOOLS.map((t) => `- **${t.name}**: ${t.description}`).join("\n");
     const systemPromptMessage = {
       role: "system" as const,
-      content: `
-      Your name is **Echo**. You are the official AI assistant for Toolbase, built by developers at Open Build Network (OBN).
-
----
-
-## WHO YOU ARE
-- You assist users with questions about Toolbase, its tools, and OBN.
-- You were built by the team at OBN - an open-source organization that builds tools for developers, by the community.
-- Useful links:
-  - Website: https://openbuildnetwork.com/
-  - GitHub: https://github.com/openbuildnetwork/toolbase
-
----
-
-## AVAILABLE TOOLS
-${toolDescriptions}
-
----
-
-## STRICT RULES - FOLLOW EXACTLY
-
-1. **Only answer questions about Toolbase, its tools, or OBN.** If the question is unrelated, politely decline and redirect the user.
-
-2. **Never make up information.** If you do not know the answer, say: "I don't have that information. Please check the official docs or GitHub."
-
-3. **If the question is vague or ambiguous, ask for clarification before answering.** Do not guess what the user meant. Example: "Could you clarify what you mean by X so I can give you the right answer?"
-
-4. **Stay close to the question.** Answer only what was asked. Do not add unrelated details or expand beyond the scope of the question.
-
-5. **Never discuss your internal architecture, development process, training, or any internal Toolbase implementation details.**
-
-6. **Always bold Tool Names** when referencing them - e.g., **ToolName**.
-
----
-
-## OUTPUT FORMAT
-- Respond in clean **Markdown**.
-- Be concise and direct. Avoid filler phrases like "Great question!" or "Certainly!".
-- If listing tools or steps, use bullet points or numbered lists.
-- Keep answers short unless detail is explicitly requested.
-      `,
+      content: buildSystemPrompt(TOOLS, currentRoute ?? undefined, toolState),
     };
 
-    const messagesForEngine = [systemPromptMessage, ...history];
+    // Filter out any existing system messages from history to ensure only the latest 
+    // system instructions from buildSystemPrompt are used.
+    const cleanHistory = history.filter(msg => msg.role !== "system");
+    const messagesForEngine = [systemPromptMessage, ...cleanHistory];
 
     try {
       let fullResponse = "";
@@ -429,12 +447,47 @@ ${toolDescriptions}
               <AnimatePresence initial={false}>
                 {activeConversation.messages.map((msg, idx) => {
                   let matchedTools: typeof TOOLS = [];
+                  let pipelineData = null;
+                  let contentToRender = msg.content;
+
                   if (msg.role === "assistant") {
+                    // Tool matching
                     matchedTools = TOOLS.filter(
                       (t) =>
                         msg.content.toLowerCase().includes(t.name.toLowerCase()) ||
                         msg.content.toLowerCase().includes(`/${t.route.toLowerCase()}`),
                     );
+
+                    // Pipeline suggestion detection (Aggressive for reliability)
+                    // Catch blocks with tip-pipeline, json, or no tag at all if they contain pipeline keys
+                    const pipelineRegex = /```[\s\S]*?```|[\s\r\n](\{[\s\S]*?"steps"[\s\S]*?\})[\s\r\n]/g;
+                    let match;
+                    while ((match = pipelineRegex.exec(msg.content)) !== null) {
+                      const blockContent = match[0];
+                      
+                      // Check if it's a pipeline (by tag or by signature keys)
+                      const isPipeline = blockContent.includes("tip-pipeline") || 
+                                         (blockContent.includes("\"steps\"") && blockContent.includes("\"name\""));
+                      
+                      if (isPipeline) {
+                        try {
+                          const jsonPart = blockContent.includes("{") 
+                            ? blockContent.match(/\{[\s\S]*\}/)?.[0] 
+                            : null;
+                          
+                          if (jsonPart) {
+                            const parsed = JSON.parse(jsonPart);
+                            if (parsed.name && Array.isArray(parsed.steps)) {
+                                pipelineData = parsed;
+                                contentToRender = contentToRender.replace(blockContent, "").trim();
+                                break; 
+                            }
+                          }
+                        } catch (e) {
+                          // Silently fail, it might just be normal JSON text
+                        }
+                      }
+                    }
                   }
 
                   return (
@@ -466,9 +519,12 @@ ${toolDescriptions}
                           )}
                         >
                           {msg.role === "user" ? (
-                            <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
+                            <div className="whitespace-pre-wrap font-sans">{contentToRender}</div>
                           ) : (
-                            <Markdown content={msg.content} />
+                            <>
+                              <Markdown content={contentToRender} />
+                              {pipelineData && <PipelineSuggestion data={pipelineData} />}
+                            </>
                           )}
                         </div>
 
@@ -512,8 +568,35 @@ ${toolDescriptions}
                         className="h-full w-full object-cover"
                       />
                     </div>
-                    <div className="max-w-[88%] rounded-2xl rounded-tl-md border border-(--border-subtle) bg-(--surface-elevated)/86 px-4 py-3 text-[15px] leading-relaxed shadow-sm">
-                      <Markdown content={streamBuffer} />
+                    <div className="max-w-[88%] flex flex-col gap-2">
+                      <div className={cn(
+                        "rounded-2xl rounded-tl-md border border-(--border-subtle) bg-(--surface-elevated)/86 px-4 py-3 text-[15px] leading-relaxed shadow-sm"
+                      )}>
+                        <Markdown content={streamBuffer.replace(/```[\s\S]*?(?:```|$)|[\s\r\n]\{[\s\S]*?"steps"[\s\S]*?(?:\}|$)[\s\r\n]/g, "").trim() || "Echo is thinking..."} />
+                        
+                        {/* Show creative loader if we detect a pipeline-like structure forming */}
+                        {(streamBuffer.includes("```") || (streamBuffer.includes("{") && streamBuffer.includes("\"steps\""))) && 
+                         !streamBuffer.match(/```[\s\S]*?```/) && (
+                          <PipelineLoading />
+                        )}
+                      </div>
+                      
+                      {/* Check if we have a complete pipeline in the buffer */}
+                      {(() => {
+                        const match = streamBuffer.match(/```[\s\S]*?```|[\s\r\n](\{[\s\S]*?"steps"[\s\S]*?\})[\s\r\n]/);
+                        if (match) {
+                          try {
+                            const jsonPart = match[0].match(/\{[\s\S]*\}/)?.[0];
+                            if (jsonPart) {
+                              const parsed = JSON.parse(jsonPart);
+                              if (parsed.name && Array.isArray(parsed.steps)) {
+                                return <PipelineSuggestion data={parsed} />;
+                              }
+                            }
+                          } catch { /* Still streaming or invalid */ }
+                        }
+                        return null;
+                      })()}
                     </div>
                   </m.div>
                 )}
@@ -593,7 +676,10 @@ ${toolDescriptions}
 
       <div className="relative z-10 border-t border-(--border-subtle) bg-(--surface-overlay)/90 p-3 backdrop-blur-xl md:p-4">
         <div className="mx-auto max-w-4xl">
-          <div className="rounded-[28px] border border-(--border-subtle) bg-(--surface-elevated)/95 p-2 shadow-[0_16px_50px_var(--shadow-color)] ring-1 ring-white/40 transition focus-within:border-blue-500/50 focus-within:ring-4 focus-within:ring-blue-500/10 dark:ring-white/5">
+          <div className="rounded-[32px] border border-(--border-subtle) bg-(--surface-elevated)/95 p-1.5 shadow-[0_16px_50px_var(--shadow-color)] ring-1 ring-white/40 transition focus-within:border-blue-500/50 focus-within:ring-4 focus-within:ring-blue-500/10 dark:ring-white/5">
+            <div className="px-2 pt-1 pb-0.5">
+              <ModelPicker />
+            </div>
             <div className="flex items-end gap-2">
               <textarea
                 ref={textareaRef}

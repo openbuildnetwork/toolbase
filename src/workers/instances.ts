@@ -66,8 +66,28 @@ export function workerForTool(toolId: string): WorkerClient | null {
 
 // ─── Idle Pre-Warm ────────────────────────────────────────────────────────────
 
-// Background pre-warming is disabled on the home page to maximize TBT/LCP performance.
-// Workers will initialize lazily when a tool is actually opened or a node is added to the pipeline.
+/**
+ * Pre-warm all heavy WASM runtimes silently in the background
+ * after the main application has finished loading its initial paint.
+ *
+ * Staggered by 800ms each to avoid CPU spikes at startup.
+ */
+if (typeof window !== 'undefined') {
+  const preloadWorkers = () => {
+    magicPdfWorker.init().catch(console.error);
+    setTimeout(() => pixelsWorker.init().catch(console.error), 800);
+    setTimeout(() => dataLensWorker.init().catch(console.error), 1600);
+    setTimeout(() => openDrawWorker.init().catch(console.error), 2400);
+    setTimeout(() => redactSecretsWorker.init().catch(console.error), 3200);
+  };
+
+  if (document.readyState === 'complete') {
+    preloadWorkers();
+  } else {
+    window.addEventListener('load', preloadWorkers);
+  }
+}
+
 
 
 import { useEffect, useState } from 'react';
@@ -80,7 +100,7 @@ export function useAnyWorkerWarming(): boolean {
   const allWorkers = [magicPdfWorker, pixelsWorker, dataLensWorker, openDrawWorker, base64Worker, redactSecretsWorker, qrForgeWorker];
   
   const checkWarming = () => allWorkers.some(w => w.readyState === 'warming');
-  const [isWarming, setIsWarming] = useState(checkWarming);
+  const [isWarming, setIsWarming] = useState(false);
 
   useEffect(() => {
     // Initial check

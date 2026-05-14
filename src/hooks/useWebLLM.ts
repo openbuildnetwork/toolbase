@@ -15,8 +15,92 @@ import type {
  * and in-flight load promise alive across React remounts and route changes.
  */
 
-export const DEFAULT_WEBLLM_MODEL_ID = "Phi-3-mini-4k-instruct-q4f16_1-MLC";
-export const LIGHTWEIGHT_WEBLLM_MODEL_ID = "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC";
+export const DEFAULT_WEBLLM_MODEL_ID = "Llama-3.2-3B-Instruct-q4f16_1-MLC";
+export const LIGHTWEIGHT_WEBLLM_MODEL_ID = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC";
+export const EMERGENCY_WEBLLM_MODEL_ID = "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC";
+
+const APPROX_CHARS_PER_TOKEN = 4;
+const PROMPT_SAFETY_MARGIN_TOKENS = 256;
+const DEFAULT_CONTEXT_WINDOW_TOKENS = 4096;
+const DEFAULT_RESPONSE_MAX_TOKENS = 640;
+
+export interface WebLLMModel {
+    id: string;
+    name: string;
+    description: string;
+    vramMb: number;
+    contextWindowTokens: number;
+    responseMaxTokens: number;
+    lowResource: boolean;
+    recommended?: boolean;
+}
+
+export const SUPPORTED_MODELS: WebLLMModel[] = [
+    {
+        id: "Llama-3.2-3B-Instruct-q4f16_1-MLC",
+        name: "Llama 3.2 3B",
+        description: "Best 4GB default: strong quality with safer memory headroom.",
+        vramMb: 2264,
+        contextWindowTokens: 4096,
+        responseMaxTokens: 640,
+        lowResource: true,
+        recommended: true,
+    },
+    {
+        id: "Qwen2.5-3B-Instruct-q4f16_1-MLC",
+        name: "Qwen 2.5 3B",
+        description: "Good instruction following and coding within a 4GB budget.",
+        vramMb: 2505,
+        contextWindowTokens: 4096,
+        responseMaxTokens: 640,
+        lowResource: true,
+    },
+    {
+        id: "Phi-3-mini-4k-instruct-q4f16_1-MLC-1k",
+        name: "Phi-3 Mini (1K)",
+        description: "Phi quality with a shorter context for lower memory pressure.",
+        vramMb: 2520,
+        contextWindowTokens: 1024,
+        responseMaxTokens: 256,
+        lowResource: true,
+    },
+    {
+        id: "Qwen2.5-1.5B-Instruct-q4f16_1-MLC",
+        name: "Qwen 2.5 1.5B",
+        description: "Faster fallback with solid accuracy for short responses.",
+        vramMb: 1630,
+        contextWindowTokens: 4096,
+        responseMaxTokens: 512,
+        lowResource: true,
+    },
+    {
+        id: "Qwen2.5-0.5B-Instruct-q4f16_1-MLC",
+        name: "Qwen 2.5 0.5B",
+        description: "Lightweight fallback for low VRAM or busy GPUs.",
+        vramMb: 945,
+        contextWindowTokens: 4096,
+        responseMaxTokens: 384,
+        lowResource: true,
+    },
+    {
+        id: "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC",
+        name: "TinyLlama 1.1B",
+        description: "Emergency fallback. Very fast, lower answer quality.",
+        vramMb: 697,
+        contextWindowTokens: 2048,
+        responseMaxTokens: 256,
+        lowResource: true,
+    },
+    {
+        id: "Phi-3-mini-4k-instruct-q4f16_1-MLC",
+        name: "Phi-3 Mini (4K)",
+        description: "Higher Phi context, but tight on 4GB GPUs.",
+        vramMb: 3672,
+        contextWindowTokens: 4096,
+        responseMaxTokens: 512,
+        lowResource: false,
+    }
+];
 
 export interface Message {
     role: "user" | "assistant" | "system";
@@ -41,11 +125,92 @@ const sharedRuntime: SharedRuntime = {
 
 function getLoadedModelIds(engineInstance: MLCEngineInterface | null) {
     const maybeWorkerEngine = engineInstance as { modelId?: unknown } | null;
-    return Array.isArray(maybeWorkerEngine?.modelId) ? maybeWorkerEngine.modelId : [];
+    const modelId = maybeWorkerEngine?.modelId;
+    return Array.isArray(modelId) ? modelId : [];
 }
 
 function engineHasModel(engineInstance: MLCEngineInterface | null, modelId: string) {
     return getLoadedModelIds(engineInstance).includes(modelId);
+}
+
+function getModelProfile(modelId: string | null) {
+    return SUPPORTED_MODELS.find((model) => model.id === modelId) || SUPPORTED_MODELS[0];
+}
+
+function estimateTokenCount(text: string) {
+    return Math.ceil(text.length / APPROX_CHARS_PER_TOKEN);
+}
+
+function trimToTokenBudget(content: string, tokenBudget: number) {
+    if (tokenBudget <= 0) return "";
+    const maxChars = tokenBudget * APPROX_CHARS_PER_TOKEN;
+    if (content.length <= maxChars) return content;
+    return content.slice(-maxChars);
+}
+
+function trimSystemPromptToBudget(content: string, tokenBudget: number) {
+    if (tokenBudget <= 0) return "";
+
+    const maxChars = tokenBudget * APPROX_CHARS_PER_TOKEN;
+    if (content.length <= maxChars) return content;
+
+    const marker = "\n\n[System prompt compacted to fit the local model context.]\n\n";
+    const usableChars = Math.max(0, maxChars - marker.length);
+    const headChars = Math.floor(usableChars * 0.58);
+    const tailChars = usableChars - headChars;
+
+    const tail = tailChars > 0 ? content.slice(-tailChars) : "";
+    return `${content.slice(0, headChars)}${marker}${tail}`;
+}
+
+function fitMessagesToModel(messages: Message[], modelId: string) {
+    const profile = getModelProfile(modelId);
+    const contextWindow = profile.contextWindowTokens || DEFAULT_CONTEXT_WINDOW_TOKENS;
+    const responseMaxTokens = profile.responseMaxTokens || DEFAULT_RESPONSE_MAX_TOKENS;
+    const promptBudget = Math.max(
+        256,
+        contextWindow - responseMaxTokens - PROMPT_SAFETY_MARGIN_TOKENS,
+    );
+
+    const systemMessages = messages.filter((message) => message.role === "system");
+    const latestSystemMessage = systemMessages.at(-1);
+    const systemPromptBudget = latestSystemMessage ? Math.floor(promptBudget * 0.62) : 0;
+    const systemMessageForModel = latestSystemMessage
+        ? {
+            ...latestSystemMessage,
+            content: trimSystemPromptToBudget(latestSystemMessage.content, systemPromptBudget),
+        }
+        : undefined;
+    const chatMessages = messages.filter((message) => message.role !== "system");
+    const fittedChatMessages: Message[] = [];
+
+    let remainingTokens = promptBudget;
+    if (systemMessageForModel) {
+        const systemTokenCost = estimateTokenCount(systemMessageForModel.content) + 16;
+        remainingTokens -= systemTokenCost;
+    }
+
+    for (let index = chatMessages.length - 1; index >= 0; index -= 1) {
+        const message = chatMessages[index];
+        const messageTokenCost = estimateTokenCount(message.content) + 8;
+
+        if (messageTokenCost <= remainingTokens) {
+            fittedChatMessages.unshift(message);
+            remainingTokens -= messageTokenCost;
+            continue;
+        }
+
+        if (message.role === "user" && fittedChatMessages.length === 0) {
+            fittedChatMessages.unshift({
+                ...message,
+                content: trimToTokenBudget(message.content, Math.max(64, remainingTokens - 8)),
+            });
+        }
+
+        break;
+    }
+
+    return systemMessageForModel ? [systemMessageForModel, ...fittedChatMessages] : fittedChatMessages;
 }
 
 function isWebLLMAbortError(error: unknown) {
@@ -67,8 +232,31 @@ function isWebLLMDeviceLostError(error: unknown) {
         message.includes("device was lost") ||
         message.includes("gpudevicelostinfo") ||
         message.includes("device_hung") ||
+        message.includes("hung") ||
+        message.includes("0x887a0006") ||
         message.includes("out of memory") ||
         message.includes("vram")
+    );
+}
+
+function isWebLLMDisposedError(error: unknown) {
+    const message = String(error).toLowerCase();
+    return (
+        message.includes("already been disposed") ||
+        message.includes("object is disposed") ||
+        message.includes("cannot use disposed") ||
+        message.includes("tokenizer instance already deleted") ||
+        message.includes("instance already deleted") ||
+        message.includes("worker terminated")
+    );
+}
+
+function isWebLLMContextOverflowError(error: unknown) {
+    const message = String(error);
+    return (
+        message.includes("ContextWindowSizeExceededError") ||
+        message.includes("exceed context window size") ||
+        message.includes("prompt tokens")
     );
 }
 
@@ -87,8 +275,22 @@ function isWebLLMModelNotLoadedError(error: unknown) {
     );
 }
 
-function getOrCreateWorker() {
+function getFallbackModelId(modelId: string, error: unknown) {
+    if (!isWebLLMDeviceLostError(error)) return null;
+    if (modelId === EMERGENCY_WEBLLM_MODEL_ID) return null;
+    if (modelId === LIGHTWEIGHT_WEBLLM_MODEL_ID) return EMERGENCY_WEBLLM_MODEL_ID;
+    return LIGHTWEIGHT_WEBLLM_MODEL_ID;
+}
+
+function getOrCreateWorker(forceReload = false) {
     if (typeof window === "undefined") return null;
+
+    if (forceReload && sharedRuntime.worker) {
+        sharedRuntime.worker.terminate();
+        sharedRuntime.worker = null;
+        sharedRuntime.engine = null;
+        sharedRuntime.enginePromise = null;
+    }
 
     if (!sharedRuntime.worker) {
         sharedRuntime.worker = new Worker(
@@ -105,11 +307,11 @@ import { getSystemCapabilities, CapabilityReport } from "@/utils/SystemCapabilit
 export function useWebLLM() {
     const [engine, setEngine] = useState<MLCEngineInterface | null>(sharedRuntime.engine);
     const [progress, setProgress] = useState<string>(sharedRuntime.engine && sharedRuntime.modelId ? "Ready" : "");
-    const [isLoaded, setIsLoaded] = useState(Boolean(sharedRuntime.engine && sharedRuntime.modelId));
-    const [isLoading, setIsLoading] = useState(Boolean(sharedRuntime.enginePromise));
-    const [progressPercentage, setProgressPercentage] = useState(sharedRuntime.engine ? 100 : 0);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [progressPercentage, setProgressPercentage] = useState(0);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [isInstalled, setIsInstalled] = useState(Boolean(sharedRuntime.engine || sharedRuntime.enginePromise));
+    const [isInstalled, setIsInstalled] = useState(false);
     const [error, setError] = useState<string | null>(sharedRuntime.error);
     const [capabilities, setCapabilities] = useState<CapabilityReport | null>(null);
 
@@ -174,11 +376,15 @@ export function useWebLLM() {
         }
     }, [syncLoadedEngine]);
 
-    const loadModel = useCallback(async (modelId = DEFAULT_WEBLLM_MODEL_ID, background = false) => {
+    const loadModel = useCallback(async (
+        modelId = DEFAULT_WEBLLM_MODEL_ID, 
+        forceReload = false,
+        background = false
+    ) => {
         setError(null);
         sharedRuntime.error = null;
 
-        if (sharedRuntime.engine && sharedRuntime.modelId === modelId) {
+        if (sharedRuntime.engine && sharedRuntime.modelId === modelId && !forceReload) {
             if (engineHasModel(sharedRuntime.engine, modelId)) {
                 syncLoadedEngine(sharedRuntime.engine, modelId);
             } else {
@@ -222,7 +428,7 @@ export function useWebLLM() {
             setProgress("Starting in Compatibility Mode (CPU)...");
         }
 
-        const worker = getOrCreateWorker();
+        const worker = getOrCreateWorker(forceReload);
         if (!worker) return;
 
         setIsLoading(true);
@@ -255,24 +461,46 @@ export function useWebLLM() {
 
         sharedRuntime.enginePromise = enginePromise;
 
+        let fallbackModelId: string | null = null;
+
         try {
             const engineInstance = await enginePromise;
             syncLoadedEngine(engineInstance, targetModelId);
         } catch (error) {
             console.error("Failed to load model:", error);
             const isDeviceLost = isWebLLMDeviceLostError(error);
+            const isDisposed = isWebLLMDisposedError(error);
+            
+            if (isDisposed || isDeviceLost) {
+                // If the engine or GPU device is in a corrupted state,
+                // we must flush the shared runtime entirely so the next attempt starts fresh.
+                sharedRuntime.worker?.terminate();
+                sharedRuntime.worker = null;
+                sharedRuntime.engine = null;
+                sharedRuntime.enginePromise = null;
+            }
+
             const errorMsg = isDeviceLost 
                 ? "GPU Device Lost: Your hardware might be struggling. Try closing other tabs or using the lightweight model."
-                : "Error: Failed to load model. Ensure your browser supports WebGPU or try Compatibility Mode.";
+                : isDisposed
+                    ? "Local engine was stale. Resetting... please try again."
+                    : "Error: Failed to load model. Ensure your browser supports WebGPU or try Compatibility Mode.";
             setError(errorMsg);
             sharedRuntime.error = errorMsg;
             setProgress(errorMsg);
             sharedRuntime.modelId = null;
+            fallbackModelId = getFallbackModelId(modelId, error);
         } finally {
             if (sharedRuntime.enginePromise === enginePromise) {
                 sharedRuntime.enginePromise = null;
             }
             setIsLoading(false);
+        }
+
+        if (fallbackModelId) {
+            const fallbackProfile = getModelProfile(fallbackModelId);
+            setProgress(`GPU memory pressure detected. Switching to ${fallbackProfile.name}...`);
+            await loadModel(fallbackModelId, true, background);
         }
     }, [reloadEngine, syncLoadedEngine]);
 
@@ -280,6 +508,19 @@ export function useWebLLM() {
     // The engine will now only initialize when loadModel() is explicitly called (e.g., when opening chat).
 
 
+    useEffect(() => {
+        if (sharedRuntime.enginePromise) {
+            void loadModel(sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID, false, true);
+            return;
+        }
+
+        const installedFlag = localStorage.getItem("obn_ai_installed") === "true";
+        if (installedFlag) {
+            setIsInstalled(true);
+            void loadModel(DEFAULT_WEBLLM_MODEL_ID, false, true);
+            return;
+        }
+    }, [loadModel, syncLoadedEngine]);
 
     const generateResponse = useCallback(async (
         messages: Message[],
@@ -301,6 +542,9 @@ export function useWebLLM() {
             await reloadEngine(activeEngine, activeModelId, true);
         }
 
+        const modelProfile = getModelProfile(activeModelId);
+        const messagesForModel = fitMessagesToModel(messages, activeModelId) as ChatCompletionMessageParam[];
+
         setIsGenerating(true);
         stopRequestedRef.current = false;
         let resolveGenerationDone!: () => void;
@@ -311,12 +555,12 @@ export function useWebLLM() {
         let fullText = "";
 
         const streamCompletion = async () => {
-            const completion = await activeEngine.chat.completions.create({
+            const completion = await activeEngine!.chat.completions.create({
                 model: activeModelId,
-                messages: messages as ChatCompletionMessageParam[],
+                messages: messagesForModel,
                 stream: true,
                 temperature: 0.7,
-                max_tokens: 1024,
+                max_tokens: modelProfile.responseMaxTokens,
                 presence_penalty: 0.0,
                 frequency_penalty: 0.0,
             });
@@ -344,8 +588,20 @@ export function useWebLLM() {
                 return await streamCompletion();
             }
 
-            if (isWebLLMDeviceLostError(error)) {
-                const errorMsg = "GPU Device Lost: The engine has crashed. Please refresh or try the lightweight model.";
+            if (isWebLLMContextOverflowError(error)) {
+                // Context window exceeded — reset chat context and let user retry
+                const activeEngineRef = engineRef.current ?? sharedRuntime.engine;
+                if (activeEngineRef) {
+                    try { await activeEngineRef.resetChat(); } catch { /* ignore */ }
+                }
+                const errorMsg = "Message too long for this model's context window. Chat history has been reset — please try a shorter message.";
+                setError(errorMsg);
+                sharedRuntime.error = errorMsg;
+            } else if (isWebLLMDisposedError(error) || isWebLLMDeviceLostError(error)) {
+                const isDisposed = isWebLLMDisposedError(error);
+                const errorMsg = isDisposed
+                    ? "Engine was disposed after a previous error. Reloading automatically..."
+                    : "GPU Device Lost: The engine has crashed. Please refresh or try the lightweight model.";
                 setError(errorMsg);
                 sharedRuntime.error = errorMsg;
                 
@@ -355,9 +611,23 @@ export function useWebLLM() {
                 engineRef.current = null;
                 setEngine(null);
                 setIsLoaded(false);
+
+                // Auto-reload for disposed engines (recoverable)
+                if (isDisposed) {
+                    try {
+                        // Pass true for forceReload, false for background
+                        await loadModel(activeModelId, true, false);
+                        setError(null);
+                        sharedRuntime.error = null;
+                    } catch {
+                        // reload failed — user sees the error message
+                    }
+                }
+            } else {
+                // For other errors, log it normally
+                console.error("Inference error:", error);
             }
 
-            console.error("Inference error:", error);
             throw error;
         } finally {
             setIsGenerating(false);
@@ -367,7 +637,7 @@ export function useWebLLM() {
             }
             resolveGenerationDone();
         }
-    }, [engine, reloadEngine, syncLoadedEngine]);
+    }, [engine, loadModel, reloadEngine, syncLoadedEngine]);
 
     const stopGeneration = useCallback(async () => {
         stopRequestedRef.current = true;
@@ -451,9 +721,37 @@ export function useWebLLM() {
         }
     }, []);
 
+    const rawInference = useCallback(async (
+        messages: Message[],
+        max_tokens = 256
+    ) => {
+        const activeEngine = engineRef.current ?? sharedRuntime.engine ?? engine;
+        if (!activeEngine) return "";
+
+        const activeModelId = sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID;
+        const modelProfile = getModelProfile(activeModelId);
+        const messagesForModel = fitMessagesToModel(messages, activeModelId) as ChatCompletionMessageParam[];
+        
+        try {
+            const completion = await activeEngine.chat.completions.create({
+                model: activeModelId,
+                messages: messagesForModel,
+                stream: false,
+                temperature: 0.7,
+                max_tokens: Math.min(max_tokens, modelProfile.responseMaxTokens),
+            });
+
+            return completion.choices[0]?.message?.content || "";
+        } catch (error) {
+            console.error("Raw inference error:", error);
+            return "";
+        }
+    }, [engine]);
+
     return {
         loadModel,
         generateResponse,
+        rawInference,
         stopGeneration,
         resetChat,
         uninstallModel,
