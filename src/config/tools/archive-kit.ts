@@ -12,7 +12,7 @@ export const archiveKitConfig: ToolMeta = {
   tags: ['archive', 'zip', 'tar', 'extract', 'list', 'pack', 'unpack', 'developer'],
   isNew: true,
   isFeatured: false,
-  wasmPowered: false,
+  wasmPowered: true,
   pythonPowered: false,
   status: 'beta',
   addedAt: '2026-03-05',

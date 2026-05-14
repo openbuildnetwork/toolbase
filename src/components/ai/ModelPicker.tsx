@@ -5,7 +5,7 @@ import { useAIChat } from "@/hooks/useAIChat";
 import { SUPPORTED_MODELS, WebLLMModel } from "@/hooks/useWebLLM";
 import { ChevronDown, Cpu, Sparkles, Check, Loader2, Zap, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 
 export function ModelPicker() {
   const { activeModelId, loadModel, isLoading, isGenerating } = useAIChat();
@@ -24,7 +24,7 @@ export function ModelPicker() {
 
   return (
     <div className="relative" ref={containerRef}>
-      <motion.button 
+      <m.button 
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.98 }}
         onClick={() => setIsOpen(!isOpen)}
@@ -43,19 +43,19 @@ export function ModelPicker() {
         ) : (
           <ChevronDown className={cn("w-3 h-3 text-(--text-muted) ml-0.5 transition-transform duration-300", isOpen && "rotate-180")} />
         )}
-      </motion.button>
+      </m.button>
 
       <AnimatePresence>
         {isOpen && (
           <>
-            <motion.div 
+            <m.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-[120]" 
               onClick={() => setIsOpen(false)} 
             />
-            <motion.div 
+            <m.div 
               initial={{ opacity: 0, y: 10, scale: 0.95, filter: "blur(10px)" }}
               animate={{ opacity: 1, y: -10, scale: 1, filter: "blur(0px)" }}
               exit={{ opacity: 0, y: 10, scale: 0.95, filter: "blur(10px)" }}
@@ -79,7 +79,7 @@ export function ModelPicker() {
                 {SUPPORTED_MODELS.map((model, index) => {
                   const isActive = model.id === activeModelId;
                   return (
-                    <motion.button
+                    <m.button
                       key={model.id}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -130,7 +130,7 @@ export function ModelPicker() {
                           </div>
                         </div>
                       </div>
-                    </motion.button>
+                    </m.button>
                   );
                 })}
               </div>
@@ -143,7 +143,7 @@ export function ModelPicker() {
                     Models run 100% locally on your WebGPU. Choose based on your hardware capabilities.
                  </p>
               </div>
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>

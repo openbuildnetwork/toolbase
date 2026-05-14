@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { DEFAULT_WEBLLM_MODEL_ID, LIGHTWEIGHT_WEBLLM_MODEL_ID } from "@/hooks/useWebLLM";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Markdown } from "@/components/ui/Markdown";
 import Image from "next/image";
 import { ModelPicker } from "./ModelPicker";
@@ -37,6 +37,56 @@ interface ChatInterfaceProps {
   modelName?: string;
   onClose?: () => void;
   onSetupRequired?: () => void;
+}
+
+const PIPELINE_LOADING_MESSAGES = [
+  "Architecting your workflow...",
+  "Great ideas take time...",
+  "Connecting the toolchain...",
+  "Optimizing interoperability...",
+  "Polishing the pipeline nodes...",
+  "Securing the data flow...",
+  "Almost there..."
+];
+
+function PipelineLoading() {
+  const [index, setIndex] = React.useState(0);
+  
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((i) => (i + 1) % PIPELINE_LOADING_MESSAGES.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <m.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex items-center gap-3 py-2 px-1"
+    >
+      <div className="flex gap-1">
+        <m.span 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+          transition={{ repeat: Infinity, duration: 1, delay: 0 }}
+          className="w-1.5 h-1.5 rounded-full bg-blue-500" 
+        />
+        <m.span 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+          transition={{ repeat: Infinity, duration: 1, delay: 0.2 }}
+          className="w-1.5 h-1.5 rounded-full bg-blue-500" 
+        />
+        <m.span 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+          transition={{ repeat: Infinity, duration: 1, delay: 0.4 }}
+          className="w-1.5 h-1.5 rounded-full bg-blue-500" 
+        />
+      </div>
+      <span className="text-sm text-(--text-muted) italic font-medium">
+        {PIPELINE_LOADING_MESSAGES[index]}
+      </span>
+    </m.div>
+  );
 }
 
 export function ChatInterface({ onClose }: ChatInterfaceProps) {
@@ -165,7 +215,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
 
   if (showHistory) {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 20 }}
@@ -201,7 +251,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
         <div className="flex-1 overflow-y-auto p-4 scrollbar-thin">
           <div className="mx-auto max-w-3xl space-y-2">
             {conversations.map((conv) => (
-              <motion.div
+              <m.div
                 layout
                 key={conv.id}
                 className={cn(
@@ -241,7 +291,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
-              </motion.div>
+              </m.div>
             ))}
             {conversations.length === 0 && (
               <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-(--border-medium) bg-(--surface-elevated)/45 p-10 text-center">
@@ -251,7 +301,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
             )}
           </div>
         </div>
-      </motion.div>
+      </m.div>
     );
   }
 
@@ -320,7 +370,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
 
             <AnimatePresence>
               {showMenu && (
-                <motion.div
+                <m.div
                   initial={{ opacity: 0, scale: 0.97, y: 8 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.97, y: 8 }}
@@ -340,7 +390,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                     </span>
                     Uninstall local engine
                   </button>
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
           </div>
@@ -362,7 +412,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
       <div className="relative z-10 flex-1 overflow-y-auto px-4 py-5 scrollbar-thin md:px-6">
         <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col">
           {!activeConversation?.messages.length ? (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               className="flex flex-1 flex-col items-center justify-center text-center"
@@ -391,7 +441,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                   </button>
                 ))}
               </div>
-            </motion.div>
+            </m.div>
           ) : (
             <div className="space-y-5">
               <AnimatePresence initial={false}>
@@ -408,29 +458,40 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                         msg.content.toLowerCase().includes(`/${t.route.toLowerCase()}`),
                     );
 
-                    // Pipeline suggestion detection (Loose matching for reliability)
-                    const pipelineRegex = /```[\s\S]*?```/g;
+                    // Pipeline suggestion detection (Aggressive for reliability)
+                    // Catch blocks with tip-pipeline, json, or no tag at all if they contain pipeline keys
+                    const pipelineRegex = /```[\s\S]*?```|[\s\r\n](\{[\s\S]*?"steps"[\s\S]*?\})[\s\r\n]/g;
                     let match;
                     while ((match = pipelineRegex.exec(msg.content)) !== null) {
                       const blockContent = match[0];
-                      if (blockContent.includes("tip-pipeline")) {
+                      
+                      // Check if it's a pipeline (by tag or by signature keys)
+                      const isPipeline = blockContent.includes("tip-pipeline") || 
+                                         (blockContent.includes("\"steps\"") && blockContent.includes("\"name\""));
+                      
+                      if (isPipeline) {
                         try {
-                          // Extract the JSON part (everything between the first { and the last })
-                          const jsonMatch = blockContent.match(/\{[\s\S]*\}/);
-                          if (jsonMatch) {
-                            pipelineData = JSON.parse(jsonMatch[0]);
-                            contentToRender = msg.content.replace(blockContent, "").trim();
-                            break; // Stop after first valid pipeline
+                          const jsonPart = blockContent.includes("{") 
+                            ? blockContent.match(/\{[\s\S]*\}/)?.[0] 
+                            : null;
+                          
+                          if (jsonPart) {
+                            const parsed = JSON.parse(jsonPart);
+                            if (parsed.name && Array.isArray(parsed.steps)) {
+                                pipelineData = parsed;
+                                contentToRender = contentToRender.replace(blockContent, "").trim();
+                                break; 
+                            }
                           }
                         } catch (e) {
-                          console.error("Failed to parse pipeline suggestion:", e);
+                          // Silently fail, it might just be normal JSON text
                         }
                       }
                     }
                   }
 
                   return (
-                    <motion.div
+                    <m.div
                       initial={{ opacity: 0, y: 10, scale: 0.99 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       key={idx}
@@ -470,7 +531,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                         {matchedTools.length > 0 && (
                           <div className="mt-1 flex flex-wrap gap-3">
                             {matchedTools.map((t) => (
-                              <motion.div
+                              <m.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 key={t.id}
@@ -483,17 +544,17 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                                   toolId={t.id}
                                   metadata={t.tags}
                                 />
-                              </motion.div>
+                              </m.div>
                             ))}
                           </div>
                         )}
                       </div>
-                    </motion.div>
+                    </m.div>
                   );
                 })}
 
                 {streamBuffer && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, y: 10, scale: 0.99 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     className="flex w-full justify-start gap-3"
@@ -507,17 +568,44 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                         className="h-full w-full object-cover"
                       />
                     </div>
-                    <div className="max-w-[88%] rounded-2xl rounded-tl-md border border-(--border-subtle) bg-(--surface-elevated)/86 px-4 py-3 text-[15px] leading-relaxed shadow-sm">
-                      <Markdown content={streamBuffer} />
+                    <div className="max-w-[88%] flex flex-col gap-2">
+                      <div className={cn(
+                        "rounded-2xl rounded-tl-md border border-(--border-subtle) bg-(--surface-elevated)/86 px-4 py-3 text-[15px] leading-relaxed shadow-sm"
+                      )}>
+                        <Markdown content={streamBuffer.replace(/```[\s\S]*?(?:```|$)|[\s\r\n]\{[\s\S]*?"steps"[\s\S]*?(?:\}|$)[\s\r\n]/g, "").trim() || "Echo is thinking..."} />
+                        
+                        {/* Show creative loader if we detect a pipeline-like structure forming */}
+                        {(streamBuffer.includes("```") || (streamBuffer.includes("{") && streamBuffer.includes("\"steps\""))) && 
+                         !streamBuffer.match(/```[\s\S]*?```/) && (
+                          <PipelineLoading />
+                        )}
+                      </div>
+                      
+                      {/* Check if we have a complete pipeline in the buffer */}
+                      {(() => {
+                        const match = streamBuffer.match(/```[\s\S]*?```|[\s\r\n](\{[\s\S]*?"steps"[\s\S]*?\})[\s\r\n]/);
+                        if (match) {
+                          try {
+                            const jsonPart = match[0].match(/\{[\s\S]*\}/)?.[0];
+                            if (jsonPart) {
+                              const parsed = JSON.parse(jsonPart);
+                              if (parsed.name && Array.isArray(parsed.steps)) {
+                                return <PipelineSuggestion data={parsed} />;
+                              }
+                            }
+                          } catch { /* Still streaming or invalid */ }
+                        }
+                        return null;
+                      })()}
                     </div>
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
             </div>
           )}
 
           {(isGenerating || (isLoading && !isLoaded)) && !streamBuffer && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-5 flex justify-start gap-3">
+            <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-5 flex justify-start gap-3">
               <div className="mt-1 hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 shadow-sm overflow-hidden border border-blue-500/20 sm:flex">
                 <Image 
                   src="/assets/images/echo_basic.png" 
@@ -535,10 +623,10 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                   </span>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           )}
           {error && (
-            <motion.div 
+            <m.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               className="mt-5 rounded-2xl border border-red-500/20 bg-red-500/5 p-6 backdrop-blur-sm"
@@ -579,7 +667,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           )}
 
           <div ref={messagesEndRef} className="pb-4" />

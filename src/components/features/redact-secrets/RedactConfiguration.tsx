@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Settings2, Key, Type, Hash, Code, Upload, Database, Save, FolderOpen } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { TagInput } from "@/components/ui/TagInput";
 import { MaskingStyle } from "@/types/redact";
@@ -129,7 +129,7 @@ export const RedactConfiguration: React.FC<RedactConfigurationProps> = ({
                                         )}
                                     >
                                         {isActive && (
-                                            <motion.div
+                                            <m.div
                                                 layoutId="activeConfigTab"
                                                 className="absolute inset-0 bg-(--background) border border-(--border-subtle) rounded-lg shadow-sm"
                                                 transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}

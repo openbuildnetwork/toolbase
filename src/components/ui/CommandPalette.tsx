@@ -25,7 +25,7 @@ import React, {
 } from 'react';
 import ReactDOM from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { Search, ArrowRight, Clock, Zap, Command } from 'lucide-react';
 import { TOOLS, searchToolsFromRegistry } from '@/config/tools.registry';
@@ -285,7 +285,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             {isOpen && (
                 <>
                     {/* Backdrop */}
-                    <motion.div
+                    <m.div
                         key="cp-backdrop"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -297,7 +297,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                     />
 
                     {/* Panel */}
-                    <motion.div
+                    <m.div
                         key="cp-panel"
                         role="dialog"
                         aria-modal="true"
@@ -413,7 +413,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                                 close
                             </span>
                         </div>
-                    </motion.div>
+                    </m.div>
                 </>
             )}
         </AnimatePresence>

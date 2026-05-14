@@ -9,9 +9,9 @@ import { usePinnedTools } from '@/hooks/usePinnedTools';
 import { cn } from '@/lib/utils';
 import { FavoriteButton } from './FavoriteButton';
 import { useToolPreferences } from '@/hooks/useToolPreferences';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
-const ToolCard: React.FC<ToolCardProps> = ({ title, route, icon, toolId }) => {
+const ToolCard: React.FC<ToolCardProps & { priority?: boolean }> = ({ title, route, icon, toolId, priority }) => {
     const { isPinned, togglePin } = usePinnedTools();
     const { isFavorite } = useToolPreferences();
     const pinned = isPinned(route || '');
@@ -24,7 +24,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ title, route, icon, toolId }) => {
     };
 
     return (
-        <motion.div
+        <m.div
             className="relative group/card p-4 rounded-3xl"
             whileHover={{ y: -4, transition: { type: 'spring', stiffness: 400, damping: 22 } }}
             whileTap={{ scale: 0.95, y: 0, transition: { duration: 0.1 } }}
@@ -73,7 +73,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ title, route, icon, toolId }) => {
                 className="relative z-10 flex flex-col items-center gap-4 cursor-pointer"
             >
                 <div className="relative w-full h-full flex items-center justify-center">
-                    <motion.div
+                    <m.div
                         whileHover={{ scale: 1.12 }}
                         transition={{ type: 'spring', stiffness: 380, damping: 18 }}
                     >
@@ -82,15 +82,16 @@ const ToolCard: React.FC<ToolCardProps> = ({ title, route, icon, toolId }) => {
                             alt={title}
                             width={80}
                             height={80}
+                            priority={priority}
                             className="w-20 h-20 rounded-[25px] p-1.5 object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)]"
                         />
-                    </motion.div>
+                    </m.div>
                 </div>
                 <p className="text-[13px] font-semibold text-center transition-colors tracking-tight" style={{ color: 'var(--text-secondary)' }}>
                     {title}
                 </p>
             </Link>
-        </motion.div>
+        </m.div>
     );
 };
 

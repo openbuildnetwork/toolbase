@@ -42,6 +42,8 @@ self.onmessage = async (event: MessageEvent) => {
   }
 };
 
+// Removed top-level initialization to prevent background loading on the home page.
+/*
 initRustApi()
   .then(() => self.postMessage({ type: "READY", engine: currentEngineLabel }))
   .catch((error: unknown) => {
@@ -52,3 +54,4 @@ initRustApi()
       warning: error instanceof Error ? error.message : "Rust engine initialization failed",
     });
   });
+*/

@@ -10,7 +10,7 @@
  *   → Confirm serialises placed signatures as JSON config (no execution here)
  */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { FileUploader } from '@/components/ui/FileUploader';
 import { Button } from '@/components/ui/Button';
 import {
@@ -357,7 +357,7 @@ export default function SignPdf({
         <div className="w-full max-w-7xl mx-auto space-y-8 h-full flex flex-col">
             <AnimatePresence mode="wait">
                 {!file ? (
-                    <motion.div
+                    <m.div
                         key="upload"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -378,9 +378,9 @@ export default function SignPdf({
                                 className="max-w-2xl mx-auto"
                             />
                         </Card>
-                    </motion.div>
+                    </m.div>
                 ) : (
-                    <motion.div
+                    <m.div
                         key="workspace"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -655,7 +655,7 @@ export default function SignPdf({
                             {/* Bottom Controls (Mobile) */}
                             {resultPdfUrl && (
                                 <div className="absolute inset-0 bg-surface-elevated/95 backdrop-blur-md z-40 flex items-center justify-center p-8">
-                                    <motion.div
+                                    <m.div
                                         initial={{ scale: 0.9, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
                                         className="max-w-md w-full text-center space-y-6"
@@ -678,11 +678,11 @@ export default function SignPdf({
                                                 Sign Another
                                             </Button>
                                         </div>
-                                    </motion.div>
+                                    </m.div>
                                 </div>
                             )}
                         </div>
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </div>

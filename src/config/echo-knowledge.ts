@@ -39,7 +39,14 @@ function generateToolLine(tool: ToolMeta): string {
     if (tool.pythonPowered) badges.push("Python");
     const badgeStr = badges.length ? ` [${badges.join("+")}]` : "";
     
-    return `* **${tool.name}** (/${tool.route})${badgeStr}: ${tool.description}. Use: ${getUsageHint(tool)}`;
+    let tipInfo = "";
+    if (tool.tip && tool.tip.length > 0) {
+        tipInfo = tool.tip.map(op => {
+            return `\n    └─ OP: "${op.id}" | IN: [${op.consumes.join(", ")}] | OUT: [${op.produces.join(", ")}]`;
+        }).join("");
+    }
+    
+    return `* **${tool.name}** (/${tool.route})${badgeStr}: ${tool.description}${tipInfo}`;
 }
 
 export function generateToolKnowledge(tools: ToolMeta[]): string {
@@ -71,18 +78,28 @@ const ECHO_DIRECTIVES = `
 
 const TIP_AUTOMATION_RULES = `
 <TIP_AUTOMATION>
-- If a user describes a multi-step workflow (e.g., "take X, redact Y, convert to Z"), you MUST suggest a TIP Pipeline.
-- Respond with a brief explanation, then a JSON block in this EXACT format:
-  \\\`\\\`\\\`tip-pipeline
+- You are an expert at building TIP Tool Chains.
+- When a user asks for a workflow that involves different file types (e.g., Image -> PDF), you MUST use a "Conversion Bridge" tool.
+- CONVERSION BRIDGES:
+  - "magic-pdf/images-to-pdf": Use this to bridge Images into a PDF workflow.
+  - "magic-pdf/pdf-to-images": Use this to bridge a PDF into an Image workflow.
+  - "magic-pdf/pdf-to-word": Use this to bridge a PDF into a Text/Document workflow.
+- EXAMPLE WORKFLOW (Image -> Compressed PDF):
+  1. pixels/resize (IN: image/* -> OUT: image/*)
+  2. magic-pdf/images-to-pdf (IN: image/* -> OUT: application/pdf)
+  3. magic-pdf/compress (IN: application/pdf -> OUT: application/pdf)
+- CRITICAL: Every connection must pass the "Chainability Check" (Previous OUT matches Next IN).
+- Respond with a brief explanation, then the JSON block:
+  \`\`\`tip-pipeline
   {
-    "name": "Workflow Name",
+    "name": "Pipeline Name",
     "steps": [
-      { "toolId": "redact-secrets/redact", "config": {} },
-      { "toolId": "format-studio/beautify", "config": { "format": "json" } }
+      { "toolId": "valid-id-1", "config": {} },
+      { "toolId": "valid-id-2", "config": {} },
+      { "toolId": "valid-id-3", "config": {} }
     ]
   }
-  \\\`\\\`\\\`
-- Valid toolId examples: "magic-pdf/compress", "redact-secrets/redact", "format-studio/beautify", "pixels/resize".
+  \`\`\`
 </TIP_AUTOMATION>`;
 
 export function buildSystemPrompt(tools: ToolMeta[], currentRoute?: string, toolState?: any): string {

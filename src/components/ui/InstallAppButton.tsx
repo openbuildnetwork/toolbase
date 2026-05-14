@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Download, ArrowRight } from 'lucide-react';
 import { usePWA } from '@/hooks/usePWA';
 import clsx from 'clsx';
@@ -33,7 +33,7 @@ export function InstallAppButton({ className }: InstallAppButtonProps) {
 
   return (
     <AnimatePresence>
-      <motion.button
+      <m.button
         initial={{ opacity: 0, scale: 0.9, x: 20 }}
         animate={{ opacity: 1, scale: 1, x: 0 }}
         exit={{ opacity: 0, scale: 0.9, x: 20 }}
@@ -47,7 +47,7 @@ export function InstallAppButton({ className }: InstallAppButtonProps) {
       >
         {/* 1. Subtle Background Flow Animation */}
         <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-           <motion.div
+           <m.div
              className="absolute inset-0 bg-gradient-to-r from-primary/5 via-blue-400/15 to-primary/5"
              animate={{ x: ['-100%', '100%'] }}
              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
@@ -63,13 +63,13 @@ export function InstallAppButton({ className }: InstallAppButtonProps) {
         >
           {/* Icon with Bounce Animation */}
           <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500">
-            <motion.div
+            <m.div
               variants={{
                 hover: { y: [0, -1, 0, 1, 0], transition: { duration: 1, repeat: Infinity } }
               }}
             >
               <Download size={13} strokeWidth={3} />
-            </motion.div>
+            </m.div>
           </div>
 
           <div className="flex flex-col items-start leading-none">
@@ -79,7 +79,7 @@ export function InstallAppButton({ className }: InstallAppButtonProps) {
           </div>
 
           {/* Animated Arrow that slides in on hover */}
-          <motion.div
+          <m.div
             variants={{
                 hover: { x: 2, opacity: 1 }
             }}
@@ -87,11 +87,11 @@ export function InstallAppButton({ className }: InstallAppButtonProps) {
             className="text-primary"
           >
             <ArrowRight size={13} strokeWidth={2.5} />
-          </motion.div>
+          </m.div>
         </div>
 
         {/* 3. Border Glow Sweep */}
-        <motion.div 
+        <m.div 
             className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-25deg] pointer-events-none z-20"
             animate={{ x: ['-200%', '400%'] }}
             transition={{
@@ -101,7 +101,7 @@ export function InstallAppButton({ className }: InstallAppButtonProps) {
               ease: "easeInOut"
             }}
           />
-      </motion.button>
+      </m.button>
     </AnimatePresence>
   );
 }

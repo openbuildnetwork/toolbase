@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Binary } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Base64Workspace } from '@/components/features/base64/Base64Workspace';
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 
@@ -16,7 +16,7 @@ export default function Base64Page() {
             </div>
 
             <div className="relative z-10 flex flex-col h-screen max-w-[1600px] mx-auto w-full px-6 py-8">
-                <motion.header 
+                <m.header 
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
@@ -42,7 +42,7 @@ export default function Base64Page() {
                     <div className="flex items-center gap-4">
                         <ReturnToToolsButton />
                     </div>
-                </motion.header>
+                </m.header>
 
                 <main className="flex-1 min-h-0">
                     <Base64Workspace />

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { X, Save, User, FileText, Type } from 'lucide-react';
 
 interface SavePipelineModalProps {
@@ -45,7 +45,7 @@ export function SavePipelineModal({
     return (
         <AnimatePresence>
             {isOpen && (
-                <motion.div
+                <m.div
                     key="save-modal-backdrop"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -63,7 +63,7 @@ export function SavePipelineModal({
                     }}
                     onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
                 >
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -218,8 +218,8 @@ export function SavePipelineModal({
                                 Save Pipeline
                             </button>
                         </div>
-                    </motion.div>
-                </motion.div>
+                    </m.div>
+                </m.div>
             )}
         </AnimatePresence>
     );

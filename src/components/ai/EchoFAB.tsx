@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useAIChat } from "@/hooks/useAIChat";
 import { cn } from "@/lib/utils";
@@ -33,14 +33,14 @@ export function EchoFAB() {
           {/* Proactive Suggestions */}
           <AnimatePresence>
             {isIdle && suggestions.length > 0 && (
-              <motion.div 
+              <m.div 
                 initial={{ opacity: 0, scale: 0.5, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.5, y: 20 }}
                 className="flex flex-col items-end gap-2 mb-2 pointer-events-auto"
               >
                 {suggestions.map((text, i) => (
-                  <motion.button
+                  <m.button
                     key={text}
                     initial={{ x: 20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
@@ -49,13 +49,13 @@ export function EchoFAB() {
                     className="px-4 py-2 rounded-2xl bg-blue-600 text-white text-sm font-medium shadow-xl hover:bg-blue-700 transition-colors text-right max-w-[220px] border border-blue-400/30"
                   >
                     {text}
-                  </motion.button>
+                  </m.button>
                 ))}
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
 
-          <motion.button
+          <m.button
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -93,7 +93,7 @@ export function EchoFAB() {
 
             {/* Pulsing glow when generating */}
             {isGenerating && (
-              <motion.div
+              <m.div
                 animate={{ 
                   scale: [1, 1.2, 1],
                   opacity: [0.3, 0.6, 0.3]
@@ -123,7 +123,7 @@ export function EchoFAB() {
                 Chat with Echo
               </div>
             )}
-          </motion.button>
+          </m.button>
         </div>
       )}
     </AnimatePresence>

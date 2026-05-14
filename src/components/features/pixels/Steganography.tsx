@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Tabs } from "@/components/ui/Tabs";
 import { Lock, Unlock, Download, RefreshCw, Eye, EyeOff } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 import { useTIPTool } from "@/hooks/useTIPTool";
@@ -124,7 +124,7 @@ export function Steganography() {
 
             <AnimatePresence mode="wait">
                 {mode === "hide" ? (
-                    <motion.div
+                    <m.div
                         key="hide"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -182,7 +182,7 @@ export function Steganography() {
 
                                     <AnimatePresence>
                                         {useEncryption && (
-                                            <motion.div
+                                            <m.div
                                                 initial={{ height: 0, opacity: 0 }}
                                                 animate={{ height: "auto", opacity: 1 }}
                                                 exit={{ height: 0, opacity: 0 }}
@@ -195,7 +195,7 @@ export function Steganography() {
                                                     placeholder="Enter secret key..."
                                                     className="w-full p-3 rounded-xl border border-[color:var(--border-medium)] bg-[var(--surface-secondary)] text-[color:var(--text-primary)] placeholder-[color:var(--text-faint)] focus:bg-[var(--surface-overlay)] focus:ring-2 focus:ring-primary outline-none transition-all mt-4"
                                                 />
-                                            </motion.div>
+                                            </m.div>
                                         )}
                                     </AnimatePresence>
                                 </CardContent>
@@ -253,9 +253,9 @@ export function Steganography() {
                             )}
                         </div>
 
-                    </motion.div>
+                    </m.div>
                 ) : (
-                    <motion.div
+                    <m.div
                         key="reveal"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -317,7 +317,7 @@ export function Steganography() {
                         </Card>
 
                         {revealedText && (
-                            <motion.div
+                            <m.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 className={cn(
@@ -353,9 +353,9 @@ export function Steganography() {
                                 )}>
                                     {revealedText}
                                 </div>
-                            </motion.div>
+                            </m.div>
                         )}
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </div>

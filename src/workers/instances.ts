@@ -64,11 +64,7 @@ export function workerForTool(toolId: string): WorkerClient | null {
  * Pre-warm all heavy WASM runtimes silently in the background
  * after the main application has finished loading its initial paint.
  *
- * Staggered by 2 s each to avoid CPU spikes at startup.
- * Order is heaviest → lightest (magic-pdf installs PyMuPDF + Pillow).
- *
- * If the user adds a node first, `workerForTool` triggers init earlier
- * and this becomes a no-op (WorkerClient.init() is idempotent).
+ * Staggered by 800ms each to avoid CPU spikes at startup.
  */
 if (typeof window !== 'undefined') {
   const preloadWorkers = () => {
@@ -79,13 +75,14 @@ if (typeof window !== 'undefined') {
     setTimeout(() => redactSecretsWorker.init().catch(console.error), 3200);
   };
 
-  if ('requestIdleCallback' in window) {
-    const ric = window.requestIdleCallback as (cb: () => void, opts?: { timeout: number }) => void;
-    ric(preloadWorkers, { timeout: 5000 });
+  if (document.readyState === 'complete') {
+    preloadWorkers();
   } else {
-    setTimeout(preloadWorkers, 3000);
+    window.addEventListener('load', preloadWorkers);
   }
 }
+
+
 
 import { useEffect, useState } from 'react';
 
@@ -97,7 +94,7 @@ export function useAnyWorkerWarming(): boolean {
   const allWorkers = [magicPdfWorker, pixelsWorker, dataLensWorker, openDrawWorker, base64Worker, redactSecretsWorker];
   
   const checkWarming = () => allWorkers.some(w => w.readyState === 'warming');
-  const [isWarming, setIsWarming] = useState(checkWarming);
+  const [isWarming, setIsWarming] = useState(false);
 
   useEffect(() => {
     // Initial check

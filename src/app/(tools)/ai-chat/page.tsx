@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { OllamaSetup } from "@/components/ai/OllamaSetup";
 import { ChatInterface } from "@/components/ai/ChatInterface";
 import { Cpu, LockKeyhole } from "lucide-react";
 import { useAIChat } from "@/hooks/useAIChat";
 import { DEFAULT_WEBLLM_MODEL_ID, SUPPORTED_MODELS } from "@/hooks/useWebLLM";
-import Image from "next/image";
 
 export default function AiChatPage() {
   const { isInstalled, isLoaded } = useAIChat();
@@ -24,7 +24,7 @@ export default function AiChatPage() {
             <div className="max-w-2xl space-y-3">
               <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 py-1 pl-1 pr-3 text-xs font-semibold uppercase tracking-[0.16em] text-blue-600 dark:text-blue-300">
                 <div className="h-5 w-5 overflow-hidden rounded-full border border-blue-500/20 bg-blue-500/10 p-0.5">
-                  <Image src="/assets/images/echo_basic.png" alt="Echo" width={20} height={20} className="h-full w-full object-cover" />
+                  <Image src="/assets/images/echo_basic.png" alt="Echo" width={20} height={20} className="h-full w-full object-cover" priority />
                 </div>
                 Echo Workspace
               </div>

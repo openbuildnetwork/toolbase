@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import ToolCard from './ToolCard';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { m, AnimatePresence, Variants } from 'framer-motion';
 import { ToolCardProps } from '@/types/tool-search';
 import { searchTools } from '@/lib/searchTools';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -40,13 +40,13 @@ const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery, tools }) => {
 
     return (
         <div className="flex flex-col items-center mt-12 w-full">
-            <motion.div
+            <m.div
                 layout
                 className="grid w-full sm:px-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-8 gap-y-12 pb-8 overflow-hidden"
             >
                 <AnimatePresence mode="popLayout" initial={false}>
                     {displayTools.map((tool, index) => (
-                        <motion.div
+                        <m.div
                             key={tool.title}
                             variants={itemVariants}
                             custom={index}
@@ -61,15 +61,16 @@ const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery, tools }) => {
                                 icon={tool.icon}
                                 metadata={tool.metadata}
                                 toolId={tool.toolId}
+                                priority={index < 6}
                             />
-                        </motion.div>
+                        </m.div>
                     ))}
                 </AnimatePresence>
-            </motion.div>
+            </m.div>
 
             {!searchQuery && filteredTools.length > 12 && (
                 <div className="flex justify-center mt-12">
-                    <motion.button
+                    <m.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setIsExpanded(!isExpanded)}
@@ -86,13 +87,13 @@ const ToolGrid: React.FC<ToolGridProps> = ({ searchQuery, tools }) => {
                         <span className="text-sm font-semibold tracking-wide">
                             {isExpanded ? 'Show less' : `Show all tools (${filteredTools.length})`}
                         </span>
-                        <motion.div
+                        <m.div
                             animate={{ rotate: isExpanded ? 180 : 0 }}
                             transition={{ type: 'spring', damping: 20, stiffness: 300 }}
                         >
                             <ChevronDown size={18} className="text-primary group-hover:text-primary/80 transition-colors" />
-                        </motion.div>
-                    </motion.button>
+                        </m.div>
+                    </m.button>
                 </div>
             )}
 

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { FileText, Upload, X, Vault, Save } from "lucide-react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ContentType } from "@/types/redact";
 import { useNoteVault } from "@/hooks/useNoteVault";
@@ -66,7 +66,7 @@ export const RedactEditor: React.FC<RedactEditorProps> = ({
                                     )}
                                 >
                                     {isActive && (
-                                        <motion.div
+                                        <m.div
                                             layoutId="activeTab"
                                             className="absolute inset-0 bg-(--background) border border-(--border-subtle) rounded-lg shadow-sm"
                                             transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}

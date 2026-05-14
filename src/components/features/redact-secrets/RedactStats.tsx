@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Activity, ShieldAlert, CheckCircle2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { RedactResponse } from "@/types/redact";
 
 interface RedactStatsProps {
@@ -13,7 +13,7 @@ export const RedactStats: React.FC<RedactStatsProps> = ({ response }) => {
     return (
         <AnimatePresence>
             {response && (
-                <motion.div
+                <m.div
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="space-y-4"
@@ -27,13 +27,13 @@ export const RedactStats: React.FC<RedactStatsProps> = ({ response }) => {
                         
                         <div className="p-6 text-center">
                             <div className="flex items-center justify-center gap-3 mb-1">
-                                <motion.span 
+                                <m.span 
                                     initial={{ scale: 0.5, opacity: 0 }}
                                     animate={{ scale: 1, opacity: 1 }}
                                     className="text-4xl font-black text-(--text-primary)"
                                 >
                                     {response.summary.totalMasked}
-                                </motion.span>
+                                </m.span>
                                 {response.summary.totalMasked > 0 ? (
                                     <ShieldAlert className="w-6 h-6 text-violet-500 animate-pulse" />
                                 ) : (
@@ -52,7 +52,7 @@ export const RedactStats: React.FC<RedactStatsProps> = ({ response }) => {
                             Detected Entities
                         </div>
                         {Object.entries(response.summary.byType).map(([type, count], i) => (
-                            <motion.div
+                            <m.div
                                 key={type}
                                 initial={{ opacity: 0, x: 12 }}
                                 animate={{ opacity: 1, x: 0 }}
@@ -65,7 +65,7 @@ export const RedactStats: React.FC<RedactStatsProps> = ({ response }) => {
                                 <span className="text-xs font-black text-(--text-primary) tabular-nums">
                                     {count}
                                 </span>
-                            </motion.div>
+                            </m.div>
                         ))}
                         
                         {Object.keys(response.summary.byType).length === 0 && (
@@ -74,7 +74,7 @@ export const RedactStats: React.FC<RedactStatsProps> = ({ response }) => {
                             </div>
                         )}
                     </div>
-                </motion.div>
+                </m.div>
             )}
         </AnimatePresence>
     );

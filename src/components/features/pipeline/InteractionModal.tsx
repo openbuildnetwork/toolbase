@@ -9,7 +9,7 @@
  * new modal needs to be written for future interactive tools.
  */
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 import type { TIPTool, TIPInteractionProps, TIPInteractionResult } from '@/tip/protocol';
 
@@ -67,7 +67,7 @@ export function InteractionModal({
 
     return (
         <AnimatePresence>
-            <motion.div
+            <m.div
                 key="interaction-modal-backdrop"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -86,7 +86,7 @@ export function InteractionModal({
                 }}
                 onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
             >
-                <motion.div
+                <m.div
                     key="interaction-modal-panel"
                     initial={{ opacity: 0, scale: 0.96, y: 16 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -165,8 +165,8 @@ export function InteractionModal({
                             </div>
                         )}
                     </div>
-                </motion.div>
-            </motion.div>
+                </m.div>
+            </m.div>
         </AnimatePresence>
     );
 }

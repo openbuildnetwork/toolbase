@@ -15,7 +15,7 @@
   --text-secondary: #3a3a3c;
   --text-tertiary: #636366;
   --text-muted: #8e8e93;
-  --text-faint: #aeaeb2;
+  --text-faint: #6e6e73;
 
   /* Surface tokens */
   --surface-hover: rgba(0, 0, 0, 0.03);
@@ -59,7 +59,7 @@
   --text-secondary: #E5E7EB;
   --text-tertiary: #9CA3AF;
   --text-muted: #6B7280;
-  --text-faint: #4B5563;
+  --text-faint: #9ca3af;
 
   /* Surface tokens */
   --surface-hover: rgba(255, 255, 255, 0.06);
@@ -117,25 +117,6 @@
 }
 
 @layer components {
-  .material-symbols-outlined {
-    font-family: "Material Symbols Outlined";
-    font-weight: normal;
-    font-style: normal;
-    line-height: 1;
-    letter-spacing: normal;
-    text-transform: none;
-    display: inline-block;
-    white-space: nowrap;
-    word-wrap: normal;
-    direction: ltr;
-    -webkit-font-smoothing: antialiased;
-    font-variation-settings:
-      "FILL" 1,
-      "wght" 400,
-      "GRAD" 0,
-      "opsz" 48;
-  }
-
   @keyframes appear {
     from {
       opacity: 0;

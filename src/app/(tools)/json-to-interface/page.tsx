@@ -25,9 +25,9 @@ import { Label } from "@/components/ui/Label";
 import { generateModels } from "@/lib/json-to-interface";
 import Image from "next/image";
 import { appIcons } from "@/config/icons";
-import { Editor } from "@monaco-editor/react";
+import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
 import { useTheme } from "next-themes";
-import { motion, AnimatePresence, Variants } from "framer-motion";
+import { m, AnimatePresence, Variants } from "framer-motion";
 import { Tabs, TabItem } from "@/components/ui/Tabs";
 import { Switch } from "@/components/ui/Switch";
 
@@ -131,7 +131,7 @@ export default function JsonToInterfacePage() {
     };
 
     return (
-        <motion.div 
+        <m.div 
             initial="hidden"
             animate="visible"
             variants={containerVariants}
@@ -140,14 +140,14 @@ export default function JsonToInterfacePage() {
             <div className="max-w-[1600px] mx-auto space-y-6">
                 {/* Header Section */}
                 {/* Header Section */}
-                <motion.header 
+                <m.header 
                     variants={itemVariants}
                     className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-(--surface-overlay)/60 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-(--border-subtle) shadow-2xl shadow-black/5 ring-1 ring-white/10"
                 >
                     <div className="flex items-center gap-6">
                         <div className="relative group">
                             <div className="absolute inset-0 bg-primary blur-3xl opacity-20 group-hover:opacity-40 transition-opacity duration-500" />
-                            <motion.div 
+                            <m.div 
                                 whileHover={{ scale: 1.05, rotate: 5 }}
                                 className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-blue-600 p-3 shadow-2xl shadow-primary/40"
                             >
@@ -158,7 +158,7 @@ export default function JsonToInterfacePage() {
                                     height={64} 
                                     className="w-full h-full brightness-0 invert" 
                                 />
-                            </motion.div>
+                            </m.div>
                         </div>
                         <div>
                             <h1 className="text-4xl font-black tracking-tight text-(--text-primary) leading-none mb-2">
@@ -173,10 +173,10 @@ export default function JsonToInterfacePage() {
                     <div className="flex items-center gap-4">
                         <ReturnToToolsButton />
                     </div>
-                </motion.header>
+                </m.header>
 
                 {/* Toolbar Section */}
-                <motion.div variants={itemVariants} className="space-y-4">
+                <m.div variants={itemVariants} className="space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-4 p-3 bg-(--surface-overlay)/40 backdrop-blur-xl rounded-3xl border border-(--border-subtle) shadow-lg">
                         <div className="flex flex-wrap items-center gap-4">
                             <Tabs
@@ -221,12 +221,12 @@ export default function JsonToInterfacePage() {
 
                             <AnimatePresence mode="wait">
                                 {!liveMode && (
-                                    <motion.div
+                                    <m.div
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         exit={{ opacity: 0, x: 20 }}
                                     >
-                                        <motion.button
+                                        <m.button
                                             whileHover="hover"
                                             whileTap={{ scale: 0.96 }}
                                             onClick={() => handleGenerate()}
@@ -235,7 +235,7 @@ export default function JsonToInterfacePage() {
                                         >
                                             {/* Rotating Border Beam */}
                                             <div className="absolute inset-0 z-0 opacity-40 group-hover:opacity-100 transition-opacity duration-500">
-                                                <motion.div
+                                                <m.div
                                                     className="absolute top-1/2 left-1/2 w-[250%] aspect-square -translate-x-1/2 -translate-y-1/2"
                                                     style={{
                                                         background: 'conic-gradient(from 0deg, transparent, var(--primary), transparent 20%, transparent)',
@@ -257,8 +257,8 @@ export default function JsonToInterfacePage() {
                                                 </span>
                                                 <ArrowRight size={14} className="text-primary transition-transform group-hover:translate-x-1" />
                                             </div>
-                                        </motion.button>
-                                    </motion.div>
+                                        </m.button>
+                                    </m.div>
                                 )}
                             </AnimatePresence>
 
@@ -276,7 +276,7 @@ export default function JsonToInterfacePage() {
                     {/* Advanced Panel */}
                     <AnimatePresence>
                         {showAdvanced && (
-                            <motion.div 
+                            <m.div 
                                 initial={{ height: 0, opacity: 0, y: -20 }} 
                                 animate={{ height: 'auto', opacity: 1, y: 0 }} 
                                 exit={{ height: 0, opacity: 0, y: -20 }} 
@@ -315,15 +315,15 @@ export default function JsonToInterfacePage() {
                                         </div>
                                     </div>
                                 </Card>
-                            </motion.div>
+                            </m.div>
                         )}
                     </AnimatePresence>
-                </motion.div>
+                </m.div>
 
                 {/* Editor Section */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 h-[calc(100vh-320px)] min-h-[600px]">
                     {/* Input Side */}
-                    <motion.div variants={itemVariants} className="flex flex-col h-full space-y-4 group">
+                    <m.div variants={itemVariants} className="flex flex-col h-full space-y-4 group">
                         <div className="flex items-center justify-between px-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
@@ -333,7 +333,7 @@ export default function JsonToInterfacePage() {
                             </div>
                             <AnimatePresence>
                                 {error && (
-                                    <motion.div 
+                                    <m.div 
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         exit={{ opacity: 0, x: 20 }}
@@ -341,7 +341,7 @@ export default function JsonToInterfacePage() {
                                     >
                                         <AlertCircle className="w-3.5 h-3.5" />
                                         <span className="text-[11px] font-bold">{error}</span>
-                                    </motion.div>
+                                    </m.div>
                                 )}
                             </AnimatePresence>
                         </div>
@@ -368,10 +368,10 @@ export default function JsonToInterfacePage() {
                                 }}
                             />
                         </Card>
-                    </motion.div>
+                    </m.div>
 
                     {/* Output Side */}
-                    <motion.div variants={itemVariants} className="flex flex-col h-full space-y-4 group">
+                    <m.div variants={itemVariants} className="flex flex-col h-full space-y-4 group">
                         <div className="flex items-center justify-between px-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
@@ -390,7 +390,7 @@ export default function JsonToInterfacePage() {
                             >
                                 <AnimatePresence mode="wait">
                                     {copied ? (
-                                        <motion.div 
+                                        <m.div 
                                             key="check"
                                             initial={{ scale: 0.5, opacity: 0 }}
                                             animate={{ scale: 1, opacity: 1 }}
@@ -398,9 +398,9 @@ export default function JsonToInterfacePage() {
                                         >
                                             <Check className="w-4 h-4" />
                                             <span className="text-xs uppercase tracking-widest">Copied</span>
-                                        </motion.div>
+                                        </m.div>
                                     ) : (
-                                        <motion.div 
+                                        <m.div 
                                             key="copy"
                                             initial={{ scale: 0.5, opacity: 0 }}
                                             animate={{ scale: 1, opacity: 1 }}
@@ -408,7 +408,7 @@ export default function JsonToInterfacePage() {
                                         >
                                             <Copy className="w-4 h-4" />
                                             <span className="text-xs uppercase tracking-widest">Copy Code</span>
-                                        </motion.div>
+                                        </m.div>
                                     )}
                                 </AnimatePresence>
                             </Button>
@@ -436,7 +436,7 @@ export default function JsonToInterfacePage() {
                             {!output && (
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                     <div className="text-center p-12">
-                                        <motion.div 
+                                        <m.div 
                                             animate={{ 
                                                 scale: [1, 1.1, 1],
                                                 rotate: [0, 5, -5, 0]
@@ -448,15 +448,15 @@ export default function JsonToInterfacePage() {
                                             <div className="absolute inset-0 flex items-center justify-center">
                                                 <Sparkles className="h-16 w-16 text-primary blur-2xl opacity-20" />
                                             </div>
-                                        </motion.div>
+                                        </m.div>
                                         <p className="text-sm font-black text-white/20 uppercase tracking-[0.3em]">Awaiting Input</p>
                                     </div>
                                 </div>
                             )}
                         </Card>
-                    </motion.div>
+                    </m.div>
                 </div>
             </div>
-        </motion.div>
+        </m.div>
     );
 }

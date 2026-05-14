@@ -12,7 +12,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export type EngineType = 'python' | 'wasm' | 'js';
@@ -70,7 +70,7 @@ export function EngineLoader({
     return (
         <AnimatePresence>
             {!isReady && (
-                <motion.div
+                <m.div
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4, transition: { duration: 0.3 } }}
@@ -93,7 +93,7 @@ export function EngineLoader({
 
                     <div className="flex flex-col leading-tight min-w-0">
                         <AnimatePresence mode="wait">
-                            <motion.span
+                            <m.span
                                 key={msgIndex}
                                 initial={{ opacity: 0, y: 4 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -103,13 +103,13 @@ export function EngineLoader({
                                 style={{ color: 'var(--text-secondary)' }}
                             >
                                 {msgs[msgIndex]}
-                            </motion.span>
+                            </m.span>
                         </AnimatePresence>
                         <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>
-                            {ENGINE_LABEL[engine]} · 100% Local
+                            {ENGINE_LABEL[engine]}
                         </span>
                     </div>
-                </motion.div>
+                </m.div>
             )}
         </AnimatePresence>
     );

@@ -1,14 +1,8 @@
-'use client';
+"use client";
 
-import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
-import { CommandPaletteProvider } from "../components/ui/CommandPaletteProvider";
-import { AIChatProvider } from "@/hooks/useAIChat";
-import { GlobalAIOverlay } from "@/components/ai/GlobalAIOverlay";
-import { ThemeProvider } from "../components/ui/ThemeProvider";
-import { DaylightManager } from "../components/ui/DaylightManager";
-import { GlobalBackground } from "../components/ui/GlobalBackground";
+import { ClientProviders } from "../components/providers/ClientProviders";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,16 +17,7 @@ const geistMono = Geist_Mono({
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  display: "swap",
 });
-
-import { EchoFAB } from "@/components/ai/EchoFAB";
-import { useUIIntelligence } from "@/hooks/useUIIntelligence";
-
-function UIIntelligenceInitializer() {
-  useUIIntelligence();
-  return null;
-}
 
 export default function RootLayout({
   children,
@@ -42,17 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/*
-          Material Symbols Outlined: used globally via .material-symbols-outlined CSS class.
-          Loaded as a non-blocking stylesheet (media=print + onload swap trick handled by browser).
-          Script/cursive fonts (Dancing Script, etc.) are lazy-loaded inside SignPdf component only.
-        */}
-        <link
-          rel="preconnect"
-          href="https://fonts.googleapis.com"
-          crossOrigin="anonymous"
-        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
           rel="stylesheet"
@@ -74,23 +51,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
         suppressHydrationWarning
       >
-        <ThemeProvider>
-          <GlobalBackground />
-          <DaylightManager />
-          <AIChatProvider>
-            <UIIntelligenceInitializer />
-            {/* Global Header + Cmd+K palette — both managed by the client provider */}
-            <CommandPaletteProvider />
-
-            {children}
-
-            {/* AI Chat Drawer rendered globally */}
-            <GlobalAIOverlay />
-            
-            {/* Quick access FAB */}
-            <EchoFAB />
-          </AIChatProvider>
-        </ThemeProvider>
+        <ClientProviders>
+          {children}
+        </ClientProviders>
       </body>
     </html>
   );

@@ -6,7 +6,7 @@ export type RedactEngineLabel = 'Rust WASM' | 'Unavailable';
 import { redactSecretsWorker } from '@/workers/instances';
 
 export function useRedactWorker() {
-    const [isReady, setIsReady] = useState(redactSecretsWorker.readyState === 'ready');
+    const [isReady, setIsReady] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [engineLabel, setEngineLabel] = useState<RedactEngineLabel>(

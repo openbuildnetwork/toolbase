@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useRef } from "react";
-import { motion, useScroll, useTransform, Variants } from "framer-motion";
+import Image from "next/image";
+import { m, useScroll, useTransform, Variants } from "framer-motion";
 import {
   Shield, Zap, Cpu, Lock, Globe, Heart, ArrowLeft,
   Braces, Code2, Users, GitBranch, Layers,
@@ -140,22 +141,28 @@ export default function AboutPage() {
       {/* ── HERO ─────────────────────────────────────────────────── */}
       <section ref={heroRef} className="relative min-h-[90vh] flex flex-col items-center justify-center px-6 text-center overflow-hidden">
 
-        <motion.div style={{ y: heroY, opacity: heroOpacity }} className="relative z-10 max-w-4xl mx-auto space-y-8">
+        <m.div style={{ y: heroY, opacity: heroOpacity }} className="relative z-10 max-w-4xl mx-auto space-y-8">
           {/* OBN Logo + Name */}
-          <motion.div custom={0} initial="hidden" animate="visible" variants={fadeUp}
+          <m.div custom={0} initial="hidden" animate="visible" variants={fadeUp}
             className="flex flex-col items-center gap-2"
           >
             {/* Light mode logo */}
-            <img
+            <Image
               src="/assets/images/logo-dark.png"
               alt="Open Build Network"
-              className="h-10 theme-logo-light"
+              width={372}
+              height={136}
+              className="h-10 w-auto theme-logo-light"
+              priority
             />
             {/* Dark mode logo */}
-            <img
+            <Image
               src="/assets/images/logo-light.png"
               alt="Open Build Network"
-              className="h-10 theme-logo-dark"
+              width={479}
+              height={183}
+              className="h-10 w-auto theme-logo-dark"
+              priority
             />
             <span
               className="text-[11px] font-black uppercase tracking-[0.3em]"
@@ -163,29 +170,29 @@ export default function AboutPage() {
             >
               Open Build Network
             </span>
-          </motion.div>
+          </m.div>
 
           {/* Headline */}
-          <motion.h1 custom={1} initial="hidden" animate="visible" variants={fadeUp}
+          <m.h1 custom={1} initial="hidden" animate="visible" variants={fadeUp}
             className="text-5xl sm:text-6xl md:text-8xl font-extrabold tracking-tight leading-[0.95]"
           >
             The browser is<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-br from-primary via-blue-400 to-cyan-400">
               your computer.
             </span>
-          </motion.h1>
+          </m.h1>
 
           {/* Sub */}
-          <motion.p custom={2} initial="hidden" animate="visible" variants={fadeUp}
+          <m.p custom={2} initial="hidden" animate="visible" variants={fadeUp}
             className="text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
             toolbase is a growing suite of professional utilities that run <em>entirely</em> inside your browser.
             No servers. No uploads. No accounts. Just powerful tools that respect your privacy by design.
-          </motion.p>
+          </m.p>
 
           {/* CTAs */}
-          <motion.div custom={3} initial="hidden" animate="visible" variants={fadeUp} className="flex flex-wrap items-center justify-center gap-4 pt-2">
+          <m.div custom={3} initial="hidden" animate="visible" variants={fadeUp} className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <Link href="/"
               className="px-8 py-3.5 rounded-2xl font-bold text-sm transition-all hover:scale-105 active:scale-95"
               style={{ background: "var(--text-primary)", color: "var(--background)" }}
@@ -199,24 +206,24 @@ export default function AboutPage() {
               <GitBranch className="w-4 h-4" />
               View Source
             </a>
-          </motion.div>
+          </m.div>
 
           {/* Scroll cue */}
-          <motion.div custom={4} initial="hidden" animate="visible" variants={fadeUp}
+          <m.div custom={4} initial="hidden" animate="visible" variants={fadeUp}
             className="flex flex-col items-center gap-1 pt-8"
             style={{ color: "var(--text-muted)" }}
           >
             <MousePointer2 className="w-4 h-4 animate-bounce" />
             <span className="text-[11px] uppercase tracking-widest">scroll to explore</span>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       </section>
 
       {/* ── STATS ────────────────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-6 py-20 w-full">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {stats.map((s, i) => (
-            <motion.div
+            <m.div
               key={i}
               custom={i}
               initial="hidden"
@@ -229,20 +236,20 @@ export default function AboutPage() {
               <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-primary to-blue-400">{s.value}</div>
               <div className="text-sm font-bold">{s.label}</div>
               <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>{s.sub}</div>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </section>
 
       {/* ── MANIFESTO ────────────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-6 py-20 w-full space-y-6">
-        <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="mb-12">
+        <m.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="mb-12">
           <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: "#3457D5" }}>Our Beliefs</p>
           <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">What we stand for.</h2>
-        </motion.div>
+        </m.div>
 
         {manifesto.map((item, i) => (
-          <motion.div
+          <m.div
             key={i}
             custom={i + 1}
             initial="hidden"
@@ -259,20 +266,20 @@ export default function AboutPage() {
               <h3 className="text-xl font-bold">{item.title}</h3>
               <p className="leading-relaxed" style={{ color: "var(--text-secondary)" }}>{item.body}</p>
             </div>
-          </motion.div>
+          </m.div>
         ))}
       </section>
 
       {/* ── CORE PILLARS ─────────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-6 py-20 w-full">
-        <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12 space-y-3">
+        <m.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12 space-y-3">
           <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#3457D5" }}>Core Principles</p>
           <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">Built different.</h2>
-        </motion.div>
+        </m.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {pillars.map((p, i) => (
-            <motion.div
+            <m.div
               key={i}
               custom={i + 1}
               initial="hidden"
@@ -287,24 +294,24 @@ export default function AboutPage() {
               </div>
               <h3 className="text-lg font-bold">{p.title}</h3>
               <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{p.desc}</p>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </section>
 
       {/* ── TECH STACK ───────────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-6 py-20 w-full">
-        <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12 space-y-3">
+        <m.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12 space-y-3">
           <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#3457D5" }}>Under The Hood</p>
           <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">How it actually works.</h2>
           <p className="max-w-xl mx-auto text-base leading-relaxed" style={{ color: "var(--text-secondary)" }}>
             We push the boundaries of browser technology to deliver native-quality performance without cloud risks.
           </p>
-        </motion.div>
+        </m.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {techStack.map((t, i) => (
-            <motion.div
+            <m.div
               key={i}
               custom={i + 1}
               initial="hidden"
@@ -324,17 +331,17 @@ export default function AboutPage() {
               </div>
               <h4 className="font-bold text-lg">{t.title}</h4>
               <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{t.desc}</p>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </section>
 
       {/* ── HOW IT WORKS FLOW ────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-6 py-20 w-full">
-        <motion.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12 space-y-3">
+        <m.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12 space-y-3">
           <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#3457D5" }}>Privacy Model</p>
           <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Your data never moves.</h2>
-        </motion.div>
+        </m.div>
 
         <div className="flex flex-col md:flex-row items-stretch gap-4">
           {[
@@ -343,7 +350,7 @@ export default function AboutPage() {
             { icon: Sparkles, label: "Your Result", desc: "Downloaded locally", color: "text-emerald-400", bg: "bg-emerald-500/10" },
           ].map((step, i) => (
             <React.Fragment key={i}>
-              <motion.div
+              <m.div
                 custom={i}
                 initial="hidden"
                 whileInView="visible"
@@ -359,14 +366,14 @@ export default function AboutPage() {
                   <div className="font-bold text-lg">{step.label}</div>
                   <div className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>{step.desc}</div>
                 </div>
-              </motion.div>
+              </m.div>
               {i < 2 && (
                 <div className="flex items-center justify-center text-2xl font-bold md:rotate-0 rotate-90" style={{ color: "var(--text-muted)" }}>→</div>
               )}
             </React.Fragment>
           ))}
         </div>
-        <motion.p
+        <m.p
           custom={4}
           initial="hidden"
           whileInView="visible"
@@ -376,12 +383,12 @@ export default function AboutPage() {
           style={{ color: "var(--text-muted)" }}
         >
           The internet is only needed once — to load the app. After that, it's all you.
-        </motion.p>
+        </m.p>
       </section>
 
       {/* ── CONTRIBUTE CTA ───────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-6 py-20 pb-32 w-full">
-        <motion.div
+        <m.div
           custom={0}
           initial="hidden"
           whileInView="visible"
@@ -437,7 +444,7 @@ export default function AboutPage() {
               Open source · Free forever · No sign-up required
             </p>
           </div>
-        </motion.div>
+        </m.div>
       </section>
 
       <Footer />

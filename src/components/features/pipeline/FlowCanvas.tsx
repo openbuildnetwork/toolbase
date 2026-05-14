@@ -195,14 +195,27 @@ function FlowCanvasBuilder() {
                 // Append nodes with an offset if canvas is not empty
                 const offset = nodes.length > 2 ? { x: 0, y: 300 } : { x: 0, y: 0 };
                 
-                const shiftedNodes = iNodes.map((n: any) => ({
-                    ...n,
-                    id: `${n.id}-${Date.now()}`, // Ensure unique IDs
-                    position: { x: n.position.x + offset.x, y: n.position.y + offset.y }
-                }));
+                // Remap IDs to ensure uniqueness while maintaining connections
+                const idMap = new Map<string, string>();
+                const shiftedNodes = iNodes.map((n: any) => {
+                    const newId = `${n.id}-${Date.now()}`;
+                    idMap.set(n.id, newId);
+                    return {
+                        ...n,
+                        id: newId,
+                        position: { x: n.position.x + offset.x, y: n.position.y + offset.y }
+                    };
+                });
                 
+                const shiftedEdges = iEdges.map((e: any) => ({
+                    ...e,
+                    id: `edge-${idMap.get(e.source) || e.source}-${idMap.get(e.target) || e.target}-${Date.now()}`,
+                    source: idMap.get(e.source) || e.source,
+                    target: idMap.get(e.target) || e.target
+                }));
+
                 setNodes(nds => nds.concat(injectNodeCallbacks(shiftedNodes)));
-                setEdges(eds => eds.concat(iEdges));
+                setEdges(eds => eds.concat(shiftedEdges));
                 setTimeout(() => fitView({ padding: 0.2 }), 100);
             }
         };

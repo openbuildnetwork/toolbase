@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useActualTheme } from "@/hooks/useActualTheme";
-import { Editor } from "@monaco-editor/react";
+import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
 import { Wand2, Download, Braces } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";

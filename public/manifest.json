@@ -1,6 +1,7 @@
 {
   "name": "OBN Toolbase",
   "short_name": "toolbase",
+  "id": "/",
   "description": "Every tool you need. Zero data leaves your machine.",
   "start_url": "/",
   "display": "standalone",
@@ -9,6 +10,7 @@
   "orientation": "portrait-primary",
   "lang": "en",
   "scope": "/",
+  "categories": ["utilities", "productivity", "tools"],
   "icons": [
     {
       "src": "/icons/favicon/android-chrome-192x192.png",

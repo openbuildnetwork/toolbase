@@ -19,7 +19,7 @@ const errorMessage = (error: unknown, fallback: string): string => {
 };
 
 export function useBase64(): UseBase64Result {
-    const [isReady, setIsReady] = useState(base64Worker.readyState === 'ready');
+    const [isReady, setIsReady] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [result, setResult] = useState<Base64Response | null>(null);
     const [error, setError] = useState<string | null>(null);

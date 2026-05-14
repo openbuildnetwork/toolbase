@@ -8,7 +8,7 @@ import { RedactConfiguration } from "./RedactConfiguration";
 import { RedactOutput } from "./RedactOutput";
 import { RedactStats } from "./RedactStats";
 import { EngineLoader } from "@/components/ui/EngineLoader";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { TIPInteractionProps } from "@/tip/protocol";
 import type { ContentType, MaskingStyle } from "@/types/redact";
@@ -117,7 +117,7 @@ export default function RedactInteractive({
                             {response ? (
                                 <RedactOutput response={response} />
                             ) : !isLoading && !isInternalReading && (
-                                <motion.div
+                                <m.div
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     className="p-12 border-2 border-dashed border-(--border-subtle) rounded-2xl flex flex-col items-center justify-center text-center space-y-4 bg-(--surface-secondary)/20"
@@ -131,7 +131,7 @@ export default function RedactInteractive({
                                             Run a preview to verify your masking rules.
                                         </p>
                                     </div>
-                                </motion.div>
+                                </m.div>
                             )}
                         </AnimatePresence>
                     </div>

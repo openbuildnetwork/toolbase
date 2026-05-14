@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import {
-    CreateWebWorkerMLCEngine,
+import type {
     MLCEngineInterface,
     InitProgressReport,
-    hasModelInCache,
-    type ChatCompletionMessageParam,
+    ChatCompletionMessageParam,
 } from "@mlc-ai/web-llm";
 
 /**
@@ -304,15 +302,22 @@ function getOrCreateWorker(forceReload = false) {
     return sharedRuntime.worker;
 }
 
+import { getSystemCapabilities, CapabilityReport } from "@/utils/SystemCapabilities";
+
 export function useWebLLM() {
     const [engine, setEngine] = useState<MLCEngineInterface | null>(sharedRuntime.engine);
     const [progress, setProgress] = useState<string>(sharedRuntime.engine && sharedRuntime.modelId ? "Ready" : "");
-    const [isLoaded, setIsLoaded] = useState(Boolean(sharedRuntime.engine && sharedRuntime.modelId));
-    const [isLoading, setIsLoading] = useState(Boolean(sharedRuntime.enginePromise));
-    const [progressPercentage, setProgressPercentage] = useState(sharedRuntime.engine ? 100 : 0);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [progressPercentage, setProgressPercentage] = useState(0);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [isInstalled, setIsInstalled] = useState(Boolean(sharedRuntime.engine || sharedRuntime.enginePromise));
+    const [isInstalled, setIsInstalled] = useState(false);
     const [error, setError] = useState<string | null>(sharedRuntime.error);
+    const [capabilities, setCapabilities] = useState<CapabilityReport | null>(null);
+
+    useEffect(() => {
+        void getSystemCapabilities().then(setCapabilities);
+    }, []);
 
     const engineRef = useRef<MLCEngineInterface | null>(sharedRuntime.engine);
     const stopRequestedRef = useRef(false);
@@ -352,7 +357,7 @@ export function useWebLLM() {
         try {
             await engineInstance.reload(modelId);
             syncLoadedEngine(engineInstance, modelId);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to reload model:", error);
             sharedRuntime.modelId = null;
             setIsLoaded(false);
@@ -412,6 +417,17 @@ export function useWebLLM() {
             return;
         }
 
+        const caps = capabilities || await getSystemCapabilities();
+        let useWasmFallback = !caps.webGPU;
+        
+        // If no WebGPU, we MUST use the lightweight model to prevent hanging the CPU
+        const targetModelId = useWasmFallback ? LIGHTWEIGHT_WEBLLM_MODEL_ID : modelId;
+
+        if (useWasmFallback) {
+            console.warn("WebGPU not found. Falling back to WASM (CPU) mode. Performance will be limited.");
+            setProgress("Starting in Compatibility Mode (CPU)...");
+        }
+
         const worker = getOrCreateWorker(forceReload);
         if (!worker) return;
 
@@ -423,10 +439,13 @@ export function useWebLLM() {
         setProgress(background ? "Restoring local AI from browser cache..." : "Initializing WebGPU...");
         setProgressPercentage(0);
 
-        sharedRuntime.modelId = modelId;
+        sharedRuntime.modelId = targetModelId;
+        
+        const { CreateWebWorkerMLCEngine } = await import("@mlc-ai/web-llm");
+        
         const enginePromise = CreateWebWorkerMLCEngine(
             worker,
-            modelId,
+            targetModelId,
             {
                 initProgressCallback: (report: InitProgressReport) => {
                     setProgress(report.text);
@@ -446,7 +465,7 @@ export function useWebLLM() {
 
         try {
             const engineInstance = await enginePromise;
-            syncLoadedEngine(engineInstance, modelId);
+            syncLoadedEngine(engineInstance, targetModelId);
         } catch (error) {
             console.error("Failed to load model:", error);
             const isDeviceLost = isWebLLMDeviceLostError(error);
@@ -465,8 +484,7 @@ export function useWebLLM() {
                 ? "GPU Device Lost: Your hardware might be struggling. Try closing other tabs or using the lightweight model."
                 : isDisposed
                     ? "Local engine was stale. Resetting... please try again."
-                    : "Error: Failed to load model. Ensure your browser supports WebGPU.";
-            
+                    : "Error: Failed to load model. Ensure your browser supports WebGPU or try Compatibility Mode.";
             setError(errorMsg);
             sharedRuntime.error = errorMsg;
             setProgress(errorMsg);
@@ -486,14 +504,11 @@ export function useWebLLM() {
         }
     }, [reloadEngine, syncLoadedEngine]);
 
+    // Removed auto-loading useEffect to prevent blocking initial LCP with AI worker initialization.
+    // The engine will now only initialize when loadModel() is explicitly called (e.g., when opening chat).
+
+
     useEffect(() => {
-        if (typeof window === "undefined") return;
-
-        if (sharedRuntime.engine) {
-            syncLoadedEngine(sharedRuntime.engine, sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID);
-            return;
-        }
-
         if (sharedRuntime.enginePromise) {
             void loadModel(sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID, false, true);
             return;
@@ -505,14 +520,6 @@ export function useWebLLM() {
             void loadModel(DEFAULT_WEBLLM_MODEL_ID, false, true);
             return;
         }
-
-        void hasModelInCache(DEFAULT_WEBLLM_MODEL_ID).then((cached) => {
-            if (!cached) return;
-
-            localStorage.setItem("obn_ai_installed", "true");
-            setIsInstalled(true);
-            void loadModel(DEFAULT_WEBLLM_MODEL_ID, false, true);
-        });
     }, [loadModel, syncLoadedEngine]);
 
     const generateResponse = useCallback(async (
@@ -755,6 +762,7 @@ export function useWebLLM() {
         isInstalled,
         isGenerating,
         error,
+        capabilities,
         activeModelId: sharedRuntime.modelId,
     };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { 
     Zap, 
     ChevronRight, 
@@ -71,7 +71,7 @@ export function PipelineSuggestion({ data }: PipelineSuggestionProps) {
     };
 
     return (
-        <motion.div
+        <m.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="my-4 p-4 rounded-2xl bg-(--surface-secondary) border border-blue-500/30 shadow-lg shadow-blue-500/10 overflow-hidden relative group"
@@ -146,7 +146,7 @@ export function PipelineSuggestion({ data }: PipelineSuggestionProps) {
                     )}
                 </button>
             </div>
-        </motion.div>
+        </m.div>
     );
 }
 

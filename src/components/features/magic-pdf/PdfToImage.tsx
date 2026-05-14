@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { FileUploader } from '@/components/ui/FileUploader';
 import { Button } from '@/components/ui/Button';
 import {
@@ -68,7 +68,7 @@ export default function PdfToImage() {
         <div className="w-full max-w-6xl mx-auto space-y-8">
             <AnimatePresence mode="wait">
                 {images.length === 0 ? (
-                    <motion.div
+                    <m.div
                         key="setup"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -164,9 +164,9 @@ export default function PdfToImage() {
                                 </div>
                             )}
                         </Card>
-                    </motion.div>
+                    </m.div>
                 ) : (
-                    <motion.div
+                    <m.div
                         key="result"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -188,7 +188,7 @@ export default function PdfToImage() {
 
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {images.map((url, idx) => (
-                                <motion.div
+                                <m.div
                                     key={idx}
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
@@ -208,10 +208,10 @@ export default function PdfToImage() {
                                             </button>
                                         </div>
                                     </div>
-                                </motion.div>
+                                </m.div>
                             ))}
                         </div>
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Editor, { useMonaco } from '@monaco-editor/react';
+import { useMonaco } from '@monaco-editor/react';
+import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
 import { Note } from '@/types/note-vault';
 import { useNoteWorker } from '@/hooks/useNoteWorker';
 

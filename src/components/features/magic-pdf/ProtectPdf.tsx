@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { FileUploader } from '@/components/ui/FileUploader';
 import { Button } from '@/components/ui/Button';
 import {
@@ -102,7 +102,7 @@ export default function ProtectPdf() {
         <div className="w-full max-w-4xl mx-auto space-y-8">
             <AnimatePresence mode="wait">
                 {!file ? (
-                    <motion.div
+                    <m.div
                         key="upload"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -123,9 +123,9 @@ export default function ProtectPdf() {
                                 className="max-w-2xl mx-auto"
                             />
                         </Card>
-                    </motion.div>
+                    </m.div>
                 ) : (
-                    <motion.div
+                    <m.div
                         key="workspace"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -153,7 +153,7 @@ export default function ProtectPdf() {
 
                         {/* Result Section */}
                         {protectedPdfUrl && (
-                            <motion.div
+                            <m.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                             >
@@ -187,7 +187,7 @@ export default function ProtectPdf() {
                                         </div>
                                     </div>
                                 </Card>
-                            </motion.div>
+                            </m.div>
                         )}
 
                         {/* Password Configuration */}
@@ -255,7 +255,7 @@ export default function ProtectPdf() {
 
                                     {/* Owner Password */}
                                     {useOwnerPassword && (
-                                        <motion.div
+                                        <m.div
                                             initial={{ opacity: 0, height: 0 }}
                                             animate={{ opacity: 1, height: 'auto' }}
                                             exit={{ opacity: 0, height: 0 }}
@@ -282,7 +282,7 @@ export default function ProtectPdf() {
                                             <p className="text-xs text-text-muted mt-1">
                                                 Owner password allows changing permissions
                                             </p>
-                                        </motion.div>
+                                        </m.div>
                                     )}
                                 </div>
 
@@ -352,7 +352,7 @@ export default function ProtectPdf() {
                                 </div>
                             </Card>
                         )}
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </div>

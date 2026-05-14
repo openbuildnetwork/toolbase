@@ -10,7 +10,6 @@ import {
 } from "@/lib/format-studio";
 import type {
   FormatterRecipe,
-  OmniFixture,
   RecipeStep,
   RecipeStepOp,
 } from "@/components/features/format-studio/types";
@@ -35,9 +34,6 @@ export function useFormatStudioFormatRecipes({
   const [recipeStepOpDraft, setRecipeStepOpDraft] = useState<RecipeStepOp>("beautify");
   const [recipeStepTargetDraft, setRecipeStepTargetDraft] = useState<"json" | "xml" | "yaml">("json");
   const [recipeStepsDraft, setRecipeStepsDraft] = useState<RecipeStep[]>([]);
-  const [fixtureCases, setFixtureCases] = useState<OmniFixture[]>([]);
-  const [fixtureResults, setFixtureResults] = useState<Array<{ id: string; name: string; passed: boolean; detail: string }>>([]);
-  const fixtureImportRef = useRef<HTMLInputElement | null>(null);
 
   const exportTextFile = (filename: string, body: string, contentType = "text/plain") => {
     const blob = new Blob([body], { type: contentType });
@@ -179,72 +175,6 @@ export function useFormatStudioFormatRecipes({
     }
   };
 
-  const addCurrentAsFixture = () => {
-    const name = window.prompt("Fixture name");
-    if (!name) return;
-    setFixtureCases((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        name: name.trim(),
-        format: validateFormat,
-        input: validateInput,
-        expectedValid: true,
-      },
-    ]);
-  };
-
-  const runFixtureTests = () => {
-    const results = fixtureCases.map((fixture) => {
-      const res = validateData(fixture.format, fixture.input);
-      const passed = res.valid === fixture.expectedValid;
-      return {
-        id: fixture.id,
-        name: fixture.name,
-        passed,
-        detail: passed
-          ? `Expected ${fixture.expectedValid ? "valid" : "invalid"}, got match`
-          : `Expected ${fixture.expectedValid ? "valid" : "invalid"}, got ${res.valid ? "valid" : "invalid"}`,
-      };
-    });
-    setFixtureResults(results);
-  };
-
-  const exportFixturePack = () => {
-    const pack = {
-      suite: "FormatStudio-fixtures",
-      version: "1.0.0",
-      generatedAt: new Date().toISOString(),
-      cases: fixtureCases.map((f) => ({
-        name: f.name,
-        format: f.format,
-        input: f.input,
-        expectedValid: f.expectedValid,
-      })),
-    };
-    exportTextFile("FormatStudio-fixtures.json", JSON.stringify(pack, null, 2), "application/json");
-  };
-
-  const handleImportFixturePack = async (file: File) => {
-    try {
-      const raw = await file.text();
-      const parsed = JSON.parse(raw) as { cases?: Array<{ name: string; format: "json" | "xml" | "yaml"; input: string; expectedValid: boolean }> };
-      if (!parsed.cases || !Array.isArray(parsed.cases)) {
-        throw new Error("Invalid fixture pack: missing cases array.");
-      }
-      const imported: OmniFixture[] = parsed.cases.map((c, idx) => ({
-        id: crypto.randomUUID(),
-        name: c.name || `case_${idx + 1}`,
-        format: c.format,
-        input: c.input,
-        expectedValid: !!c.expectedValid,
-      }));
-      setFixtureCases(imported);
-      setFixtureResults([]);
-    } catch (err: unknown) {
-      reportValidationError(err instanceof Error ? err.message : "Fixture import failed");
-    }
-  };
 
   useEffect(() => {
     try {
@@ -276,20 +206,6 @@ export function useFormatStudioFormatRecipes({
           .filter(Boolean) as FormatterRecipe[];
         setFormatterRecipes(migrated);
       }
-      const rawFixtures = localStorage.getItem("FormatStudio:fixtures");
-      if (rawFixtures) {
-        const parsed = JSON.parse(rawFixtures) as Array<Partial<OmniFixture>>;
-        const normalized = parsed
-          .filter((item) => item && typeof item.input === "string")
-          .map((item, idx) => ({
-            id: item.id || crypto.randomUUID(),
-            name: item.name || `fixture_${idx + 1}`,
-            format: (item.format || "json") as "json" | "xml" | "yaml",
-            input: item.input as string,
-            expectedValid: typeof item.expectedValid === "boolean" ? item.expectedValid : true,
-          }));
-        setFixtureCases(normalized);
-      }
     } catch {
       // ignore malformed local data
     }
@@ -299,9 +215,7 @@ export function useFormatStudioFormatRecipes({
     localStorage.setItem("FormatStudio:formatter-recipes", JSON.stringify(formatterRecipes.slice(-30)));
   }, [formatterRecipes]);
 
-  useEffect(() => {
-    localStorage.setItem("FormatStudio:fixtures", JSON.stringify(fixtureCases.slice(-40)));
-  }, [fixtureCases]);
+
 
   return {
     formatterRecipes,
@@ -309,24 +223,16 @@ export function useFormatStudioFormatRecipes({
     recipeStepOpDraft,
     recipeStepTargetDraft,
     recipeStepsDraft,
-    fixtureCases,
-    fixtureResults,
-    fixtureImportRef,
-    setFixtureCases,
     setRecipeNameDraft,
     setRecipeStepOpDraft,
     setRecipeStepTargetDraft,
     setRecipeStepsDraft,
     saveFormatterRecipe,
     runDraftRecipe,
-    addCurrentAsFixture,
     addRecipeStepDraft,
     moveRecipeStep,
     removeRecipeStep,
     loadFormatterRecipe,
     runSavedRecipe,
-    runFixtureTests,
-    exportFixturePack,
-    handleImportFixturePack,
   };
 }
