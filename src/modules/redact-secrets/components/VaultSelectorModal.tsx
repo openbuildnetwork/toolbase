@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { Search, Vault, X } from "lucide-react";
 import { m } from "framer-motion";
-import { useNoteVault } from "@/modules/note-vault/hooks/useNoteVault";
-import { Note } from "@/modules/note-vault/types";
+import { useNoteVault } from "@/shared/hooks/useNoteVault";
+import { Note } from "@/shared/types/note-vault";
 import { Button } from "@/shared/ui/Button";
 
 interface VaultSelectorModalProps {

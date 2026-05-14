@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { checkOllamaRunning, hasModel } from "@/modules/ai-assistant/lib/ollama";
+import { checkOllamaRunning, hasModel } from "@/shared/lib/ollama";
 
 export type OllamaState = {
   isLoading: boolean;

@@ -25,11 +25,11 @@ import {
   ArchiveFormat,
   ArchiveInputFile,
   ZipCompressionMode,
-} from "@/modules/archive-kit/lib/archive-kit";
+} from "@/shared/lib/archive-kit";
 import {
   createArchiveRust,
   extractArchiveRust,
-} from "@/modules/archive-kit/lib/archive-kit-rust";
+} from "@/shared/lib/archive-kit-rust";
 import { useArchiveKitWorker } from "@/modules/archive-kit/hooks/useArchiveKitWorker";
 
 function bytesToHuman(size: number): string {

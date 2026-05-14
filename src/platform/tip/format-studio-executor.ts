@@ -7,7 +7,7 @@ import {
   normalizeObjectKeys, 
   parseToObject,
   DataFormat 
-} from '@/modules/format-studio';
+} from '@/shared/lib/format-studio';
 
 export type FormatStudioOp = 'beautify' | 'minify' | 'clean' | 'normalize';
 

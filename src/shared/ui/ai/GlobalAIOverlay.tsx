@@ -2,15 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { useAIChat } from "@/modules/ai-assistant/hooks/useAIChat";
+import { useAIChat } from "@/shared/hooks/ai/useAIChat";
 import { cn } from "@/shared/lib/utils";
-import { DEFAULT_WEBLLM_MODEL_ID } from "@/modules/ai-assistant/hooks/useWebLLM";
+import { DEFAULT_WEBLLM_MODEL_ID } from "@/shared/hooks/ai/useWebLLM";
 
-const ChatInterface = dynamic(() => import("@/modules/ai-assistant/components/ChatInterface").then(mod => mod.ChatInterface), {
+const ChatInterface = dynamic(() => import("@/shared/ui/ai/ChatInterface").then(mod => mod.ChatInterface), {
   loading: () => <div className="flex h-full w-full items-center justify-center">Loading Chat...</div>
 });
 
-const OllamaSetup = dynamic(() => import("@/modules/ai-assistant/components/OllamaSetup").then(mod => mod.OllamaSetup), {
+const OllamaSetup = dynamic(() => import("@/shared/ui/ai/OllamaSetup").then(mod => mod.OllamaSetup), {
   loading: () => <div className="flex h-full w-full items-center justify-center">Loading Setup...</div>
 });
 

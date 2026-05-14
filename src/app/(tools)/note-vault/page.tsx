@@ -2,11 +2,11 @@
 
 import React, { useState } from 'react';
 import Header from '@/shared/ui/Header';
-import { useNoteVault } from '@/modules/note-vault/hooks/useNoteVault';
+import { useNoteVault } from '@/shared/hooks/useNoteVault';
 import { useNoteSearch } from '@/modules/note-vault/hooks/useNoteSearch';
 import { useNoteWorker } from '@/modules/note-vault/hooks/useNoteWorker';
 import { Vault } from 'lucide-react';
-import { Note, NoteFormat } from '@/modules/note-vault/types';
+import { Note, NoteFormat } from '@/shared/types/note-vault';
 import NoteEditor from '@/modules/note-vault/components/NoteEditor';
 import NoteList from '@/modules/note-vault/components/NoteList';
 import NoteToolbar from '@/modules/note-vault/components/NoteToolbar';

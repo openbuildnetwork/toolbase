@@ -6,7 +6,7 @@ import React from 'react';
 import { Search, Command, MessageSquare, Sparkles, Clock, Heart, Github, Info } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { InstallAppButton } from './InstallAppButton';
-import { useAIChat } from '@/modules/ai-assistant/hooks/useAIChat';
+import { useAIChat } from '@/shared/hooks/ai/useAIChat';
 import { useToolPreferences } from '@/shared/hooks/useToolPreferences';
 
 interface HeaderProps {

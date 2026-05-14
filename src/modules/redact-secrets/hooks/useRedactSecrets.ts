@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
-import { useRedactWorker } from "@/modules/redact-secrets/hooks/useRedactWorker";
-import { RedactRequest, RedactResponse, ContentType, MaskingStyle } from "@/modules/redact-secrets/types";
-import { Note } from "@/modules/note-vault/types";
+import { useRedactWorker } from "@/shared/hooks/useRedactWorker";
+import { RedactRequest, RedactResponse, ContentType, MaskingStyle } from "@/shared/types/redact-secrets";
+import { Note } from "@/shared/types/note-vault";
 
 const STORAGE_KEY = "toolbase:redact-settings";
 

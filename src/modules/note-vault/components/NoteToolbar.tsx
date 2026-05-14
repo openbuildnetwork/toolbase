@@ -1,5 +1,5 @@
 import React from 'react';
-import { Note, NoteFormat } from '@/modules/note-vault/types';
+import { Note, NoteFormat } from '@/shared/types/note-vault';
 
 interface NoteToolbarProps {
   note: Note;

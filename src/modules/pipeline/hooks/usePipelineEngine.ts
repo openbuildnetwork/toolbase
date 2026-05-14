@@ -20,7 +20,7 @@ import { bundleFromFile, bundleFromFiles } from '@/platform/tip/bundle';
 import type { TIPBundle } from '@/platform/tip/protocol';
 import type { TIPPipelineStep } from '@/platform/tip/engine';
 import { TIPError } from '@/platform/tip/errors';
-import type { PipelineEngineState, StepState, PipelineStep } from '@/modules/pipeline/types';
+import type { PipelineEngineState, StepState, PipelineStep } from '../types';
 import type { Node } from '@xyflow/react';
 
 // ─── Extended state with output ───────────────────────────────────────────────

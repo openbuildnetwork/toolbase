@@ -5,7 +5,7 @@ import { LazyEditor as Editor } from "@/shared/ui/LazyEditor";
 import { Button } from "@/shared/ui/Button";
 import { Play, HelpCircle, CheckCircle2, ChevronUp, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
-import { TableSchema } from "@/modules/data-lens/hooks/useDataLens";
+import { TableSchema } from "../hooks/useDataLens";
 import { HelpPanel } from "./HelpPanel";
 import { DataTable } from "./DataTable";
 import { useResizablePanel } from "@/shared/hooks/useResizablePanel";

@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
-import { useConversations } from "@/modules/ai-assistant/hooks/useConversations";
-import { useAIChat } from "@/modules/ai-assistant/hooks/useAIChat";
+import { useConversations } from "@/shared/hooks/ai/useConversations";
+import { useAIChat } from "@/shared/hooks/ai/useAIChat";
 import { TOOLS } from "@/config/tools.registry";
 import ToolCard from "@/shared/ui/ToolCard";
 import { Button } from "@/shared/ui/Button";
@@ -22,7 +22,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { DEFAULT_WEBLLM_MODEL_ID, LIGHTWEIGHT_WEBLLM_MODEL_ID } from "@/modules/ai-assistant/hooks/useWebLLM";
+import { DEFAULT_WEBLLM_MODEL_ID, LIGHTWEIGHT_WEBLLM_MODEL_ID } from "@/shared/hooks/ai/useWebLLM";
 import { cn } from "@/shared/lib/utils";
 import { m, AnimatePresence } from "framer-motion";
 import { Markdown } from "@/shared/ui/Markdown";

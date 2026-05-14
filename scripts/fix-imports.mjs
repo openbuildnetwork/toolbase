@@ -1,20 +1,18 @@
 import fs from 'fs';
 import path from 'path';
 
-const tools = [
-  'base64', 'data-lens', 'format-studio', 'magic-pdf', 
-  'note-vault', 'open-draw', 'pipeline', 'pixels', 'redact-secrets'
-];
+const mapping = {
+  '@/modules/redact-secrets/types': '@/shared/types/redact-secrets',
+  '@/modules/note-vault/types': '@/shared/types/note-vault',
+  '@/modules/base64/types': '@/shared/types/base64',
+  '@/modules/json-to-interface/types': '@/shared/types/json-to-interface',
+  '@/modules/speed-test/types': '@/shared/types/speed-test',
+  '@/modules/note-vault/hooks/useNoteVault': '@/shared/hooks/useNoteVault',
+  '@/modules/redact-secrets/hooks/useRedactWorker': '@/shared/hooks/useRedactWorker',
+};
 
-const mapping = {};
-tools.forEach(tool => {
-  mapping[`@/components/features/${tool}`] = `@/modules/${tool}/components`;
-});
-
-// Also handle relative imports that might have broken
-// e.g. ../../../ui/ -> @/shared/ui/
-mapping['../../../ui/'] = '@/shared/ui/';
-mapping['../../ui/'] = '@/shared/ui/';
+// Also check for useNoteVault and useRedactWorker if they moved to shared
+// Wait, did I move them? I should check.
 
 function walk(dir, callback) {
   fs.readdirSync(dir).forEach(f => {

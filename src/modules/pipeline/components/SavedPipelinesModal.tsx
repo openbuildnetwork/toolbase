@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Trash2, Upload, FileJson, Play } from 'lucide-react';
-import type { PipelineDefinition } from '@/modules/pipeline/types';
-import { usePipelines } from '@/modules/pipeline/hooks/usePipelines';
+import type { PipelineDefinition } from '../types';
+import { usePipelines } from '../hooks/usePipelines';
 
 interface SavedPipelinesModalProps {
     onClose: () => void;

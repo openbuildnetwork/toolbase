@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useBase64 } from '@/modules/base64/hooks/useBase64Worker';
+import { useBase64 } from '../hooks/useBase64Worker';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { Switch } from '@/shared/ui/Switch';
@@ -27,7 +27,7 @@ import {
     Upload
 } from 'lucide-react';
 import { Tabs, TabItem } from '@/shared/ui/Tabs';
-import type { Base64Mode, Base64Response } from '@/modules/base64/types';
+import type { Base64Mode, Base64Response } from '@/shared/types/base64';
 import { m, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 

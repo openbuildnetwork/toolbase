@@ -1,6 +1,6 @@
 import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { useMemo } from 'react';
-import type { NodeData, ShapeDefinition } from '@/modules/open-draw/types/open-draw.types';
+import type { NodeData, ShapeDefinition } from '../../types/open-draw.types';
 import { SHAPE_DEFINITIONS } from './shapes';
 import { EditableLabel, useNodeStyle } from './Nodes';
 

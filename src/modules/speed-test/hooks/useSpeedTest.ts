@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { measurePing, measureDownload, measureUpload, SpeedTestResult } from '@/modules/speed-test/lib/speed-test';
+import { measurePing, measureDownload, measureUpload, SpeedTestResult } from '@/shared/lib/speed-test';
 
 export type TestStage = 'idle' | 'ping' | 'download' | 'upload' | 'complete' | 'error';
 

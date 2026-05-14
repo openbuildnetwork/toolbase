@@ -11,7 +11,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import type { PipelineDefinition } from '@/modules/pipeline/types';
+import type { PipelineDefinition } from '../types';
 import { TIPToolRegistry } from '@/platform/tip/registry';
 import { validateTipVersion } from '@/platform/tip/validators';
 

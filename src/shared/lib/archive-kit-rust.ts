@@ -3,7 +3,7 @@ import type {
   ArchiveFormat,
   ArchiveInputFile,
   ZipCompressionMode,
-} from "@/modules/archive-kit/lib/archive-kit";
+} from "@/shared/lib/archive-kit";
 
 type ArchiveKitRustApi = {
   default: (wasmUrl?: string | URL | Request) => Promise<unknown>;

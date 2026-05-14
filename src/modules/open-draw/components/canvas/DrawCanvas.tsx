@@ -19,10 +19,10 @@ import {
     EdgeTypes
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useOpenDraw } from '@/modules/open-draw/hooks/useOpenDraw';
+import { useOpenDraw } from '../../hooks/useOpenDraw';
 import { GenericShapeNode } from '../nodes/GenericShapeNode';
 import { IconShapeNode } from '../nodes/IconShapeNode';
-import { ShapeDefinition } from '@/modules/open-draw/types/open-draw.types';
+import { ShapeDefinition } from '../../types/open-draw.types';
 import { SHAPE_DEFINITIONS } from '../nodes/shapes';
 import { CustomEdge } from '../edges/CustomEdge';
 import { useCallback, useRef, useEffect, useState, useMemo } from 'react';

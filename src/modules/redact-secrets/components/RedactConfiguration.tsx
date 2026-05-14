@@ -3,8 +3,8 @@ import { Settings2, Key, Type, Hash, Code, Upload, Database, Save, FolderOpen } 
 import { m, AnimatePresence } from "framer-motion";
 import { cn } from "@/shared/lib/utils";
 import { TagInput } from "@/shared/ui/TagInput";
-import { MaskingStyle } from "@/modules/redact-secrets/types";
-import { useNoteVault } from "@/modules/note-vault/hooks/useNoteVault";
+import { MaskingStyle } from "@/shared/types/redact-secrets";
+import { useNoteVault } from "@/shared/hooks/useNoteVault";
 import { VaultSelectorModal } from "./VaultSelectorModal";
 
 interface RedactConfigurationProps {

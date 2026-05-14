@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Note } from '@/modules/note-vault/types';
+import { Note } from '@/shared/types/note-vault';
 
 export function useNoteSearch(notes: Note[], query: string, collectionId?: string) {
   return useMemo(() => {

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { Node, Edge } from '@xyflow/react';
-import type { PipelineEngineState, PipelineStep } from '@/modules/pipeline/types';
+import type { PipelineEngineState, PipelineStep } from '../../types';
 import type { TIPBundle } from '@/platform/tip/protocol';
 
 export function useFlowEngineSync(

@@ -1,4 +1,4 @@
-import type { RedactRequest, RedactResponse } from "@/modules/redact-secrets/types";
+import type { RedactRequest, RedactResponse } from "@/shared/types/redact-secrets";
 
 type RedactSecretsRustApi = {
   default: (wasmUrl?: string | URL | Request) => Promise<unknown>;

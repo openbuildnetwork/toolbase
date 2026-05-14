@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Base64Request, Base64Response } from '@/modules/base64/types';
+import type { Base64Request, Base64Response } from '@/shared/types/base64';
 import { base64Worker } from '@/platform/workers/instances';
 
 export interface UseBase64Result {

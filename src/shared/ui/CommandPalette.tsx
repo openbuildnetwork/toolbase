@@ -32,8 +32,8 @@ import { TOOLS, searchToolsFromRegistry } from '@/config/tools.registry';
 import { useToolPreferences } from '@/shared/hooks/useToolPreferences';
 import { ToolMeta } from '@/shared/types/tool-search';
 import { cn } from '@/shared/lib/utils';
-import { getPinnedNotes } from '@/modules/note-vault/hooks/useNoteVault';
-import { Note } from '@/modules/note-vault/types';
+import { getPinnedNotes } from '@/shared/hooks/useNoteVault';
+import { Note } from '@/shared/types/note-vault';
 
 // ─── category badge colours ────────────────────────────────────────────────────
 

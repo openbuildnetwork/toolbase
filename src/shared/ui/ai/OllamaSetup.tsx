@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import { useAIChat } from "@/modules/ai-assistant/hooks/useAIChat";
-import { DEFAULT_WEBLLM_MODEL_ID, LIGHTWEIGHT_WEBLLM_MODEL_ID } from "@/modules/ai-assistant/hooks/useWebLLM";
+import { useAIChat } from "@/shared/hooks/ai/useAIChat";
+import { DEFAULT_WEBLLM_MODEL_ID, LIGHTWEIGHT_WEBLLM_MODEL_ID } from "@/shared/hooks/ai/useWebLLM";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/shared/ui/Card";
 import { Button } from "@/shared/ui/Button";
 import { RefreshCw, Cpu, ShieldCheck, Sparkles, X, AlertTriangle, RotateCcw, Zap } from "lucide-react";

@@ -1,4 +1,4 @@
-import type { Base64Request, Base64Response } from "@/modules/base64/types";
+import type { Base64Request, Base64Response } from "@/shared/types/base64";
 
 /**
  * Clean up Base64 string by removing data URI prefix and whitespace

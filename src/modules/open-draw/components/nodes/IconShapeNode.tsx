@@ -2,7 +2,7 @@ import { Handle, Position, NodeResizer, NodeProps } from '@xyflow/react';
 import { icons } from 'lucide-react';
 import { EditableLabel } from './Nodes';
 import { useMemo } from 'react';
-import type { NodeData } from '@/modules/open-draw/types/open-draw.types';
+import type { NodeData } from '../../types/open-draw.types';
 
 interface IconNodeProps extends NodeProps {
     data: NodeData & { iconName: string }; // Changed to string to allow both Lucide and AWS keys

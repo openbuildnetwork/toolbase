@@ -33,13 +33,13 @@ import { OutputNode } from './nodes/OutputNode';
 import { HumanReviewNode } from './nodes/HumanReviewNode';
 import { TIPEdge } from './edges/TIPEdge';
 
-import { usePipelineEngine } from '@/modules/pipeline/hooks/usePipelineEngine';
-import { usePipelines } from '@/modules/pipeline/hooks/usePipelines';
+import { usePipelineEngine } from '../hooks/usePipelineEngine';
+import { usePipelines } from '../hooks/usePipelines';
 import { TIPToolRegistry } from '@/platform/tip/registry';
 import { workerForTool } from '@/platform/workers/instances';
 import { ReviewSync } from '@/shared/lib/review-sync';
 
-import { PipelineDefinition } from '@/modules/pipeline/types';
+import { PipelineDefinition } from '../types';
 
 const nodeTypes = {
     tool: ToolNode,

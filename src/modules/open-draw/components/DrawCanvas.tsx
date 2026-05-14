@@ -1,6 +1,6 @@
 import { ReactFlow, Background, Controls, MiniMap, ConnectionMode, BackgroundVariant } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { useOpenDraw } from '@/modules/open-draw/hooks/useOpenDraw';
+import { useOpenDraw } from '../hooks/useOpenDraw';
 import {
     RectangleNode,
     CircleNode,

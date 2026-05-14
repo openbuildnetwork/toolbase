@@ -2,12 +2,12 @@ import {
   type ArchiveFormat,
   type ArchiveInputFile,
   type ZipCompressionMode,
-} from "@/modules/archive-kit/lib/archive-kit";
+} from "@/shared/lib/archive-kit";
 import {
   createArchiveRust,
   extractArchiveRust,
   listArchiveEntriesRust,
-} from "@/modules/archive-kit/lib/archive-kit-rust";
+} from "@/shared/lib/archive-kit-rust";
 
 const workerSelf = self as unknown as Worker;
 

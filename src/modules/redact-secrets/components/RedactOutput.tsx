@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Copy, Check, ShieldCheck, Download } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
-import { RedactResponse } from "@/modules/redact-secrets/types";
+import { RedactResponse } from "@/shared/types/redact-secrets";
 
 interface RedactOutputProps {
     response: RedactResponse | null;

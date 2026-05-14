@@ -3,7 +3,7 @@
 import React from "react";
 import { Activity, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
-import { RedactResponse } from "@/modules/redact-secrets/types";
+import { RedactResponse } from "@/shared/types/redact-secrets";
 
 interface RedactStatsProps {
     response: RedactResponse | null;

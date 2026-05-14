@@ -1,5 +1,5 @@
 
-import { ShapeDefinition } from '@/modules/open-draw/types/open-draw.types';
+import { ShapeDefinition } from '../../types/open-draw.types';
 
 export class ShapeFactory {
     /**

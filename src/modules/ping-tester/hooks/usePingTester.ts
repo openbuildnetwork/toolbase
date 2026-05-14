@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { pingHost, PingResult, PingOptions } from '@/modules/ping-tester/lib/ping';
+import { pingHost, PingResult, PingOptions } from '@/shared/lib/ping';
 
 export function usePingTester() {
     const [results, setResults] = useState<PingResult[]>([]);

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useMonaco } from '@monaco-editor/react';
 import { LazyEditor as Editor } from "@/shared/ui/LazyEditor";
-import { Note } from '@/modules/note-vault/types';
-import { useNoteWorker } from '@/modules/note-vault/hooks/useNoteWorker';
+import { Note } from '@/shared/types/note-vault';
+import { useNoteWorker } from '../hooks/useNoteWorker';
 
 interface NoteEditorProps {
   note: Note;

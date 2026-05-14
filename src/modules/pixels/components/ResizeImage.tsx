@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
 import { formatBytes, cn } from "@/shared/lib/utils";
-import { ImagePreview } from "@/modules/pixels/components/ImagePreview";
+import { ImagePreview } from "../components/ImagePreview";
 import { Label } from "@/shared/ui/Label";
 import { Input } from "@/shared/ui/Input";
 import { Slider } from "@/shared/ui/Slider";

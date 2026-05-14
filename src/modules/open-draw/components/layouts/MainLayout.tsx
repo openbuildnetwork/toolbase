@@ -1,7 +1,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
-import { useOpenDraw } from '@/modules/open-draw/hooks/useOpenDraw';
+import { useOpenDraw } from '../../hooks/useOpenDraw';
 import { DrawCanvas } from '../canvas/DrawCanvas';
 import { ShapeLibrary } from '../panels/ShapeLibrary';
 import { PropertiesPanel } from '../panels/PropertiesPanel';

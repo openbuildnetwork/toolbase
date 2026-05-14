@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { openDB, IDBPDatabase } from 'idb';
-import { Note, Collection, NoteFormat, NoteRevision, NoteVaultStore } from '@/modules/note-vault/types';
+import { Note, Collection, NoteFormat, NoteRevision, NoteVaultStore } from '@/shared/types/note-vault';
 
 const DB_NAME = 'note-vault-db';
 const DB_VERSION = 1;

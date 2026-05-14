@@ -11,7 +11,7 @@ import {
   validateData,
 } from "@/modules/format-studio";
 import type { ValidationResult } from "@/modules/format-studio";
-import type { ValidationIssue } from "@/modules/format-studio/components/types";
+import type { ValidationIssue } from "./components/types";
 
 export function useFormatStudioValidate() {
   const [validateFormat, setValidateFormat] = useState<"json" | "xml" | "yaml">("json");

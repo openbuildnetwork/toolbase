@@ -12,7 +12,7 @@ import type {
   FormatterRecipe,
   RecipeStep,
   RecipeStepOp,
-} from "@/modules/format-studio/components/types";
+} from "./components/types";
 
 type UseFormatStudioFormatRecipesArgs = {
   validateFormat: "json" | "xml" | "yaml";

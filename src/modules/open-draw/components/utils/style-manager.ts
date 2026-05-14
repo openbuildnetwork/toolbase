@@ -1,5 +1,5 @@
 
-import { NodeData } from '@/modules/open-draw/types/open-draw.types';
+import { NodeData } from '../../types/open-draw.types';
 
 const STORAGE_KEY_DEFAULT_STYLE = 'open-draw-default-style';
 const STORAGE_KEY_CLIPBOARD_STYLE = 'open-draw-clipboard-style';

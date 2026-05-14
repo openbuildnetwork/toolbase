@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChatMessage } from "@/modules/ai-assistant/lib/ollama";
+import { ChatMessage } from "@/shared/lib/ollama";
 
 export interface Conversation {
   id: string;

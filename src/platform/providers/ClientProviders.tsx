@@ -4,9 +4,9 @@ import React, { useEffect } from 'react';
 import { ThemeProvider } from "@/shared/ui/ThemeProvider";
 import { GlobalBackground } from "@/shared/ui/GlobalBackground";
 import { DaylightManager } from "@/shared/ui/DaylightManager";
-import { AIChatProvider } from "@/modules/ai-assistant/hooks/useAIChat";
+import { AIChatProvider } from "@/shared/hooks/ai/useAIChat";
 import { CommandPaletteProvider } from "@/shared/ui/CommandPaletteProvider";
-import { GlobalAIOverlay } from "@/modules/ai-assistant/components/GlobalAIOverlay";
+import { GlobalAIOverlay } from "@/shared/ui/ai/GlobalAIOverlay";
 import { WorkerPrewarmer } from "./WorkerPrewarmer";
 
 import { LazyMotion, domAnimation } from 'framer-motion';

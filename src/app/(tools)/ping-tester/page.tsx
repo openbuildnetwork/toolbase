@@ -11,7 +11,7 @@ import { ReturnToToolsButton } from "@/shared/ui/ReturnToToolsButton";
 import { Input } from "@/shared/ui/Input";
 import { Label } from "@/shared/ui/Label";
 import { usePingTester } from "@/modules/ping-tester/hooks/usePingTester";
-import type { PingResult } from "@/modules/ping-tester/lib/ping";
+import type { PingResult } from "@/shared/lib/ping";
 
 // ─── Colour helpers ──────────────────────────────────────────────────────────
 

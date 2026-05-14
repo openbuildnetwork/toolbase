@@ -5,7 +5,7 @@ import { FilterBuilder, FilterCondition } from "./FilterBuilder";
 import { DataTable } from "./DataTable";
 import { Button } from "@/shared/ui/Button";
 import { Table as TableIcon, Code2, Terminal } from "lucide-react";
-import { TableSchema } from "@/modules/data-lens/hooks/useDataLens";
+import { TableSchema } from "../hooks/useDataLens";
 
 interface DataViewProps {
     tableData: any[];

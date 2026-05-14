@@ -15,7 +15,7 @@ import {
     Graph,
     GraphNode,
     createMessageId,
-} from '@/modules/open-draw/types/open-draw.types';
+} from '../types/open-draw.types';
 
 // --- Types ---
 type LayoutAlgorithm = 'hierarchical' | 'circular' | 'spring';

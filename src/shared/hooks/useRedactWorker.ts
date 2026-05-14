@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { RedactRequest, RedactResponse } from '@/modules/redact-secrets/types';
+import { RedactRequest, RedactResponse } from '@/shared/types/redact-secrets';
 
 export type RedactEngineLabel = 'Rust WASM' | 'Unavailable';
 

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Shield, CheckCircle, X, ShieldAlert, Zap } from "lucide-react";
-import { useRedactSecrets } from "@/modules/redact-secrets/hooks/useRedactSecrets";
+import { useRedactSecrets } from "../hooks/useRedactSecrets";
 import { RedactEditor } from "./RedactEditor";
 import { RedactConfiguration } from "./RedactConfiguration";
 import { RedactOutput } from "./RedactOutput";
@@ -11,7 +11,7 @@ import { EngineLoader } from "@/shared/ui/EngineLoader";
 import { m, AnimatePresence } from "framer-motion";
 import { cn } from "@/shared/lib/utils";
 import type { TIPInteractionProps } from "@/platform/tip/protocol";
-import type { ContentType, MaskingStyle } from "@/modules/redact-secrets/types";
+import type { ContentType, MaskingStyle } from "@/shared/types/redact-secrets";
 
 /**
  * TIP Interaction Component for Redact Secrets.

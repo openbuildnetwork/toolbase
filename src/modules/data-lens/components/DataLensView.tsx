@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { useDataLens } from "@/modules/data-lens/hooks/useDataLens";
+import { useDataLens } from "../hooks/useDataLens";
 import dynamic from "next/dynamic";
 import { Button } from "@/shared/ui/Button";
 import { ReturnToToolsButton } from "@/shared/ui/ReturnToToolsButton";

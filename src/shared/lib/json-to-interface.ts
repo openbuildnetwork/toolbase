@@ -1,4 +1,4 @@
-import { GeneratorOptions, Language } from "@/modules/json-to-interface/types";
+import { GeneratorOptions, Language } from "@/shared/types/json-to-interface";
 export function generateModels(json: any, options: GeneratorOptions): string {
     const { rootName, language, usePydantic = false } = options;
     const models: Map<string, string> = new Map();
