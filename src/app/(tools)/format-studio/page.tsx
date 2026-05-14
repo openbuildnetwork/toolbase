@@ -7,11 +7,11 @@ import { cn } from "@/shared/lib/utils";
 import type { DataFormat } from "@/modules/format-studio";
 import dynamic from "next/dynamic";
 
-const ConvertStudio = dynamic(() => import("@/components/features/format-studio/ConvertStudio").then(mod => mod.ConvertStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
-const ValidatorStudio = dynamic(() => import("@/components/features/format-studio/ValidatorStudio").then(mod => mod.ValidatorStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
-const FormatterStudio = dynamic(() => import("@/components/features/format-studio/FormatterStudio").then(mod => mod.FormatterStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
-const DiffLab = dynamic(() => import("@/components/features/format-studio/DiffLab").then(mod => mod.DiffLab), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
-const GeneratorHub = dynamic(() => import("@/components/features/format-studio/GeneratorHub").then(mod => mod.GeneratorHub), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const ConvertStudio = dynamic(() => import("@/modules/format-studio/components/ConvertStudio").then(mod => mod.ConvertStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const ValidatorStudio = dynamic(() => import("@/modules/format-studio/components/ValidatorStudio").then(mod => mod.ValidatorStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const FormatterStudio = dynamic(() => import("@/modules/format-studio/components/FormatterStudio").then(mod => mod.FormatterStudio), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const DiffLab = dynamic(() => import("@/modules/format-studio/components/DiffLab").then(mod => mod.DiffLab), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const GeneratorHub = dynamic(() => import("@/modules/format-studio/components/GeneratorHub").then(mod => mod.GeneratorHub), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
 import {
   ArrowRightLeft,
   CheckCircle2,

@@ -1,13 +1,20 @@
 import fs from 'fs';
 import path from 'path';
 
-const mapping = {
-  '@/shared/lib/ollama': '@/modules/ai-assistant/lib/ollama',
-  '@/shared/lib/ping': '@/modules/ping-tester/lib/ping',
-  '@/shared/lib/speed-test': '@/modules/speed-test/lib/speed-test',
-  '../types/note-vault': '@/modules/note-vault/types',
-  './useHistory': '@/shared/hooks/useHistory',
-};
+const tools = [
+  'base64', 'data-lens', 'format-studio', 'magic-pdf', 
+  'note-vault', 'open-draw', 'pipeline', 'pixels', 'redact-secrets'
+];
+
+const mapping = {};
+tools.forEach(tool => {
+  mapping[`@/components/features/${tool}`] = `@/modules/${tool}/components`;
+});
+
+// Also handle relative imports that might have broken
+// e.g. ../../../ui/ -> @/shared/ui/
+mapping['../../../ui/'] = '@/shared/ui/';
+mapping['../../ui/'] = '@/shared/ui/';
 
 function walk(dir, callback) {
   fs.readdirSync(dir).forEach(f => {

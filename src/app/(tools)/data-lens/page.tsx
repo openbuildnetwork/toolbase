@@ -1,5 +1,5 @@
 
-import DataLensView from "@/components/features/data-lens/DataLensView";
+import DataLensView from "@/modules/data-lens/components/DataLensView";
 
 export default function DataLensPage() {
     return <DataLensView />;

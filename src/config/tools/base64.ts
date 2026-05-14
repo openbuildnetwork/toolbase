@@ -33,7 +33,7 @@ export const base64Config: ToolMeta = {
       },
       interactable: true as const,
       getInteractionComponent: async () => {
-        const { default: Base64Interactive } = await import('@/components/features/base64/Base64Interactive');
+        const { default: Base64Interactive } = await import('@/modules/base64/components/Base64Interactive');
         return Base64Interactive;
       },
       getExecutor: async () => {
@@ -67,7 +67,7 @@ export const base64Config: ToolMeta = {
       },
       interactable: true as const,
       getInteractionComponent: async () => {
-        const { default: Base64Interactive } = await import('@/components/features/base64/Base64Interactive');
+        const { default: Base64Interactive } = await import('@/modules/base64/components/Base64Interactive');
         return Base64Interactive;
       },
       getExecutor: async () => {

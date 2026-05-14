@@ -30,7 +30,7 @@ export const redactSecretsConfig: ToolMeta = {
       mobileOptimized: true,
       interactable: true as const,
       getInteractionComponent: async () => {
-        const { default: RedactInteractive } = await import('@/components/features/redact-secrets/RedactInteractive');
+        const { default: RedactInteractive } = await import('@/modules/redact-secrets/components/RedactInteractive');
         return RedactInteractive;
       },
       getExecutor: async () => {

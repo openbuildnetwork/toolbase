@@ -7,10 +7,10 @@ import { useNoteSearch } from '@/modules/note-vault/hooks/useNoteSearch';
 import { useNoteWorker } from '@/modules/note-vault/hooks/useNoteWorker';
 import { Vault } from 'lucide-react';
 import { Note, NoteFormat } from '@/modules/note-vault/types';
-import NoteEditor from '@/components/features/note-vault/NoteEditor';
-import NoteList from '@/components/features/note-vault/NoteList';
-import NoteToolbar from '@/components/features/note-vault/NoteToolbar';
-import NoteStats from '@/components/features/note-vault/NoteStats';
+import NoteEditor from '@/modules/note-vault/components/NoteEditor';
+import NoteList from '@/modules/note-vault/components/NoteList';
+import NoteToolbar from '@/modules/note-vault/components/NoteToolbar';
+import NoteStats from '@/modules/note-vault/components/NoteStats';
 import { ReturnToToolsButton } from '@/shared/ui/ReturnToToolsButton';
 
 export default function NoteVaultPage() {

@@ -8,10 +8,10 @@ import { Button } from "@/shared/ui/Button";
 import { ReturnToToolsButton } from "@/shared/ui/ReturnToToolsButton";
 
 import { useRedactSecrets } from "@/modules/redact-secrets/hooks/useRedactSecrets";
-import { RedactEditor } from "@/components/features/redact-secrets/RedactEditor";
-import { RedactConfiguration } from "@/components/features/redact-secrets/RedactConfiguration";
-import { RedactOutput } from "@/components/features/redact-secrets/RedactOutput";
-import { RedactStats } from "@/components/features/redact-secrets/RedactStats";
+import { RedactEditor } from "@/modules/redact-secrets/components/RedactEditor";
+import { RedactConfiguration } from "@/modules/redact-secrets/components/RedactConfiguration";
+import { RedactOutput } from "@/modules/redact-secrets/components/RedactOutput";
+import { RedactStats } from "@/modules/redact-secrets/components/RedactStats";
 import { EngineLoader } from "@/shared/ui/EngineLoader";
 
 export default function RedactSecretsPage() {

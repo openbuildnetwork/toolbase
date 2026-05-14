@@ -29,7 +29,7 @@ export const pipelineConfig: ToolMeta = {
       mobileOptimized: false,
       interactable: true as const,
       getInteractionComponent: async () => {
-        const { default: HumanReviewInteraction } = await import('@/components/features/pipeline/nodes/HumanReviewInteraction');
+        const { default: HumanReviewInteraction } = await import('@/modules/pipeline/components/nodes/HumanReviewInteraction');
         return HumanReviewInteraction;
       },
       getExecutor: async () => {

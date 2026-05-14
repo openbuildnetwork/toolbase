@@ -4,8 +4,8 @@ import { Button } from "@/shared/ui/Button";
 import { Download, RefreshCw, Zap, Scaling } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
 import { formatBytes, cn } from "@/shared/lib/utils";
-import { ImagePreview } from "@/components/features/pixels/ImagePreview";
-import { CompressionSettings } from "@/components/features/pixels/CompressionSettings";
+import { ImagePreview } from "@/modules/pixels/components/ImagePreview";
+import { CompressionSettings } from "@/modules/pixels/components/CompressionSettings";
 
 import { useTIPTool } from "@/platform/hooks/useTIPTool";
 import { getImageInfo } from "@/shared/lib/image-utils";

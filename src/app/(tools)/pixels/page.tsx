@@ -11,10 +11,10 @@ import { ReturnToToolsButton } from "@/shared/ui/ReturnToToolsButton";
 // Features
 import dynamic from "next/dynamic";
 
-const CompressImage = dynamic(() => import("@/components/features/pixels/CompressImage").then(mod => mod.CompressImage), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
-const UpscaleImage = dynamic(() => import("@/components/features/pixels/UpscaleImage").then(mod => mod.UpscaleImage), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
-const ResizeImage = dynamic(() => import("@/components/features/pixels/ResizeImage").then(mod => mod.ResizeImage), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
-const Steganography = dynamic(() => import("@/components/features/pixels/Steganography").then(mod => mod.Steganography), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const CompressImage = dynamic(() => import("@/modules/pixels/components/CompressImage").then(mod => mod.CompressImage), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const UpscaleImage = dynamic(() => import("@/modules/pixels/components/UpscaleImage").then(mod => mod.UpscaleImage), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const ResizeImage = dynamic(() => import("@/modules/pixels/components/ResizeImage").then(mod => mod.ResizeImage), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
+const Steganography = dynamic(() => import("@/modules/pixels/components/Steganography").then(mod => mod.Steganography), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
 
 export default function PixelsPage() {
 

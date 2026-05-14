@@ -69,7 +69,7 @@ export const magicPdfConfig: ToolMeta = {
       // INP: visual page-selector interaction to set split points
       interactable: true as const,
       getInteractionComponent: async () => {
-        const { default: SplitPdf } = await import('@/components/features/magic-pdf/SplitPdf');
+        const { default: SplitPdf } = await import('@/modules/magic-pdf/components/SplitPdf');
         return SplitPdf;
       },
       getExecutor: async () => {
@@ -89,7 +89,7 @@ export const magicPdfConfig: ToolMeta = {
       // INP: requires user interaction to set file order before execution
       interactable: true as const,
       getInteractionComponent: async () => {
-        const { default: MergePdf } = await import('@/components/features/magic-pdf/MergePdf');
+        const { default: MergePdf } = await import('@/modules/magic-pdf/components/MergePdf');
         return MergePdf;
       },
       getExecutor: async () => {
@@ -110,7 +110,7 @@ export const magicPdfConfig: ToolMeta = {
       // INP: visual drag-and-drop page picker
       interactable: true as const,
       getInteractionComponent: async () => {
-        const { default: RearrangePdf } = await import('@/components/features/magic-pdf/RearrangePdf');
+        const { default: RearrangePdf } = await import('@/modules/magic-pdf/components/RearrangePdf');
         return RearrangePdf;
       },
       // Pure pdf-lib executor — no Python WASM needed
@@ -245,7 +245,7 @@ export const magicPdfConfig: ToolMeta = {
       },
       interactable: true as const,
       getInteractionComponent: async () => {
-        const { default: UnlockPdf } = await import('@/components/features/magic-pdf/UnlockPdf');
+        const { default: UnlockPdf } = await import('@/modules/magic-pdf/components/UnlockPdf');
         return UnlockPdf;
       },
     },
@@ -259,7 +259,7 @@ export const magicPdfConfig: ToolMeta = {
       configSchema: { fields: [] },
       interactable: true as const,
       getInteractionComponent: async () => {
-        const { default: MaskPdf } = await import('@/components/features/magic-pdf/MaskPdf');
+        const { default: MaskPdf } = await import('@/modules/magic-pdf/components/MaskPdf');
         return MaskPdf;
       },
       getExecutor: async () => {
@@ -291,7 +291,7 @@ export const magicPdfConfig: ToolMeta = {
       // INP: full signature draw/type/upload + drag-to-place UI
       interactable: true as const,
       getInteractionComponent: async () => {
-        const { default: SignPdf } = await import('@/components/features/magic-pdf/SignPdf');
+        const { default: SignPdf } = await import('@/modules/magic-pdf/components/SignPdf');
         return SignPdf;
       },
       // Pure pdf-lib executor — no Python WASM needed
