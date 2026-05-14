@@ -4,7 +4,7 @@ import { Lock } from 'lucide-react';
 
 interface PdfPreviewProps {
     file?: File;
-    pdfDocument?: any; // pdfjs-dist document proxy
+    pdfDocument?: unknown; // pdfjs-dist document proxy
     className?: string;
     pageNumber?: number;
     scale?: number;
@@ -29,13 +29,14 @@ export const PdfPreview = ({
 
     useEffect(() => {
         let active = true;
-        let renderTask: any = null;
+        let renderTask: { cancel: () => void; promise: Promise<void> } | null = null;
         setPasswordProtected(false);
 
         const renderPage = async () => {
             setLoading(true);
             try {
-                let pdf = pdfDocument;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                let pdf: any = pdfDocument;
 
                 if (!pdf && file) {
                     const pdfjsLib = await import('pdfjs-dist');
@@ -70,18 +71,19 @@ export const PdfPreview = ({
                     }
 
                     if (context && active) {
-                        renderTask = page.render({ canvasContext: context, viewport } as any);
-                        await renderTask.promise;
+                        renderTask = page.render({ canvasContext: context, viewport });
+                        await renderTask?.promise;
                     }
                 }
-            } catch (error: any) {
-                if (!active || error?.name === 'RenderingCancelledException') return;
+            } catch (error: unknown) {
+                const err = error as { name?: string; message?: string };
+                if (!active || err.name === 'RenderingCancelledException') return;
                 // PasswordException — pdf.js throws when the PDF requires a password
-                if (error?.name === 'PasswordException' || error?.message?.toLowerCase().includes('password')) {
+                if (err.name === 'PasswordException' || err.message?.toLowerCase().includes('password')) {
                     setPasswordProtected(true);
                 } else {
                     console.error('Error rendering PDF:', error);
-                    if (onLoadError) onLoadError(error as Error);
+                    if (onLoadError) onLoadError(error instanceof Error ? error : new Error(String(error)));
                 }
             } finally {
                 if (active) setLoading(false);

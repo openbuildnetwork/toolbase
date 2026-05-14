@@ -16,7 +16,7 @@ import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, Clock, X, ChevronDown, Trash2 } from 'lucide-react';
+import { Heart, X, ChevronDown, Trash2 } from 'lucide-react';
 import { useToolPreferences } from '@/hooks/useToolPreferences';
 import { ToolCardProps } from '@/types/tool-search';
 import { cn } from '@/lib/utils';
@@ -204,22 +204,17 @@ interface PersonalizedGalleryProps {
 }
 
 export function PersonalizedGallery({ allTools }: PersonalizedGalleryProps) {
-    const { favorites, recents, toggleFavorite, clearFavorites, removeRecent, clearRecents } =
+    const { favorites, toggleFavorite, clearFavorites } =
         useToolPreferences();
 
     const [favoritesCollapsed, setFavoritesCollapsed] = useState(false);
-    const [recentsCollapsed, setRecentsCollapsed] = useState(false);
 
     // Resolve IDs → card props (preserving order)
     const favoriteCards = favorites
         .map((id) => allTools.find((t) => t.toolId === id))
         .filter((t): t is ToolCardProps => t !== undefined);
 
-    const recentCards = recents
-        .map((id) => allTools.find((t) => t.toolId === id))
-        .filter((t): t is ToolCardProps => t !== undefined);
-
-    const hasContent = favoriteCards.length > 0 || recentCards.length > 0;
+    const hasContent = favoriteCards.length > 0;
 
     if (!hasContent) return null;
 

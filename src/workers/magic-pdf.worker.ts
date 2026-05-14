@@ -1,6 +1,5 @@
 import { loadPyodide, type PyodideInterface } from "pyodide";
-// @ts-ignore - The bundle file is auto-generated
-import { PYTHON_FILES } from "@/python/bundles/pdf_magic.bundle";
+import { PYTHON_FILES } from "@/python/bundles/magic_pdf.bundle";
 
 let pyodideInitPromise: Promise<PyodideInterface> | null = null;
 
@@ -51,7 +50,7 @@ import sys
 import os
 sys.path.append(os.getcwd())
 try:
-    import tools.pdf_magic.main as pdf_main
+    import tools.magic_pdf.main as pdf_main
     handle_request = pdf_main.handle_request
     print("Python: handle_request imported successfully")
 except Exception as e:
@@ -122,9 +121,10 @@ self.onmessage = async (event: MessageEvent) => {
                 py.runPython('import gc; gc.collect()');
             }
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Worker: Execution error:", error);
-            self.postMessage({ type: "ERROR", error: error.message, id });
+            const message = error instanceof Error ? error.message : String(error);
+            self.postMessage({ type: "ERROR", error: message, id });
         }
     }
 };

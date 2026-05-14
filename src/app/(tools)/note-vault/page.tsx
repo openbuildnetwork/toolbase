@@ -1,20 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
-import Header from '@/components/ui/Header';
-import { useNoteVault } from '@/hooks/useNoteVault';
-import { useNoteSearch } from '@/hooks/useNoteSearch';
-import { useNoteWorker } from '@/hooks/useNoteWorker';
+import { useNoteVault } from '@/app/(tools)/note-vault/hooks/useNoteVault';
+import { useNoteSearch } from '@/app/(tools)/note-vault/hooks/useNoteSearch';
+import { useNoteWorker } from '@/app/(tools)/note-vault/hooks/useNoteWorker';
 import { Vault } from 'lucide-react';
-import { Note, NoteFormat } from '@/types/note-vault';
-import NoteEditor from '@/components/features/note-vault/NoteEditor';
-import NoteList from '@/components/features/note-vault/NoteList';
-import NoteToolbar from '@/components/features/note-vault/NoteToolbar';
-import NoteStats from '@/components/features/note-vault/NoteStats';
+import { Note, NoteFormat } from '@/app/(tools)/note-vault/types/note-vault';
+import NoteEditor from '@/app/(tools)/note-vault/components/NoteEditor';
+import NoteList from '@/app/(tools)/note-vault/components/NoteList';
+import NoteToolbar from '@/app/(tools)/note-vault/components/NoteToolbar';
+import NoteStats from '@/app/(tools)/note-vault/components/NoteStats';
 import { ReturnToToolsButton } from '@/components/ui/ReturnToToolsButton';
 
 export default function NoteVaultPage() {
-  const { notes, collections, isReady, addNote, updateNote, deleteNote, addCollection, deleteCollection } = useNoteVault();
+  const { notes, collections, isReady, addNote, updateNote, deleteNote } = useNoteVault();
   const { runTask } = useNoteWorker();
   
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>('default');

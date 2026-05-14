@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { FlowCanvas } from '@/components/features/pipeline/FlowCanvas';
+import { FlowCanvas } from '@/app/(tools)/pipeline/components/FlowCanvas';
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 
 /**

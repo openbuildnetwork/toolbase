@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import type { TIPTool, TIPConfig, TIPBundle } from '@/tip';
+import type { TIPConfig, TIPContentType } from '@/tip';
 import { TIPToolRegistry } from '@/tip/registry';
 import { createBundle, createPayload } from '@/tip/bundle';
 
@@ -73,7 +73,7 @@ export function useTIPTool(toolId: string) {
             const payloads = files.map(f => {
                 // Heuristic: attempt to assign correct MIME, default to octet-stream
                 const mime = f.type || 'application/octet-stream';
-                return createPayload(f, mime as any, f.name);
+                return createPayload(f, mime as TIPContentType, f.name);
             });
 
             // Use the first file's type as the bundle type, or octet-stream if empty
@@ -112,7 +112,7 @@ export function useTIPTool(toolId: string) {
             if (options.onSuccess) options.onSuccess(outputFiles);
             return outputFiles;
 
-        } catch (err: any) {
+        } catch (err: unknown) {
              if (abortControllerRef.current?.signal.aborted) {
                 console.log('Task aborted block');
                 const cancelMsg = "Operation cancelled";
@@ -122,14 +122,15 @@ export function useTIPTool(toolId: string) {
             }
 
             console.error('useTIPTool execute error:', err);
-            setError(err.message || 'An unknown error occurred');
-            if (options.onError) options.onError(err);
+            const message = err instanceof Error ? err.message : 'An unknown error occurred';
+            setError(message);
+            if (options.onError) options.onError(err instanceof Error ? err : new Error(message));
             return null;
         } finally {
             setIsProcessing(false);
             abortControllerRef.current = null;
         }
-    }, [tool]);
+    }, [tool, toolId]);
 
     const cancel = useCallback(() => {
         if (abortControllerRef.current) {

@@ -13,26 +13,14 @@ export function useWorkerState(toolId: string) {
     const [warmMessage, setWarmMessage] = useState('');
 
     useEffect(() => {
-        if (!worker) {
-            setReadyState('ready');
-            return;
-        }
+        if (!worker) return;
 
-        // Sync immediately
-        setReadyState(worker.readyState);
-
-        const prevCallback = worker.onReadyStateChange;
-        worker.onReadyStateChange = (state, message) => {
+        const unsubscribe = worker.subscribe((state, message) => {
             setReadyState(state);
             setWarmMessage(message ?? '');
-            prevCallback?.(state, message);
-        };
+        });
 
-        return () => {
-            if (worker.onReadyStateChange !== prevCallback) {
-                worker.onReadyStateChange = prevCallback;
-            }
-        };
+        return unsubscribe;
     }, [worker]);
 
     return { readyState, warmMessage };

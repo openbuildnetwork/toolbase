@@ -16,22 +16,6 @@ const ECHO_CORE_KNOWLEDGE = `
 - TIP Automation: You can suggest multi-step pipelines using specific JSON blocks.
 </PLATFORM_KNOWLEDGE>`;
 
-function getUsageHint(tool: ToolMeta): string {
-    switch (tool.id) {
-        case "magic-pdf": return "drop PDF → pick operation tab → configure → download.";
-        case "pixels": return "drop image(s) → pick operation → adjust settings → download.";
-        case "data-lens": return "drop CSV/JSON → use SQL, Python, or Chart tabs to analyze.";
-        case "data-builder": return "define fields or blueprint → set rows → generate → export.";
-        case "redact-secrets": return "paste/drop text or code → auto-detects secrets → review & redact.";
-        case "passwordx": return "set rules → generate password → copy.";
-        case "json-to-interface": return "paste JSON left → TypeScript interface appears right → copy.";
-        case "note-vault": return "click New → save content locally.";
-        case "pipeline": return "drag tool nodes onto canvas → connect → drop files → run.";
-        case "archive-kit": return "drop files to create ZIP/TAR, or drop archive to extract.";
-        case "format-studio": return "paste data → pick format/operation (Convert, Validate, Format, Diff, Generate) → process.";
-        default: return "follow the on-screen interface.";
-    }
-}
 
 function generateToolLine(tool: ToolMeta): string {
     const badges = [];
@@ -102,7 +86,7 @@ const TIP_AUTOMATION_RULES = `
   \`\`\`
 </TIP_AUTOMATION>`;
 
-export function buildSystemPrompt(tools: ToolMeta[], currentRoute?: string, toolState?: any): string {
+export function buildSystemPrompt(tools: ToolMeta[], currentRoute?: string, toolState?: unknown): string {
     const identity = "You are Echo, the Toolbase AI.";
     const context = generateUserContext(tools, currentRoute);
     const toolKnowledge = generateToolKnowledge(tools);

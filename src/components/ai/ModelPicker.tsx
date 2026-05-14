@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { useAIChat } from "@/hooks/useAIChat";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 import { SUPPORTED_MODELS, WebLLMModel } from "@/hooks/useWebLLM";
 import { ChevronDown, Cpu, Sparkles, Check, Loader2, Zap, X } from "lucide-react";
 import { cn } from "@/lib/utils";

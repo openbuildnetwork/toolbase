@@ -13,9 +13,12 @@ export function useActualTheme() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    Promise.resolve().then(() => {
+      setMounted(true);
+      checkTheme();
+    });
     
-    const checkTheme = () => {
+    function checkTheme() {
       if (theme === 'daylight') {
         const hour = new Date().getHours();
         // Match the logic in DaylightManager (6 AM to 6 PM is light)
@@ -23,10 +26,8 @@ export function useActualTheme() {
       } else {
         setIsDark(resolvedTheme === 'dark');
       }
-    };
+    }
 
-    // Run immediately and then on interval
-    checkTheme();
     const interval = setInterval(checkTheme, 1000 * 60);
     return () => clearInterval(interval);
   }, [theme, resolvedTheme]);

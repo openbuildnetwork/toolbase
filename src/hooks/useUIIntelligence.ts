@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
-import { useAIChat } from "./useAIChat";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 import { usePathname } from "next/navigation";
 
 const IDLE_TIMEOUT = 2000; // 2 seconds of inactivity

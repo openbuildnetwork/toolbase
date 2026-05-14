@@ -1,5 +1,4 @@
 import { loadPyodide, type PyodideInterface } from "pyodide";
-// @ts-ignore - The bundle file is auto-generated
 import { PYTHON_FILES } from "@/python/bundles/pixels.bundle";
 
 let pyodideInitPromise: Promise<PyodideInterface> | null = null;
@@ -113,9 +112,10 @@ self.onmessage = async (event: MessageEvent) => {
                 pyData.destroy();
             }
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Worker: Execution error:", error);
-            self.postMessage({ type: "ERROR", error: error.message, id });
+            const message = error instanceof Error ? error.message : String(error);
+            self.postMessage({ type: "ERROR", error: message, id });
         }
     }
 };

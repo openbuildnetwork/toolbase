@@ -12,7 +12,9 @@ export function ReturnToToolsButton() {
   const [isMac, setIsMac] = useState(false);
 
   useEffect(() => {
-    setIsMac(/mac/i.test(navigator.platform));
+    Promise.resolve().then(() => {
+      setIsMac(/mac/i.test(navigator.platform));
+    });
   }, []);
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import QrForgeFeature from "@/components/features/qr-forge/QrForgeFeature";
+import QrForgeFeature from "@/app/(tools)/qr-forge/components/QrForgeFeature";
 import { getToolById } from "@/config/tools.registry";
 
 export default function QrForgePage() {

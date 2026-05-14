@@ -1,8 +1,7 @@
 import React, { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
-export interface SliderProps
-  extends React.InputHTMLAttributes<HTMLInputElement> { }
+export type SliderProps = React.InputHTMLAttributes<HTMLInputElement>;
 
 const Slider = forwardRef<HTMLInputElement, SliderProps>(
   ({ className, ...props }, ref) => {

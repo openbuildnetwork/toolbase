@@ -4,7 +4,7 @@ import React, { useRef } from "react";
 import Image from "next/image";
 import { m, useScroll, useTransform, Variants } from "framer-motion";
 import {
-  Shield, Zap, Cpu, Lock, Globe, Heart, ArrowLeft,
+  Zap, Cpu, Lock, Globe, Heart, ArrowLeft,
   Braces, Code2, Users, GitBranch, Layers,
   MousePointer2, Binary, Workflow, ExternalLink, Sparkles
 } from "lucide-react";
@@ -382,7 +382,7 @@ export default function AboutPage() {
           className="text-center text-sm mt-6"
           style={{ color: "var(--text-muted)" }}
         >
-          The internet is only needed once — to load the app. After that, it's all you.
+          The internet is only needed once — to load the app. After that, it&apos;s all you.
         </m.p>
       </section>
 
@@ -414,8 +414,8 @@ export default function AboutPage() {
               </h2>
               <p className="text-base md:text-lg leading-relaxed max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
                 toolbase is maintained by the Open Build Network and shaped by contributors from all walks of life.
-                Whether you're a seasoned engineer, a student, or just someone with a great idea for a tool —
-                you're welcome here. Let's build something the world actually needs.
+                Whether you&apos;re a seasoned engineer, a student, or just someone with a great idea for a tool —
+                you&apos;re welcome here. Let&apos;s build something the world actually needs.
               </p>
             </div>
 

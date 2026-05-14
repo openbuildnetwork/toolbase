@@ -5,7 +5,7 @@ import ToolCard from './ToolCard';
 import { m, AnimatePresence, Variants } from 'framer-motion';
 import { ToolCardProps } from '@/types/tool-search';
 import { searchTools } from '@/lib/searchTools';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ToolGridProps {

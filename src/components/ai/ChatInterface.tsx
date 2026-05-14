@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useConversations } from "@/hooks/useConversations";
-import { useAIChat } from "@/hooks/useAIChat";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 import { TOOLS } from "@/config/tools.registry";
 import { buildSystemPrompt } from "@/config/echo-knowledge";
 import ToolCard from "@/components/ui/ToolCard";
@@ -483,7 +483,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                                 break; 
                             }
                           }
-                        } catch (e) {
+                        } catch {
                           // Silently fail, it might just be normal JSON text
                         }
                       }

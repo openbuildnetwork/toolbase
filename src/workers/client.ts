@@ -28,8 +28,16 @@ export class WorkerClient {
   /** Current warm-up state — observable by the UI. */
   readyState: WorkerReadyState = 'cold';
 
-  /** Optional callback fired whenever readyState changes. */
-  onReadyStateChange?: (state: WorkerReadyState, message?: string) => void;
+  private listeners = new Set<(state: WorkerReadyState, message?: string) => void>();
+
+  /**
+   * Subscribe to readiness state changes.
+   * @returns An unsubscribe function.
+   */
+  subscribe(listener: (state: WorkerReadyState, message?: string) => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
 
   /**
    * @param createWorker A factory function that returns a new Web Worker instance.
@@ -43,7 +51,7 @@ export class WorkerClient {
 
   private setReadyState(state: WorkerReadyState, message?: string): void {
     this.readyState = state;
-    this.onReadyStateChange?.(state, message);
+    this.listeners.forEach(l => l(state, message));
   }
 
   /** Lazily boot the worker. Safe to call multiple times — returns the same promise. */
@@ -67,7 +75,7 @@ export class WorkerClient {
 
           if (type === 'INIT_PROGRESS') {
             // Relay granular warm-up progress to any UI subscriber
-            this.onReadyStateChange?.('warming', message);
+            this.setReadyState('warming', message);
             return;
           }
 

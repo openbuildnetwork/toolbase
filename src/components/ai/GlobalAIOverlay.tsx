@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 
-import { useAIChat } from "@/hooks/useAIChat";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 import { cn } from "@/lib/utils";
 import { DEFAULT_WEBLLM_MODEL_ID } from "@/hooks/useWebLLM";
 
@@ -58,7 +58,9 @@ export function GlobalAIOverlay() {
 
   // Record if chat has ever been opened to keep it in DOM for transitions
   useEffect(() => {
-    if (isOpen) setHasOpened(true);
+    if (isOpen) {
+      Promise.resolve().then(() => setHasOpened(true));
+    }
   }, [isOpen]);
 
   return (

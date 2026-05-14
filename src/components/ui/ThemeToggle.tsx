@@ -28,7 +28,9 @@ export function ThemeToggle() {
     const [hoveredOption, setHoveredOption] = useState<ThemeOption | null>(null);
 
     // Avoid hydration mismatch — only render after mount
-    useEffect(() => setMounted(true), []);
+    useEffect(() => {
+        Promise.resolve().then(() => setMounted(true));
+    }, []);
 
     if (!mounted) {
         return (

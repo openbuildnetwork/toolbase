@@ -12,7 +12,8 @@ export function usePinnedTools() {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
             try {
-                setPinnedTools(JSON.parse(stored));
+                const parsed = JSON.parse(stored);
+                Promise.resolve().then(() => setPinnedTools(parsed));
             } catch (e) {
                 console.error('Failed to parse pinned tools', e);
             }

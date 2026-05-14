@@ -1,4 +1,4 @@
-import type { Base64Request, Base64Response } from "@/types/base64";
+import type { Base64Request, Base64Response } from "@/app/(tools)/base64/types/base64";
 
 /**
  * Clean up Base64 string by removing data URI prefix and whitespace
@@ -62,7 +62,7 @@ function process_data(request: Base64Request): Base64Response {
 
             try {
                 result = b64_to_utf8(encoded);
-            } catch (e) {
+            } catch {
                 // If not UTF-8, return as byte array
                 const binary = atob(encoded);
                 result = Array.from(new Uint8Array(binary.length).map((_, i) => binary.charCodeAt(i)));
@@ -121,7 +121,7 @@ function process_data(request: Base64Request): Base64Response {
                 if (size > 1000) {
                     preview += "...";
                 }
-            } catch (e) {
+            } catch {
                 preview = `[Binary Data: ${size} bytes]`;
             }
         }
@@ -135,10 +135,11 @@ function process_data(request: Base64Request): Base64Response {
             is_large
         };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
         return {
             success: false,
-            error: error.message || String(error)
+            error: message
         };
     }
 }

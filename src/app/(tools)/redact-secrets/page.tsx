@@ -6,14 +6,14 @@ import { m, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 
-import { useRedactSecrets } from "@/hooks/useRedactSecrets";
-import { RedactEditor } from "@/components/features/redact-secrets/RedactEditor";
-import { RedactConfiguration } from "@/components/features/redact-secrets/RedactConfiguration";
-import { RedactOutput } from "@/components/features/redact-secrets/RedactOutput";
-import { RedactStats } from "@/components/features/redact-secrets/RedactStats";
+import { useRedactSecrets } from "@/app/(tools)/redact-secrets/hooks/useRedactSecrets";
+import { RedactEditor } from "@/app/(tools)/redact-secrets/components/RedactEditor";
+import { RedactConfiguration } from "@/app/(tools)/redact-secrets/components/RedactConfiguration";
+import { RedactOutput } from "@/app/(tools)/redact-secrets/components/RedactOutput";
+import { RedactStats } from "@/app/(tools)/redact-secrets/components/RedactStats";
 import { EngineLoader } from "@/components/ui/EngineLoader";
 
-import { useAIChat } from "@/hooks/useAIChat";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 
 export default function RedactSecretsPage() {
     const { updateToolState } = useAIChat();

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
-import { Upload, X, File, Image, Music, FileText, Film, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, X, File, Image as ImageIcon, Music, FileText, Film, AlertCircle } from 'lucide-react';
 import { Button } from './Button';
 import { Card } from './Card';
 
@@ -72,7 +72,7 @@ export const FileUploader = ({
         });
 
         // Simulate upload progress for demo
-        acceptedFiles.forEach((file, index) => {
+        acceptedFiles.forEach((file) => {
             const fileName = file.name;
             // Simulate progressive upload
             let progress = 0;
@@ -110,7 +110,7 @@ export const FileUploader = ({
         const type = file.type.split('/')[0];
         switch (type) {
             case 'image':
-                return <Image className="h-4 w-4" />;
+                return <ImageIcon className="h-4 w-4" />;
             case 'audio':
                 return <Music className="h-4 w-4" />;
             case 'video':

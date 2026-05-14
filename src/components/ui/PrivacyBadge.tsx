@@ -21,7 +21,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { Shield, ChevronDown, ChevronUp, X, Zap, Activity } from 'lucide-react';
+import { Shield, ChevronDown, X, Zap, Activity } from 'lucide-react';
 import { getToolById } from '@/config/tools.registry';
 import { usePrivacyMonitor } from '@/hooks/usePrivacyMonitor';
 import { useCapabilities } from '@/components/providers/CapabilityProvider';
@@ -71,14 +71,16 @@ export function PrivacyBadge({ toolId, className }: PrivacyBadgeProps) {
 
     // Read dismissed state from localStorage after mount
     useEffect(() => {
-        setMounted(true);
-        try {
-            if (localStorage.getItem(DISMISSED_KEY) === 'true') {
-                setIsDismissed(true);
+        Promise.resolve().then(() => {
+            setMounted(true);
+            try {
+                if (localStorage.getItem(DISMISSED_KEY) === 'true') {
+                    setIsDismissed(true);
+                }
+            } catch {
+                /* localStorage unavailable */
             }
-        } catch {
-            /* localStorage unavailable */
-        }
+        });
     }, []);
 
     const handleDismiss = useCallback((e: React.MouseEvent) => {
@@ -188,7 +190,7 @@ export function PrivacyBadge({ toolId, className }: PrivacyBadgeProps) {
                                 <span className="font-semibold text-[#1c1c1e]">
                                     DevTools → Network tab
                                 </span>{' '}
-                                while using this tool. You'll see zero file upload requests.
+                                while using this tool. You&apos;ll see zero file upload requests.
                             </span>
                         </div>
                     </m.div>

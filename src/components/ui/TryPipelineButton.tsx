@@ -49,7 +49,7 @@ export function TryPipelineButton({ className }: TryPipelineButtonProps) {
                 initial={{ x: '-150%', y: `${25 + i * 15}%` }}
                 animate={{ x: '250%' }}
                 transition={{
-                  duration: 2.5 + Math.random(),
+                  duration: 2.5 + (i * 0.2),
                   repeat: Infinity,
                   delay: i * 0.5,
                   ease: "linear"

@@ -7,7 +7,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useToolPreferences } from '@/hooks/useToolPreferences';
 import { TOOLS } from '@/config/tools.registry';
-import { cn } from '@/lib/utils';
 
 interface FavoritesDrawerProps {
     isOpen: boolean;

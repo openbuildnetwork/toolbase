@@ -2,7 +2,7 @@
 import * as React from "react"
 import { Popover } from "./Popover"
 import { cn } from "@/lib/utils"
-import { Palette, Check, Pipette, Hash, Copy } from "lucide-react"
+import { Palette, Check, Pipette, Hash } from "lucide-react"
 
 interface ColorPickerProps {
     value?: string
@@ -34,7 +34,6 @@ const PRESET_COLORS = [
 
 export function ColorPicker({ value = '#000000', onChange, className, allowTransparent }: ColorPickerProps) {
     const [inputValue, setInputValue] = React.useState(value);
-    const [isHovering, setIsHovering] = React.useState(false);
 
     React.useEffect(() => {
         setInputValue(value);
@@ -51,7 +50,7 @@ export function ColorPicker({ value = '#000000', onChange, className, allowTrans
             alert("Your browser does not support the EyeDropper API");
             return;
         }
-        // @ts-ignore
+        // @ts-expect-error -- EyeDropper is a non-standard API not yet in TS lib.dom types
         const eyeDropper = new window.EyeDropper();
         try {
             const result = await eyeDropper.open();
@@ -62,9 +61,6 @@ export function ColorPicker({ value = '#000000', onChange, className, allowTrans
         }
     };
 
-    const copyToClipboard = () => {
-        navigator.clipboard.writeText(value === 'transparent' ? 'transparent' : value);
-    };
 
     return (
         <Popover
@@ -74,8 +70,6 @@ export function ColorPicker({ value = '#000000', onChange, className, allowTrans
                         "flex items-center gap-3 cursor-pointer group p-2 rounded-xl border border-gray-200 bg-white hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-100 transition-all duration-300",
                         className
                     )}
-                    onMouseEnter={() => setIsHovering(true)}
-                    onMouseLeave={() => setIsHovering(false)}
                 >
                     <div className="relative">
                         <div

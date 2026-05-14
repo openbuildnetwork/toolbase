@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { generate } from "@/lib/data-builder";
+import { generate } from "@/app/(tools)/data-builder/lib/data-builder";
 
 const DEFAULT_BLUEPRINT = `{
   "kind": "branch",

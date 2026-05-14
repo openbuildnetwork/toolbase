@@ -12,7 +12,6 @@ import {
     Zap,
     RefreshCw,
     ArrowRight,
-    Settings,
     Sparkles,
     Cpu,
     Monitor
@@ -22,7 +21,7 @@ import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
-import { generateModels } from "@/lib/json-to-interface";
+import { generateModels } from "@/app/(tools)/json-to-interface/lib/json-to-interface";
 import Image from "next/image";
 import { appIcons } from "@/config/icons";
 import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
@@ -73,7 +72,7 @@ export default function JsonToInterfacePage() {
     const [showAdvanced, setShowAdvanced] = useState(false);
     const { resolvedTheme } = useTheme();
 
-    const handleGenerate = () => {
+    const handleGenerate = React.useCallback(() => {
         if (!jsonInput.trim()) {
             setError("Paste some JSON to begin");
             return;
@@ -108,14 +107,14 @@ export default function JsonToInterfacePage() {
                 setIsGenerating(false);
             }
         }, delay);
-    };
+    }, [jsonInput, liveMode, rootName, selectedLanguage]);
 
     // Live Mode generation
     useEffect(() => {
         if (liveMode && jsonInput.trim()) {
             handleGenerate();
         }
-    }, [jsonInput, selectedLanguage, rootName, liveMode]);
+    }, [jsonInput, liveMode, handleGenerate]);
 
     const handleClear = () => {
         setJsonInput("");

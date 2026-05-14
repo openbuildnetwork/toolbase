@@ -8,7 +8,7 @@ import {
   type GenerationProfile,
   type JsonSchemaNode,
   type SchemaValidationSummary,
-} from "@/lib/data-builder";
+} from "@/app/(tools)/data-builder/lib/data-builder";
 
 const DEFAULT_SCHEMA = `{
   "type": "object",

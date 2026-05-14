@@ -31,7 +31,7 @@ export async function checkOllamaRunning(): Promise<boolean> {
       // or we could use AbortController if needed, but fetch usually errors fast on localhost refuse.
     });
     return response.ok;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -51,7 +51,7 @@ export async function listModels(): Promise<OllamaModelDescription[]> {
 
     const data = (await response.json()) as OllamaTagsResponse;
     return data.models || [];
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -113,7 +113,7 @@ export async function chatOllama(
           fullResponse += parsed.message.content;
           onChunk(parsed.message.content);
         }
-      } catch (err) {
+      } catch {
         // Ignored unparsable line silently
       }
     }

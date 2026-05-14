@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { generateMockRows, mockRowsToOutput } from "@/lib/data-builder";
-import type { MockField, MockFieldType } from "@/lib/data-builder";
+import { generateMockRows, mockRowsToOutput } from "@/app/(tools)/data-builder/lib/data-builder";
+import type { MockField, MockFieldType } from "@/app/(tools)/data-builder/lib/data-builder";
 
 export const MOCK_FIELD_TYPES: MockFieldType[] = [
   "name",
