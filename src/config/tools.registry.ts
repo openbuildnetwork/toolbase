@@ -20,6 +20,7 @@ import { formatStudioConfig } from "./tools/format-studio";
 import { dataBuilderConfig } from "./tools/data-builder";
 import { archiveKitConfig } from "./tools/archive-kit";
 import { noteVaultConfig } from "./tools/note-vault";
+import { qrForgeConfig } from "./tools/qr-forge";
 
 // ============================================================
 // REGISTERED TOOLS
@@ -41,6 +42,7 @@ export const TOOLS: ToolMeta[] = [
   formatStudioConfig,
   dataBuilderConfig,
   archiveKitConfig,
+  qrForgeConfig,
 ];
 
 // ============================================================
