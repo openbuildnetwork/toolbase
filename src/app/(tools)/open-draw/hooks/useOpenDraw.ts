@@ -1,3 +1,4 @@
+"use client";
 /**
  * useOpenDraw - Main state management hook for OpenDraw
  * 

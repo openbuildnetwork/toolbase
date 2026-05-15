@@ -1,5 +1,5 @@
+"use client";
 import React, { useEffect } from "react";
-'use client';
 
 import { OpenDrawLayout } from '@/app/(tools)/open-draw/components/layouts/MainLayout';
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";

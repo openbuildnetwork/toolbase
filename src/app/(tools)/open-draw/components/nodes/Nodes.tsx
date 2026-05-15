@@ -1,3 +1,4 @@
+"use client";
 import { NodeProps, NodeResizer, useReactFlow } from '@xyflow/react';
 import { BaseNode } from './BaseNode';
 import { useState, useEffect, ChangeEvent, useMemo } from 'react';

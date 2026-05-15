@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect } from "react";
 
 import DataLensView from "@/app/(tools)/data-lens/components/DataLensView";

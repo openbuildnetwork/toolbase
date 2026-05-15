@@ -1,3 +1,4 @@
+"use client";
 import { Node, Edge, MarkerType } from '@xyflow/react';
 import { X, Type, Palette, Layout, Layers, ArrowRight, FileImage } from 'lucide-react';
 import { useState } from 'react';
