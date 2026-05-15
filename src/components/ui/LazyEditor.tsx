@@ -14,6 +14,27 @@ const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
   ),
 });
 
+declare global {
+  interface Window {
+    __ECHO_EDITORS__: Map<string, string>;
+  }
+}
+
 export const LazyEditor: React.FC<EditorProps> = (props) => {
+  const editorIdRef = React.useRef<string>(`editor_${Math.random().toString(36).substring(2, 9)}`);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && props.value !== undefined) {
+      if (!window.__ECHO_EDITORS__) window.__ECHO_EDITORS__ = new Map();
+      
+      const id = editorIdRef.current;
+      window.__ECHO_EDITORS__.set(id, props.value);
+
+      return () => {
+        window.__ECHO_EDITORS__.delete(id);
+      };
+    }
+  }, [props.value]);
+
   return <MonacoEditor {...props} />;
 };

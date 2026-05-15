@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { DataGraph } from "@/components/ui/DataGraph";
+import { ToolCopilot } from "@/components/ai/ToolCopilot";
 
 type GeneratorHubProps = {
   docInputFormat: "json" | "xml" | "yaml";
@@ -158,9 +159,16 @@ export function GeneratorHub({
           <div className="grid gap-6">
             <div className="rounded-2xl border border-(--border-subtle) bg-(--surface-secondary) p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-(--text-primary)">Input Data</div>
-                  <div className="text-[11px] text-(--text-muted)">This input is used for both Markdown and Graph generation.</div>
+                <div className="flex items-center gap-4">
+                  <div>
+                    <div className="text-sm font-semibold text-(--text-primary)">Input Data</div>
+                    <div className="text-[11px] text-(--text-muted)">This input is used for both Markdown and Graph generation.</div>
+                  </div>
+                  <ToolCopilot 
+                    contextData={docInput}
+                    contextType={`${docInputFormat} payload`}
+                    onApplyFix={(fixed) => setDocInput(fixed)}
+                  />
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Select value={docInputFormat} onChange={(e) => setDocInputFormat(e.target.value as "json" | "xml" | "yaml")} className="w-28">

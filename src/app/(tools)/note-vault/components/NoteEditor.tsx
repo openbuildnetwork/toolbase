@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
 import { Note } from '@/app/(tools)/note-vault/types/note-vault';
 import { useNoteWorker } from '@/app/(tools)/note-vault/hooks/useNoteWorker';
+import { ToolCopilot } from "@/components/ai/ToolCopilot";
 
 interface NoteEditorProps {
   note: Note;
@@ -62,6 +63,13 @@ export default function NoteEditor({ note, onChange }: NoteEditorProps) {
   return (
     <div className="flex h-full w-full">
         <div className="flex-1 h-full relative">
+            <div className="absolute top-2 right-4 z-50">
+                <ToolCopilot 
+                    contextData={content}
+                    contextType={`${note.format} note`}
+                    onApplyFix={handleChange}
+                />
+            </div>
             <Editor
                 height="100%"
                 language={formatToLanguage(note.format, note.language)}

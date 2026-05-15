@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { useSpeedTest, TestStage } from "@/app/(tools)/speed-test/hooks/useSpeedTest";
 import { m } from "framer-motion";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 
 /* ── Components ──────────────────────────────────────────────────────────── */
 
@@ -180,6 +181,16 @@ const SpeedGauge = ({ value, maxValue = 100, label, color, status, speedHistory 
 };
 
 export default function SpeedTestPage() {
+  const { updateToolState } = useAIChat();
+
+  React.useEffect(() => {
+    updateToolState({
+      toolName: "Speed Test",
+      status: "active"
+    });
+    return () => updateToolState(null);
+  }, [updateToolState]);
+
     const { status, results, currentSpeed, startTest, stopTest, speedHistory } = useSpeedTest();
 
     const isRunning = status === 'ping' || status === 'download' || status === 'upload';

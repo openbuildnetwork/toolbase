@@ -30,6 +30,7 @@ import {
   extractArchiveRust,
 } from "@/app/(tools)/archive-kit/lib/archive-kit-rust";
 import { useArchiveKitWorker } from "@/app/(tools)/archive-kit/hooks/useArchiveKitWorker";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 
 function bytesToHuman(size: number): string {
   if (size < 1024) return `${size} B`;
@@ -178,6 +179,16 @@ function writeTelemetry(events: TelemetryEvent[]) {
 }
 
 export default function ArchiveKitPage() {
+  const { updateToolState } = useAIChat();
+
+  React.useEffect(() => {
+    updateToolState({
+      toolName: "Archive Kit",
+      status: "active"
+    });
+    return () => updateToolState(null);
+  }, [updateToolState]);
+
   const sections: ToolSidebarItem[] = useMemo(
     () => [
       { id: "create", label: "Create Archive", icon: Archive },

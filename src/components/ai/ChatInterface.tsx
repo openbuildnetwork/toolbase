@@ -169,9 +169,35 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
     const previousMessages = conversations.find((c) => c.id === currentActiveId)?.messages || [];
     const history = [...previousMessages, { role: "user" as const, content: userMsg }];
 
+    // --- DOM SCRAPING FOR INSTANT AWARENESS ---
+    let screenContext = "";
+    try {
+       // 1. Scrape standard DOM inputs
+       const inputs = Array.from(document.querySelectorAll('input[type="text"], textarea'));
+       inputs.forEach(el => {
+           if (el === textareaRef.current) return; // Ignore the chat input itself
+           const val = (el as HTMLInputElement | HTMLTextAreaElement).value;
+           const placeholder = (el as HTMLInputElement).placeholder || el.getAttribute("name") || "Input Field";
+           if (val && val.trim().length > 0 && val !== userMsg) {
+               screenContext += `\n[${placeholder}]: ${val.substring(0, 800)}...`;
+           }
+       });
+
+       // 2. Extract full Monaco Editor values from global registry
+       if (typeof window !== 'undefined' && window.__ECHO_EDITORS__) {
+           window.__ECHO_EDITORS__.forEach((val, key) => {
+               if (val && val.trim().length > 0) {
+                   screenContext += `\n[Editor - ${key}]:\n${val.substring(0, 1000)}...`;
+               }
+           });
+       }
+    } catch (e) {
+      console.warn("Echo could not read screen context", e);
+    }
+
     const systemPromptMessage = {
       role: "system" as const,
-      content: buildSystemPrompt(TOOLS, currentRoute ?? undefined, toolState),
+      content: buildSystemPrompt(TOOLS, currentRoute ?? undefined, toolState, screenContext.trim() || undefined),
     };
 
     // Filter out any existing system messages from history to ensure only the latest 
@@ -193,7 +219,10 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
       setStreamBuffer("");
       commitActiveConversation();
     } catch (err) {
-      console.error(err);
+      const errMsg = String(err).toLowerCase();
+      if (!errMsg.includes("already been disposed") && !errMsg.includes("device was lost") && !errMsg.includes("abort")) {
+        console.error(err);
+      }
       addMessageToActive(
         { role: "assistant", content: "An error occurred during generation. Please try again." },
         currentActiveId,
@@ -377,8 +406,11 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                   className="absolute right-0 z-30 mt-2 w-64 overflow-hidden rounded-lg border border-(--border-subtle) bg-(--surface-overlay) p-1 shadow-2xl backdrop-blur-xl"
                 >
                   <button
-                    onClick={() => {
-                      if (confirm("Uninstall Local AI Engine? This will clear cached model weights.")) {
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (window.confirm("Uninstall Local AI Engine? This will clear cached model weights.")) {
                         uninstallModel();
                         setShowMenu(false);
                       }

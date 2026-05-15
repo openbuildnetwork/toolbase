@@ -1,3 +1,4 @@
+"use client";
 
 import React, { useState, useMemo } from 'react';
 import { SHAPE_CATEGORIES_CONFIG, SHAPE_DEFINITIONS } from '../nodes/shapes';

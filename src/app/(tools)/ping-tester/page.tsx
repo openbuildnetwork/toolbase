@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { usePingTester } from "@/app/(tools)/ping-tester/hooks/usePingTester";
 import type { PingResult } from "@/app/(tools)/ping-tester/lib/ping";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 
 // ─── Colour helpers ──────────────────────────────────────────────────────────
 
@@ -380,6 +381,16 @@ function StatusOrb({ isRunning, lastStatus }: { isRunning: boolean; lastStatus: 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function PingTesterPage() {
+  const { updateToolState } = useAIChat();
+
+  React.useEffect(() => {
+    updateToolState({
+      toolName: "Ping Tester",
+      status: "active"
+    });
+    return () => updateToolState(null);
+  }, [updateToolState]);
+
     const {
         results, isRunning, startPing, stopPing, clearResults,
         stats, target, setTarget, options, setOptions,

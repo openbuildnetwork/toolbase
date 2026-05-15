@@ -10,6 +10,7 @@ import { TableSchema } from "@/app/(tools)/data-lens/hooks/useDataLens";
 import { HelpPanel } from "./HelpPanel";
 import { DataTable } from "./DataTable";
 import { useResizablePanel } from "@/hooks/useResizablePanel";
+import { ToolCopilot } from "@/components/ai/ToolCopilot";
 
 interface SqlViewProps {
     sqlQuery: string;
@@ -173,6 +174,12 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
                 <div className="flex items-center justify-between px-5 py-3 border-b border-border-subtle bg-surface-secondary">
                     <span className="text-sm font-semibold text-text-primary">SQL Editor</span>
                     <div className="flex gap-2">
+                        <ToolCopilot 
+                            contextData={sqlQuery}
+                            contextType="SQL query"
+                            onApplyFix={(fixed) => setSqlQuery(fixed)}
+                            className="z-50"
+                        />
                         <Button 
                             onClick={() => setIsHelpOpen(true)}
                             variant="outline" 

@@ -7,6 +7,7 @@ import { useActualTheme } from "@/hooks/useActualTheme";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Select";
+import { ToolCopilot } from "@/components/ai/ToolCopilot";
 import type { DataFormat } from "@/app/(tools)/format-studio/lib/format-studio";
 
 type ConvertStudioProps = {
@@ -81,7 +82,14 @@ export function ConvertStudio({
 
             <div className="mt-4 grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Input</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Input</label>
+                  <ToolCopilot 
+                    contextData={inputText}
+                    contextType={`${inputFormat} payload`}
+                    onApplyFix={(fixed) => setInputText(fixed)}
+                  />
+                </div>
                 <div className="h-[600px] border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-secondary)/50">
                   <Editor
                     height="100%"
