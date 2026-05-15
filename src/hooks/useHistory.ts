@@ -1,3 +1,4 @@
+"use client";
 /**
  * useHistory - Generic Undo/Redo History Stack
  * 

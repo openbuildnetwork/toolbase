@@ -61,7 +61,6 @@ export function EchoFAB() {
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
-            onMouseEnter={() => !isLoaded && !isLoading && loadModel(undefined, false, true)}
             onClick={toggleChat}
             className={cn(
               "relative flex h-14 w-14 items-center justify-center rounded-full shadow-2xl transition-all duration-300 pointer-events-auto",

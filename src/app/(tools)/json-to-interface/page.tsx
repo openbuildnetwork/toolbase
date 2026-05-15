@@ -29,6 +29,8 @@ import { useTheme } from "next-themes";
 import { m, AnimatePresence, Variants } from "framer-motion";
 import { Tabs, TabItem } from "@/components/ui/Tabs";
 import { Switch } from "@/components/ui/Switch";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
+import { ToolCopilot } from "@/components/ai/ToolCopilot";
 
 type Language = 'typescript' | 'python' | 'dart' | 'java' | 'kotlin' | 'swift' | 'go';
 
@@ -61,6 +63,16 @@ const itemVariants: Variants = {
 };
 
 export default function JsonToInterfacePage() {
+  const { updateToolState } = useAIChat();
+
+  React.useEffect(() => {
+    updateToolState({
+      toolName: "Json To Interface",
+      status: "active"
+    });
+    return () => updateToolState(null);
+  }, [updateToolState]);
+
     const [jsonInput, setJsonInput] = useState("");
     const [rootName, setRootName] = useState("Root");
     const [selectedLanguage, setSelectedLanguage] = useState<Language>("typescript");
@@ -324,25 +336,37 @@ export default function JsonToInterfacePage() {
                     {/* Input Side */}
                     <m.div variants={itemVariants} className="flex flex-col h-full space-y-4 group">
                         <div className="flex items-center justify-between px-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
-                                    <FileCode size={18} />
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                                        <FileCode size={18} />
+                                    </div>
+                                    <span className="text-[12px] font-black uppercase tracking-[0.2em] text-(--text-tertiary)">Source JSON</span>
                                 </div>
-                                <span className="text-[12px] font-black uppercase tracking-[0.2em] text-(--text-tertiary)">Source JSON</span>
+                                <AnimatePresence>
+                                    {error && (
+                                        <m.div 
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: -10 }}
+                                            className="flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-red-500"
+                                        >
+                                            <AlertCircle className="w-3 h-3" />
+                                            <span className="text-[11px] font-bold tracking-wide">{error}</span>
+                                        </m.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
-                            <AnimatePresence>
-                                {error && (
-                                    <m.div 
-                                        initial={{ opacity: 0, x: 20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: 20 }}
-                                        className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-full text-red-500"
-                                    >
-                                        <AlertCircle className="w-3.5 h-3.5" />
-                                        <span className="text-[11px] font-bold">{error}</span>
-                                    </m.div>
-                                )}
-                            </AnimatePresence>
+                            
+                            <ToolCopilot 
+                                contextData={jsonInput} 
+                                contextType="JSON payload" 
+                                onApplyFix={(fixed) => {
+                                    const match = fixed.match(/```(?:json)?\n([\s\S]*?)```/);
+                                    setJsonInput(match ? match[1] : fixed);
+                                }} 
+                                className="z-50"
+                            />
                         </div>
                         <Card className="flex-1 overflow-hidden border border-(--border-subtle) shadow-2xl bg-(--surface-elevated)/30 backdrop-blur-3xl rounded-[2.5rem] ring-1 ring-white/5 flex flex-col relative transition-all group-hover:border-primary/40 duration-500">
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent" />

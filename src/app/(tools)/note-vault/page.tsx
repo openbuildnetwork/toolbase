@@ -11,8 +11,19 @@ import NoteList from '@/app/(tools)/note-vault/components/NoteList';
 import NoteToolbar from '@/app/(tools)/note-vault/components/NoteToolbar';
 import NoteStats from '@/app/(tools)/note-vault/components/NoteStats';
 import { ReturnToToolsButton } from '@/components/ui/ReturnToToolsButton';
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 
 export default function NoteVaultPage() {
+  const { updateToolState } = useAIChat();
+
+  React.useEffect(() => {
+    updateToolState({
+      toolName: "Note Vault",
+      status: "active"
+    });
+    return () => updateToolState(null);
+  }, [updateToolState]);
+
   const { notes, collections, isReady, addNote, updateNote, deleteNote } = useNoteVault();
   const { runTask } = useNoteWorker();
   

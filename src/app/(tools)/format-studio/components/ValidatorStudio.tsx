@@ -6,6 +6,7 @@ import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { useActualTheme } from "@/hooks/useActualTheme";
 import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Select";
+import { ToolCopilot } from "@/components/ai/ToolCopilot";
 import type { ValidationResult } from "@/app/(tools)/format-studio/lib/format-studio";
 import type { ValidationIssue } from "./types";
 
@@ -75,6 +76,14 @@ export function ValidatorStudio({
             </div>
 
             <div className="mt-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Input Code</label>
+                <ToolCopilot 
+                  contextData={validateInput}
+                  contextType={`${validateFormat} payload`}
+                  onApplyFix={(fixed) => setValidateInput(fixed)}
+                />
+              </div>
               <div className="h-[500px] border border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-secondary)/50">
                 <Editor
                   height="100%"

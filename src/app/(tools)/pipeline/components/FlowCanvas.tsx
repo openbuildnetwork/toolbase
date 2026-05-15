@@ -19,6 +19,7 @@ import '@xyflow/react/dist/style.css';
 import { NodePalette, PaletteFilterContext } from './NodePalette';
 import { InspectorPanel } from './InspectorPanel';
 import { PipelineToolbar } from './PipelineToolbar';
+import { ToolCopilot } from '@/components/ai/ToolCopilot';
 import { InteractionModal } from './InteractionModal';
 import { SavePipelineModal } from './SavePipelineModal';
 import { useFlowGraph } from './hooks/useFlowGraph';
@@ -651,6 +652,26 @@ function FlowCanvasBuilder() {
 
                 .react-flow__controls { background: rgba(12,12,14,0.9); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; overflow: hidden; backdrop-filter: blur(10px); }
             `}</style>
+            
+            <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 20 }}>
+                <ToolCopilot 
+                    contextData={JSON.stringify(serializeGraph(), null, 2)}
+                    contextType="Pipeline graph JSON"
+                    onApplyFix={(fixedStr) => {
+                        try {
+                            const parsed = JSON.parse(fixedStr);
+                            if (parsed.nodes && parsed.edges) {
+                                setNodes(injectNodeCallbacks(parsed.nodes));
+                                setEdges(parsed.edges);
+                                setTimeout(() => fitView({ padding: 0.2 }), 100);
+                            }
+                        } catch (e) {
+                            console.error("Failed to parse fixed graph", e);
+                        }
+                    }}
+                />
+            </div>
+
             {/* Floating toolbar at top-center */}
             <PipelineToolbar
                 onRun={handleRun}

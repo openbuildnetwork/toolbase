@@ -7,6 +7,7 @@ import { useActualTheme } from "@/hooks/useActualTheme";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Select";
+import { ToolCopilot } from "@/components/ai/ToolCopilot";
 import type { DiffEntry } from "@/app/(tools)/format-studio/lib/format-studio";
 
 type DiffLabProps = {
@@ -59,7 +60,14 @@ export function DiffLab({
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Left (Original)</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Left (Original)</label>
+                  <ToolCopilot 
+                    contextData={diffLeft}
+                    contextType={`${diffFormat} left comparison`}
+                    onApplyFix={(fixed) => setDiffLeft(fixed)}
+                  />
+                </div>
                 <div className="h-[600px]  border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-secondary)/50">
                   <Editor
                     height="100%"
@@ -72,7 +80,14 @@ export function DiffLab({
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Right (Modified)</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-(--text-muted)">Right (Modified)</label>
+                  <ToolCopilot 
+                    contextData={diffRight}
+                    contextType={`${diffFormat} right comparison`}
+                    onApplyFix={(fixed) => setDiffRight(fixed)}
+                  />
+                </div>
                 <div className="h-[600px] border-(--border-subtle) rounded-xl overflow-hidden bg-(--surface-secondary)/50">
                   <Editor
                     height="100%"

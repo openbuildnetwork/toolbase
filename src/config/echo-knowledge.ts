@@ -86,7 +86,7 @@ const TIP_AUTOMATION_RULES = `
   \`\`\`
 </TIP_AUTOMATION>`;
 
-export function buildSystemPrompt(tools: ToolMeta[], currentRoute?: string, toolState?: unknown): string {
+export function buildSystemPrompt(tools: ToolMeta[], currentRoute?: string, toolState?: unknown, screenContext?: string): string {
     const identity = "You are Echo, the Toolbase AI.";
     const context = generateUserContext(tools, currentRoute);
     const toolKnowledge = generateToolKnowledge(tools);
@@ -94,6 +94,11 @@ export function buildSystemPrompt(tools: ToolMeta[], currentRoute?: string, tool
     let stateContext = "";
     if (toolState && Object.keys(toolState).length > 0) {
         stateContext = `\n<TOOL_STATE>\nUser is currently interacting with tool data:\n${JSON.stringify(toolState, null, 2)}\n</TOOL_STATE>`;
+    }
+
+    let screenBlock = "";
+    if (screenContext) {
+        screenBlock = `\n<SCREEN_INPUTS>\nCurrently visible text in user's active inputs/editors:\n${screenContext}\n</SCREEN_INPUTS>`;
     }
 
     return `
@@ -105,7 +110,7 @@ ${ECHO_CORE_KNOWLEDGE}
 
 ${toolKnowledge}
 
-${context}${stateContext}
+${context}${stateContext}${screenBlock}
 
 ${TIP_AUTOMATION_RULES}
 

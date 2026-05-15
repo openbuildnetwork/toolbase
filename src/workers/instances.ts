@@ -1,3 +1,4 @@
+"use client";
 import { WorkerClient } from './client';
 
 /**
