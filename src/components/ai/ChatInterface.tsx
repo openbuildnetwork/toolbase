@@ -406,8 +406,11 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                   className="absolute right-0 z-30 mt-2 w-64 overflow-hidden rounded-lg border border-(--border-subtle) bg-(--surface-overlay) p-1 shadow-2xl backdrop-blur-xl"
                 >
                   <button
-                    onClick={() => {
-                      if (confirm("Uninstall Local AI Engine? This will clear cached model weights.")) {
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (window.confirm("Uninstall Local AI Engine? This will clear cached model weights.")) {
                         uninstallModel();
                         setShowMenu(false);
                       }

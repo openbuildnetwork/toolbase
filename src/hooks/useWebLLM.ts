@@ -510,11 +510,14 @@ export function useWebLLM() {
         } catch (error) {
             const errorMsgStr = String(error);
             const isNoGPU = errorMsgStr.includes("Unable to find a compatible GPU");
+            const isNetworkError = errorMsgStr.includes("NetworkError") || errorMsgStr.includes("encountered a network error") || errorMsgStr.includes("fetch");
             
-            if (!isNoGPU) {
+            if (!isNoGPU && !isNetworkError) {
                 console.error("Failed to load model:", error);
-            } else {
+            } else if (isNoGPU) {
                 console.warn("Local AI initialization skipped: No compatible WebGPU adapter found.");
+            } else if (isNetworkError) {
+                console.warn("Local AI download skipped: Device is offline and model is not in cache.");
             }
             
             const isDeviceLost = isWebLLMDeviceLostError(error);
@@ -529,16 +532,24 @@ export function useWebLLM() {
                 sharedRuntime.enginePromise = null;
             }
 
-            const errorMsg = isDeviceLost 
-                ? "GPU Device Lost: Your hardware might be struggling. Try closing other tabs or using the lightweight model."
-                : isDisposed
-                    ? "Local engine was stale. Resetting... please try again."
-                    : "Error: Failed to load model. Ensure your browser supports WebGPU or try Compatibility Mode.";
+            let errorMsg = "Error: Failed to load model. Ensure your browser supports WebGPU or try Compatibility Mode.";
+            if (isNetworkError) {
+                errorMsg = "Network Error: You must be connected to the internet the first time you load a model to cache it locally. Once cached, it works 100% offline.";
+            } else if (isDeviceLost) {
+                errorMsg = "GPU Device Lost: Your hardware might be struggling. Try closing other tabs or using the lightweight model.";
+            } else if (isDisposed) {
+                errorMsg = "Local engine was stale. Resetting... please try again.";
+            }
+
             setError(errorMsg);
             sharedRuntime.error = errorMsg;
             setProgress(errorMsg);
             sharedRuntime.modelId = null;
-            fallbackModelId = getFallbackModelId(modelId, error);
+            
+            // Only try fallback if it wasn't a network error (since fallback would also need internet to download)
+            if (!isNetworkError && !isDisposed) {
+                fallbackModelId = getFallbackModelId(modelId, error);
+            }
         } finally {
             if (sharedRuntime.enginePromise === enginePromise) {
                 sharedRuntime.enginePromise = null;
@@ -746,14 +757,21 @@ export function useWebLLM() {
 
         if (typeof window !== "undefined") {
             localStorage.removeItem("obn_ai_installed");
+            
             try {
-                const dbs = await window.indexedDB.databases();
-                for (const db of dbs) {
-                    if (db.name && (db.name.includes("web-llm") || db.name.includes("mlc"))) {
-                        window.indexedDB.deleteDatabase(db.name);
+                if (window.indexedDB && typeof window.indexedDB.databases === 'function') {
+                    const dbs = await window.indexedDB.databases();
+                    for (const db of dbs) {
+                        if (db.name && (db.name.includes("web-llm") || db.name.includes("mlc"))) {
+                            window.indexedDB.deleteDatabase(db.name);
+                        }
                     }
                 }
+            } catch (e) {
+                console.warn("Failed to clear indexedDB during uninstall:", e);
+            }
 
+            try {
                 if ("caches" in window) {
                     const cacheNames = await caches.keys();
                     for (const name of cacheNames) {
@@ -762,11 +780,11 @@ export function useWebLLM() {
                         }
                     }
                 }
-
-                setProgress("Model uninstalled successfully.");
             } catch (e) {
-                console.error("Failed to uninstall model:", e);
+                console.warn("Failed to clear caches during uninstall:", e);
             }
+
+            setProgress("Model uninstalled successfully.");
         }
     }, []);
 
