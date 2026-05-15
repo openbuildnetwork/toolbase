@@ -23,6 +23,7 @@ import {
     Zap
 } from 'lucide-react';
 import { Tabs, TabItem } from '@/components/ui/Tabs';
+import { ToolCopilot } from '@/components/ai/ToolCopilot';
 import type { Base64Mode, Base64Response } from '@/app/(tools)/base64/types/base64';
 import { m, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -375,14 +376,22 @@ export function Base64Workspace({
                     className="flex flex-col min-h-0"
                 >
                     <Card className="flex flex-col bg-(--surface-overlay)/60 backdrop-blur-md border border-(--border-subtle) shadow-2xl overflow-hidden h-full rounded-2xl group transition-all hover:border-(--primary)/30">
-                        <div className="p-4 border-b border-(--border-subtle) flex items-center justify-between shrink-0 bg-(--surface-secondary)/20">
+                        <div className="p-4 border-b border-(--border-subtle) bg-(--surface-secondary)/30 flex items-center justify-between">
                             <h2 className="font-semibold flex items-center gap-3 text-(--text-primary)">
                                 <div className="flex items-center justify-center w-8 h-8 bg-(--primary) text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-500/20">
                                     1
                                 </div>
                                 Input {mode === 'text' ? 'Content' : 'File'}
                             </h2>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
+                                {mode === 'text' && (
+                                    <ToolCopilot 
+                                        contextData={inputText}
+                                        contextType="Base64 text string"
+                                        onApplyFix={(fixed) => setInputText(fixed)}
+                                        className="z-50"
+                                    />
+                                )}
                                 <span className="px-2 py-0.5 rounded-full bg-(--surface-secondary) text-[10px] font-bold uppercase tracking-wider text-(--text-tertiary) border border-(--border-subtle)">
                                     {mode}
                                 </span>

@@ -87,7 +87,14 @@ export class WorkerClient {
 
           if (!id) return;
           const req = this.pending.get(id);
-          if (!req) return;
+          if (!req) {
+            // This can happen if the worker sends a message for an ID that was never registered
+            // or if the pending map was cleared (e.g., on worker crash).
+            // We log it as a warning instead of a silent failure to help debugging.
+            console.warn(`[WorkerClient] Received response for unknown or expired message ID: ${id}`);
+            return;
+          }
+          
           this.pending.delete(id);
 
           if (type === 'RESULT') {
@@ -99,7 +106,7 @@ export class WorkerClient {
 
         this.worker.onerror = (err) => {
           // Reject all pending on crash
-          for (const req of this.pending.values()) {
+          for (const [id, req] of this.pending.entries()) {
             req.reject(new Error(`${this.workerName} worker crashed`));
           }
           this.pending.clear();
@@ -138,9 +145,14 @@ export class WorkerClient {
 
     return new Promise((resolve, reject) => {
       const id = crypto.randomUUID();
+      let isSettled = false;
 
       const onAbort = () => {
-        this.pending.delete(id);
+        if (isSettled) return;
+        isSettled = true;
+        // DO NOT delete from this.pending here. 
+        // We want to wait for the worker to eventually respond (or the worker to crash)
+        // so that we don't get 'unknown ID' warnings in the console.
         reject(new Error('CANCELLED'));
       };
 
@@ -148,10 +160,14 @@ export class WorkerClient {
 
       this.pending.set(id, {
         resolve: (val) => {
+          if (isSettled) return;
+          isSettled = true;
           if (signal) signal.removeEventListener('abort', onAbort);
           resolve(val);
         },
         reject: (err) => {
+          if (isSettled) return;
+          isSettled = true;
           if (signal) signal.removeEventListener('abort', onAbort);
           reject(err);
         },

@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { Slider } from "@/components/ui/Slider";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 
 /* ── Components ──────────────────────────────────────────────────────────── */
 
@@ -72,6 +73,16 @@ const StrengthMeter = ({ strength }: { strength: number }) => {
 };
 
 export default function PasswordXPage() {
+  const { updateToolState } = useAIChat();
+
+  React.useEffect(() => {
+    updateToolState({
+      toolName: "Passwordx",
+      status: "active"
+    });
+    return () => updateToolState(null);
+  }, [updateToolState]);
+
     // State
     const [password, setPassword] = useState("");
     const [length, setLength] = useState(24);

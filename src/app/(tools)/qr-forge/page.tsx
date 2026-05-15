@@ -1,9 +1,21 @@
+import React, { useEffect } from "react";
 "use client";
 
 import QrForgeFeature from "@/app/(tools)/qr-forge/components/QrForgeFeature";
 import { getToolById } from "@/config/tools.registry";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 
 export default function QrForgePage() {
+  const { updateToolState } = useAIChat();
+
+  useEffect(() => {
+    updateToolState({
+      toolName: "Qr Forge",
+      status: "active"
+    });
+    return () => updateToolState(null);
+  }, [updateToolState]);
+
   const tool = getToolById('qr-forge');
 
   return (

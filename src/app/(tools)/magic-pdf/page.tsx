@@ -37,8 +37,10 @@ import { Button } from '@/components/ui/Button';
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 import { ToolSidebar, ToolSidebarItem } from '@/components/ui/ToolSidebar';
 import { cn } from '@/lib/utils';
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 
 const MagicPdf = () => {
+  const { updateToolState } = useAIChat();
   const [activeTool, setActiveTool] = useState('merge');
 
   const tools: ToolSidebarItem[] = [
@@ -69,6 +71,15 @@ const MagicPdf = () => {
       document.title = 'Magic PDF | OBN toolbase';
     };
   }, [activeToolLabel]);
+
+  useEffect(() => {
+    updateToolState({
+      toolName: "Magic Pdf",
+      status: "active",
+      activeTool: activeToolLabel
+    });
+    return () => updateToolState(null);
+  }, [updateToolState, activeToolLabel]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-[color:var(--background)] relative">

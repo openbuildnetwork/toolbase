@@ -294,10 +294,41 @@ function getOrCreateWorker(forceReload = false) {
     }
 
     if (!sharedRuntime.worker) {
-        sharedRuntime.worker = new Worker(
+        const realWorker = new Worker(
             new URL("../workers/ai.worker.ts", import.meta.url),
             { type: "module" },
         );
+
+        // Wrap the worker to swallow the "unknown uuid" error that web-llm sometimes throws
+        // when a delayed worker response arrives after the generation was interrupted.
+        sharedRuntime.worker = new Proxy(realWorker, {
+            get(target, prop, receiver) {
+                const value = Reflect.get(target, prop, receiver);
+                if (typeof value === 'function') {
+                    return value.bind(target);
+                }
+                return value;
+            },
+            set(target, prop, value) {
+                if (prop === "onmessage" && typeof value === "function") {
+                    const originalHandler = value;
+                    target.onmessage = function(event) {
+                        try {
+                            originalHandler.call(target, event);
+                        } catch (err: any) {
+                            if (err?.message?.includes("unknown uuid")) {
+                                console.warn("Caught and ignored web-llm unknown uuid error:", err.message);
+                            } else {
+                                throw err;
+                            }
+                        }
+                    };
+                    return true;
+                }
+                (target as any)[prop] = value;
+                return true;
+            }
+        }) as unknown as Worker;
     }
 
     return sharedRuntime.worker;
@@ -358,7 +389,12 @@ export function useWebLLM() {
             await engineInstance.reload(modelId);
             syncLoadedEngine(engineInstance, modelId);
         } catch (error: unknown) {
-            console.error("Failed to reload model:", error);
+            const errorMsgStr = String(error);
+            if (!errorMsgStr.includes("Unable to find a compatible GPU")) {
+                console.error("Failed to reload model:", error);
+            } else {
+                console.warn("Local AI reload skipped: No compatible WebGPU adapter found.");
+            }
             sharedRuntime.modelId = null;
             setIsLoaded(false);
             
@@ -402,7 +438,12 @@ export function useWebLLM() {
                 const engineInstance = await sharedRuntime.enginePromise;
                 syncLoadedEngine(engineInstance, sharedRuntime.modelId || modelId);
             } catch (error) {
-                console.error("Failed to load model:", error);
+                const errorMsgStr = String(error);
+                if (!errorMsgStr.includes("Unable to find a compatible GPU")) {
+                    console.error("Failed to load model:", error);
+                } else {
+                    console.warn("Local AI initialization skipped: No compatible WebGPU adapter found.");
+                }
                 const isDeviceLost = isWebLLMDeviceLostError(error);
                 const errorMsg = isDeviceLost 
                     ? "GPU Device Lost: Your hardware might be struggling. Try closing other tabs or using the lightweight model."
@@ -467,7 +508,15 @@ export function useWebLLM() {
             const engineInstance = await enginePromise;
             syncLoadedEngine(engineInstance, targetModelId);
         } catch (error) {
-            console.error("Failed to load model:", error);
+            const errorMsgStr = String(error);
+            const isNoGPU = errorMsgStr.includes("Unable to find a compatible GPU");
+            
+            if (!isNoGPU) {
+                console.error("Failed to load model:", error);
+            } else {
+                console.warn("Local AI initialization skipped: No compatible WebGPU adapter found.");
+            }
+            
             const isDeviceLost = isWebLLMDeviceLostError(error);
             const isDisposed = isWebLLMDisposedError(error);
             

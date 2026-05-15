@@ -58,15 +58,19 @@ function getWorker(): Worker {
             }
 
             // Handle responses with IDs
-            if (response.id && pendingRequests.has(response.id)) {
-                const pending = pendingRequests.get(response.id)!;
-                clearTimeout(pending.timeout);
-                pendingRequests.delete(response.id);
+            if (response.id) {
+                const pending = pendingRequests.get(response.id);
+                if (pending) {
+                    clearTimeout(pending.timeout);
+                    pendingRequests.delete(response.id);
 
-                if (response.type === 'ERROR') {
-                    pending.reject(new Error(response.error));
+                    if (response.type === 'ERROR') {
+                        pending.reject(new Error(response.error));
+                    } else {
+                        pending.resolve(response);
+                    }
                 } else {
-                    pending.resolve(response);
+                    console.warn(`[useOpenDrawWorker] Received response for unknown or expired message ID: ${response.id}`);
                 }
             }
         };
@@ -87,18 +91,25 @@ async function sendCommand<T extends WorkerResponse>(
     timeoutMs: number = DEFAULT_TIMEOUT_MS
 ): Promise<T> {
     const worker = getWorker();
-
-    return new Promise<T>((resolve, reject) => {
-        const id = command.id || createMessageId();
+    
+    return new Promise((resolve, reject) => {
+        const id = crypto.randomUUID();
         const commandWithId = { ...command, id };
+        let isSettled = false;
 
         const timeout = setTimeout(() => {
-            pendingRequests.delete(id);
+            if (isSettled) return;
+            isSettled = true;
+            // We keep the ID in pendingRequests to avoid 'unknown ID' warnings when the worker eventually responds.
+            // It will be cleaned up in the onmessage handler.
             reject(new Error(`Worker command timed out after ${timeoutMs}ms`));
         }, timeoutMs);
 
         pendingRequests.set(id, {
             resolve: (response) => {
+                if (isSettled) return;
+                isSettled = true;
+                clearTimeout(timeout);
                 // Validate response with Zod
                 const parsed = WorkerResponseSchema.safeParse(response);
                 if (parsed.success) {
@@ -107,7 +118,12 @@ async function sendCommand<T extends WorkerResponse>(
                     reject(new Error(`Invalid worker response: ${parsed.error.message}`));
                 }
             },
-            reject,
+            reject: (err) => {
+                if (isSettled) return;
+                isSettled = true;
+                clearTimeout(timeout);
+                reject(err);
+            },
             timeout,
         });
 

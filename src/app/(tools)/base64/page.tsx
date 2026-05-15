@@ -5,8 +5,19 @@ import { Binary } from 'lucide-react';
 import { m } from 'framer-motion';
 import { Base64Workspace } from '@/app/(tools)/base64/components/Base64Workspace';
 import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 
 export default function Base64Page() {
+  const { updateToolState } = useAIChat();
+
+  React.useEffect(() => {
+    updateToolState({
+      toolName: "Base64",
+      status: "active"
+    });
+    return () => updateToolState(null);
+  }, [updateToolState]);
+
     return (
         <div className="min-h-screen bg-(--background) relative overflow-hidden flex flex-col">
             {/* Background Decorations */}

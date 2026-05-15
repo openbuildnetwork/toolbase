@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { ToolCopilot } from "@/components/ai/ToolCopilot";
 import type { FormatterRecipe, RecipeStep, RecipeStepOp } from "./types";
 
 type FormatterStudioProps = {
@@ -91,7 +92,13 @@ export function FormatterStudio({
                 </div>
                 <p className="mt-1 text-xs text-(--text-muted)">Clean, normalize, and escape payload text quickly.</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                <ToolCopilot 
+                  contextData={validateInput}
+                  contextType={`${validateFormat} payload`}
+                  onApplyFix={(fixed) => setValidateInput(fixed)}
+                  className="z-50"
+                />
                 <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-3 py-1 text-[11px] font-semibold text-sky-600 dark:text-sky-400">
                   {formatStats.lines} lines
                 </span>

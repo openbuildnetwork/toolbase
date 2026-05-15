@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 
 // --- Utility ---
 function cn(...inputs: ClassValue[]) {
@@ -133,6 +134,16 @@ const ScanningLine = ({ status }: { status: ImageStatus }) => {
 };
 
 export default function BgRemoverPage() {
+  const { updateToolState } = useAIChat();
+
+  React.useEffect(() => {
+    updateToolState({
+      toolName: "Bgremover",
+      status: "active"
+    });
+    return () => updateToolState(null);
+  }, [updateToolState]);
+
     const [images, setImages] = useState<ImageItem[]>([]);
     const [activeTab, setActiveTab] = useState<'upload' | 'url'>('upload');
     const [urlInput, setUrlInput] = useState('');

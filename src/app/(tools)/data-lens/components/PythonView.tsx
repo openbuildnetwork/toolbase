@@ -10,6 +10,7 @@ import { TableSchema } from "@/app/(tools)/data-lens/hooks/useDataLens";
 import { HelpPanel } from "./HelpPanel";
 import { DataTable } from "./DataTable";
 import { useResizablePanel } from "@/hooks/useResizablePanel";
+import { ToolCopilot } from "@/components/ai/ToolCopilot";
 
 interface PythonViewProps {
     pythonCode: string;
@@ -192,6 +193,12 @@ export function PythonView({ pythonCode, setPythonCode, onRunPython, isProcessin
                         <span className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 rounded-md text-[10px] text-yellow-600 font-medium">Pyodide WASM</span>
                     </div>
                     <div className="flex gap-2">
+                        <ToolCopilot 
+                            contextData={pythonCode}
+                            contextType="Python code"
+                            onApplyFix={(fixed) => setPythonCode(fixed)}
+                            className="z-50"
+                        />
                         <Button 
                             onClick={() => setIsHelpOpen(true)}
                             variant="outline" 

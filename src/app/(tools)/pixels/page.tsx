@@ -10,6 +10,7 @@ import { ReturnToToolsButton } from "@/components/ui/ReturnToToolsButton";
 
 // Features
 import dynamic from "next/dynamic";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 
 const CompressImage = dynamic(() => import("@/app/(tools)/pixels/components/CompressImage").then(mod => mod.CompressImage), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
 const UpscaleImage = dynamic(() => import("@/app/(tools)/pixels/components/UpscaleImage").then(mod => mod.UpscaleImage), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
@@ -17,6 +18,16 @@ const ResizeImage = dynamic(() => import("@/app/(tools)/pixels/components/Resize
 const Steganography = dynamic(() => import("@/app/(tools)/pixels/components/Steganography").then(mod => mod.Steganography), { ssr: false, loading: () => <div className="animate-pulse h-64 bg-surface-secondary rounded-2xl" /> });
 
 export default function PixelsPage() {
+  const { updateToolState } = useAIChat();
+
+  React.useEffect(() => {
+    updateToolState({
+      toolName: "Pixels",
+      status: "active"
+    });
+    return () => updateToolState(null);
+  }, [updateToolState]);
+
 
 
     // Sidebar State

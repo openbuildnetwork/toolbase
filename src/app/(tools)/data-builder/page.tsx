@@ -16,8 +16,19 @@ import { useDataBuilderLayout, type DataBuilderSection } from "./hooks/use-data-
 import { MOCK_FIELD_TYPES, POPULAR_EMAIL_DOMAINS, useDataBuilderFields } from "./hooks/use-data-builder-fields";
 import { useDataBuilderBlueprint } from "./hooks/use-data-builder-blueprint";
 import { useDataBuilderTesting } from "./hooks/use-data-builder-testing";
+import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 
 export default function DataBuilderPage() {
+  const { updateToolState } = useAIChat();
+
+  React.useEffect(() => {
+    updateToolState({
+      toolName: "Data Builder",
+      status: "active"
+    });
+    return () => updateToolState(null);
+  }, [updateToolState]);
+
   const { sections, activeSection, setActiveSection, isSidebarOpen, setSidebarOpen, activeLabel } = useDataBuilderLayout();
   const {
     fields,
