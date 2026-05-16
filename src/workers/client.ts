@@ -29,6 +29,7 @@ export class WorkerClient {
   readyState: WorkerReadyState = 'cold';
 
   private listeners = new Set<(state: WorkerReadyState, message?: string) => void>();
+  private messageListeners = new Set<(payload: any) => void>();
 
   /**
    * Subscribe to readiness state changes.
@@ -38,6 +39,16 @@ export class WorkerClient {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   }
+
+  /**
+   * Subscribe to all raw messages from the worker.
+   * Useful for custom events like progress updates during execution.
+   */
+  onMessage(listener: (payload: any) => void): () => void {
+    this.messageListeners.add(listener);
+    return () => this.messageListeners.delete(listener);
+  }
+
 
   /**
    * @param createWorker A factory function that returns a new Web Worker instance.
@@ -73,7 +84,11 @@ export class WorkerClient {
             message?: string;
           };
 
+          // Relay all messages to generic message listeners
+          this.messageListeners.forEach(l => l(event.data));
+
           if (type === 'INIT_PROGRESS') {
+
             // Relay granular warm-up progress to any UI subscriber
             this.setReadyState('warming', message);
             return;
@@ -88,20 +103,20 @@ export class WorkerClient {
           if (!id) return;
           const req = this.pending.get(id);
           if (!req) {
-            // This can happen if the worker sends a message for an ID that was never registered
-            // or if the pending map was cleared (e.g., on worker crash).
-            // We log it as a warning instead of a silent failure to help debugging.
             console.warn(`[WorkerClient] Received response for unknown or expired message ID: ${id}`);
             return;
           }
           
-          this.pending.delete(id);
-
           if (type === 'RESULT') {
+            this.pending.delete(id);
             req.resolve(data);
-          } else {
+          } else if (type === 'ERROR') {
+            this.pending.delete(id);
             req.reject(new Error(error ?? `${this.workerName} worker error`));
           }
+          // Other message types (e.g. 'progress') are ignored by the client 
+          // but don't cause a rejection.
+
         };
 
         this.worker.onerror = (err) => {

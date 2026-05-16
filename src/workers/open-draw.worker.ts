@@ -113,7 +113,14 @@ self.onmessage = async (event: MessageEvent) => {
         const py = await initPyodide();
 
         const processCommand = py.globals.get("process_command");
-        const pyMessage = py.toPy(message);
+        
+        // WorkerClient sends { type: 'EXECUTE', action: '...', data: '...' }
+        // Python engine expects { type: 'ACTION_NAME', data: '...' }
+        const pyMessage = py.toPy({
+            ...message,
+            type: message.action || message.type
+        });
+
         const result = processCommand(pyMessage);
         const jsResult = result.toJs({ dict_converter: Object.fromEntries });
 
@@ -129,6 +136,7 @@ self.onmessage = async (event: MessageEvent) => {
             error: errorMessage
         });
     }
+
 
 };
 

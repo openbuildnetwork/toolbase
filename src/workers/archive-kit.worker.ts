@@ -44,11 +44,12 @@ type ValidatePayload = {
   password?: string;
 };
 
-type RequestMessage =
-  | { id: string; action: "create"; payload: CreatePayload }
-  | { id: string; action: "list"; payload: ListPayload }
-  | { id: string; action: "extract"; payload: ExtractPayload }
-  | { id: string; action: "validate"; payload: ValidatePayload };
+type RequestMessage = {
+  type: "EXECUTE";
+  action: "create" | "list" | "extract" | "validate";
+  data: any;
+  id: string;
+};
 
 function postProgress(id: string, progress: number, stage: string) {
   workerSelf.postMessage({ type: "progress", id, progress, stage });
@@ -140,12 +141,13 @@ async function materializeArchives(
 }
 
 workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
-  const msg = event.data;
-  const { id } = msg;
+  const { type, action, data, id } = event.data;
+
+  if (type !== "EXECUTE") return;
 
   try {
-    if (msg.action === "create") {
-      const { format, files, zipCompression, password } = msg.payload;
+    if (action === "create") {
+      const { format, files, zipCompression, password } = data as CreatePayload;
       const stagedFiles = await materializeCreateFiles(id, files, 8, 45);
       postProgress(id, 55, "packing");
       const bytes = await createArchiveRust(format, stagedFiles, {
@@ -157,8 +159,8 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
       return;
     }
 
-    if (msg.action === "list") {
-      const archives = await materializeArchives(id, msg.payload.archives, 10, 55);
+    if (action === "list") {
+      const archives = await materializeArchives(id, (data as ListPayload).archives, 10, 55);
       postProgress(id, 70, "indexing");
       const result = await Promise.all(
         archives.map(async (archive) => {
@@ -174,9 +176,9 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
       return;
     }
 
-    if (msg.action === "extract") {
-      const archives = await materializeArchives(id, msg.payload.archives, 8, 45);
-      const { password } = msg.payload;
+    if (action === "extract") {
+      const { archives: inputArchives, password } = data as ExtractPayload;
+      const archives = await materializeArchives(id, inputArchives, 8, 45);
       postProgress(id, 55, "extracting");
       const extracted = await Promise.all(
         archives.map((archive) => extractArchiveRust(archive.format, archive.bytes, { password }))
@@ -186,9 +188,9 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
       return;
     }
 
-    if (msg.action === "validate") {
-      const archives = await materializeArchives(id, msg.payload.archives, 8, 45);
-      const { password } = msg.payload;
+    if (action === "validate") {
+      const { archives: inputArchives, password } = data as ValidatePayload;
+      const archives = await materializeArchives(id, inputArchives, 8, 45);
       const reports: Array<{ sourceName: string; entries: number; ok: boolean; error?: string }> = [];
       for (let i = 0; i < archives.length; i++) {
         const archive = archives[i];
@@ -218,6 +220,7 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
     });
   }
 };
+
 
 // Standard ready signal for WorkerClient
 self.postMessage({ type: "READY" });
