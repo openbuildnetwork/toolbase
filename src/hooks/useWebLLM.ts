@@ -784,6 +784,37 @@ export function useWebLLM() {
                 console.warn("Failed to clear caches during uninstall:", e);
             }
 
+            // 3. Clear OPFS (Origin Private File System) - Modern WebLLM uses this for large files
+            try {
+                if ('storage' in navigator && 'getDirectory' in navigator.storage) {
+                    const root = await navigator.storage.getDirectory();
+                    // We try to remove common directories used by WebLLM/MLC
+                    const entries = ["web_llm", "mlc", "model_cache"];
+                    for (const entryName of entries) {
+                        try {
+                            await root.removeEntry(entryName, { recursive: true });
+                        } catch (e) {
+                            // Directory might not exist, ignore
+                        }
+                    }
+                    
+                    // Also try to list and delete anything that looks like a model
+                    // @ts-ignore - Some browsers support iteration
+                    if (root.entries) {
+                        // @ts-ignore
+                        for await (const [name] of root.entries()) {
+                            if (name.includes("web-llm") || name.includes("mlc") || name.includes("llama") || name.includes("qwen")) {
+                                try {
+                                    await root.removeEntry(name, { recursive: true });
+                                } catch (e) {}
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("Failed to clear OPFS during uninstall:", e);
+            }
+
             setProgress("Model uninstalled successfully.");
         }
     }, []);
