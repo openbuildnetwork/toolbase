@@ -10,7 +10,8 @@
  */
 
 import React from 'react';
-import { Heart } from 'lucide-react';
+import Heart from 'lucide-react/dist/esm/icons/heart';
+
 import { cn } from '@/lib/utils';
 import { useToolPreferences } from '@/hooks/useToolPreferences';
 

@@ -4,7 +4,8 @@ import { ToolCardProps } from '@/types/tool-search';
 import Link from 'next/link';
 import Image from 'next/image';
 import React from 'react';
-import { Pin } from 'lucide-react';
+import Pin from 'lucide-react/dist/esm/icons/pin';
+
 import { usePinnedTools } from '@/hooks/usePinnedTools';
 import { cn } from '@/lib/utils';
 import { FavoriteButton } from './FavoriteButton';

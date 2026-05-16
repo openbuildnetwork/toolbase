@@ -1,5 +1,5 @@
 import { ToolCardProps } from "@/types/tool-search";
-import { TOOLS } from "@/config/tools.registry";
+
 
 /**
  * Filters tools based on search query against title, description, long description, and tags.
@@ -21,14 +21,9 @@ export const searchTools = (tools: ToolCardProps[], query: string): ToolCardProp
     const scoredTools = tools.map(tool => {
         let score = 0;
         
-        // Find the full tool from the registry to search deeper metadata
-        const registryTool = tool.toolId ? TOOLS.find(t => t.id === tool.toolId) : null;
-        
         // Stringify all searchable text for exact phrase matching
         const searchableText = [
             tool.title.toLowerCase(),
-            registryTool?.description?.toLowerCase() || '',
-            registryTool?.longDescription?.toLowerCase() || '',
             ...tool.metadata.map(m => m.toLowerCase())
         ].join(' ');
 
@@ -47,14 +42,6 @@ export const searchTools = (tools: ToolCardProps[], query: string): ToolCardProp
             else if (tool.metadata.some(m => m.toLowerCase().includes(token))) {
                 score += 8;
             }
-            // Short description match
-            else if (registryTool?.description?.toLowerCase().includes(token)) {
-                score += 5;
-            }
-            // Long description match
-            else if (registryTool?.longDescription?.toLowerCase().includes(token)) {
-                score += 2;
-            }
             // Basic typo tolerance (if token length >= 3, check if any word starts with those 3 chars)
             else if (token.length >= 3) {
                 const prefix = token.slice(0, 3);
@@ -62,14 +49,13 @@ export const searchTools = (tools: ToolCardProps[], query: string): ToolCardProp
                     score += 1;
                 } else if (tool.metadata.some(m => m.toLowerCase().startsWith(prefix))) {
                     score += 1;
-                } else if (registryTool?.description?.toLowerCase().includes(prefix)) {
-                    score += 0.5;
                 }
             }
         }
 
         return { tool, score };
     });
+
 
     // Return tools that matched at least something, sorted by highest score first
     return scoredTools

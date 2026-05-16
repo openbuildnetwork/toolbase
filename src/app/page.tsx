@@ -9,7 +9,7 @@ import BottomNav from "../components/ui/BottomNav";
 import Header from '@/components/ui/Header';
 import Footer from '@/components/ui/Footer';
 import { TOOLS } from '@/config/tools.registry';
-import type { ToolMeta } from '@/types/tool-search';
+import type { ToolMetaLite } from '@/types/tool-search';
 import { ToolCardProps } from '@/types/tool-search';
 import { RecentsDrawer } from '@/components/ui/RecentsDrawer';
 import { FavoritesDrawer } from '@/components/ui/FavoritesDrawer';
@@ -21,7 +21,7 @@ import { TryPipelineButton } from '@/components/ui/TryPipelineButton';
  * by ToolGrid / ToolCard. This is the single translation point —
  * add a tool to tools.registry.ts and it automatically appears here.
  */
-function registryToCardProps(tools: ToolMeta[]): ToolCardProps[] {
+function registryToCardProps(tools: ToolMetaLite[]): ToolCardProps[] {
   return tools
     .filter((tool) => tool.route !== 'pipeline') // Remove pipeline from grid
     .map((tool) => ({
@@ -30,7 +30,9 @@ function registryToCardProps(tools: ToolMeta[]): ToolCardProps[] {
       icon: tool.thumbnail,
       metadata: tool.tags,
       toolId: tool.id,
+      toolFolderName: tool.id,
     }));
+
 }
 
 export default function Home() {

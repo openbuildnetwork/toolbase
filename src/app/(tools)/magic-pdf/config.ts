@@ -1,23 +1,12 @@
 import { ToolMeta } from "@/types/tool-search";
+import { magicPdfMeta } from "./meta";
 
 export const magicPdfConfig: ToolMeta = {
-  id: 'magic-pdf',
-  name: 'Magic PDF',
-  description: 'Compress, merge, split, protect, sign and convert PDFs — all in your browser.',
+  ...magicPdfMeta,
   longDescription:
     'Magic PDF is a full-featured PDF toolbase that runs entirely in your browser using WebAssembly. Compress PDFs without quality loss, merge multiple files, split by page range, add password protection, sign documents, convert to images, and more. No file ever leaves your machine.',
-  category: 'pdf',
-  route: 'magic-pdf',
-  thumbnail: '/assets/thumbnails/magic-pdf.png',
-  tags: ['pdf', 'compress', 'merge', 'split', 'protect', 'sign', 'convert', 'word', 'image'],
-  isNew: false,
-  isFeatured: true,
-  wasmPowered: true,
-  pythonPowered: true,
-  status: 'stable',
-  addedAt: '2025-01-01',
-  mobileOptimized: true,
   tip: [
+
     {
       id: 'magic-pdf/compress',
       name: 'Compress PDF',

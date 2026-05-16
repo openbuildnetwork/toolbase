@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Search, Command } from 'lucide-react';
+import Search from 'lucide-react/dist/esm/icons/search';
+import Command from 'lucide-react/dist/esm/icons/command';
+
 import { cn } from "@/lib/utils";
 
 interface SearchBarProps {

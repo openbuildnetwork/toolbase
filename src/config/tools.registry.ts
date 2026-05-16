@@ -1,130 +1,70 @@
-// src/config/tools.registry.ts
-// ============================================================
-// SINGLE SOURCE OF TRUTH for all Toolbase tools.
-// This file aggregates individual configurations from src/config/tools/*
-// ============================================================
+import { ToolCategory, ToolMeta, ToolMetaLite } from "@/types/tool-search";
+import { TOOLS_LITE } from "./registry.lite";
 
-import { ToolCategory, ToolMeta } from "@/types/tool-search";
-import { magicPdfConfig } from "@/app/(tools)/magic-pdf/config";
-import { pixelsConfig } from "@/app/(tools)/pixels/config";
-import { dataLensConfig } from "@/app/(tools)/data-lens/config";
-import { redactSecretsConfig } from "@/app/(tools)/redact-secrets/config";
-import { base64Config } from "@/app/(tools)/base64/config";
-import { jsonToInterfaceConfig } from "@/app/(tools)/json-to-interface/config";
-import { openDrawConfig } from "@/app/(tools)/open-draw/config";
-import { pingTesterConfig } from "@/app/(tools)/ping-tester/config";
-import { speedTestConfig } from "@/app/(tools)/speed-test/config";
-import { pipelineConfig } from "@/app/(tools)/pipeline/config";
-import { passwordxConfig } from "@/app/(tools)/passwordx/config";
-import { formatStudioConfig } from "@/app/(tools)/format-studio/config";
-import { dataBuilderConfig } from "@/app/(tools)/data-builder/config";
-import { archiveKitConfig } from "@/app/(tools)/archive-kit/config";
-import { noteVaultConfig } from "@/app/(tools)/note-vault/config";
-import { qrForgeConfig } from "@/app/(tools)/qr-forge/config";
-import { bgremoverConfig } from "@/app/(tools)/bgremover/config";
+/**
+ * LIGHTWEIGHT registry for the home page and search.
+ * Heavy configurations are moved to separate files and dynamic-imported.
+ */
+export const TOOLS: ToolMetaLite[] = TOOLS_LITE;
 
-// ============================================================
-// REGISTERED TOOLS
-// ============================================================
+/** 
+ * Lazily load the full tool metadata including TIP configurations.
+ * This keeps the main bundle small.
+ */
+export const getFullToolMeta = async (id: string): Promise<ToolMeta | undefined> => {
+  switch (id) {
+    case 'magic-pdf': return (await import("@/app/(tools)/magic-pdf/config")).magicPdfConfig;
+    case 'pixels': return (await import("@/app/(tools)/pixels/config")).pixelsConfig;
+    case 'data-lens': return (await import("@/app/(tools)/data-lens/config")).dataLensConfig;
+    case 'redact-secrets': return (await import("@/app/(tools)/redact-secrets/config")).redactSecretsConfig;
+    case 'base64': return (await import("@/app/(tools)/base64/config")).base64Config;
+    case 'json-to-interface': return (await import("@/app/(tools)/json-to-interface/config")).jsonToInterfaceConfig;
+    case 'open-draw': return (await import("@/app/(tools)/open-draw/config")).openDrawConfig;
+    case 'ping-tester': return (await import("@/app/(tools)/ping-tester/config")).pingTesterConfig;
+    case 'speed-test': return (await import("@/app/(tools)/speed-test/config")).speedTestConfig;
+    case 'pipeline': return (await import("@/app/(tools)/pipeline/config")).pipelineConfig;
+    case 'passwordx': return (await import("@/app/(tools)/passwordx/config")).passwordxConfig;
+    case 'format-studio': return (await import("@/app/(tools)/format-studio/config")).formatStudioConfig;
+    case 'data-builder': return (await import("@/app/(tools)/data-builder/config")).dataBuilderConfig;
+    case 'archive-kit': return (await import("@/app/(tools)/archive-kit/config")).archiveKitConfig;
+    case 'note-vault': return (await import("@/app/(tools)/note-vault/config")).noteVaultConfig;
+    case 'qr-forge': return (await import("@/app/(tools)/qr-forge/config")).qrForgeConfig;
+    case 'bgremover': return (await import("@/app/(tools)/bgremover/config")).bgremoverConfig;
+    default: return undefined;
+  }
+};
 
-export const TOOLS: ToolMeta[] = [
-  noteVaultConfig,
-  magicPdfConfig,
-  pixelsConfig,
-  dataLensConfig,
-  redactSecretsConfig,
-  base64Config,
-  jsonToInterfaceConfig,
-  openDrawConfig,
-  pingTesterConfig,
-  speedTestConfig,
-  pipelineConfig,
-  passwordxConfig,
-  formatStudioConfig,
-  dataBuilderConfig,
-  archiveKitConfig,
-  qrForgeConfig,
-  bgremoverConfig,
-];
+export const getAllTools = (): ToolMetaLite[] => TOOLS;
 
-// ============================================================
-// HELPERS — use these throughout the app, never filter TOOLS directly
-// ============================================================
-
-/** Get all tools */
-export const getAllTools = (): ToolMeta[] => TOOLS;
-
-/** Get a single tool by ID */
-export const getToolById = (id: string): ToolMeta | undefined =>
+export const getToolById = (id: string): ToolMetaLite | undefined =>
   TOOLS.find((tool) => tool.id === id);
 
-/** Get tools by category */
-export const getToolsByCategory = (category: ToolCategory): ToolMeta[] =>
+export const getToolsByCategory = (category: ToolCategory): ToolMetaLite[] =>
   TOOLS.filter((tool) => tool.category === category);
 
-/** Get featured tools */
-export const getFeaturedTools = (): ToolMeta[] =>
+export const getFeaturedTools = (): ToolMetaLite[] =>
   TOOLS.filter((tool) => tool.isFeatured);
 
-/** Get WASM-powered tools */
-export const getWasmTools = (): ToolMeta[] =>
+export const getWasmTools = (): ToolMetaLite[] =>
   TOOLS.filter((tool) => tool.wasmPowered);
 
-/** Get all unique categories that have at least one tool */
 export const getActiveCategories = (): ToolCategory[] =>
   [...new Set(TOOLS.map((tool) => tool.category))];
 
-/**
- * Search tools by query — searches name, description, long description, and tags.
- * Supports tokenized matching and basic typo tolerance.
- * This is the canonical search function used by the app's CommandPalette.
- */
-export const searchToolsFromRegistry = (query: string): ToolMeta[] => {
+export const searchToolsFromRegistry = (query: string): ToolMetaLite[] => {
   const trimmedQuery = query.toLowerCase().trim();
   if (!trimmedQuery) return TOOLS;
-
   const queryTokens = trimmedQuery.split(/\s+/).filter(t => t.length > 0);
-
   const scoredTools = TOOLS.map((tool) => {
     let score = 0;
-
-    const searchableText = [
-      tool.name.toLowerCase(),
-      tool.description.toLowerCase(),
-      tool.longDescription?.toLowerCase() || '',
-      ...tool.tags.map(t => t.toLowerCase())
-    ].join(' ');
-
-    if (searchableText.includes(trimmedQuery)) {
-      score += 50;
-    }
-
+    const searchableText = [tool.name.toLowerCase(), tool.description.toLowerCase(), ...tool.tags.map(t => t.toLowerCase())].join(' ');
+    if (searchableText.includes(trimmedQuery)) score += 50;
     for (const token of queryTokens) {
-      if (tool.name.toLowerCase().includes(token)) {
-        score += 10;
-      } else if (tool.tags.some(t => t.toLowerCase().includes(token))) {
-        score += 8;
-      } else if (tool.description.toLowerCase().includes(token)) {
-        score += 5;
-      } else if (tool.longDescription?.toLowerCase().includes(token)) {
-        score += 2;
-      } else if (token.length >= 3) {
-        const prefix = token.slice(0, 3);
-        if (tool.name.toLowerCase().split(/\s+/).some(w => w.startsWith(prefix))) {
-          score += 1;
-        } else if (tool.tags.some(t => t.toLowerCase().startsWith(prefix))) {
-          score += 1;
-        } else if (tool.description.toLowerCase().includes(prefix)) {
-          score += 0.5;
-        }
-      }
+      if (tool.name.toLowerCase().includes(token)) score += 10;
+      else if (tool.tags.some(t => t.toLowerCase().includes(token))) score += 8;
+      else if (tool.description.toLowerCase().includes(token)) score += 5;
     }
-
     return { tool, score };
   });
-
-  return scoredTools
-    .filter(st => st.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .map(st => st.tool);
+  return scoredTools.filter(st => st.score > 0).sort((a, b) => b.score - a.score).map(st => st.tool);
 };

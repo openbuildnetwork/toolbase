@@ -3,7 +3,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import React from 'react';
-import { Search, Command, Clock, Heart, Github, Info } from 'lucide-react';
+import Search from 'lucide-react/dist/esm/icons/search';
+import Command from 'lucide-react/dist/esm/icons/command';
+import Clock from 'lucide-react/dist/esm/icons/clock';
+import Heart from 'lucide-react/dist/esm/icons/heart';
+import Github from 'lucide-react/dist/esm/icons/github';
+import Info from 'lucide-react/dist/esm/icons/info';
+
 import { ThemeToggle } from './ThemeToggle';
 import { InstallAppButton } from './InstallAppButton';
 import { useAIChat } from '@/app/(tools)/ai-chat/hooks/useAIChat';

@@ -10,10 +10,11 @@
  */
 
 import type { TIPContentType, TIPTool } from './protocol';
-import { TOOLS } from '@/config/tools.registry';
+import { FULL_TOOLS_REGISTRY } from '@/config/registry.full';
 
 /** Helper to construct a TIPTool interface from a single TIP operation config in ToolMeta */
-function toTIPTool(config: NonNullable<typeof TOOLS[0]['tip']>[0]): TIPTool {
+function toTIPTool(config: NonNullable<typeof FULL_TOOLS_REGISTRY[0]['tip']>[0]): TIPTool {
+
   return {
     id: config.id,
     name: config.name,
@@ -54,7 +55,7 @@ export const TIPToolRegistry = {
     const custom = customTools.find((t) => t.id === id);
     if (custom) return custom;
 
-    for (const meta of TOOLS) {
+    for (const meta of FULL_TOOLS_REGISTRY) {
       if (!meta.tip) continue;
       const config = meta.tip.find((c) => c.id === id);
       if (config) return toTIPTool(config);
@@ -65,7 +66,7 @@ export const TIPToolRegistry = {
   /** Return all strictly TIP-compliant operations registered across all tools. */
   getAll(): TIPTool[] {
     const all: TIPTool[] = [...customTools];
-    for (const meta of TOOLS) {
+    for (const meta of FULL_TOOLS_REGISTRY) {
       if (meta.tip) {
         for (const config of meta.tip) {
           all.push(toTIPTool(config));

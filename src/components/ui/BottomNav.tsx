@@ -7,7 +7,8 @@ import Image from 'next/image';
 import { ToolCardProps } from '@/types/tool-search';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
-import { Search, X } from 'lucide-react';
+import Search from 'lucide-react/dist/esm/icons/search';
+import X from 'lucide-react/dist/esm/icons/x';
 import { usePinnedTools } from '@/hooks/usePinnedTools';
 
 

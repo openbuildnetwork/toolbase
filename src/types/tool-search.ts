@@ -13,15 +13,13 @@ export type ToolCategory =
 
 export type ToolStatus = 'stable' | 'beta' | 'experimental';
 
-export interface ToolMeta {
+export interface ToolMetaLite {
   /** Unique identifier — matches the folder name in src/app/tools/ */
   id: string;
   /** Display name shown in the UI */
   name: string;
   /** Short one-liner shown on tool cards */
   description: string;
-  /** Longer description for tool detail page and SEO */
-  longDescription?: string;
   /** Primary category for filtering */
   category: ToolCategory;
   /** Next.js route to the tool (must be same as tool folder name)*/
@@ -46,6 +44,11 @@ export interface ToolMeta {
   mobileOptimized: boolean;
   /** GitHub username of the contributor who built this tool */
   author?: string;
+}
+
+export interface ToolMeta extends ToolMetaLite {
+  /** Longer description for tool detail page and SEO */
+  longDescription?: string;
   /** 
    * If defined, this tool supports the TIP Protocol and can be chained
    * in the Pipeline Builder. An array is used because some UI tools
@@ -55,14 +58,15 @@ export interface ToolMeta {
     id: string; // e.g. "magic-pdf/compress"
     name: string;
     description: string;
-    consumes: import('@/tip').TIPContentType[];
-    produces: import('@/tip').TIPContentType[];
-    configSchema: import('@/tip').TIPConfigSchema;
+    consumes: import('@/tip/protocol').TIPContentType[];
+    produces: import('@/tip/protocol').TIPContentType[];
+    configSchema: import('@/tip/protocol').TIPConfigSchema;
     /**
      * DYNAMIC IMPORT of the execution logic. 
      * Keeps the registry lightweight.
      */
-    getExecutor: () => Promise<(input: import('@/tip').TIPBundle, config: import('@/tip').TIPConfig, hooks: import('@/tip').TIPHooks) => Promise<import('@/tip').TIPBundle>>;
+    getExecutor: () => Promise<(input: import('@/tip/protocol').TIPBundle, config: import('@/tip/protocol').TIPConfig, hooks: import('@/tip/protocol').TIPHooks) => Promise<import('@/tip/protocol').TIPBundle>>;
+
     /** Whether this specific operation is optimized for mobile */
     mobileOptimized: boolean;
     /**
@@ -75,9 +79,11 @@ export interface ToolMeta {
      * Only present when interactable === true.
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getInteractionComponent?: () => Promise<(props: import('@/tip').TIPInteractionProps) => any>;
+    getInteractionComponent?: () => Promise<(props: import('@/tip/protocol').TIPInteractionProps) => any>;
+
   }[];
 }
+
 
 
 export interface ToolCardProps {
