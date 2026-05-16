@@ -363,11 +363,13 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
           </div>
 
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center">
               <h2 className="truncate text-sm font-semibold tracking-tight text-(--text-primary)">Echo</h2>
+            </div>
+            <div className="mt-1 flex items-center gap-2">
               <span
                 className={cn(
-                  "rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em]",
+                  "rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em]",
                   isChatable
                     ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
                     : isGenerating
@@ -377,10 +379,9 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
               >
                 {chatStatus}
               </span>
-            </div>
-            <div className="mt-0.5 flex items-center gap-1.5 text-xs text-(--text-muted)">
-              <Cpu className="h-3.5 w-3.5" />
-              <span className="truncate">Local private session</span>
+              <div className="rounded-md bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                Beta
+              </div>
             </div>
           </div>
         </div>
