@@ -3,7 +3,8 @@
 import React from "react";
 import { LazyEditor as Editor } from "@/components/ui/LazyEditor";
 import { Button } from "@/components/ui/Button";
-import { Play, Database, FileSpreadsheet, HelpCircle, ChevronUp, ChevronDown, CheckCircle2 } from "lucide-react";
+import { Play, Database, FileSpreadsheet, HelpCircle, ChevronUp, ChevronDown, CheckCircle2, FileText, FileJson, Download } from "lucide-react";
+
 import { useTheme } from "next-themes";
 import type { Monaco } from "@monaco-editor/react";
 import { TableSchema } from "@/app/(tools)/data-lens/hooks/useDataLens";
@@ -19,9 +20,12 @@ interface SqlViewProps {
     isProcessing: boolean;
     schemas: TableSchema[];
     queryResult?: { data: unknown[]; columns: string[]; rowCount?: number } | null;
+    onExport?: (format: 'csv' | 'json') => void;
 }
 
-export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas, queryResult }: SqlViewProps) {
+
+export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas, queryResult, onExport }: SqlViewProps) {
+
     const [isHelpOpen, setIsHelpOpen] = React.useState(false);
     const [resultsPanelCollapsed, setResultsPanelCollapsed] = React.useState(false);
     const { ratio, isDragging, handleProps, containerRef } = useResizablePanel({ initialRatio: 0.45 });
@@ -240,13 +244,40 @@ export function SqlView({ sqlQuery, setSqlQuery, onRunSql, isProcessing, schemas
                                 {resultTableData.length} row{resultTableData.length !== 1 ? 's' : ''}
                             </span>
                         </div>
-                        <button
-                            onClick={() => setResultsPanelCollapsed(!resultsPanelCollapsed)}
-                            className="p-1.5 rounded-lg hover:bg-surface-overlay text-text-muted hover:text-text-primary transition-colors"
-                            title={resultsPanelCollapsed ? 'Expand results' : 'Collapse results'}
-                        >
-                            {resultsPanelCollapsed ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        </button>
+                        <div className="flex items-center gap-2">
+                            {onExport && (
+                                <div className="flex items-center gap-1 mr-2 border-r border-border-subtle pr-2">
+                                    <Button
+                                        onClick={() => onExport('csv')}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 gap-1.5 text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-600 font-semibold px-2 rounded-lg"
+                                        title="Export results as CSV"
+                                    >
+                                        <FileText className="w-3.5 h-3.5" />
+                                        <span className="text-[10px] uppercase tracking-wider">CSV</span>
+                                    </Button>
+                                    <Button
+                                        onClick={() => onExport('json')}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 gap-1.5 text-amber-500 hover:bg-amber-500/10 hover:text-amber-600 font-semibold px-2 rounded-lg"
+                                        title="Export results as JSON"
+                                    >
+                                        <FileJson className="w-3.5 h-3.5" />
+                                        <span className="text-[10px] uppercase tracking-wider">JSON</span>
+                                    </Button>
+                                </div>
+                            )}
+                            <button
+                                onClick={() => setResultsPanelCollapsed(!resultsPanelCollapsed)}
+                                className="p-1.5 rounded-lg hover:bg-surface-overlay text-text-muted hover:text-text-primary transition-colors"
+                                title={resultsPanelCollapsed ? 'Expand results' : 'Collapse results'}
+                            >
+                                {resultsPanelCollapsed ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                            </button>
+                        </div>
+
                     </div>
                     {/* Results Table */}
                     {!resultsPanelCollapsed && (
