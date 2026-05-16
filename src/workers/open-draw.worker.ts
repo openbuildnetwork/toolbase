@@ -117,7 +117,8 @@ self.onmessage = async (event: MessageEvent) => {
         const result = processCommand(pyMessage);
         const jsResult = result.toJs({ dict_converter: Object.fromEntries });
 
-        self.postMessage(jsResult);
+        // Standard WorkerClient result format
+        self.postMessage({ type: "RESULT", data: jsResult, id });
 
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -128,6 +129,7 @@ self.onmessage = async (event: MessageEvent) => {
             error: errorMessage
         });
     }
+
 };
 
 // Re-enabled top-level initialization.

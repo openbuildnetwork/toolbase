@@ -144,8 +144,6 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
   const { id } = msg;
 
   try {
-    postProgress(id, 10, "starting");
-
     if (msg.action === "create") {
       const { format, files, zipCompression, password } = msg.payload;
       const stagedFiles = await materializeCreateFiles(id, files, 8, 45);
@@ -155,7 +153,7 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
         password,
       });
       postProgress(id, 100, "done");
-      workerSelf.postMessage({ type: "result", id, result: bytes }, [bytes.buffer as ArrayBuffer]);
+      workerSelf.postMessage({ type: "RESULT", id, data: bytes }, [bytes.buffer as ArrayBuffer]);
       return;
     }
 
@@ -172,7 +170,7 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
         })
       );
       postProgress(id, 100, "done");
-      workerSelf.postMessage({ type: "result", id, result: result.flat() });
+      workerSelf.postMessage({ type: "RESULT", id, data: result.flat() });
       return;
     }
 
@@ -184,7 +182,7 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
         archives.map((archive) => extractArchiveRust(archive.format, archive.bytes, { password }))
       );
       postProgress(id, 100, "done");
-      workerSelf.postMessage({ type: "result", id, result: extracted.flat() });
+      workerSelf.postMessage({ type: "RESULT", id, data: extracted.flat() });
       return;
     }
 
@@ -210,14 +208,18 @@ workerSelf.onmessage = async (event: MessageEvent<RequestMessage>) => {
         postProgress(id, clampProgress(45 + ratio * 50), "validating");
       }
       postProgress(id, 100, "done");
-      workerSelf.postMessage({ type: "result", id, result: reports });
+      workerSelf.postMessage({ type: "RESULT", id, data: reports });
     }
   } catch (error: unknown) {
     workerSelf.postMessage({
-      type: "error",
+      type: "ERROR",
       id,
       error: error instanceof Error ? error.message : "Archive operation failed",
     });
   }
 };
+
+// Standard ready signal for WorkerClient
+self.postMessage({ type: "READY" });
+
 
