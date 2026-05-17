@@ -1,92 +1,154 @@
 "use client";
 
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTIPTool } from '@/hooks/useTIPTool';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { Select } from '@/components/ui/Select';
-import { Slider } from '@/components/ui/Slider';
 import { Card } from '@/components/ui/Card';
-import { Download, Copy, Link2, ScanLine, Image as ImageIcon, QrCode } from 'lucide-react';
+import { FileDropZone } from '@/components/ui/FileDropZone';
+import { Download, Copy, Link2, ScanLine, Camera, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+const CameraScanner = ({ onScan, isProcessing }: { onScan: (file: File) => void, isProcessing: boolean }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [error, setError] = useState('');
+  
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+    let interval: NodeJS.Timeout;
+
+    const startCamera = async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        
+        interval = setInterval(() => {
+          if (isProcessing) return;
+          if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
+            const canvas = document.createElement('canvas');
+            canvas.width = videoRef.current.videoWidth;
+            canvas.height = videoRef.current.videoHeight;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(videoRef.current, 0, 0);
+              canvas.toBlob(blob => {
+                if (blob) {
+                  const file = new File([blob], 'camera-frame.jpg', { type: 'image/jpeg' });
+                  onScan(file);
+                }
+              }, 'image/jpeg');
+            }
+          }
+        }, 800);
+      } catch (err) {
+        setError('Camera access denied or unavailable.');
+      }
+    };
+    
+    startCamera();
+    
+    return () => {
+      clearInterval(interval);
+      if (stream) stream.getTracks().forEach(t => t.stop());
+    };
+  }, [onScan, isProcessing]);
+
+  if (error) return <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm font-medium text-center">{error}</div>;
+
+  return (
+    <div className="relative rounded-lg overflow-hidden bg-black aspect-video flex items-center justify-center">
+      <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+      <div className="absolute inset-0 border-2 border-primary/50 m-8 rounded-lg animate-pulse pointer-events-none" />
+      <div className="absolute bottom-4 left-0 right-0 text-center text-white/70 text-sm drop-shadow-md">
+        Point camera at QR code
+      </div>
+    </div>
+  );
+};
+
 export default function QrForgeFeature() {
-  const [activeMode, setActiveMode] = useState<'url2qr' | 'qr2url' | 'img2qr' | 'qr2img'>('url2qr');
+  const [activeMode, setActiveMode] = useState<'url2qr' | 'qr2url'>('url2qr');
+  const [showCamera, setShowCamera] = useState(false);
 
   // Generators
   const genTool = useTIPTool('qr-forge/generate');
   const decTool = useTIPTool('qr-forge/decode');
 
-  // Configs
-  const genDefaultConfig = useMemo(
-    () => Object.fromEntries((genTool.tool?.configSchema.fields ?? []).map(f => [f.key, f.default])),
-    [genTool.tool]
-  );
-  
-  const [genConfig, setGenConfig] = useState<Record<string, unknown>>({});
-  const seededRef = useRef(false);
-
-  useEffect(() => {
-    if (!seededRef.current && Object.keys(genDefaultConfig).length > 0) {
-      Promise.resolve().then(() => setGenConfig(genDefaultConfig));
-      seededRef.current = true;
-    }
-  }, [genDefaultConfig]);
-
-  const updateGenConfig = (key: string, value: unknown) => {
-    setGenConfig(prev => ({ ...prev, [key]: value }));
-  };
-
   // State
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-
-  const [genResult, setGenResult] = useState<string | null>(null); // Object URL of the generated PNG
+  const [textInput, setTextInput] = useState('https://toolbase.app');
+  const [genResult, setGenResult] = useState<string | null>(null);
   const [decResult, setDecResult] = useState<{ text?: string, objectUrl?: string } | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const qrFileInputRef = useRef<HTMLInputElement>(null);
+  const handleGenerate = useCallback(async () => {
+    if (activeMode === 'url2qr' && !textInput) {
+      setGenResult(null);
+      return;
+    }
 
-  const handleGenerate = async () => {
-    if (!genConfig.text) return;
     try {
-      const payloadFiles = logoFile 
-        ? [logoFile] 
-        : [new File([new Blob([''])], 'dummy.txt', { type: 'text/plain' })];
+      setErrorMsg(null);
+      const payloadFiles = [new File([new Blob([''])], 'dummy.txt', { type: 'text/plain' })];
       
-      const results = await genTool.execute(payloadFiles, genConfig as Record<string, string | number | boolean>);
+      const config = {
+        text: activeMode === 'url2qr' ? textInput : ''
+      };
+
+      const results = await genTool.execute(payloadFiles, config as Record<string, string | number | boolean>, {
+        onError: (err) => { throw err; }
+      });
       if (results && results.length > 0) {
+        if (genResult) URL.revokeObjectURL(genResult);
         setGenResult(URL.createObjectURL(results[0]));
       }
     } catch (err) {
-      alert('Error generating QR code: ' + (err instanceof Error ? err.message : String(err)));
+      setErrorMsg('Error generating QR code: ' + (err instanceof Error ? err.message : String(err)));
     }
-  };
+  }, [textInput, activeMode, genTool, genResult]);
 
-  const handleDecode = async (fileToDecode: File) => {
+  // Real-time Preview Debounce for URL to QR
+  const handleGenerateRef = useRef(handleGenerate);
+  useEffect(() => {
+    handleGenerateRef.current = handleGenerate;
+  }, [handleGenerate]);
+
+  useEffect(() => {
+    if (activeMode === 'url2qr') {
+      const handler = setTimeout(() => {
+        handleGenerateRef.current();
+      }, 500);
+      return () => clearTimeout(handler);
+    }
+  }, [textInput, activeMode]);
+
+  const handleDecode = useCallback(async (fileToDecode: File) => {
+    if (decTool.isProcessing) return;
     try {
-      setDecResult(null);
-      const results = await decTool.execute([fileToDecode], {});
+      setErrorMsg(null);
+      const results = await decTool.execute([fileToDecode], {}, {
+        onError: (err) => { throw err; }
+      });
       if (results && results.length > 0) {
         const text = await results[0].text();
+        setShowCamera(false);
         setDecResult({ text, objectUrl: URL.createObjectURL(fileToDecode) });
       }
     } catch (err) {
-      alert('Error decoding QR code: ' + (err instanceof Error ? err.message : String(err)));
+      const msg = err instanceof Error ? err.message : String(err);
+      if (showCamera) {
+        console.warn("Scan failed:", msg);
+      } else {
+        if (msg.toLowerCase().includes('no qr code') || msg.includes('worker error') || msg.includes('Runtime error')) {
+          setErrorMsg('Invalid image or no QR code detected. Please check the image and try again.');
+        } else {
+          setErrorMsg('Error decoding QR code: ' + msg);
+        }
+      }
     }
-  };
-
-  const onLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setLogoFile(e.target.files[0]);
-    }
-  };
-
-  const onQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleDecode(e.target.files[0]);
-    }
-  };
+  }, [decTool, showCamera]);
 
   const downloadResult = (url: string, filename: string) => {
     const a = document.createElement('a');
@@ -97,180 +159,124 @@ export default function QrForgeFeature() {
 
   const copyText = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert('Copied to clipboard');
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 p-4">
+      {errorMsg && (
+        <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm border border-red-200 animate-in fade-in slide-in-from-top-2">
+          {errorMsg}
+        </div>
+      )}
+
       {/* Modes Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {[
-          { id: 'url2qr', icon: Link2, label: 'URL → QR', desc: 'encode url as qr code' },
-          { id: 'img2qr', icon: ImageIcon, label: 'Image → QR', desc: 'embed logo in qr code' },
-          { id: 'qr2url', icon: ScanLine, label: 'QR → URL', desc: 'scan qr · extract url' },
-          { id: 'qr2img', icon: QrCode, label: 'QR → Image', desc: 'scan qr · save as image' },
+          { id: 'url2qr', icon: Link2, label: 'Link → QR Code', desc: 'Create QR from URL' },
+          { id: 'qr2url', icon: ScanLine, label: 'QR Code → Link', desc: 'Scan QR to get Link' },
         ].map(m => (
           <Card
             key={m.id}
             className={cn(
-              "p-4 cursor-pointer transition-all border-2 border-transparent hover:border-primary/50",
-              activeMode === m.id && "border-primary bg-primary/5"
+              "p-4 cursor-pointer transition-all duration-300 border-2 border-transparent hover:border-primary/50 hover:shadow-md",
+              activeMode === m.id && "border-primary bg-primary/5 shadow-md scale-[1.02]"
             )}
             onClick={() => {
-              setActiveMode(m.id as 'url2qr' | 'qr2url' | 'img2qr' | 'qr2img');
+              setActiveMode(m.id as 'url2qr' | 'qr2url');
               setGenResult(null);
               setDecResult(null);
+              setErrorMsg(null);
+              setShowCamera(false);
             }}
           >
-            <m.icon className="w-6 h-6 mb-2 text-primary" />
+            <m.icon className={cn("w-6 h-6 mb-2 transition-colors", activeMode === m.id ? "text-primary" : "text-muted-foreground")} />
             <div className="font-semibold">{m.label}</div>
             <div className="text-xs text-muted-foreground">{m.desc}</div>
           </Card>
         ))}
       </div>
 
-      <Card className="p-6">
-        {(activeMode === 'url2qr' || activeMode === 'img2qr') && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+      <Card className="p-6 overflow-hidden relative">
+        {activeMode === 'url2qr' && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="space-y-2">
               <Label>Content (URL or Text)</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={(genConfig.text as string) || ''}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateGenConfig('text', e.target.value)}
-                  placeholder="https://example.com"
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleGenerate()}
-                />
-                <Button onClick={handleGenerate} disabled={genTool.isProcessing}>
-                  Generate
-                </Button>
-              </div>
+              <Input
+                value={textInput}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTextInput(e.target.value)}
+                placeholder="https://example.com"
+                className="text-lg py-6"
+              />
             </div>
-
-            {activeMode === 'img2qr' && (
-              <div className="space-y-4">
-                <Label>Logo Overlay</Label>
-                <div 
-                  className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={onLogoUpload} />
-                  {logoFile ? (
-                    <div className="text-sm">Selected: {logoFile.name}</div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">Click to select logo image</div>
-                  )}
+            
+            <div className="flex flex-col items-center gap-4 pt-6 border-t min-h-[300px] justify-center">
+              {genTool.isProcessing ? (
+                <div className="flex flex-col items-center gap-2 text-muted-foreground animate-pulse">
+                  <RefreshCw className="w-8 h-8 animate-spin" />
+                  <span>Generating QR Code...</span>
                 </div>
-                {logoFile && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <Label>Logo Size</Label>
-                      <span>{genConfig.logoSize as number}%</span>
-                    </div>
-                    <Slider
-                      value={(genConfig.logoSize as number) || 22}
-                      min={10} max={40} step={1}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateGenConfig('logoSize', parseInt(e.target.value))}
-                    />
+              ) : genResult ? (
+                <div className="flex flex-col items-center gap-4 animate-in zoom-in-95 duration-300">
+                  <div className="p-4 bg-white rounded-xl border shadow-sm transition-transform hover:scale-105">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={genResult} alt="Generated QR" className="max-w-[250px] w-full h-auto" />
                   </div>
-                )}
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
-              <div className="space-y-2">
-                <Label>Size (px)</Label>
-                <Input
-                  type="number"
-                  value={(genConfig.size as number) || 220}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateGenConfig('size', parseInt(e.target.value))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Error Correction</Label>
-                <Select value={(genConfig.errorCorrection as string) || 'Q'} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateGenConfig('errorCorrection', e.target.value)}>
-                  <option value="L">Low (L)</option>
-                  <option value="M">Medium (M)</option>
-                  <option value="Q">High (Q)</option>
-                  <option value="H">Max (H)</option>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Dot Color</Label>
-                <div className="flex h-10">
-                  <Input type="color" value={(genConfig.darkColor as string) || '#000000'} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateGenConfig('darkColor', e.target.value)} className="p-1 h-10" />
+                  <Button onClick={() => downloadResult(genResult, 'qr-code.png')} className="gap-2 shadow-sm w-full">
+                    <Download className="w-4 h-4" /> Download QR Code
+                  </Button>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Background</Label>
-                <div className="flex h-10">
-                  <Input type="color" value={(genConfig.lightColor as string) || '#ffffff'} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateGenConfig('lightColor', e.target.value)} className="p-1 h-10" />
-                </div>
-              </div>
+              ) : (
+                <div className="text-muted-foreground text-sm">Enter a link to generate your QR code.</div>
+              )}
             </div>
-
-            {genResult && (
-              <div className="flex flex-col items-center gap-4 pt-6 border-t animate-in fade-in">
-                <div className="p-4 bg-white rounded-lg border shadow-sm">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={genResult} alt="Generated QR" className="max-w-[300px] w-full h-auto" />
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={() => downloadResult(genResult, 'qr-code.png')} className="gap-2">
-                    <Download className="w-4 h-4" /> Download PNG
-                  </Button>
-                  <Button variant="outline" onClick={() => copyText(genConfig.text as string)} className="gap-2">
-                    <Copy className="w-4 h-4" /> Copy URL
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
-        {(activeMode === 'qr2url' || activeMode === 'qr2img') && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-            <Label>Upload QR Code Image</Label>
-            <div 
-              className="border-2 border-dashed rounded-lg p-12 text-center cursor-pointer hover:bg-muted/50 transition-colors"
-              onClick={() => qrFileInputRef.current?.click()}
-            >
-              <input type="file" ref={qrFileInputRef} className="hidden" accept="image/*" onChange={onQrUpload} />
-              <ScanLine className="w-8 h-8 mx-auto mb-4 text-muted-foreground" />
-              <div className="text-sm font-medium">Click to browse or drag and drop</div>
-              <div className="text-xs text-muted-foreground mt-1">PNG, JPG, WEBP</div>
+        {activeMode === 'qr2url' && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex justify-between items-center mb-4">
+              <Label className="text-base">Upload or Scan QR Code</Label>
+              <Button 
+                variant={showCamera ? "default" : "outline"} 
+                size="sm" 
+                onClick={() => setShowCamera(!showCamera)}
+                className="gap-2"
+              >
+                <Camera className="w-4 h-4" />
+                {showCamera ? "Close Camera" : "Use Camera"}
+              </Button>
             </div>
 
-            {decTool.isProcessing && <div className="text-center text-sm text-muted-foreground animate-pulse">Scanning...</div>}
+            {showCamera ? (
+              <CameraScanner onScan={handleDecode} isProcessing={decTool.isProcessing} />
+            ) : (
+              <FileDropZone 
+                onFileSelected={(f) => f && handleDecode(f)} 
+                accept="image/*" 
+              />
+            )}
 
-            {decResult && (
-              <div className="space-y-4 pt-6 border-t animate-in fade-in">
-                <div className="bg-muted p-4 rounded-lg">
-                  <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 block">Decoded Content</Label>
-                  <div className="font-mono text-sm break-all">{decResult.text}</div>
+            {decTool.isProcessing && !showCamera && (
+               <div className="flex justify-center items-center gap-2 py-8 text-muted-foreground animate-pulse">
+                 <RefreshCw className="w-5 h-5 animate-spin" />
+                 <span>Decoding QR Code...</span>
+               </div>
+            )}
+
+            {decResult && !decTool.isProcessing && (
+              <div className="space-y-6 pt-6 border-t animate-in fade-in slide-in-from-bottom-4">
+                <div className="bg-primary/5 p-4 rounded-xl border border-primary/20 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+                  <Label className="text-xs uppercase tracking-wider text-primary mb-2 block font-bold">Extracted Link</Label>
+                  <div className="font-mono text-base break-all text-foreground">{decResult.text}</div>
                 </div>
-
-                {activeMode === 'qr2img' && decResult.objectUrl && (
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="p-4 bg-white rounded-lg border shadow-sm">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={decResult.objectUrl} alt="Decoded QR" className="max-w-[300px] w-full h-auto" />
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-center gap-2">
-                  <Button variant="outline" onClick={() => copyText(decResult.text || '')} className="gap-2">
-                    <Copy className="w-4 h-4" /> Copy Text
+                <div className="flex justify-center gap-3">
+                  <Button variant="outline" onClick={() => copyText(decResult.text || '')} className="gap-2 shadow-sm flex-1">
+                    <Copy className="w-4 h-4" /> Copy Link
                   </Button>
-                  {activeMode === 'qr2url' && decResult.text?.startsWith('http') && (
-                    <Button onClick={() => window.open(decResult.text, '_blank')} className="gap-2">
+                  {decResult.text?.startsWith('http') && (
+                    <Button onClick={() => window.open(decResult.text, '_blank')} className="gap-2 shadow-sm flex-1">
                       <Link2 className="w-4 h-4" /> Open Link
-                    </Button>
-                  )}
-                  {activeMode === 'qr2img' && decResult.objectUrl && (
-                    <Button onClick={() => downloadResult(decResult.objectUrl!, 'decoded-qr.png')} className="gap-2">
-                      <Download className="w-4 h-4" /> Download Original
                     </Button>
                   )}
                 </div>
