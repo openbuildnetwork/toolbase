@@ -72,7 +72,8 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
 
 
     // Transform data for table
-    const showResults = activeTab === 'results' || (activeTab === 'charts' && chartDataSource === 'results');
+    const showResults = ['results', 'sql', 'python'].includes(activeTab) || (activeTab === 'charts' && chartDataSource === 'results');
+
     const currentData = useMemo(() => showResults ? (queryResult?.data || []) : (tableResult?.data || []), [showResults, queryResult?.data, tableResult?.data]);
     const currentColumns = useMemo(() => showResults ? (queryResult?.columns || []) : (tableResult?.columns || []), [showResults, queryResult?.columns, tableResult?.columns]);
     const tableData = useMemo(() => {
@@ -154,8 +155,10 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
         const blob = new Blob([content], { type: mimeType });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `${activeTable || 'export'}.${extension}`;
+        const filename = showResults ? "query_result" : (activeTable || "export");
+        link.download = `${filename}.${extension}`;
         link.click();
+
     }, [currentData, currentColumns, tableData, activeTable]);
 
     const handleApplyFilters = useCallback(async (conditions: { column: string; operator: string; value: string; value2?: string; logic?: string }[]) => {
@@ -482,8 +485,10 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                                     onApplyFilters={() => { }} // No filters for results
                                     onSwitchToSql={() => setActiveTab('sql')}
                                     onSwitchToPython={() => setActiveTab('python')}
+                                    onExport={handleExport}
                                     title="Query Result"
                                 />
+
                             </div>
                         )}
 
@@ -496,7 +501,9 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                                     onApplyFilters={handleApplyFilters}
                                     onSwitchToSql={() => setActiveTab('sql')}
                                     onSwitchToPython={() => setActiveTab('python')}
+                                    onExport={handleExport}
                                 />
+
                             </div>
                         )}
 
@@ -533,25 +540,29 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                         )}
 
                         {activeTab === 'sql' && (
-                            <SqlView
-                                sqlQuery={sqlQuery}
-                                setSqlQuery={setSqlQuery}
-                                onRunSql={handleRunSql}
-                                isProcessing={isProcessing}
-                                schemas={schemas}
-                                queryResult={queryResult}
-                            />
+                             <SqlView
+                                 sqlQuery={sqlQuery}
+                                 setSqlQuery={setSqlQuery}
+                                 onRunSql={handleRunSql}
+                                 isProcessing={isProcessing}
+                                 schemas={schemas}
+                                 queryResult={queryResult}
+                                 onExport={handleExport}
+                             />
+
                         )}
 
                         {activeTab === 'python' && (
-                            <PythonView
-                                pythonCode={pythonCode}
-                                setPythonCode={setPythonCode}
-                                onRunPython={handleRunPython}
-                                isProcessing={isProcessing}
-                                schemas={schemas}
-                                queryResult={queryResult}
-                            />
+                             <PythonView
+                                 pythonCode={pythonCode}
+                                 setPythonCode={setPythonCode}
+                                 onRunPython={handleRunPython}
+                                 isProcessing={isProcessing}
+                                 schemas={schemas}
+                                 queryResult={queryResult}
+                                 onExport={handleExport}
+                             />
+
                         )}
 
                         {activeTab === 'charts' && (

@@ -130,8 +130,9 @@ function getLoadedModelIds(engineInstance: MLCEngineInterface | null) {
     return Array.isArray(modelId) ? modelId : [];
 }
 
-function engineHasModel(engineInstance: MLCEngineInterface | null, modelId: string) {
-    return getLoadedModelIds(engineInstance).includes(modelId);
+function engineReportsDifferentModel(engineInstance: MLCEngineInterface | null, modelId: string) {
+    const loadedModelIds = getLoadedModelIds(engineInstance);
+    return loadedModelIds.length > 0 && !loadedModelIds.includes(modelId);
 }
 
 function getModelProfile(modelId: string | null) {
@@ -421,10 +422,10 @@ export function useWebLLM() {
         sharedRuntime.error = null;
 
         if (sharedRuntime.engine && sharedRuntime.modelId === modelId && !forceReload) {
-            if (engineHasModel(sharedRuntime.engine, modelId)) {
-                syncLoadedEngine(sharedRuntime.engine, modelId);
-            } else {
+            if (engineReportsDifferentModel(sharedRuntime.engine, modelId)) {
                 await reloadEngine(sharedRuntime.engine, modelId, background);
+            } else {
+                syncLoadedEngine(sharedRuntime.engine, modelId);
             }
 
             return;
@@ -577,10 +578,10 @@ export function useWebLLM() {
         const installedFlag = localStorage.getItem("obn_ai_installed") === "true";
         if (installedFlag) {
             setIsInstalled(true);
-            void loadModel(DEFAULT_WEBLLM_MODEL_ID, false, true);
+            setProgress("Local AI is cached. Open Echo to start the engine.");
             return;
         }
-    }, [loadModel, syncLoadedEngine]);
+    }, [loadModel]);
 
     const generateResponse = useCallback(async (
         messages: Message[],
@@ -598,7 +599,7 @@ export function useWebLLM() {
         }
 
         const activeModelId = sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID;
-        if (!engineHasModel(activeEngine, activeModelId)) {
+        if (engineReportsDifferentModel(activeEngine, activeModelId)) {
             await reloadEngine(activeEngine, activeModelId, true);
         }
 
@@ -758,6 +759,7 @@ export function useWebLLM() {
         if (typeof window !== "undefined") {
             localStorage.removeItem("obn_ai_installed");
             
+            
             try {
                 if (window.indexedDB && typeof window.indexedDB.databases === 'function') {
                     const dbs = await window.indexedDB.databases();
@@ -782,6 +784,37 @@ export function useWebLLM() {
                 }
             } catch (e) {
                 console.warn("Failed to clear caches during uninstall:", e);
+            }
+
+            // 3. Clear OPFS (Origin Private File System) - Modern WebLLM uses this for large files
+            try {
+                if ('storage' in navigator && 'getDirectory' in navigator.storage) {
+                    const root = await navigator.storage.getDirectory();
+                    // We try to remove common directories used by WebLLM/MLC
+                    const entries = ["web_llm", "mlc", "model_cache"];
+                    for (const entryName of entries) {
+                        try {
+                            await root.removeEntry(entryName, { recursive: true });
+                        } catch (e) {
+                            // Directory might not exist, ignore
+                        }
+                    }
+                    
+                    // Also try to list and delete anything that looks like a model
+                    // @ts-ignore - Some browsers support iteration
+                    if (root.entries) {
+                        // @ts-ignore
+                        for await (const [name] of root.entries()) {
+                            if (name.includes("web-llm") || name.includes("mlc") || name.includes("llama") || name.includes("qwen")) {
+                                try {
+                                    await root.removeEntry(name, { recursive: true });
+                                } catch (e) {}
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("Failed to clear OPFS during uninstall:", e);
             }
 
             setProgress("Model uninstalled successfully.");

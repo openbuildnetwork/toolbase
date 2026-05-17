@@ -16,11 +16,15 @@ export function useArchiveKitWorker() {
       setBusy(true);
       setProgress({ progress: 1, stage: "starting" });
 
-      const unsubscribe = archiveKitWorker.subscribe((state, message) => {
-          if (state === 'warming') {
-              setProgress(prev => ({ ...prev, stage: message || 'warming' }));
+      const unsubscribe = archiveKitWorker.onMessage((msg) => {
+          if (msg.type === 'progress') {
+              setProgress({ progress: msg.progress, stage: msg.stage });
+          }
+          if (msg.type === 'INIT_PROGRESS') {
+              setProgress(prev => ({ ...prev, stage: msg.message || 'warming' }));
           }
       });
+
 
       try {
         const result = await archiveKitWorker.execute(action, payload as Record<string, unknown>);

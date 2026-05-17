@@ -41,6 +41,7 @@ import { usePipelines } from '@/app/(tools)/pipeline/hooks/usePipelines';
 import { TIPToolRegistry } from '@/tip/registry';
 import { workerForTool } from '@/workers/instances';
 import { ReviewSync } from '@/lib/review-sync';
+import { useAIChat } from '@/app/(tools)/ai-chat/hooks/useAIChat';
 
 import { PipelineDefinition } from '@/app/(tools)/pipeline/types/pipeline';
 
@@ -78,6 +79,7 @@ const TIPConnectionLine = ({ fromX, fromY, toX, toY, connectionStatus }: Connect
 };
 
 function FlowCanvasBuilder() {
+    const { updateToolState, recordRuntimeEvent } = useAIChat();
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
     const clipboard = useRef<{ nodes: Node[], edges: Edge[] } | null>(null);
     const { screenToFlowPosition, fitView } = useReactFlow();
@@ -587,6 +589,76 @@ function FlowCanvasBuilder() {
     const ordered = graphToPipeline(nodes, edges);
     const hasInvalidEdges = edges.some(e => e.data?.isInvalid);
     const canRun = !!fileNode?.data.file && !!outNode && !!ordered && ordered.length > 0 && !hasInvalidEdges;
+    const failedStepIndex = state.steps.findIndex(step => step.status === 'error' || Boolean(step.error));
+    const lastRecordedPipelineError = useRef<string | null>(null);
+
+    useEffect(() => {
+        const timer = window.setTimeout(() => {
+            updateToolState({
+                toolName: 'Pipeline Builder',
+                status: state.status,
+                graph: {
+                    nodeCount: nodes.length,
+                    edgeCount: edges.length,
+                    toolNodeCount: nodes.filter(n => n.type === 'tool').length,
+                    hasFileInput: Boolean(fileNode),
+                    hasOutput: Boolean(outNode),
+                    hasInvalidEdges,
+                    canRun,
+                    selectedNode: selectedNode
+                        ? {
+                            id: selectedNode.id,
+                            type: selectedNode.type,
+                            toolId: selectedNode.data?.toolId,
+                            status: selectedNode.data?.status,
+                            error: selectedNode.data?.error,
+                        }
+                        : null,
+                },
+                run: {
+                    currentStepIndex: state.currentStepIndex,
+                    error: state.error,
+                    failedStepIndex,
+                    failedToolId: failedStepIndex >= 0 ? ordered?.[failedStepIndex]?.toolId : undefined,
+                },
+            });
+        }, 600);
+
+        return () => window.clearTimeout(timer);
+    }, [
+        canRun,
+        edges.length,
+        failedStepIndex,
+        fileNode,
+        hasInvalidEdges,
+        nodes,
+        ordered,
+        outNode,
+        selectedNode,
+        state.currentStepIndex,
+        state.error,
+        state.status,
+        updateToolState,
+    ]);
+
+    useEffect(() => {
+        if (state.status !== 'error' || !state.error || lastRecordedPipelineError.current === state.error) return;
+        lastRecordedPipelineError.current = state.error;
+        recordRuntimeEvent({
+            kind: 'tool',
+            level: 'error',
+            message: 'Pipeline execution failed',
+            detail: {
+                error: state.error,
+                failedStepIndex,
+                failedToolId: failedStepIndex >= 0 ? ordered?.[failedStepIndex]?.toolId : undefined,
+            },
+        });
+    }, [failedStepIndex, ordered, recordRuntimeEvent, state.error, state.status]);
+
+    useEffect(() => {
+        return () => updateToolState(null);
+    }, [updateToolState]);
 
     /**
      * Palette filter context — tells NodePalette which tools to highlight.
@@ -898,6 +970,7 @@ function FlowCanvasBuilder() {
                 multiSelectionKeyCode="Shift"
                 selectionOnDrag
                 style={{ background: '#0b0b0d' }}
+                onlyRenderVisibleElements
             >
                 {/* Dark dot grid background */}
                 <Background

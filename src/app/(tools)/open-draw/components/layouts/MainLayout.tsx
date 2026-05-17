@@ -9,8 +9,10 @@ import { PropertiesPanel } from '../panels/PropertiesPanel';
 import { Undo2, Redo2, Download, Upload, Moon, Sun, Menu, ChevronLeft, ChevronRight, FileText, ChevronDown, FileCode, FileImage, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { exportAsPng, exportAsSvg, exportAsPdf } from '../utils/export-utils';
+import { useAIChat } from '@/app/(tools)/ai-chat/hooks/useAIChat';
 
 export function OpenDrawLayout() {
+    const { updateToolState } = useAIChat();
     const openDraw = useOpenDraw();
     const { undo, redo, canUndo, canRedo, saveGraph, loadGraph, nodes, edges, setNodes, setEdges, selectedNodes, selectedEdges } = openDraw;
 
@@ -35,6 +37,36 @@ export function OpenDrawLayout() {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        const timer = window.setTimeout(() => {
+            updateToolState({
+                toolName: 'Open Draw',
+                status: 'active',
+                graph: {
+                    nodeCount: nodes.length,
+                    edgeCount: edges.length,
+                    selectedNodeCount: selectedNodes.length,
+                    selectedEdgeCount: selectedEdges.length,
+                    selectedNodes: nodes
+                        .filter(node => selectedNodes.includes(node.id))
+                        .slice(0, 5)
+                        .map(node => ({
+                            id: node.id,
+                            type: node.type,
+                            label: node.data?.label,
+                            shapeType: node.data?.shapeType,
+                        })),
+                },
+            });
+        }, 600);
+
+        return () => window.clearTimeout(timer);
+    }, [edges.length, nodes, selectedEdges.length, selectedNodes, updateToolState]);
+
+    useEffect(() => {
+        return () => updateToolState(null);
+    }, [updateToolState]);
 
     const onDragStart = (event: React.DragEvent, shapeType: string) => {
         event.dataTransfer.setData('application/reactflow', shapeType);

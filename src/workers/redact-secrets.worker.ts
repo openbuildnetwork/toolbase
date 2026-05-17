@@ -11,13 +11,29 @@ let currentEngineLabel: "Rust WASM" | "Unavailable" = "Unavailable";
 async function initRustApi(): Promise<RedactSecretsRustApi> {
   if (!rustApiPromise) {
     rustApiPromise = (async () => {
-      const base = self.location?.origin ?? "";
-      const jsUrl = `${base}/wasm/redact-secrets/pkg/redact_secrets.js`;
-      const wasmUrl = `${base}/wasm/redact-secrets/pkg/redact_secrets_bg.wasm`;
-      const mod = (await import(/* webpackIgnore: true */ jsUrl)) as RedactSecretsRustApi;
-      await mod.default(wasmUrl);
-      currentEngineLabel = "Rust WASM";
-      return mod;
+      try {
+        self.postMessage({ type: "INIT_PROGRESS", message: "Fetching engine..." });
+        const base = self.location?.origin ?? "";
+        const jsUrl = `${base}/wasm/redact-secrets/pkg/redact_secrets.js`;
+        const wasmUrl = `${base}/wasm/redact-secrets/pkg/redact_secrets_bg.wasm`;
+        
+        const mod = (await import(/* webpackIgnore: true */ jsUrl)) as RedactSecretsRustApi;
+        
+        self.postMessage({ type: "INIT_PROGRESS", message: "Compiling WASM..." });
+        await mod.default(wasmUrl);
+        
+        currentEngineLabel = "Rust WASM";
+        self.postMessage({ type: "READY", engine: currentEngineLabel });
+        return mod;
+      } catch (error: unknown) {
+        currentEngineLabel = "Unavailable";
+        self.postMessage({
+          type: "READY",
+          engine: currentEngineLabel,
+          warning: error instanceof Error ? error.message : "Rust engine initialization failed",
+        });
+        throw error;
+      }
     })();
   }
   return rustApiPromise;
@@ -42,16 +58,9 @@ self.onmessage = async (event: MessageEvent) => {
   }
 };
 
-// Removed top-level initialization to prevent background loading on the home page.
-/*
-initRustApi()
-  .then(() => self.postMessage({ type: "READY", engine: currentEngineLabel }))
-  .catch((error: unknown) => {
-    currentEngineLabel = "Unavailable";
-    self.postMessage({
-      type: "READY",
-      engine: currentEngineLabel,
-      warning: error instanceof Error ? error.message : "Rust engine initialization failed",
-    });
-  });
-*/
+// Start initialization immediately when worker is spawned.
+// The worker is lazily spawned by WorkerClient only when needed (or during pre-warm).
+initRustApi().catch((err) => {
+  console.error("Worker failed to init:", err);
+});
+

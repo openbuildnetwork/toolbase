@@ -217,6 +217,109 @@ const nodeTypes = {
   graphCard: GraphCardNode,
 };
 
+function shouldUseOutlineGraph() {
+  if (typeof window === "undefined") return false;
+  return window.innerWidth < 768 || window.matchMedia("(pointer: coarse)").matches;
+}
+
+function useOutlineGraphMode() {
+  const [outlineMode, setOutlineMode] = React.useState(shouldUseOutlineGraph);
+
+  React.useEffect(() => {
+    const update = () => setOutlineMode(shouldUseOutlineGraph());
+    update();
+    window.addEventListener("resize", update);
+
+    const media = window.matchMedia("(pointer: coarse)");
+    media.addEventListener?.("change", update);
+
+    return () => {
+      window.removeEventListener("resize", update);
+      media.removeEventListener?.("change", update);
+    };
+  }, []);
+
+  return outlineMode;
+}
+
+function DataGraphOutline({
+  value,
+  rootLabel,
+  maxDepth,
+  maxNodes,
+  defaultExpandDepth,
+  expandedPaths,
+  onTogglePath,
+}: Required<Pick<DataGraphProps, "rootLabel" | "maxDepth" | "maxNodes" | "defaultExpandDepth">> &
+  Pick<DataGraphProps, "value" | "expandedPaths" | "onTogglePath">) {
+  const rows = React.useMemo(() => {
+    const output: Array<{
+      path: string;
+      label: string;
+      value: unknown;
+      depth: number;
+      canExpand: boolean;
+      isExpanded: boolean;
+    }> = [];
+    let truncated = false;
+
+    const visit = (currentValue: unknown, label: string, path: string, depth: number) => {
+      if (output.length >= maxNodes) {
+        truncated = true;
+        return;
+      }
+
+      const children = buildChildren(currentValue, path);
+      const canExpand = children.length > 0 && depth < maxDepth;
+      const isExpanded = canExpand && ((expandedPaths?.has(path) ?? false) || depth < defaultExpandDepth);
+      output.push({ path, label, value: currentValue, depth, canExpand, isExpanded });
+
+      if (!isExpanded) return;
+      children.slice(0, 80).forEach((child) => visit(child.value, child.label, child.path, depth + 1));
+    };
+
+    visit(value, rootLabel, "$", 0);
+    return { rows: output, truncated };
+  }, [defaultExpandDepth, expandedPaths, maxDepth, maxNodes, rootLabel, value]);
+
+  return (
+    <div className="h-full min-h-[280px] overflow-auto rounded-lg bg-white">
+      <div className="divide-y divide-slate-100">
+        {rows.rows.map((row) => (
+          <div
+            key={row.path}
+            className="flex items-start gap-2 px-3 py-2 text-sm"
+            style={{ paddingLeft: 12 + row.depth * 14 }}
+          >
+            {row.canExpand ? (
+              <button
+                type="button"
+                onClick={() => onTogglePath?.(row.path)}
+                className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-sky-600 hover:bg-sky-100"
+                aria-label={row.isExpanded ? "Collapse node" : "Expand node"}
+              >
+                {row.isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+              </button>
+            ) : (
+              <span className="mt-0.5 h-5 w-5 shrink-0" />
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="truncate font-semibold text-slate-800">{row.label}</div>
+              <div className="truncate text-xs text-slate-500">{preview(row.value)}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {rows.truncated && (
+        <div className="border-t border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+          Node limit reached ({maxNodes}). Increase the node cap on desktop to inspect more.
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function DataGraph({
   value,
   rootLabel = "root",
@@ -230,8 +333,13 @@ export function DataGraph({
   const safeMaxDepth = Math.max(1, maxDepth);
   const safeMaxNodes = Math.max(1, maxNodes);
   const safeDefaultExpandDepth = Math.max(0, defaultExpandDepth);
+  const outlineMode = useOutlineGraphMode();
 
   const graph = React.useMemo(() => {
+    if (outlineMode) {
+      return { nodes: [], edges: [], truncated: false };
+    }
+
     const nodes: Node<GraphNodeData>[] = [];
     const edges: Edge[] = [];
     let yCursor = 0;
@@ -330,7 +438,7 @@ export function DataGraph({
     build(rootValue, rootKind, rootLabel, rootPath, 0);
 
     return { nodes, edges, truncated };
-  }, [value, rootLabel, safeMaxDepth, safeMaxNodes, safeDefaultExpandDepth, expandedPaths, onTogglePath]);
+  }, [outlineMode, value, rootLabel, safeMaxDepth, safeMaxNodes, safeDefaultExpandDepth, expandedPaths, onTogglePath]);
 
   return (
     <div
@@ -339,6 +447,17 @@ export function DataGraph({
         className
       )}
     >
+      {outlineMode ? (
+        <DataGraphOutline
+          value={value}
+          rootLabel={rootLabel}
+          maxDepth={safeMaxDepth}
+          maxNodes={Math.min(safeMaxNodes, 160)}
+          defaultExpandDepth={safeDefaultExpandDepth}
+          expandedPaths={expandedPaths}
+          onTogglePath={onTogglePath}
+        />
+      ) : (
       <div className="h-full min-h-[280px]">
         <ReactFlow
           nodes={graph.nodes}
@@ -351,12 +470,14 @@ export function DataGraph({
           nodesConnectable={false}
           elementsSelectable={false}
           zoomOnDoubleClick={false}
+          onlyRenderVisibleElements
         >
           <Background color="#dbe5f0" gap={26} />
           <MiniMap pannable zoomable className="!bg-white/90 !border !border-slate-200 !backdrop-blur" />
           <Controls className="!bg-white/90 !border !border-slate-200 !text-slate-600 !backdrop-blur" showInteractive={false} />
         </ReactFlow>
       </div>
+      )}
 
       {graph.truncated && (
         <div className="border-t border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">

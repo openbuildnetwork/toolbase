@@ -15,6 +15,13 @@ interface OllamaSetupProps {
 
 export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MODEL_ID }: OllamaSetupProps) {
   const { loadModel, progress, progressPercentage, isLoading, isLoaded, error } = useAIChat();
+  const [consents, setConsents] = React.useState({
+    storage: false,
+    privacy: false,
+    hardware: false,
+  });
+
+  const allConsented = Object.values(consents).every(Boolean);
 
   useEffect(() => {
     if (isLoaded) {
@@ -158,14 +165,47 @@ export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MOD
                       </p>
                     </div>
                   </div>
+                  <div className="flex flex-col gap-2.5 pt-2">
+                    <div className="flex justify-between text-[10px] text-(--text-faint) uppercase tracking-widest font-black">
+                      <span>Engine Selector</span>
+                    </div>
+                    <div className="w-full">
+                      <ModelPicker />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex flex-col gap-2.5 pt-2">
-                  <div className="flex justify-between text-[10px] text-(--text-faint) uppercase tracking-widest font-black">
-                    <span>Engine</span>
-                  </div>
-                  <div className="w-full">
-                    <ModelPicker />
+                <div className="space-y-4 pt-4 border-t border-(--border-subtle)">
+                  <p className="text-[10px] text-(--text-faint) uppercase tracking-widest font-black">Prerequisites</p>
+                  
+                  <div className="space-y-3">
+                    {[
+                      { id: 'storage', label: 'Acknowledge ~2GB download to local storage' },
+                      { id: 'privacy', label: 'Confirm 100% local, zero-network privacy' },
+                      { id: 'hardware', label: 'Verify WebGPU & high RAM/VRAM availability' }
+                    ].map((item) => (
+                      <label 
+                        key={item.id}
+                        className="flex items-start gap-3 p-3 rounded-xl border border-(--border-subtle) bg-(--surface-secondary)/30 cursor-pointer hover:bg-(--surface-hover) transition-colors group"
+                      >
+                        <div className="relative flex items-center justify-center mt-0.5">
+                          <input 
+                            type="checkbox" 
+                            className="peer h-4 w-4 appearance-none rounded border border-blue-500/50 checked:bg-blue-500 checked:border-blue-500 transition-all cursor-pointer"
+                            checked={consents[item.id as keyof typeof consents]}
+                            onChange={(e) => setConsents(prev => ({ ...prev, [item.id]: e.target.checked }))}
+                          />
+                          <div className="absolute opacity-0 peer-checked:opacity-100 pointer-events-none text-white transition-opacity">
+                            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                              <path d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        </div>
+                        <span className="text-[13px] font-medium text-(--text-secondary) group-hover:text-(--text-primary) transition-colors select-none">
+                          {item.label}
+                        </span>
+                      </label>
+                    ))}
                   </div>
                 </div>
               </CardContent>
@@ -173,7 +213,8 @@ export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MOD
               <CardFooter className="pb-10 pt-6 px-8">
                 <Button 
                   onClick={() => loadModel(targetModel, true)} 
-                  className="w-full h-14 text-lg font-black bg-blue-600 hover:bg-blue-500 text-white rounded-2xl shadow-xl shadow-blue-500/30 transition-all hover:scale-[1.02] active:scale-95"
+                  disabled={!allConsented}
+                  className="w-full h-14 text-lg font-black bg-blue-600 hover:bg-blue-500 text-white rounded-2xl shadow-xl shadow-blue-500/30 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none"
                 >
                   Activate Assistant
                 </Button>

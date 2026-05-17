@@ -511,6 +511,7 @@ export function DrawCanvas({ openDraw, isDark = false }: DrawCanvasProps) {
                     selectionOnDrag
                     panOnDrag={[1, 2]}
                     proOptions={{ hideAttribution: true }}
+                    onlyRenderVisibleElements
                 >
                     <Background
                         color={isDark ? '#333' : '#e2e8f0'}

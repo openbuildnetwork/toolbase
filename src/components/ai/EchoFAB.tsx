@@ -107,12 +107,14 @@ export function EchoFAB() {
             )}
 
             {/* Echo Icon */}
-            <div className="relative h-9 w-9 overflow-hidden rounded-lg border border-blue-500/10 shadow-sm transition-transform group-hover:scale-110">
+            <div className="relative h-10 w-10 transition-transform group-hover:scale-110 flex items-center justify-center">
               <Image
                 src="/assets/images/echo_basic.png"
                 alt="Echo"
-                fill
-                className="object-cover"
+                width={40}
+                height={40}
+                className="object-contain"
+                priority
               />
             </div>
 
