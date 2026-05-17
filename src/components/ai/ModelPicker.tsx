@@ -60,7 +60,7 @@ export function ModelPicker() {
               animate={{ opacity: 1, y: -10, scale: 1, filter: "blur(0px)" }}
               exit={{ opacity: 0, y: 10, scale: 0.95, filter: "blur(10px)" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="absolute bottom-full left-0 mb-3 w-[calc(100vw-32px)] sm:w-[360px] rounded-[24px] border border-(--border-subtle) bg-(--surface-overlay)/95 p-2 shadow-2xl backdrop-blur-2xl z-[130] overflow-hidden"
+              className="absolute bottom-full left-0 mb-3 w-[calc(100vw-32px)] sm:w-[360px] rounded-[24px] border border-(--border-subtle) bg-(--surface-elevated) p-2 shadow-2xl z-[130] overflow-hidden"
             >
               <div className="px-4 py-3 border-b border-(--border-subtle) mb-1 bg-(--surface-elevated)/30 flex items-center justify-between">
                 <div className="text-xs font-bold uppercase tracking-[0.15em] text-(--text-faint) flex items-center gap-2">

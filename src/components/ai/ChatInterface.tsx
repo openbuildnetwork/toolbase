@@ -49,42 +49,50 @@ const PIPELINE_LOADING_MESSAGES = [
   "Almost there..."
 ];
 
-function PipelineLoading() {
-  const [index, setIndex] = React.useState(0);
-  
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((i) => (i + 1) % PIPELINE_LOADING_MESSAGES.length);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
+function ThinkingIndicator({ text, progress }: { text: string; progress?: number }) {
   return (
     <m.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="flex items-center gap-3 py-2 px-1"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex items-center gap-4 py-3 px-4 rounded-2xl rounded-tl-md border border-blue-500/20 bg-blue-500/[0.03] backdrop-blur-md shadow-sm"
     >
-      <div className="flex gap-1">
-        <m.span 
-          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-          transition={{ repeat: Infinity, duration: 1, delay: 0 }}
-          className="w-1.5 h-1.5 rounded-full bg-blue-500" 
-        />
-        <m.span 
-          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-          transition={{ repeat: Infinity, duration: 1, delay: 0.2 }}
-          className="w-1.5 h-1.5 rounded-full bg-blue-500" 
-        />
-        <m.span 
-          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-          transition={{ repeat: Infinity, duration: 1, delay: 0.4 }}
-          className="w-1.5 h-1.5 rounded-full bg-blue-500" 
-        />
+      <div className="flex gap-1.5">
+        {[0, 1, 2].map((i) => (
+          <m.span 
+            key={i}
+            animate={{ 
+              scale: [1, 1.3, 1], 
+              opacity: [0.4, 1, 0.4],
+              backgroundColor: ["rgba(59, 130, 246, 0.5)", "rgba(59, 130, 246, 1)", "rgba(59, 130, 246, 0.5)"]
+            }}
+            transition={{ 
+              repeat: Infinity, 
+              duration: 1.4, 
+              delay: i * 0.2,
+              ease: "easeInOut"
+            }}
+            className="w-1.5 h-1.5 rounded-full" 
+          />
+        ))}
       </div>
-      <span className="text-sm text-(--text-muted) italic font-medium">
-        {PIPELINE_LOADING_MESSAGES[index]}
-      </span>
+      <div className="flex flex-col gap-0.5">
+        <m.span 
+          animate={{ opacity: [0.6, 1, 0.6] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          className="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-500/80"
+        >
+          {text}
+        </m.span>
+        {progress !== undefined && (
+          <div className="h-1 w-32 overflow-hidden rounded-full bg-blue-500/10">
+            <m.div 
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              className="h-full bg-blue-500 transition-all duration-300"
+            />
+          </div>
+        )}
+      </div>
     </m.div>
   );
 }
@@ -113,13 +121,14 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
     error,
     loadModel,
     activeModelId,
-    toolState
+    toolState,
+    runtimeSnapshot,
+    recordRuntimeEvent
   } = useAIChat();
 
   const [input, setInput] = useState("");
   const [streamBuffer, setStreamBuffer] = useState("");
   const [showHistory, setShowHistory] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -164,6 +173,13 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
     setInput("");
     setStreamBuffer("");
 
+    recordRuntimeEvent({
+      kind: "ai",
+      level: "info",
+      message: "User asked Echo",
+      detail: userMsg.slice(0, 500),
+    });
+
     addMessageToActive({ role: "user", content: userMsg }, currentActiveId);
 
     const previousMessages = conversations.find((c) => c.id === currentActiveId)?.messages || [];
@@ -197,7 +213,13 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
 
     const systemPromptMessage = {
       role: "system" as const,
-      content: buildSystemPrompt(TOOLS, currentRoute ?? undefined, toolState, screenContext.trim() || undefined),
+      content: buildSystemPrompt(
+        TOOLS,
+        currentRoute ?? undefined,
+        toolState,
+        screenContext.trim() || undefined,
+        runtimeSnapshot,
+      ),
     };
 
     // Filter out any existing system messages from history to ensure only the latest 
@@ -223,6 +245,12 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
       if (!errMsg.includes("already been disposed") && !errMsg.includes("device was lost") && !errMsg.includes("abort")) {
         console.error(err);
       }
+      recordRuntimeEvent({
+        kind: "ai",
+        level: "error",
+        message: "Echo generation failed",
+        detail: err,
+      });
       addMessageToActive(
         { role: "assistant", content: "An error occurred during generation. Please try again." },
         currentActiveId,
@@ -330,6 +358,37 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
             )}
           </div>
         </div>
+
+        <div className="mt-auto border-t border-(--border-subtle) p-4">
+          <div className="mx-auto max-w-3xl">
+            <div className="flex flex-col gap-4 rounded-2xl border border-red-500/10 bg-red-500/[0.02] p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+                  <ShieldAlert className="h-5 w-5" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <h3 className="text-sm font-bold text-(--text-primary)">Local Intelligence Management</h3>
+                  <p className="text-xs leading-relaxed text-(--text-muted)">
+                    Uninstalling the AI engine will clear all cached model weights (up to 2GB) from your browser storage. You will need an internet connection to reinstall.
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (window.confirm("Uninstall Local AI Engine? This will clear cached model weights.")) {
+                    uninstallModel();
+                    setShowHistory(false);
+                  }
+                }}
+                className="w-full border-red-500/20 bg-transparent text-red-500 hover:bg-red-500/10 hover:text-red-600"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Uninstall Engine & Clear Cache
+              </Button>
+            </div>
+          </div>
+        </div>
       </m.div>
     );
   }
@@ -352,22 +411,25 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
             <Menu className="h-4 w-4" />
           </Button>
 
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 shadow-lg shadow-blue-500/10 overflow-hidden border border-blue-500/20">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden">
             <Image 
               src="/assets/images/echo_basic.png" 
               alt="Echo" 
               width={40} 
               height={40} 
-              className="h-full w-full object-cover"
+              className="object-contain"
+              priority
             />
           </div>
 
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center">
               <h2 className="truncate text-sm font-semibold tracking-tight text-(--text-primary)">Echo</h2>
+            </div>
+            <div className="mt-1 flex items-center gap-2">
               <span
                 className={cn(
-                  "rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em]",
+                  "rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em]",
                   isChatable
                     ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
                     : isGenerating
@@ -377,65 +439,23 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
               >
                 {chatStatus}
               </span>
-            </div>
-            <div className="mt-0.5 flex items-center gap-1.5 text-xs text-(--text-muted)">
-              <Cpu className="h-3.5 w-3.5" />
-              <span className="truncate">Local private session</span>
+              <div className="rounded-md bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                Beta
+              </div>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Open chat menu"
-              className="rounded-lg border border-(--border-subtle) bg-(--surface-elevated)/70 text-(--text-muted) hover:bg-(--surface-hover)"
-              onClick={() => setShowMenu((value) => !value)}
-            >
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-
-            <AnimatePresence>
-              {showMenu && (
-                <m.div
-                  initial={{ opacity: 0, scale: 0.97, y: 8 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.97, y: 8 }}
-                  className="absolute right-0 z-30 mt-2 w-64 overflow-hidden rounded-lg border border-(--border-subtle) bg-(--surface-overlay) p-1 shadow-2xl backdrop-blur-xl"
-                >
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      if (window.confirm("Uninstall Local AI Engine? This will clear cached model weights.")) {
-                        uninstallModel();
-                        setShowMenu(false);
-                      }
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-500 transition-colors hover:bg-red-500/10"
-                  >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10">
-                      <ShieldAlert className="h-4 w-4" />
-                    </span>
-                    Uninstall local engine
-                  </button>
-                </m.div>
-              )}
-            </AnimatePresence>
-          </div>
-
           {onClose && (
             <Button
               variant="ghost"
               size="icon"
               aria-label="Close chat"
-              className="rounded-lg border border-(--border-subtle) bg-(--surface-elevated)/70 text-(--text-muted) hover:bg-(--surface-hover)"
+              className="rounded-lg text-(--text-muted) hover:bg-(--surface-hover) hover:text-(--text-primary)"
               onClick={onClose}
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </Button>
           )}
         </div>
@@ -609,7 +629,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                         {/* Show creative loader if we detect a pipeline-like structure forming */}
                         {(streamBuffer.includes("```") || (streamBuffer.includes("{") && streamBuffer.includes("\"steps\""))) && 
                          !streamBuffer.match(/```[\s\S]*?```/) && (
-                          <PipelineLoading />
+                          <ThinkingIndicator text="Architecting Pipeline" />
                         )}
                       </div>
                       
@@ -637,24 +657,21 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
           )}
 
           {(isGenerating || (isLoading && !isLoaded)) && !streamBuffer && (
-            <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-5 flex justify-start gap-3">
-              <div className="mt-1 hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 shadow-sm overflow-hidden border border-blue-500/20 sm:flex">
+            <m.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mt-5 flex justify-start gap-3">
+              <div className="mt-1 hidden h-8 w-8 shrink-0 items-center justify-center overflow-hidden sm:flex">
                 <Image 
                   src="/assets/images/echo_basic.png" 
                   alt="Echo" 
                   width={32} 
                   height={32} 
-                  className="h-full w-full object-cover"
+                  className="object-contain"
+                  priority
                 />
               </div>
-              <div className="rounded-2xl rounded-tl-md border border-(--border-subtle) bg-(--surface-elevated)/86 px-4 py-3 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-500">
-                    {isLoading && !isLoaded ? `Warming engine (${progressPercentage}%)` : "Echo is thinking"}
-                  </span>
-                </div>
-              </div>
+              <ThinkingIndicator 
+                text={isLoading && !isLoaded ? "Warming Engine" : "Echo is thinking"} 
+                progress={isLoading && !isLoaded ? progressPercentage : undefined}
+              />
             </m.div>
           )}
           {error && (
@@ -706,54 +723,68 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
         </div>
       </div>
 
-      <div className="relative z-10 border-t border-(--border-subtle) bg-(--surface-overlay)/90 p-3 backdrop-blur-xl md:p-4">
+      <div className="relative z-10 border-t border-(--border-subtle) bg-(--surface-overlay)/90 p-4 backdrop-blur-2xl">
         <div className="mx-auto max-w-4xl">
-          <div className="rounded-[32px] border border-(--border-subtle) bg-(--surface-elevated)/95 p-1.5 shadow-[0_16px_50px_var(--shadow-color)] ring-1 ring-white/40 transition focus-within:border-blue-500/50 focus-within:ring-4 focus-within:ring-blue-500/10 dark:ring-white/5">
-            <div className="px-2 pt-1 pb-0.5">
-              <ModelPicker />
-            </div>
-            <div className="flex items-end gap-2">
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={isLoaded ? "Ask Echo about Toolbase..." : "Warming up local AI..."}
-                className="max-h-[180px] min-h-12 flex-1 resize-none bg-transparent px-4 py-3 text-[15px] leading-6 text-(--text-primary) outline-none placeholder:text-(--text-muted) disabled:opacity-50"
-                rows={1}
-                disabled={isGenerating || !isLoaded}
-              />
-              {isGenerating ? (
-                <Button
-                  onClick={handleStop}
-                  aria-label="Stop response"
-                  className="mb-1 h-11 w-11 rounded-2xl bg-(--text-primary) p-0 text-(--background) shadow-md hover:scale-[1.02] hover:opacity-90"
-                >
-                  <Square className="h-4 w-4 fill-current" />
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleSend}
-                  disabled={!input.trim() || !isLoaded}
-                  aria-label="Send message"
-                  className={cn(
-                    "mb-1 h-11 w-11 rounded-2xl p-0 shadow-lg transition-all",
-                    input.trim() && isLoaded
-                      ? "bg-blue-600 text-white shadow-blue-500/25 hover:scale-[1.02] hover:bg-blue-500"
-                      : "bg-(--surface-hover) text-(--text-muted) opacity-60",
-                  )}
-                >
-                  <Send className="h-[18px] w-[18px]" />
-                </Button>
-              )}
+          <div className="group relative rounded-[28px] border border-(--border-subtle) bg-(--surface-elevated)/95 p-2 shadow-[0_12px_40px_var(--shadow-color)] transition-all focus-within:border-blue-500/40 focus-within:ring-4 focus-within:ring-blue-500/10">
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={isLoaded ? "Ask Echo about Toolbase..." : "Warming up local AI..."}
+              className="max-h-[200px] min-h-[48px] w-full resize-none bg-transparent px-4 py-3 text-[15px] leading-relaxed text-(--text-primary) outline-none placeholder:text-(--text-muted) disabled:opacity-50"
+              rows={1}
+              disabled={isGenerating || !isLoaded}
+            />
+            
+            <div className="flex items-center justify-between px-2 pt-1 pb-1">
+              <div className="flex items-center gap-2">
+                <ModelPicker />
+              </div>
+
+              <div className="flex items-center gap-2">
+                {isGenerating ? (
+                  <Button
+                    onClick={handleStop}
+                    size="icon"
+                    aria-label="Stop response"
+                    className="h-10 w-10 rounded-full bg-(--text-primary) p-0 text-(--background) shadow-lg hover:scale-105 active:scale-95 transition-all"
+                  >
+                    <Square className="h-4 w-4 fill-current" />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleSend}
+                    disabled={!input.trim() || !isLoaded}
+                    size="icon"
+                    aria-label="Send message"
+                    className={cn(
+                      "h-10 w-10 rounded-full p-0 shadow-lg transition-all hover:scale-105 active:scale-95",
+                      input.trim() && isLoaded
+                        ? "bg-blue-600 text-white shadow-blue-500/25 hover:bg-blue-700"
+                        : "bg-(--surface-hover) text-(--text-muted) opacity-50 cursor-not-allowed",
+                    )}
+                  >
+                    <Send className="h-[18px] w-[18px]" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
-          <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] font-medium text-(--text-faint)">
-            <span>Echo v1.0.0 Beta</span>
-            <span className="h-1 w-1 rounded-full bg-(--text-faint)" />
-            <span>Enter to send</span>
-            <span className="h-1 w-1 rounded-full bg-(--text-faint)" />
-            <span>Shift + Enter for a new line</span>
+          
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[10px] font-bold uppercase tracking-widest text-(--text-faint) opacity-60">
+            <div className="flex items-center gap-1.5">
+              <span className="h-1 w-1 rounded-full bg-blue-500" />
+              <span>Echo Beta</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="h-1 w-1 rounded-full bg-(--border-medium)" />
+              <span>Enter to send</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="h-1 w-1 rounded-full bg-(--border-medium)" />
+              <span>Shift + Enter for new line</span>
+            </div>
           </div>
         </div>
       </div>

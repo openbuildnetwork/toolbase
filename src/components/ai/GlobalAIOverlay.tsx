@@ -16,7 +16,7 @@ const OllamaSetup = dynamic(() => import("@/components/ai/OllamaSetup").then(mod
 });
 
 export function GlobalAIOverlay() {
-  const { isOpen, closeChat, isLoaded, isInstalled } = useAIChat();
+  const { isOpen, closeChat, isLoaded, isInstalled, isLoading, loadModel, activeModelId } = useAIChat();
   const [hasOpened, setHasOpened] = useState(false);
   const targetModel = DEFAULT_WEBLLM_MODEL_ID;
   
@@ -62,6 +62,11 @@ export function GlobalAIOverlay() {
       Promise.resolve().then(() => setHasOpened(true));
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !isInstalled || isLoaded || isLoading) return;
+    void loadModel(activeModelId || targetModel, false, true);
+  }, [activeModelId, isInstalled, isLoaded, isLoading, isOpen, loadModel, targetModel]);
 
   return (
     <>

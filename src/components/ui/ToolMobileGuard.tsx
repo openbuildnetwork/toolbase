@@ -11,9 +11,13 @@ interface ToolMobileGuardProps {
 
 export function ToolMobileGuard({ children }: ToolMobileGuardProps) {
   const pathname = usePathname();
-  const [isMobile, setIsMobile] = useState(false);
-  const [showWarning, setShowWarning] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => (
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  ));
   const [dismissed, setDismissed] = useState(false);
+  const toolRoute = pathname?.split('/')[1];
+  const tool = TOOLS.find(t => t.route === toolRoute);
+  const shouldGuard = Boolean(isMobile && tool && !tool.mobileOptimized && !dismissed);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -25,33 +29,12 @@ export function ToolMobileGuard({ children }: ToolMobileGuardProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  useEffect(() => {
-    // Only show warning if on a tool page and not already dismissed for this session
-    const toolRoute = pathname?.split('/')[1];
-    if (!toolRoute || toolRoute === 'tools' || toolRoute === '') {
-        // Not a direct tool route or it's /tools/something
-        // Wait, tools are in /(tools)/ which map to /tool-id
-        // e.g. /base64
-    }
-
-    // Find the tool in the registry
-    // The route in the registry matches the first part of the pathname
-    const tool = TOOLS.find(t => t.route === toolRoute);
-
-    if (isMobile && tool && !tool.mobileOptimized && !dismissed) {
-      Promise.resolve().then(() => setShowWarning(true));
-    } else {
-      Promise.resolve().then(() => setShowWarning(false));
-    }
-  }, [pathname, isMobile, dismissed]);
-
   return (
     <>
-      {children}
+      {!shouldGuard && children}
       <MobileOptimizationWarning 
-        isOpen={showWarning} 
+        isOpen={shouldGuard}
         onProceed={() => {
-            setShowWarning(false);
             setDismissed(true);
         }} 
       />

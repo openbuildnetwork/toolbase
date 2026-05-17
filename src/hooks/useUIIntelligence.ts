@@ -4,7 +4,37 @@ import { useEffect, useRef, useCallback } from "react";
 import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 import { usePathname } from "next/navigation";
 
-const IDLE_TIMEOUT = 2000; // 2 seconds of inactivity
+const IDLE_TIMEOUT = 8000;
+const ACTIVITY_THROTTLE_MS = 250;
+const SUGGESTION_MIN_INTERVAL_MS = 45000;
+
+function buildLocalSuggestions(
+  pathname: string | null,
+  uiContext: { targetElement?: string; action?: string },
+  toolState: Record<string, unknown> | null,
+) {
+  const suggestions: string[] = [];
+  const toolName = typeof toolState?.toolName === "string" ? toolState.toolName : null;
+  const status = typeof toolState?.status === "string" ? toolState.status : null;
+
+  if (uiContext?.targetElement === "input" && uiContext.action) {
+    suggestions.push(`Need help with ${uiContext.action}?`);
+  }
+
+  if (status === "error") {
+    suggestions.push("Want me to explain the failure?");
+  } else if (toolName) {
+    suggestions.push(`Need help with ${toolName}?`);
+  } else if (pathname?.includes("pipeline")) {
+    suggestions.push("Want help wiring this flow?");
+  }
+
+  if (suggestions.length === 0) {
+    suggestions.push("Need a hand here?");
+  }
+
+  return suggestions.slice(0, 2);
+}
 
 /**
  * useUIIntelligence
@@ -18,88 +48,52 @@ export function useUIIntelligence() {
     setIsIdle, 
     setSuggestions, 
     toolState, 
-    isLoaded,
     isOpen,
-    rawInference,
     uiContext,
-    isIdle
+    isIdle,
+    recordRuntimeEvent
   } = useAIChat();
   
   const pathname = usePathname();
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastElementRef = useRef<string | null>(null);
-  const isGeneratingRef = useRef(false);
+  const isIdleRef = useRef(isIdle);
+  const lastActivityAtRef = useRef(0);
+  const lastSuggestionAtRef = useRef(0);
+
+  useEffect(() => {
+    isIdleRef.current = isIdle;
+  }, [isIdle]);
 
   const resetIdleTimer = useCallback(() => {
-    setIsIdle(false);
+    const now = Date.now();
+    if (now - lastActivityAtRef.current < ACTIVITY_THROTTLE_MS) return;
+    lastActivityAtRef.current = now;
+
+    if (isIdleRef.current) {
+      setIsIdle(false);
+    }
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     
     idleTimerRef.current = setTimeout(() => {
+      isIdleRef.current = true;
       setIsIdle(true);
     }, IDLE_TIMEOUT);
   }, [setIsIdle]);
 
-  // Generate proactive suggestions based on LLM "thinking"
+  // Generate proactive suggestions from local context only. This keeps Echo helpful
+  // without running hidden inference while the user is simply reading or hovering.
   useEffect(() => {
-    // Only generate when idle and loaded, and not already open or generating
-    if (!isLoaded || isOpen || !isIdle || isGeneratingRef.current) {
+    if (isOpen || !isIdle) {
       if (!isIdle) setSuggestions([]);
       return;
     }
 
-    const generateAISuggestions = async () => {
-      isGeneratingRef.current = true;
-      
-      const contextPrompt = `
-You are Echo, a friendly and empathetic AI companion for the Toolbase platform. 
-Your goal is to offer a supportive "nudge" or a friendly comment to the user when they seem to be thinking or waiting.
-
-USER CONTEXT:
-- Page: ${pathname}
-- Interaction: ${uiContext?.targetElement || "viewing"} ${uiContext?.action || ""}
-- Tool Data: ${JSON.stringify(toolState)}
-
-INSTRUCTIONS:
-- Provide 1 or 2 friendly, conversational suggestions or comments.
-- Tone: Helpful, companion-like, slightly casual.
-- CRITICAL: Mention the specific field or button if the user is focused on one (e.g., "Need help with the '${uiContext?.action || "field"}' input?").
-- Example: "Stuck on what secrets to hide?", "Hey, need a hand with the ${uiContext?.action || "input"}?", "Ready to redact those values?"
-- Format: Return ONLY a JSON array of strings. Max 8 words per string.
-`.trim();
-
-      try {
-        const response = await rawInference([
-          { role: "system", content: "You are a friendly AI companion. Respond with a JSON array of short, conversational nudges." },
-          { role: "user", content: contextPrompt }
-        ], 96);
-
-        // Try to parse JSON array from response
-        const match = response.match(/\[[\s\S]*\]/);
-        if (match) {
-          try {
-            const parsed = JSON.parse(match[0]);
-            if (Array.isArray(parsed)) {
-              setSuggestions(parsed.slice(0, 2));
-            }
-        } catch {
-            // If JSON parse fails, fallback to line splitting
-            const lines = response.split("\n").filter(l => l.trim().length > 3).slice(0, 2);
-            setSuggestions(lines.map(l => l.replace(/^[-*0-9."']+\s*/, "").replace(/[",\]]/g, "").trim()));
-          }
-        } else {
-          // Fallback to line splitting if no JSON found
-          const lines = response.split("\n").filter(l => l.trim().length > 3).slice(0, 2);
-          setSuggestions(lines.map(l => l.replace(/^[-*0-9."']+\s*/, "").trim()));
-        }
-      } catch (err) {
-        console.error("Failed to generate AI suggestions", err);
-      } finally {
-        isGeneratingRef.current = false;
-      }
-    };
-
-    generateAISuggestions();
-  }, [pathname, toolState, uiContext, isLoaded, isOpen, isIdle, setSuggestions, rawInference]);
+    const now = Date.now();
+    if (now - lastSuggestionAtRef.current < SUGGESTION_MIN_INTERVAL_MS) return;
+    lastSuggestionAtRef.current = now;
+    setSuggestions(buildLocalSuggestions(pathname, uiContext, toolState));
+  }, [pathname, toolState, uiContext, isOpen, isIdle, setSuggestions]);
 
   // Track global interactions
   useEffect(() => {
@@ -107,17 +101,17 @@ INSTRUCTIONS:
       resetIdleTimer();
     };
 
-    window.addEventListener("mousemove", handleActivity);
+    window.addEventListener("pointermove", handleActivity, { passive: true });
     window.addEventListener("keydown", handleActivity);
-    window.addEventListener("mousedown", handleActivity);
-    window.addEventListener("scroll", handleActivity, true);
+    window.addEventListener("pointerdown", handleActivity, { passive: true });
+    window.addEventListener("scroll", handleActivity, { passive: true, capture: true });
 
     resetIdleTimer();
 
     return () => {
-      window.removeEventListener("mousemove", handleActivity);
+      window.removeEventListener("pointermove", handleActivity);
       window.removeEventListener("keydown", handleActivity);
-      window.removeEventListener("mousedown", handleActivity);
+      window.removeEventListener("pointerdown", handleActivity);
       window.removeEventListener("scroll", handleActivity, true);
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
@@ -152,15 +146,21 @@ INSTRUCTIONS:
 
       if (context) {
         setUIContext(context);
+        recordRuntimeEvent({
+          kind: "ui",
+          level: "info",
+          message: `User focused ${context.targetElement}`,
+          detail: context.action,
+        });
       }
     };
 
-    window.addEventListener("mouseover", handleInteraction);
+    window.addEventListener("pointerover", handleInteraction);
     window.addEventListener("focusin", handleInteraction);
     
     return () => {
-      window.removeEventListener("mouseover", handleInteraction);
+      window.removeEventListener("pointerover", handleInteraction);
       window.removeEventListener("focusin", handleInteraction);
     };
-  }, [setUIContext]);
+  }, [recordRuntimeEvent, setUIContext]);
 }

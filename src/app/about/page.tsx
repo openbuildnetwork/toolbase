@@ -13,13 +13,14 @@ import Footer from "@/components/ui/Footer";
 
 
 const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 32 },
-  visible: (i: number) => ({
+  hidden: { opacity: 0, y: 24 },
+  visible: {
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.1, duration: 0.7, ease: [0.23, 1, 0.32, 1] },
-  }),
+    transition: { duration: 0.8, ease: [0.25, 1, 0.5, 1] },
+  },
 };
+
 
 const stats = [
   { value: "100%", label: "Client-side", sub: "Nothing leaves your browser" },
@@ -111,8 +112,9 @@ const manifesto = [
 export default function AboutPage() {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, 80]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.2]);
+
 
   return (
     <div
@@ -143,9 +145,10 @@ export default function AboutPage() {
 
         <m.div style={{ y: heroY, opacity: heroOpacity }} className="relative z-10 max-w-4xl mx-auto space-y-8">
           {/* OBN Logo + Name */}
-          <m.div custom={0} initial="hidden" animate="visible" variants={fadeUp}
+          <m.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.1 }}
             className="flex flex-col items-center gap-2"
           >
+
             {/* Light mode logo */}
             <Image
               src="/assets/images/logo-dark.png"
@@ -173,9 +176,10 @@ export default function AboutPage() {
           </m.div>
 
           {/* Headline */}
-          <m.h1 custom={1} initial="hidden" animate="visible" variants={fadeUp}
+          <m.h1 initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.2 }}
             className="text-5xl sm:text-6xl md:text-8xl font-extrabold tracking-tight leading-[0.95]"
           >
+
             The browser is<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-br from-primary via-blue-400 to-cyan-400">
               your computer.
@@ -183,16 +187,18 @@ export default function AboutPage() {
           </m.h1>
 
           {/* Sub */}
-          <m.p custom={2} initial="hidden" animate="visible" variants={fadeUp}
+          <m.p initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.3 }}
             className="text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
+
             toolbase is a growing suite of professional utilities that run <em>entirely</em> inside your browser.
             No servers. No uploads. No accounts. Just powerful tools that respect your privacy by design.
           </m.p>
 
           {/* CTAs */}
-          <m.div custom={3} initial="hidden" animate="visible" variants={fadeUp} className="flex flex-wrap items-center justify-center gap-4 pt-2">
+          <m.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.4 }} className="flex flex-wrap items-center justify-center gap-4 pt-2">
+
             <Link href="/"
               className="px-8 py-3.5 rounded-2xl font-bold text-sm transition-all hover:scale-105 active:scale-95"
               style={{ background: "var(--text-primary)", color: "var(--background)" }}
@@ -209,10 +215,11 @@ export default function AboutPage() {
           </m.div>
 
           {/* Scroll cue */}
-          <m.div custom={4} initial="hidden" animate="visible" variants={fadeUp}
+          <m.div initial="hidden" animate="visible" variants={fadeUp} transition={{ delay: 0.5 }}
             className="flex flex-col items-center gap-1 pt-8"
             style={{ color: "var(--text-muted)" }}
           >
+
             <MousePointer2 className="w-4 h-4 animate-bounce" />
             <span className="text-[11px] uppercase tracking-widest">scroll to explore</span>
           </m.div>
@@ -225,11 +232,12 @@ export default function AboutPage() {
           {stats.map((s, i) => (
             <m.div
               key={i}
-              custom={i}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0.3 }}
               variants={fadeUp}
+              transition={{ delay: i * 0.1 }}
+
               className="p-6 rounded-3xl border text-center space-y-1 group hover:scale-[1.02] transition-transform"
               style={{ borderColor: "var(--border-medium)", background: "var(--surface-overlay)" }}
             >
@@ -242,8 +250,9 @@ export default function AboutPage() {
       </section>
 
       {/* ── MANIFESTO ────────────────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-20 w-full space-y-6">
-        <m.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="mb-12">
+      <section className="relative z-10 max-w-5xl mx-auto px-6 py-20 w-full space-y-6">
+        <m.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} variants={fadeUp} className="mb-12">
+
           <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: "#3457D5" }}>Our Beliefs</p>
           <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">What we stand for.</h2>
         </m.div>
@@ -251,11 +260,12 @@ export default function AboutPage() {
         {manifesto.map((item, i) => (
           <m.div
             key={i}
-            custom={i + 1}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
+            viewport={{ once: true, amount: 0.2 }}
             variants={fadeUp}
+            transition={{ delay: (i + 1) * 0.1 }}
+
             className="group flex gap-6 md:gap-10 items-start p-8 rounded-3xl border transition-all hover:border-(--border-medium)"
             style={{ borderColor: "var(--border-subtle)", background: "var(--surface-overlay)" }}
           >
@@ -271,8 +281,9 @@ export default function AboutPage() {
       </section>
 
       {/* ── CORE PILLARS ─────────────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-20 w-full">
-        <m.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12 space-y-3">
+      <section className="relative z-10 max-w-5xl mx-auto px-6 py-20 w-full">
+        <m.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} variants={fadeUp} className="text-center mb-12 space-y-3">
+
           <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#3457D5" }}>Core Principles</p>
           <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">Built different.</h2>
         </m.div>
@@ -281,11 +292,12 @@ export default function AboutPage() {
           {pillars.map((p, i) => (
             <m.div
               key={i}
-              custom={i + 1}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0.2 }}
               variants={fadeUp}
+              transition={{ delay: (i + 1) * 0.1 }}
+
               className={`p-8 rounded-3xl border ${p.border} group hover:scale-[1.02] transition-all space-y-5`}
               style={{ background: "var(--surface-overlay)" }}
             >
@@ -300,8 +312,9 @@ export default function AboutPage() {
       </section>
 
       {/* ── TECH STACK ───────────────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-20 w-full">
-        <m.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12 space-y-3">
+      <section className="relative z-10 max-w-5xl mx-auto px-6 py-20 w-full">
+        <m.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} variants={fadeUp} className="text-center mb-12 space-y-3">
+
           <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#3457D5" }}>Under The Hood</p>
           <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">How it actually works.</h2>
           <p className="max-w-xl mx-auto text-base leading-relaxed" style={{ color: "var(--text-secondary)" }}>
@@ -313,11 +326,12 @@ export default function AboutPage() {
           {techStack.map((t, i) => (
             <m.div
               key={i}
-              custom={i + 1}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0.2 }}
               variants={fadeUp}
+              transition={{ delay: (i + 1) * 0.1 }}
+
               className="p-8 rounded-3xl border group hover:border-(--border-medium) transition-all space-y-4"
               style={{ borderColor: "var(--border-subtle)", background: "var(--surface-overlay)" }}
             >
@@ -337,8 +351,9 @@ export default function AboutPage() {
       </section>
 
       {/* ── HOW IT WORKS FLOW ────────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-20 w-full">
-        <m.div custom={0} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12 space-y-3">
+      <section className="relative z-10 max-w-5xl mx-auto px-6 py-20 w-full">
+        <m.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} variants={fadeUp} className="text-center mb-12 space-y-3">
+
           <p className="text-xs font-black uppercase tracking-widest" style={{ color: "#3457D5" }}>Privacy Model</p>
           <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Your data never moves.</h2>
         </m.div>
@@ -351,11 +366,13 @@ export default function AboutPage() {
           ].map((step, i) => (
             <React.Fragment key={i}>
               <m.div
-                custom={i}
+                key={i}
                 initial="hidden"
                 whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeUp}
+                viewport={{ once: true, amount: 0.3 }}
+                variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+                transition={{ delay: i * 0.1 }}
+
                 className="flex-1 p-8 rounded-3xl border text-center space-y-4"
                 style={{ borderColor: "var(--border-medium)", background: "var(--surface-overlay)" }}
               >
@@ -374,11 +391,12 @@ export default function AboutPage() {
           ))}
         </div>
         <m.p
-          custom={4}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={fadeUp}
+          transition={{ delay: 0.4 }}
+
           className="text-center text-sm mt-6"
           style={{ color: "var(--text-muted)" }}
         >
@@ -387,13 +405,13 @@ export default function AboutPage() {
       </section>
 
       {/* ── CONTRIBUTE CTA ───────────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-20 pb-32 w-full">
+      <section className="relative z-10 max-w-5xl mx-auto px-6 py-20 pb-32 w-full">
         <m.div
-          custom={0}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.3 }}
           variants={fadeUp}
+
           className="relative rounded-[40px] overflow-hidden p-12 md:p-20 text-center space-y-8"
           style={{ background: "var(--surface-overlay)", border: "1px solid var(--border-medium)" }}
         >

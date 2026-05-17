@@ -4,7 +4,8 @@ import React from "react";
 import { FilterBuilder, FilterCondition } from "./FilterBuilder";
 import { DataTable } from "./DataTable";
 import { Button } from "@/components/ui/Button";
-import { Table as TableIcon, Code2, Terminal } from "lucide-react";
+import { Table as TableIcon, Code2, Terminal, FileText, FileJson, Download } from "lucide-react";
+
 import { TableSchema } from "@/app/(tools)/data-lens/hooks/useDataLens";
 
 interface DataViewProps {
@@ -14,6 +15,7 @@ interface DataViewProps {
     onApplyFilters: (conditions: FilterCondition[]) => void;
     onSwitchToSql: () => void;
     onSwitchToPython: () => void;
+    onExport?: (format: 'csv' | 'json') => void;
     title?: string;
 }
 
@@ -24,8 +26,11 @@ export function DataView({
     onApplyFilters,
     onSwitchToSql,
     onSwitchToPython,
+    onExport,
     title
 }: DataViewProps) {
+
+
     if (tableData.length === 0) {
         const isResultEmpty = title === "Query Result" || title === "Analysis Result";
 
@@ -69,9 +74,43 @@ export function DataView({
     return (
         <div className="h-full flex flex-col bg-surface">
             <FilterBuilder schema={activeSchema} onApply={onApplyFilters} />
+            <div className="flex items-center justify-between px-6 py-2 bg-surface-secondary border-b border-border-subtle">
+                <div className="flex items-center gap-2">
+                    <TableIcon className="w-4 h-4 text-text-muted" />
+                    <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">
+                        {title || (activeSchema ? `Table: ${activeSchema.table_name}` : 'Data View')}
+                    </span>
+                    <span className="text-[10px] text-text-muted font-mono bg-surface-overlay px-2 py-0.5 rounded-md">
+                        {tableData.length} rows
+                    </span>
+                </div>
+                {onExport && (
+                    <div className="flex items-center gap-2">
+                        <Button
+                            onClick={() => onExport('csv')}
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 gap-1.5 text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-600 font-semibold px-2 rounded-lg"
+                        >
+                            <FileText className="w-3.5 h-3.5" />
+                            <span className="text-[10px] uppercase tracking-wider">Export CSV</span>
+                        </Button>
+                        <Button
+                            onClick={() => onExport('json')}
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 gap-1.5 text-amber-500 hover:bg-amber-500/10 hover:text-amber-600 font-semibold px-2 rounded-lg"
+                        >
+                            <FileJson className="w-3.5 h-3.5" />
+                            <span className="text-[10px] uppercase tracking-wider">Export JSON</span>
+                        </Button>
+                    </div>
+                )}
+            </div>
             <div className="flex-1 overflow-hidden">
                 <DataTable data={tableData} columns={currentColumns} />
             </div>
+
         </div>
     );
 }
