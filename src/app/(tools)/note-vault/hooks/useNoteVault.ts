@@ -3,7 +3,7 @@ import { openDB, IDBPDatabase } from 'idb';
 import { Note, Collection, NoteRevision } from '../types/note-vault';
 
 const DB_NAME = 'note-vault-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Bumped to trigger upgrade for existing clients
 const STORE_NOTES = 'notes';
 const STORE_COLLECTIONS = 'collections';
 
@@ -15,14 +15,31 @@ const defaultCollection: Collection = {
   createdAt: new Date().toISOString()
 };
 
+/**
+ * Unified helper to open the NoteVault IndexedDB with correct upgrades
+ */
+export async function openNoteVaultDB(): Promise<IDBPDatabase> {
+  return openDB(DB_NAME, DB_VERSION, {
+    upgrade(db) {
+      if (!db.objectStoreNames.contains(STORE_NOTES)) {
+        db.createObjectStore(STORE_NOTES, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(STORE_COLLECTIONS)) {
+        db.createObjectStore(STORE_COLLECTIONS, { keyPath: 'id' });
+      }
+    },
+  });
+}
+
 export async function getPinnedNotes(): Promise<Note[]> {
   try {
-    const database = await openDB(DB_NAME, DB_VERSION);
+    const database = await openNoteVaultDB();
     if (!database.objectStoreNames.contains(STORE_NOTES)) return [];
     const tx = database.transaction(STORE_NOTES, 'readonly');
     const allNotes: Note[] = await tx.objectStore(STORE_NOTES).getAll();
     return allNotes.filter(n => n.isPinned);
-  } catch {
+  } catch (error) {
+    console.error('Failed to get pinned notes:', error);
     return [];
   }
 }
@@ -36,35 +53,32 @@ export function useNoteVault() {
   // Initialize DB
   useEffect(() => {
     const initDb = async () => {
-      const database = await openDB(DB_NAME, DB_VERSION, {
-        upgrade(db) {
-          if (!db.objectStoreNames.contains(STORE_NOTES)) {
-            db.createObjectStore(STORE_NOTES, { keyPath: 'id' });
-          }
-          if (!db.objectStoreNames.contains(STORE_COLLECTIONS)) {
-            db.createObjectStore(STORE_COLLECTIONS, { keyPath: 'id' });
-          }
-        },
-      });
-      setDb(database);
+      try {
+        const database = await openNoteVaultDB();
+        setDb(database);
 
-      // Load collections
-      const tx = database.transaction(STORE_COLLECTIONS, 'readonly');
-      const savedCollections = await tx.objectStore(STORE_COLLECTIONS).getAll();
-      if (savedCollections.length > 0) {
-        setCollections(savedCollections);
-      } else {
-        // Save default collection if empty
-        const writeTx = database.transaction(STORE_COLLECTIONS, 'readwrite');
-        await writeTx.objectStore(STORE_COLLECTIONS).put(defaultCollection);
+        // Load collections
+        const tx = database.transaction(STORE_COLLECTIONS, 'readonly');
+        const savedCollections = await tx.objectStore(STORE_COLLECTIONS).getAll();
+        if (savedCollections.length > 0) {
+          setCollections(savedCollections);
+        } else {
+          // Save default collection if empty
+          const writeTx = database.transaction(STORE_COLLECTIONS, 'readwrite');
+          await writeTx.objectStore(STORE_COLLECTIONS).put(defaultCollection);
+        }
+
+        // Load notes
+        const notesTx = database.transaction(STORE_NOTES, 'readonly');
+        const savedNotes = await notesTx.objectStore(STORE_NOTES).getAll();
+        setNotes(savedNotes);
+
+        setIsReady(true);
+      } catch (error) {
+        console.error('Failed to initialize note-vault database:', error);
+        // Ensure ready state is set to let page render, or we could handle it via a toast/error UI
+        setIsReady(true);
       }
-
-      // Load notes
-      const notesTx = database.transaction(STORE_NOTES, 'readonly');
-      const savedNotes = await notesTx.objectStore(STORE_NOTES).getAll();
-      setNotes(savedNotes);
-
-      setIsReady(true);
     };
 
     initDb();
