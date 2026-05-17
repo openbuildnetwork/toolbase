@@ -759,6 +759,7 @@ export function useWebLLM() {
         if (typeof window !== "undefined") {
             localStorage.removeItem("obn_ai_installed");
             
+            
             try {
                 if (window.indexedDB && typeof window.indexedDB.databases === 'function') {
                     const dbs = await window.indexedDB.databases();

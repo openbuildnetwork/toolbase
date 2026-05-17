@@ -103,10 +103,15 @@ export class WorkerClient {
           if (!id) return;
           const req = this.pending.get(id);
           if (!req) {
+            // This can happen if the worker sends a message for an ID that was never registered
+            // or if the pending map was cleared (e.g., on worker crash).
+            // We log it as a warning instead of a silent failure to help debugging.
             console.warn(`[WorkerClient] Received response for unknown or expired message ID: ${id}`);
             return;
           }
           
+          this.pending.delete(id);
+
           if (type === 'RESULT') {
             this.pending.delete(id);
             req.resolve(data);
