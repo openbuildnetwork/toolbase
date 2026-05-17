@@ -18,18 +18,18 @@ interface WorkerResult {
 
 async function process_generate(request: GenerateRequest): Promise<WorkerResult> {
   const { text } = request;
-  
-  const payloadText = text || 'https://toolbase.app';
+
+  const payloadText = text || 'https://toolbase.in';
 
   if (!payloadText) {
-     throw new Error('No text provided to encode');
+    throw new Error('No text provided to encode');
   }
 
   // Create raw QR matrix
   const qr = qrcode.create(payloadText, { errorCorrectionLevel: 'Q' });
   const modules = qr.modules;
   const modSize = modules.size;
-  
+
   // Fixed size high-quality output
   const size = 600;
   const margin = 4;
@@ -57,7 +57,7 @@ async function process_generate(request: GenerateRequest): Promise<WorkerResult>
 
   const outBlob = await canvas.convertToBlob({ type: 'image/png' });
   const outBuffer = await outBlob.arrayBuffer();
-  
+
   return {
     success: true,
     result: Array.from(new Uint8Array(outBuffer))
@@ -70,14 +70,14 @@ async function process_decode(request: DecodeRequest): Promise<WorkerResult> {
 
   const blob = new Blob([data as unknown as BlobPart]);
   const bitmap = await createImageBitmap(blob);
-  
+
   let targetWidth = bitmap.width;
   let targetHeight = bitmap.height;
 
   if (typeof targetWidth !== 'number' || typeof targetHeight !== 'number' || targetWidth === 0 || targetHeight === 0) {
     throw new Error('Could not read image dimensions from the uploaded file.');
   }
-  
+
   const MAX_DIM = 1000;
   if (targetWidth > MAX_DIM || targetHeight > MAX_DIM) {
     const scale = Math.min(MAX_DIM / targetWidth, MAX_DIM / targetHeight);

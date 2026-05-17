@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 const CameraScanner = ({ onScan, isProcessing }: { onScan: (file: File) => void, isProcessing: boolean }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState('');
-  
+
   useEffect(() => {
     let stream: MediaStream | null = null;
     let interval: NodeJS.Timeout;
@@ -24,7 +24,7 @@ const CameraScanner = ({ onScan, isProcessing }: { onScan: (file: File) => void,
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
-        
+
         interval = setInterval(() => {
           if (isProcessing) return;
           if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
@@ -47,9 +47,9 @@ const CameraScanner = ({ onScan, isProcessing }: { onScan: (file: File) => void,
         setError('Camera access denied or unavailable.');
       }
     };
-    
+
     startCamera();
-    
+
     return () => {
       clearInterval(interval);
       if (stream) stream.getTracks().forEach(t => t.stop());
@@ -78,7 +78,7 @@ export default function QrForgeFeature() {
   const decTool = useTIPTool('qr-forge/decode');
 
   // State
-  const [textInput, setTextInput] = useState('https://toolbase.app');
+  const [textInput, setTextInput] = useState('https://toolbase.in');
   const [genResult, setGenResult] = useState<string | null>(null);
   const [decResult, setDecResult] = useState<{ text?: string, objectUrl?: string } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -92,7 +92,7 @@ export default function QrForgeFeature() {
     try {
       setErrorMsg(null);
       const payloadFiles = [new File([new Blob([''])], 'dummy.txt', { type: 'text/plain' })];
-      
+
       const config = {
         text: activeMode === 'url2qr' ? textInput : ''
       };
@@ -208,7 +208,7 @@ export default function QrForgeFeature() {
                 className="text-lg py-6"
               />
             </div>
-            
+
             <div className="flex flex-col items-center gap-4 pt-6 border-t min-h-[300px] justify-center">
               {genTool.isProcessing ? (
                 <div className="flex flex-col items-center gap-2 text-muted-foreground animate-pulse">
@@ -236,9 +236,9 @@ export default function QrForgeFeature() {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex justify-between items-center mb-4">
               <Label className="text-base">Upload or Scan QR Code</Label>
-              <Button 
-                variant={showCamera ? "default" : "outline"} 
-                size="sm" 
+              <Button
+                variant={showCamera ? "primary" : "outline"}
+                size="sm"
                 onClick={() => setShowCamera(!showCamera)}
                 className="gap-2"
               >
@@ -250,17 +250,17 @@ export default function QrForgeFeature() {
             {showCamera ? (
               <CameraScanner onScan={handleDecode} isProcessing={decTool.isProcessing} />
             ) : (
-              <FileDropZone 
-                onFileSelected={(f) => f && handleDecode(f)} 
-                accept="image/*" 
+              <FileDropZone
+                onFileSelected={(f) => f && handleDecode(f)}
+                accept="image/*"
               />
             )}
 
             {decTool.isProcessing && !showCamera && (
-               <div className="flex justify-center items-center gap-2 py-8 text-muted-foreground animate-pulse">
-                 <RefreshCw className="w-5 h-5 animate-spin" />
-                 <span>Decoding QR Code...</span>
-               </div>
+              <div className="flex justify-center items-center gap-2 py-8 text-muted-foreground animate-pulse">
+                <RefreshCw className="w-5 h-5 animate-spin" />
+                <span>Decoding QR Code...</span>
+              </div>
             )}
 
             {decResult && !decTool.isProcessing && (

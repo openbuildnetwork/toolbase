@@ -27,7 +27,7 @@ export const qrForgeConfig: ToolMeta = {
       mobileOptimized: true,
       configSchema: {
         fields: [
-          { key: 'text', label: 'Content', type: 'string', default: 'https://toolbase.app', description: 'URL or text to encode' }
+          { key: 'text', label: 'Content', type: 'string', default: 'https://toolbase.in', description: 'URL or text to encode' }
         ]
       },
       getExecutor: async () => {
