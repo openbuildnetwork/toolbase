@@ -121,7 +121,7 @@ export function useTIPTool(toolId: string) {
                 return null;
             }
 
-            console.error('useTIPTool execute error:', err);
+            console.warn('useTIPTool execute error:', err);
             const message = err instanceof Error ? err.message : 'An unknown error occurred';
             setError(message);
             if (options.onError) options.onError(err instanceof Error ? err : new Error(message));
