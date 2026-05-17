@@ -130,8 +130,9 @@ function getLoadedModelIds(engineInstance: MLCEngineInterface | null) {
     return Array.isArray(modelId) ? modelId : [];
 }
 
-function engineHasModel(engineInstance: MLCEngineInterface | null, modelId: string) {
-    return getLoadedModelIds(engineInstance).includes(modelId);
+function engineReportsDifferentModel(engineInstance: MLCEngineInterface | null, modelId: string) {
+    const loadedModelIds = getLoadedModelIds(engineInstance);
+    return loadedModelIds.length > 0 && !loadedModelIds.includes(modelId);
 }
 
 function getModelProfile(modelId: string | null) {
@@ -421,10 +422,10 @@ export function useWebLLM() {
         sharedRuntime.error = null;
 
         if (sharedRuntime.engine && sharedRuntime.modelId === modelId && !forceReload) {
-            if (engineHasModel(sharedRuntime.engine, modelId)) {
-                syncLoadedEngine(sharedRuntime.engine, modelId);
-            } else {
+            if (engineReportsDifferentModel(sharedRuntime.engine, modelId)) {
                 await reloadEngine(sharedRuntime.engine, modelId, background);
+            } else {
+                syncLoadedEngine(sharedRuntime.engine, modelId);
             }
 
             return;
@@ -577,10 +578,10 @@ export function useWebLLM() {
         const installedFlag = localStorage.getItem("obn_ai_installed") === "true";
         if (installedFlag) {
             setIsInstalled(true);
-            void loadModel(DEFAULT_WEBLLM_MODEL_ID, false, true);
+            setProgress("Local AI is cached. Open Echo to start the engine.");
             return;
         }
-    }, [loadModel, syncLoadedEngine]);
+    }, [loadModel]);
 
     const generateResponse = useCallback(async (
         messages: Message[],
@@ -598,7 +599,7 @@ export function useWebLLM() {
         }
 
         const activeModelId = sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID;
-        if (!engineHasModel(activeEngine, activeModelId)) {
+        if (engineReportsDifferentModel(activeEngine, activeModelId)) {
             await reloadEngine(activeEngine, activeModelId, true);
         }
 

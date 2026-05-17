@@ -121,7 +121,9 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
     error,
     loadModel,
     activeModelId,
-    toolState
+    toolState,
+    runtimeSnapshot,
+    recordRuntimeEvent
   } = useAIChat();
 
   const [input, setInput] = useState("");
@@ -171,6 +173,13 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
     setInput("");
     setStreamBuffer("");
 
+    recordRuntimeEvent({
+      kind: "ai",
+      level: "info",
+      message: "User asked Echo",
+      detail: userMsg.slice(0, 500),
+    });
+
     addMessageToActive({ role: "user", content: userMsg }, currentActiveId);
 
     const previousMessages = conversations.find((c) => c.id === currentActiveId)?.messages || [];
@@ -204,7 +213,13 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
 
     const systemPromptMessage = {
       role: "system" as const,
-      content: buildSystemPrompt(TOOLS, currentRoute ?? undefined, toolState, screenContext.trim() || undefined),
+      content: buildSystemPrompt(
+        TOOLS,
+        currentRoute ?? undefined,
+        toolState,
+        screenContext.trim() || undefined,
+        runtimeSnapshot,
+      ),
     };
 
     // Filter out any existing system messages from history to ensure only the latest 
@@ -230,6 +245,12 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
       if (!errMsg.includes("already been disposed") && !errMsg.includes("device was lost") && !errMsg.includes("abort")) {
         console.error(err);
       }
+      recordRuntimeEvent({
+        kind: "ai",
+        level: "error",
+        message: "Echo generation failed",
+        detail: err,
+      });
       addMessageToActive(
         { role: "assistant", content: "An error occurred during generation. Please try again." },
         currentActiveId,
