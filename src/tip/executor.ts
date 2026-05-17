@@ -80,7 +80,11 @@ export function createPerPayloadTIPExecutor(
           // Pass the underlying ArrayBuffer as a transferable to avoid blocking the main thread during structured clone
           result = await workerClient.execute(actionName, formattedKwargs, [buffer]);
           if (hooks.signal.aborted) throw new TIPError('CANCELLED', 'Cancelled after worker execution');
+          if (result && typeof result === 'object' && (result as Record<string, unknown>).success === false) {
+            throw new Error((result as Record<string, unknown>).error as string || 'Worker execution failed');
+          }
         } catch (err: unknown) {
+           if (err instanceof TIPError && err.code === 'CANCELLED') throw err;
            const message = err instanceof Error ? err.message : String(err);
            throw new TIPError('EXECUTION_FAILED', `Runtime error in ${actionName}: ${message}`);
         }
@@ -165,6 +169,7 @@ export function createBatchTIPExecutor(
       result = await workerClient.execute(actionName, formattedKwargs, transferables);
       if (hooks.signal.aborted) throw new TIPError('CANCELLED', 'Cancelled after worker execution');
     } catch (err: unknown) {
+       if (err instanceof TIPError && err.code === 'CANCELLED') throw err;
        const message = err instanceof Error ? err.message : String(err);
        throw new TIPError('EXECUTION_FAILED', `Runtime error in ${actionName}: ${message}`);
     }

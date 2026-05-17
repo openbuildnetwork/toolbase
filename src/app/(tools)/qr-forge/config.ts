@@ -27,17 +27,7 @@ export const qrForgeConfig: ToolMeta = {
       mobileOptimized: true,
       configSchema: {
         fields: [
-          { key: 'text', label: 'Content', type: 'string', default: 'https://toolbase.app', description: 'URL or text to encode' },
-          { key: 'size', label: 'Size', type: 'number', default: 220, min: 100, max: 1000, step: 10, unit: 'px' },
-          { key: 'errorCorrection', label: 'Error Correction', type: 'select', default: 'Q', options: [
-            { label: 'Low (L)', value: 'L' },
-            { label: 'Medium (M)', value: 'M' },
-            { label: 'High (Q)', value: 'Q' },
-            { label: 'Max (H)', value: 'H' }
-          ] },
-          { key: 'darkColor', label: 'Dot Color', type: 'string', default: '#000000' },
-          { key: 'lightColor', label: 'Background Color', type: 'string', default: '#ffffff' },
-          { key: 'logoSize', label: 'Logo Size', type: 'number', default: 22, min: 10, max: 40, step: 1, unit: '%', description: 'Size of logo overlay if image is provided' },
+          { key: 'text', label: 'Content', type: 'string', default: 'https://toolbase.in', description: 'URL or text to encode' }
         ]
       },
       getExecutor: async () => {
@@ -47,13 +37,8 @@ export const qrForgeConfig: ToolMeta = {
           qrForgeWorker,
           'generate',
           (uint8, config) => ({
-            data: uint8, // if it's text, we read it as buffer, if it's logo image, we use it as logo buffer. Wait, actually we can pass text config.
-            text: config.text,
-            size: config.size,
-            error_correction: config.errorCorrection,
-            dark_color: config.darkColor,
-            light_color: config.lightColor,
-            logo_size: config.logoSize
+            data: uint8,
+            text: config.text
           }),
           () => 'image/png',
           'Generate QR Code'
