@@ -28,12 +28,12 @@ Add your tool metadata to `src/config/tools.registry.ts`. This makes it searchab
 1. Create a new crate in `rust/my-tool`.
 2. Add it to `rust/Cargo.toml` workspace.
 3. Export your functions using `#[wasm_bindgen]`.
-4. Run `npm run build:wasm`.
+4. Run `pnpm build:wasm`.
 
 ### For Python
 1. Create `src/python/tools/my-tool/main.py`.
 2. Ensure you have a `handle_request(action, data)` function.
-3. Run `npm run build:python`.
+3. Run `pnpm build:python`.
 
 ## 4. Create the Web Worker
 Workers keep the UI responsive.
@@ -61,7 +61,7 @@ Create the tool page in `src/app/(tools)/my-new-tool/page.tsx`.
 - **Privacy Proof**: Ensure your tool only processes data in the browser (no `fetch` calls to external APIs).
 
 ## 8. Verification
-- Run `npm run build` to ensure no TypeScript or bundling errors.
+- Run `pnpm build` to ensure no TypeScript or bundling errors.
 - Verify the "Privacy Proof" panel correctly identifies your engine (WASM/Python).
 
 ---

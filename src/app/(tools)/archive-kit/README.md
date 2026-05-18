@@ -37,7 +37,7 @@ Rust source lives in:
 
 Manual build command:
 ```bash
-npm run build:archive-kit:wasm
+pnpm build:archive-kit:wasm
 ```
 
 This generates browser artifacts under:
@@ -46,7 +46,7 @@ This generates browser artifacts under:
 At runtime, the tool requires the Rust WASM artifacts. If they are missing, Archive Kit reports engine unavailability instead of falling back to TypeScript.
 
 ## Dev Workflow (project-wide)
-`npm run dev` now starts:
+`pnpm dev` now starts:
 1. Next.js dev server
 2. Python bundle watcher
 3. Rust WASM watcher (`rust/**` -> `public/wasm/**`)

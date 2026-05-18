@@ -15,7 +15,7 @@ async function loadPyodideAndPackages() {
     postInitProgress("Loading runtime…");
     try {
         const pyodide = await loadPyodide({
-            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.3/full/",
+            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.4/full/",
         });
 
         postInitProgress("Installing packages…");

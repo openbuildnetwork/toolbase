@@ -8,7 +8,7 @@ export const dataBuilderConfig: ToolMeta = {
     'DataBuilder helps you create structured mock data for testing and prototyping. Build datasets from field-level controls or advanced nested blueprints, then export in JSON or XML locally in your browser.',
   category: 'data',
   route: 'data-builder',
-  thumbnail: '/assets/thumbnails/data-builder.png',
+  thumbnail: '/assets/thumbnails/data-builder.webp',
   tags: ['data', 'mock data', 'generator', 'json', 'xml', 'schema', 'testing', 'seed data', 'blueprint'],
   isNew: false,
   isFeatured: false,

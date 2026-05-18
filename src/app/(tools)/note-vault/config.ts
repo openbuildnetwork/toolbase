@@ -8,7 +8,7 @@ export const noteVaultConfig: ToolMeta = {
     'Store your JSON, XML, Markdown, Code, and plain text securely in your browser. Features auto-format detection, instant fuzzy search, conversions, version history, and zip export. Fully offline and private.',
   category: 'developer',
   route: 'note-vault',
-  thumbnail: '/assets/thumbnails/note-vault.png',
+  thumbnail: '/assets/thumbnails/note-vault.webp',
   tags: ['notes', 'snippets', 'json', 'markdown', 'code', 'local', 'private', 'storage'],
   isNew: true,
   isFeatured: true,

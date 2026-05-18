@@ -6,7 +6,7 @@ import type {
 } from "@/app/(tools)/archive-kit/lib/archive-kit";
 
 type ArchiveKitRustApi = {
-  default: (wasmUrl?: string | URL | Request) => Promise<unknown>;
+  default: (options?: { module_or_path?: string | URL | Request } | string | URL | Request) => Promise<unknown>;
   create_archive_json: (format: string, filesJson: string, options_json?: string) => string;
   list_archive_json: (format: string, archiveBytesB64: string) => string;
   extract_archive_json: (format: string, archiveBytesB64: string, options_json?: string) => string;
@@ -47,7 +47,7 @@ async function loadRustApi(): Promise<ArchiveKitRustApi> {
       const jsUrl = `${base}/wasm/archive-kit/pkg/archive_kit.js`;
       const wasmUrl = `${base}/wasm/archive-kit/pkg/archive_kit_bg.wasm`;
       const mod = (await import(/* webpackIgnore: true */ jsUrl)) as ArchiveKitRustApi;
-      await mod.default(wasmUrl);
+      await mod.default({ module_or_path: wasmUrl });
       return mod;
     })();
   }

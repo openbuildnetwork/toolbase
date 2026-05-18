@@ -12,7 +12,7 @@ const missing = required.filter((file) => !fs.existsSync(file));
 if (missing.length > 0) {
   console.error("[wasm-check] Missing required WASM artifacts:");
   for (const file of missing) console.error(` - ${path.relative(ROOT, file)}`);
-  console.error("[wasm-check] Run `npm run build:wasm` before production build.");
+  console.error("[wasm-check] Run `pnpm build:wasm` before production build.");
   process.exit(1);
 }
 

@@ -8,7 +8,7 @@ export const qrForgeConfig: ToolMeta = {
     'Four modes to handle everything QR: encode URLs or text into clean vectors, scan QR codes from images to extract links, embed custom logos directly into your QR codes, or clean up scanned QR codes into perfect PNGs.',
   category: 'developer',
   route: 'qr-forge',
-  thumbnail: '/assets/thumbnails/qr-forge.png', // We'll assume a thumbnail exists or falls back
+  thumbnail: '/assets/thumbnails/qr-forge.webp', // We'll assume a thumbnail exists or falls back
   tags: ['qr', 'qrcode', 'barcode', 'scan', 'decode', 'encode', 'logo', 'generator'],
   isNew: true,
   isFeatured: false,

@@ -58,7 +58,7 @@ pub fn process_json(input: &str) -> Result<String, JsValue> {
 ## 3. Build the WASM Module
 Run:
 ```bash
-npm run build:wasm
+pnpm build:wasm
 ```
 The artifacts will be generated in `public/wasm/<your-tool>/pkg/`.
 
@@ -69,7 +69,7 @@ Create `src/lib/<your-tool>-rust.ts` to manage the dynamic import and module ini
 export async function initModule() {
   const wasmUrl = '/wasm/<your-tool>/pkg/<your_tool>_bg.wasm';
   const module = await import('../../public/wasm/<your-tool>/pkg/<your_tool>.js');
-  await module.default(wasmUrl);
+  await module.default({ module_or_path: wasmUrl });
   return module;
 }
 ```

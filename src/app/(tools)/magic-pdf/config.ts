@@ -8,7 +8,7 @@ export const magicPdfConfig: ToolMeta = {
     'Magic PDF is a full-featured PDF toolbase that runs entirely in your browser using WebAssembly. Compress PDFs without quality loss, merge multiple files, split by page range, add password protection, sign documents, convert to images, and more. No file ever leaves your machine.',
   category: 'pdf',
   route: 'magic-pdf',
-  thumbnail: '/assets/thumbnails/magic-pdf.png',
+  thumbnail: '/assets/thumbnails/magic-pdf.webp',
   tags: ['pdf', 'compress', 'merge', 'split', 'protect', 'sign', 'convert', 'word', 'image'],
   isNew: false,
   isFeatured: true,

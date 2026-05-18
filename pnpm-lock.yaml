@@ -89,7 +89,7 @@ importers:
         specifier: ^5.7.284
         version: 5.7.284
       pyodide:
-        specifier: ^0.29.3
+        specifier: ^0.29.4
         version: 0.29.4
       qrcode:
         specifier: ^1.5.4

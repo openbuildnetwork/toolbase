@@ -12,8 +12,8 @@
 4. UI state check (loading/error/success).
 
 ## CI Gates
-1. `npm run lint`
-2. `npm run type-check`
+1. `pnpm lint`
+2. `pnpm type-check`
 3. test suite pass
 4. visual baseline checks for changed tool pages
 

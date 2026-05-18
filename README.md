@@ -74,10 +74,10 @@ git clone https://github.com/toolbase/toolbase.git
 cd toolbase
 
 # Install dependencies
-npm install
+pnpm install
 
 # Start the development server
-npm run dev
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -85,9 +85,9 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ### Other commands
 
 ```bash
-npm run build        # Production build
-npm run lint         # Run ESLint
-npm run type-check   # TypeScript type checking
+pnpm build        # Production build
+pnpm lint         # Run ESLint
+pnpm type-check   # TypeScript type checking
 ```
 
 ---

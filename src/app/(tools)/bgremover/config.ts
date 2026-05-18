@@ -8,7 +8,7 @@ export const bgremoverConfig: ToolMeta = {
     'Background Remover is a privacy-first tool that uses advanced AI models to detect and remove backgrounds from your images locally. Your data never leaves your machine, ensuring maximum privacy and high-speed processing without needing a server.',
   category: 'image',
   route: 'bgremover',
-  thumbnail: '/assets/thumbnails/bgremover.png',
+  thumbnail: '/assets/thumbnails/bgremover.webp',
   tags: ['image', 'background', 'remove', 'ai', 'png', 'jpg', 'webp'],
   isNew: true,
   isFeatured: true,

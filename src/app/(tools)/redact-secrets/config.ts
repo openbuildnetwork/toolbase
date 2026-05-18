@@ -8,7 +8,7 @@ export const redactSecretsConfig: ToolMeta = {
     'Redact Secrets scans text, code, config files and documents for sensitive information — API keys, passwords, tokens, private keys, credit card numbers — and redacts them. Perfect for sanitizing files before sharing. All scanning happens locally in your browser.',
   category: 'security',
   route: 'redact-secrets',
-  thumbnail: '/assets/thumbnails/redact-secrets.png',
+  thumbnail: '/assets/thumbnails/redact-secrets.webp',
   tags: ['redact', 'secrets', 'api-keys', 'passwords', 'tokens', 'security', 'privacy', 'scan'],
   isNew: false,
   isFeatured: true,

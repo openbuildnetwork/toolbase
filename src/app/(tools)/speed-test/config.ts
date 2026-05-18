@@ -8,7 +8,7 @@ export const speedTestConfig: ToolMeta = {
     'Measure your real internet connection speed with download and upload tests. Get accurate results directly in your browser without installing any extensions or apps.',
   category: 'network',
   route: 'speed-test',
-  thumbnail: '/assets/thumbnails/speed-test.png',
+  thumbnail: '/assets/thumbnails/speed-test.webp',
   tags: ['speed', 'network', 'internet', 'download', 'upload', 'bandwidth', 'test'],
   isNew: false,
   isFeatured: false,
