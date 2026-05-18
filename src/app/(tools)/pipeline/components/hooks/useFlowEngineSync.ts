@@ -89,20 +89,34 @@ export function useFlowEngineSync(
                     if (eds.every(e => !e.data?.isRunning)) return eds;
                     return eds.map(e => ({ ...e, data: { ...e.data, isRunning: false } }));
                 }
-                let runningEdgeId = '';
+
+                const runningEdgeIds = new Set<string>();
                 const runningStepIndex = state.steps.findIndex(s => s.status === 'running');
+
                 if (runningStepIndex === -1 && state.status === 'running') {
-                    const fileNodeId = nodes.find(n => n.type === 'fileInput')?.id;
-                    runningEdgeId = eds.find(edge => edge.source === fileNodeId)?.id || '';
+                    const firstStepId = orderedSteps[0]?.id;
+                    if (firstStepId) {
+                        eds.forEach(edge => {
+                            if (edge.target === firstStepId) {
+                                runningEdgeIds.add(edge.id);
+                            }
+                        });
+                    }
                 } else if (runningStepIndex >= 0) {
                     const runningStepId = orderedSteps[runningStepIndex]?.id;
-                    runningEdgeId = eds.find(edge => edge.source === runningStepId)?.id || '';
+                    if (runningStepId) {
+                        eds.forEach(edge => {
+                            if (edge.source === runningStepId) {
+                                runningEdgeIds.add(edge.id);
+                            }
+                        });
+                    }
                 }
                 
-                const hasChange = eds.some(e => (e.id === runningEdgeId) !== !!e.data?.isRunning);
+                const hasChange = eds.some(e => runningEdgeIds.has(e.id) !== !!e.data?.isRunning);
                 if (!hasChange) return eds;
 
-                return eds.map(e => ({ ...e, data: { ...e.data, isRunning: e.id === runningEdgeId } }));
+                return eds.map(e => ({ ...e, data: { ...e.data, isRunning: runningEdgeIds.has(e.id) } }));
             });
         });
 

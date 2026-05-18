@@ -13,7 +13,7 @@ interface OutputNodeData {
 /**
  * OutputNode — The pipeline terminal node that shows results and allows file download.
  */
-export function OutputNode({ data }: { data: OutputNodeData }) {
+export const OutputNode = React.memo(function OutputNode({ data }: { data: OutputNodeData }) {
     const bundle = data.bundle;
     const status = data.status || 'idle';
     const [resultPreviews, setResultPreviews] = useState<{ url: string; payload: TIPPayload }[]>([]);
@@ -241,4 +241,4 @@ export function OutputNode({ data }: { data: OutputNodeData }) {
             )}
         </div>
     );
-}
+});

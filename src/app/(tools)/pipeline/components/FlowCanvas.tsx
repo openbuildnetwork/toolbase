@@ -105,6 +105,8 @@ function FlowCanvasBuilder() {
 
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [interactionNodeId, setInteractionNodeId] = useState<string | null>(null);
+    const [contextMenu, setContextMenu] = useState<{ nodeId: string; x: number; y: number } | null>(null);
+    const [paneContextMenu, setPaneContextMenu] = useState<{ x: number; y: number; flowX: number; flowY: number } | null>(null);
 
     const hasRecovered = useRef(false);
     const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -132,74 +134,103 @@ function FlowCanvasBuilder() {
         else setSelectedNodeId(null);
     }, [setSelectedNodeId]);
 
-    const injectNodeCallbacks = useCallback((nds: Node[]): Node[] => {
-        return nds.map(n => {
-            if (n.type === 'tool' || n.type === 'humanReview') {
-                return {
-                    ...n,
-                    data: {
-                        ...n.data,
-                        onOpenInteraction: () => setInteractionNodeId(n.id),
-                    }
-                };
-            }
-            if (n.type === 'fileInput') {
-                return {
-                    ...n,
-                    data: {
-                        ...n.data,
-                        onFileSelect: (f: File | null) => updateNodeData(n.id, { file: f, status: 'idle' }),
-                        onPreview: (f: File | TIPPayload) => setPreviewFile(f),
-                    }
-                };
-            }
-            if (n.type === 'output') {
-                return {
-                    ...n,
-                    data: {
-                        ...n.data,
-                        onPreview: (p: File | TIPPayload) => setPreviewFile(p),
-                    }
-                };
-            }
-            if (n.type === 'humanReview') {
-                return {
-                    ...n,
-                    data: {
-                        ...n.data,
-                        onOpenInteraction: () => setInteractionNodeId(n.id),
-                    }
-                };
-            }
-            return n;
+    const onNodeContextMenu = useCallback((event: any, node: Node) => {
+        event.preventDefault();
+        setPaneContextMenu(null);
+        setContextMenu({
+            nodeId: node.id,
+            x: event.clientX,
+            y: event.clientY,
         });
-    }, [setInteractionNodeId, updateNodeData, setPreviewFile]);
+    }, []);
 
-    // AI Injection & Recovery Logic
-    useEffect(() => {
-        // 1. Initial Load from Draft (if navigating from AI chat)
-        const draft = localStorage.getItem('toolbase:pipeline-draft');
-        if (draft) {
-            try {
-                const { nodes: dNodes, edges: dEdges } = JSON.parse(draft);
-                if (dNodes && dEdges) {
-                    setNodes(injectNodeCallbacks(dNodes));
-                    setEdges(dEdges);
-                    setTimeout(() => fitView({ padding: 0.2 }), 100);
-                }
-                localStorage.removeItem('toolbase:pipeline-draft'); // Consume it
-            } catch (e) {
-                console.error("Failed to load pipeline draft:", e);
+    const onNodeClick = useCallback((event: any, node: Node) => {
+        setPaneContextMenu(null);
+        setContextMenu(null);
+    }, []);
+
+    const onPaneContextMenu = useCallback((event: any) => {
+        event.preventDefault();
+        setContextMenu(null);
+        const flowPos = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        setPaneContextMenu({
+            x: event.clientX,
+            y: event.clientY,
+            flowX: flowPos.x,
+            flowY: flowPos.y,
+        });
+    }, [screenToFlowPosition]);
+
+    const onPaneClick = useCallback((event: any) => {
+        setContextMenu(null);
+        // Toggle/close pane context menu
+        setPaneContextMenu(null);
+    }, []);
+
+    const injectedDataCache = useRef<Map<string, { rawData: Record<string, any>; injectedData: Record<string, any> }>>(new Map());
+
+    const injectNodeCallbacks = useCallback((nds: Node[]): Node[] => {
+        const cache = injectedDataCache.current;
+        // Keep cache clean of deleted nodes
+        const activeIds = new Set(nds.map(n => n.id));
+        for (const key of cache.keys()) {
+            if (!activeIds.has(key)) {
+                cache.delete(key);
             }
         }
 
-        // 2. Listen for real-time injection (Add to Canvas)
+        return nds.map(n => {
+            const cached = cache.get(n.id);
+            if (cached && cached.rawData === n.data) {
+                return {
+                    ...n,
+                    data: cached.injectedData
+                };
+            }
+
+            let newInjectedData = n.data;
+            if (n.type === 'tool' || n.type === 'humanReview') {
+                newInjectedData = {
+                    ...n.data,
+                    onOpenInteraction: () => setInteractionNodeId(n.id),
+                };
+            } else if (n.type === 'fileInput') {
+                newInjectedData = {
+                    ...n.data,
+                    onFileSelect: (f: File | null) => updateNodeData(n.id, { file: f, status: 'idle' }),
+                    onPreview: (f: File | TIPPayload) => setPreviewFile(f),
+                };
+            } else if (n.type === 'output') {
+                newInjectedData = {
+                    ...n.data,
+                    onPreview: (p: File | TIPPayload) => setPreviewFile(p),
+                };
+            }
+
+            cache.set(n.id, { rawData: n.data, injectedData: newInjectedData });
+            return {
+                ...n,
+                data: newInjectedData
+            };
+        });
+    }, [setInteractionNodeId, updateNodeData, setPreviewFile]);
+
+    const injectedNodes = useMemo(() => injectNodeCallbacks(nodes), [nodes, injectNodeCallbacks]);
+
+    const nodesRef = useRef(nodes);
+    useEffect(() => {
+        nodesRef.current = nodes;
+    }, [nodes]);
+
+    // AI Injection Logic
+    useEffect(() => {
+        // Listen for real-time injection (Add to Canvas)
         const handleInject = (e: Event) => {
             const customEvent = e as CustomEvent;
             const { nodes: iNodes, edges: iEdges } = customEvent.detail;
             if (iNodes && iEdges) {
                 // Append nodes with an offset if canvas is not empty
-                const offset = nodes.length > 2 ? { x: 0, y: 300 } : { x: 0, y: 0 };
+                const offset = nodesRef.current.length > 2 ? { x: 0, y: 300 } : { x: 0, y: 0 };
                 
                 // Remap IDs to ensure uniqueness while maintaining connections
                 const idMap = new Map<string, string>();
@@ -228,7 +259,7 @@ function FlowCanvasBuilder() {
 
         window.addEventListener('toolbase:inject-pipeline', handleInject);
         return () => window.removeEventListener('toolbase:inject-pipeline', handleInject);
-    }, [setNodes, setEdges, injectNodeCallbacks, fitView, nodes.length]);
+    }, [setNodes, setEdges, injectNodeCallbacks, fitView]);
 
     const serializeGraph = useCallback(() => {
         const cleanNodes = nodes.map(n => ({
@@ -474,11 +505,19 @@ function FlowCanvasBuilder() {
         setEdges(eds => eds.map(e => ({ ...e, data: { ...e.data, isRunning: false } })));
         resetEngine();
         const orderedSteps = graphToPipeline(nodes, edges);
-        if (!orderedSteps) return;
-        const fileNode = nodes.find(n => n.type === 'fileInput');
-        const file = fileNode?.data.file;
-        if (!file) return;
-        await run(orderedSteps, file as File);
+        if (!orderedSteps || orderedSteps.length === 0) return;
+        
+        const firstStepId = orderedSteps[0]?.id;
+        const incomingFileNodes = firstStepId 
+            ? nodes.filter(n => n.type === 'fileInput' && edges.some(e => e.source === n.id && e.target === firstStepId))
+            : [];
+        const files = incomingFileNodes
+            .map(n => n.data.file as File | null)
+            .filter((f): f is File => !!f);
+
+        if (files.length === 0) return;
+        
+        await run(orderedSteps, files);
     }, [nodes, edges, graphToPipeline, run, resetEngine, setNodes, setEdges, clearIntermediateMemory]);
 
     const handleStop = useCallback(() => { cancel(); }, [cancel]);
@@ -584,11 +623,23 @@ function FlowCanvasBuilder() {
         exportJson(def);
     }, [nodes, edges, graphToPipeline, exportJson, serializeGraph]);
 
-    const fileNode = nodes.find(n => n.type === 'fileInput');
     const outNode = nodes.find(n => n.type === 'output');
     const ordered = graphToPipeline(nodes, edges);
     const hasInvalidEdges = edges.some(e => e.data?.isInvalid);
-    const canRun = !!fileNode?.data.file && !!outNode && !!ordered && ordered.length > 0 && !hasInvalidEdges;
+
+    // Find the first step in the pipeline
+    const firstStepId = ordered?.[0]?.id;
+    // Find all fileInput nodes connected to the first step
+    const incomingFileNodes = firstStepId 
+        ? nodes.filter(n => n.type === 'fileInput' && edges.some(e => e.source === n.id && e.target === firstStepId))
+        : [];
+    
+    // Every connected fileInput node must have a file selected, and we need at least one connected fileInput
+    const allIncomingFilesSelected = incomingFileNodes.length > 0 && incomingFileNodes.every(n => !!n.data.file);
+
+    const canRun = allIncomingFilesSelected && !!outNode && !!ordered && ordered.length > 0 && !hasInvalidEdges;
+    const hasFileInput = nodes.some(n => n.type === 'fileInput');
+
     const failedStepIndex = state.steps.findIndex(step => step.status === 'error' || Boolean(step.error));
     const lastRecordedPipelineError = useRef<string | null>(null);
 
@@ -601,7 +652,7 @@ function FlowCanvasBuilder() {
                     nodeCount: nodes.length,
                     edgeCount: edges.length,
                     toolNodeCount: nodes.filter(n => n.type === 'tool').length,
-                    hasFileInput: Boolean(fileNode),
+                    hasFileInput,
                     hasOutput: Boolean(outNode),
                     hasInvalidEdges,
                     canRun,
@@ -629,7 +680,7 @@ function FlowCanvasBuilder() {
         canRun,
         edges.length,
         failedStepIndex,
-        fileNode,
+        hasFileInput,
         hasInvalidEdges,
         nodes,
         ordered,
@@ -664,7 +715,7 @@ function FlowCanvasBuilder() {
      * Palette filter context — tells NodePalette which tools to highlight.
      * Priority: selected tool node > file in FileInputNode > no filter.
      */
-    const fileNodeDataFile = fileNode?.data.file;
+    const fileNodeDataFile = nodes.find(n => n.type === 'fileInput' && n.data?.file)?.data.file;
 
     const paletteFilterContext = useMemo((): PaletteFilterContext => {
         // A tool node is selected → show tools that can consume what it produces
@@ -947,12 +998,16 @@ function FlowCanvasBuilder() {
 
             {/* Flow canvas */}
             <ReactFlow
-                nodes={nodes}
+                nodes={injectedNodes}
                 edges={edges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 onNodeDragStop={onNodeDragStop}
+                onNodeContextMenu={onNodeContextMenu}
+                onNodeClick={onNodeClick}
+                onPaneClick={onPaneClick}
+                onPaneContextMenu={onPaneContextMenu}
                 connectionLineComponent={TIPConnectionLine}
                 isValidConnection={isValidConnection}
                 onDrop={onDrop}
@@ -1047,6 +1102,205 @@ function FlowCanvasBuilder() {
                     file={previewFile}
                     onClose={() => setPreviewFile(null)}
                 />
+            )}
+
+            {/* Quick Actions Context Menu */}
+            {contextMenu && (() => {
+                const node = nodes.find(n => n.id === contextMenu.nodeId);
+                if (!node) return null;
+
+                const canDuplicate = node.type === 'tool' || node.type === 'humanReview';
+                
+                const toolInfo = node.type === 'tool' && node.data?.toolId
+                    ? TIPToolRegistry.get(node.data.toolId as string)
+                    : null;
+                const nodeLabel = toolInfo 
+                    ? toolInfo.name 
+                    : (node.type === 'humanReview' 
+                        ? 'Human Review' 
+                        : (node.type === 'fileInput' 
+                            ? 'File Input' 
+                            : 'Output'));
+
+                return (
+                    <>
+                        {/* Invisible full-screen backdrop to dismiss the menu */}
+                        <div 
+                            style={{
+                                position: 'fixed',
+                                inset: 0,
+                                zIndex: 9998,
+                                pointerEvents: 'auto',
+                            }}
+                            onClick={() => setContextMenu(null)}
+                            onContextMenu={(e) => {
+                                e.preventDefault();
+                                setContextMenu(null);
+                            }}
+                        />
+
+                        {/* Glassmorphic Actions Context Overlay */}
+                        <div
+                            style={{
+                                position: 'fixed',
+                                left: contextMenu.x,
+                                top: contextMenu.y,
+                                zIndex: 9999,
+                                minWidth: 200,
+                            }}
+                            className="rounded-xl border border-white/10 bg-[#0f0f11]/95 p-1.5 shadow-2xl backdrop-blur-xl select-none pointer-events-auto flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100"
+                        >
+                            {/* Title Label Header */}
+                            <div className="px-3 py-1.5 text-[10px] font-bold tracking-widest text-zinc-500 uppercase border-b border-white/5 mb-1.5">
+                                {nodeLabel} Actions
+                            </div>
+
+                            {canDuplicate && (
+                                <>
+                                    <button
+                                        onClick={() => {
+                                            setContextMenu(null);
+                                            clipboard.current = {
+                                                nodes: [JSON.parse(JSON.stringify(node))],
+                                                edges: edges.filter(e => e.source === node.id || e.target === node.id)
+                                            };
+                                        }}
+                                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left font-medium"
+                                    >
+                                        <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                        </svg>
+                                        Copy
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+                                            setContextMenu(null);
+                                            const offset = 40;
+                                            const newId = `node-${node.type}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+                                            const newNode = {
+                                                ...JSON.parse(JSON.stringify(node)),
+                                                id: newId,
+                                                position: { x: node.position.x + offset, y: node.position.y + offset },
+                                                selected: true,
+                                            };
+
+                                            setNodes(nds => (nds.map(n => ({ ...n, selected: false })) as Node[]).concat(injectNodeCallbacks([newNode])));
+                                            setTimeout(takeSnapshot, 0);
+                                        }}
+                                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left font-medium"
+                                    >
+                                        <svg className="w-3.5 h-3.5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                                        </svg>
+                                        Duplicate
+                                    </button>
+                                </>
+                            )}
+
+                            <div className="h-px bg-white/5 my-1" />
+
+                            <button
+                                onClick={() => {
+                                    setContextMenu(null);
+                                    setNodes(nds => nds.filter(n => n.id !== node.id));
+                                    setEdges(eds => eds.filter(e => e.source !== node.id && e.target !== node.id));
+                                    setTimeout(takeSnapshot, 0);
+                                }}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors text-left font-medium"
+                            >
+                                <svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Delete Node
+                            </button>
+                        </div>
+                    </>
+                );
+            })()}
+
+            {/* Pane/Canvas Context Menu */}
+            {paneContextMenu && clipboard.current && (
+                <>
+                    {/* Invisible full-screen backdrop to dismiss the menu */}
+                    <div 
+                        style={{
+                            position: 'fixed',
+                            inset: 0,
+                            zIndex: 9998,
+                            pointerEvents: 'auto',
+                        }}
+                        onClick={() => setPaneContextMenu(null)}
+                        onContextMenu={(e) => {
+                            e.preventDefault();
+                            setPaneContextMenu(null);
+                        }}
+                    />
+
+                    {/* Glassmorphic Actions Context Overlay */}
+                    <div
+                        style={{
+                            position: 'fixed',
+                            left: paneContextMenu.x,
+                            top: paneContextMenu.y,
+                            zIndex: 9999,
+                            minWidth: 160,
+                        }}
+                        className="rounded-xl border border-white/10 bg-[#0f0f11]/95 p-1.5 shadow-2xl backdrop-blur-xl select-none pointer-events-auto flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100"
+                    >
+                        <button
+                            onClick={() => {
+                                const coords = { flowX: paneContextMenu.flowX, flowY: paneContextMenu.flowY };
+                                setPaneContextMenu(null);
+                                
+                                if (!clipboard.current) return;
+                                
+                                const idMap = new Map<string, string>();
+                                
+                                // Find bounding box center of clipboard nodes to offset paste correctly
+                                const minX = Math.min(...clipboard.current.nodes.map(n => n.position.x));
+                                const minY = Math.min(...clipboard.current.nodes.map(n => n.position.y));
+                                
+                                const newNodes = clipboard.current.nodes
+                                    .filter(n => n.type !== 'fileInput' && n.type !== 'output')
+                                    .map(n => {
+                                        const newId = `node-${n.type}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+                                        idMap.set(n.id, newId);
+                                        
+                                        const relX = n.position.x - minX;
+                                        const relY = n.position.y - minY;
+                                        
+                                        return {
+                                            ...n,
+                                            id: newId,
+                                            position: { x: coords.flowX + relX, y: coords.flowY + relY },
+                                            selected: true,
+                                        };
+                                    });
+
+                                const newEdges = clipboard.current.edges
+                                    .filter(e => idMap.has(e.source) && idMap.has(e.target))
+                                    .map(e => ({
+                                        ...e,
+                                        id: `edge-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+                                        source: idMap.get(e.source)!,
+                                        target: idMap.get(e.target)!,
+                                        selected: true,
+                                    }));
+
+                                setNodes(nds => (nds.map(n => ({ ...n, selected: false })) as Node[]).concat(injectNodeCallbacks(newNodes)));
+                                setEdges(eds => eds.map(e => ({ ...e, selected: false })).concat(newEdges));
+                                setTimeout(takeSnapshot, 0);
+                            }}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left font-medium"
+                        >
+                            <svg className="w-3.5 h-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
+                            Paste Tool Here
+                        </button>
+                    </div>
+                </>
             )}
         </div>
     );

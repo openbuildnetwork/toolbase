@@ -1,10 +1,11 @@
+import React from 'react';
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, EdgeProps } from '@xyflow/react';
 
 /**
  * TIPEdge — Custom animated edge for the pipeline canvas.
  * Shows animated dashes when running, red with label when incompatible types.
  */
-export function TIPEdge({
+export const TIPEdge = React.memo(function TIPEdge({
     id,
     sourceX,
     sourceY,
@@ -88,4 +89,4 @@ export function TIPEdge({
             )}
         </>
     );
-}
+});

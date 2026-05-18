@@ -36,25 +36,32 @@ export function useFlowGraph() {
         
         if (!sourceNode || !targetNode) return eds;
 
+        let targetAccepts: TIPContentType[] = [];
+        if (targetNode.type === 'tool' || targetNode.type === 'humanReview') {
+           const tTool = TIPToolRegistry.get(targetNode.data.toolId as string);
+           targetAccepts = tTool?.consumes || [];
+        }
+
         let sourceType: TIPContentType | '' = '';
+        let isValid = false;
+
         if (sourceNode.type === 'fileInput') {
-           sourceType = (sourceNode.data.file as File)?.type as TIPContentType || 'application/octet-stream';
+           if (!sourceNode.data.file) {
+               // Wildcard: unselected file input node is compatible with anything
+               isValid = true;
+           } else {
+               sourceType = (sourceNode.data.file as File)?.type as TIPContentType || 'application/octet-stream';
+           }
         } else if (sourceNode.type === 'tool' || sourceNode.type === 'humanReview') {
            const sTool = TIPToolRegistry.get(sourceNode.data.toolId as string);
            sourceType = sTool?.produces[0] || '';
         }
 
-        let targetAccepts: TIPContentType[] = [];
-        if (targetNode.type === 'tool' || targetNode.type === 'humanReview') {
-           const tTool = TIPToolRegistry.get(targetNode.data.toolId as string);
-           targetAccepts = tTool?.consumes || [];
-        } else if (targetNode.type === 'output') {
-           // Output node accepts anything
+        if (!isValid) {
+            isValid = targetNode.type === 'output' || targetAccepts.some(
+                accepted => accepted === sourceType || (sourceType !== '' && canTransform(sourceType as TIPContentType, accepted))
+            );
         }
-
-        const isValid = targetNode.type === 'output' || targetAccepts.some(
-            accepted => accepted === sourceType || (sourceType !== '' && canTransform(sourceType as TIPContentType, accepted))
-        );
 
         return addEdge({
           ...connection,
@@ -76,6 +83,11 @@ export function useFlowGraph() {
     
     if (!sourceNode || !targetNode) return false;
 
+    if (sourceNode.type === 'fileInput' && !sourceNode.data.file) {
+        // Wildcard compatibility for unselected file inputs
+        return true;
+    }
+
     let sourceType: TIPContentType | '' = '';
     if (sourceNode.type === 'fileInput') {
         sourceType = (sourceNode.data.file as File)?.type as TIPContentType || 'application/octet-stream';
@@ -88,8 +100,6 @@ export function useFlowGraph() {
     if (targetNode.type === 'tool' || targetNode.type === 'humanReview') {
         const tTool = TIPToolRegistry.get(targetNode.data.toolId as string);
         targetAccepts = tTool?.consumes || [];
-    } else if (targetNode.type === 'output') {
-        // Output node accepts anything
     }
 
     return targetNode.type === 'output' || targetAccepts.some(

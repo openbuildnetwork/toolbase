@@ -16,7 +16,7 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { executeTIPPipeline } from '@/tip/engine';
-import { bundleFromFile } from '@/tip/bundle';
+import { bundleFromFile, bundleFromFiles } from '@/tip/bundle';
 import type { TIPBundle } from '@/tip/protocol';
 import type { TIPPipelineStep } from '@/tip/engine';
 import { TIPError } from '@/tip/errors';
@@ -31,9 +31,9 @@ interface UsePipelineEngineReturn {
   /**
    * Start the pipeline.
    * @param steps   - Ordered pipeline steps
-   * @param file    - The file from the FileInputNode (used as the initial bundle)
+   * @param file    - The file or files from the connected FileInputNode(s) (used as the initial bundle)
    */
-  run: (steps: PipelineStep[], file: File) => Promise<void>;
+  run: (steps: PipelineStep[], file: File | File[]) => Promise<void>;
   /** Abort the running pipeline (honours AbortSignal in each TIPTool) */
   cancel: () => void;
   /** Reset to idle state (clears output and error) */
@@ -86,7 +86,7 @@ export function usePipelineEngine(): UsePipelineEngineReturn & { isPaused: boole
   // ── run ───────────────────────────────────────────────────────────────────────
 
   const run = useCallback(
-    async (steps: PipelineStep[], file: File) => {
+    async (steps: PipelineStep[], file: File | File[]) => {
       // Cancel any in-flight run
       controllerRef.current?.abort();
       const controller = new AbortController();
@@ -107,8 +107,8 @@ export function usePipelineEngine(): UsePipelineEngineReturn & { isPaused: boole
       });
       setOutput(null);
 
-      // Build the initial bundle from the FileInputNode file
-      const initialBundle = bundleFromFile(file);
+      // Build the initial bundle from the FileInputNode file(s)
+      const initialBundle = Array.isArray(file) ? bundleFromFiles(file) : bundleFromFile(file);
 
       // Map PipelineStep (UI type) → TIPPipelineStep (engine type)
       const engineSteps: TIPPipelineStep[] = steps.map((s) => ({
