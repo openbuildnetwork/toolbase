@@ -21,14 +21,19 @@ URLS = [
 def setup_models():
     print("Setting up Background Removal Assets...")
     
+    ONNX_DIR = os.path.join(os.getcwd(), 'public', 'onnxruntime-web')
+    
     # 1. Check if assets already exist
-    if os.path.exists(PUBLIC_DIR) and os.path.exists(os.path.join(PUBLIC_DIR, 'isnet.wasm')):
-        print("Assets seem to be already installed in public/imgly.")
-        # Optional: Force reinstall? For now, just return.
-        # return
+    is_imgly_ready = os.path.exists(PUBLIC_DIR) and os.path.exists(os.path.join(PUBLIC_DIR, 'resources.json'))
+    is_onnx_ready = os.path.exists(ONNX_DIR) and os.path.exists(os.path.join(ONNX_DIR, 'ort-wasm-simd-threaded.wasm'))
+    if is_imgly_ready and is_onnx_ready:
+        print("Assets seem to be already installed in public/imgly and public/onnxruntime-web.")
+        return
 
     if not os.path.exists(PUBLIC_DIR):
         os.makedirs(PUBLIC_DIR)
+    if not os.path.exists(ONNX_DIR):
+        os.makedirs(ONNX_DIR)
 
     # 2. Download
     success = False
@@ -73,18 +78,29 @@ def setup_models():
         
     if os.path.exists(source_dir):
         files = glob.glob(os.path.join(source_dir, '*'))
-        print(f"Moving {len(files)} files to {PUBLIC_DIR}...")
+        print(f"Moving {len(files)} files/folders to public...")
         for f in files:
-            dest = os.path.join(PUBLIC_DIR, os.path.basename(f))
-            if os.path.exists(dest):
-                try:
-                    os.remove(dest)
-                except OSError:
-                    pass # Ignore if can't remove
-            try:
+            basename = os.path.basename(f)
+            if basename == 'onnxruntime-web':
+                print("Moving onnxruntime-web assets to public/onnxruntime-web...")
+                sub_files = glob.glob(os.path.join(f, '*'))
+                for sf in sub_files:
+                    dest = os.path.join(ONNX_DIR, os.path.basename(sf))
+                    if os.path.exists(dest):
+                        try:
+                            os.remove(dest)
+                        except OSError:
+                            pass
+                    shutil.move(sf, ONNX_DIR)
+                shutil.rmtree(f)
+            else:
+                dest = os.path.join(PUBLIC_DIR, basename)
+                if os.path.exists(dest):
+                    try:
+                        os.remove(dest)
+                    except OSError:
+                        pass
                 shutil.move(f, PUBLIC_DIR)
-            except Exception as e:
-                print(f"Error moving {os.path.basename(f)}: {e}")
         
         # Cleanup source dir
         if 'package' in source_dir:

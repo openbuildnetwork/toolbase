@@ -8,6 +8,8 @@
   "private": true,
   "scripts": {
     "start": "next start",
+    "prebuild": "node scripts/setup-bg-remover.js",
+    "predev": "node scripts/setup-bg-remover.js",
     "build:python": "node scripts/build-python-bundler.mjs",
     "build:archive-kit:wasm": "wasm-pack build rust/archive-kit --target web --out-dir ../../public/wasm/archive-kit/pkg",
     "build:wasm": "node scripts/build-wasm.mjs",

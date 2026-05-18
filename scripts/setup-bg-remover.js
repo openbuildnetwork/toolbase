@@ -31,17 +31,21 @@ async function downloadFile(url, dest) {
 async function setup() {
     console.log("Setting up Background Removal Assets (Node.js)...");
 
-    if (fs.existsSync(PUBLIC_DIR) && fs.existsSync(path.join(PUBLIC_DIR, 'isnet.wasm'))) {
-        console.log("Assets appear to be already installed in public/imgly.");
-        // Check if directory is empty or has enough files
-        const files = fs.readdirSync(PUBLIC_DIR);
-        if (files.length > 5) {
-            return;
-        }
+    const ONNX_DIR = path.join(ROOT_DIR, 'public', 'onnxruntime-web');
+    
+    const isImglyReady = fs.existsSync(PUBLIC_DIR) && fs.existsSync(path.join(PUBLIC_DIR, 'resources.json')) && fs.readdirSync(PUBLIC_DIR).length > 5;
+    const isOnnxReady = fs.existsSync(ONNX_DIR) && fs.existsSync(path.join(ONNX_DIR, 'ort-wasm-simd-threaded.wasm')) && fs.readdirSync(ONNX_DIR).length >= 2;
+
+    if (isImglyReady && isOnnxReady) {
+        console.log("Assets appear to be already installed in public/imgly and public/onnxruntime-web.");
+        return;
     }
 
     if (!fs.existsSync(PUBLIC_DIR)) {
         fs.mkdirSync(PUBLIC_DIR, { recursive: true });
+    }
+    if (!fs.existsSync(ONNX_DIR)) {
+        fs.mkdirSync(ONNX_DIR, { recursive: true });
     }
 
     // 1. Download
@@ -83,16 +87,27 @@ async function setup() {
     }
 
     if (fs.existsSync(sourceDir)) {
-        console.log(`Moving files from ${sourceDir} to ${PUBLIC_DIR}...`);
+        console.log(`Moving files from ${sourceDir} to public...`);
         const files = fs.readdirSync(sourceDir);
         for (const file of files) {
             const src = path.join(sourceDir, file);
-            const dest = path.join(PUBLIC_DIR, file);
 
-            // Remove dest if exists
-            if (fs.existsSync(dest)) fs.rmSync(dest);
-
-            fs.renameSync(src, dest);
+            if (file === 'onnxruntime-web') {
+                console.log("Moving onnxruntime-web assets to public/onnxruntime-web...");
+                const subFiles = fs.readdirSync(src);
+                for (const subFile of subFiles) {
+                    const subSrc = path.join(src, subFile);
+                    const subDest = path.join(ONNX_DIR, subFile);
+                    if (fs.existsSync(subDest)) fs.rmSync(subDest);
+                    fs.renameSync(subSrc, subDest);
+                }
+                // Cleanup empty onnxruntime-web dir
+                fs.rmdirSync(src);
+            } else {
+                const dest = path.join(PUBLIC_DIR, file);
+                if (fs.existsSync(dest)) fs.rmSync(dest);
+                fs.renameSync(src, dest);
+            }
         }
 
         // Cleanup empty dirs
