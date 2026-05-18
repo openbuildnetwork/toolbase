@@ -182,7 +182,15 @@ export default function CompressPdf() {
                                         <div className="h-12 w-12 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-4">
                                             <CheckCircle className="w-6 h-6" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-text-primary mb-2">Compression Complete!</h3>
+                                        <h3 className="text-xl font-bold text-text-primary mb-2">
+                                            {compressedSize >= file.size ? 'Already Optimized!' : 'Compression Complete!'}
+                                        </h3>
+                                        
+                                        {compressedSize >= file.size && (
+                                            <p className="text-sm text-text-muted text-center max-w-md mb-2">
+                                                Your PDF is already fully compressed and optimized. We kept the original file to prevent any size increase.
+                                            </p>
+                                        )}
 
                                         <div className="flex items-center gap-8 my-4 text-center">
                                             <div>
@@ -192,7 +200,9 @@ export default function CompressPdf() {
                                             <div className="h-8 w-px bg-border-medium" />
                                             <div>
                                                 <p className="text-xs text-text-muted uppercase tracking-wider">Saved</p>
-                                                <p className="text-2xl font-bold text-text-primary">{calculateSavings()}%</p>
+                                                <p className="text-2xl font-bold text-text-primary">
+                                                    {compressedSize >= file.size ? '0.0' : calculateSavings()}%
+                                                </p>
                                             </div>
                                         </div>
 
