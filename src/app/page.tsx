@@ -15,7 +15,7 @@ import { RecentsDrawer } from '@/components/ui/RecentsDrawer';
 import { FavoritesDrawer } from '@/components/ui/FavoritesDrawer';
 
 import { TryPipelineButton } from '@/components/ui/TryPipelineButton';
-import { BuyMeCoffeeButton } from '@/components/ui/BuyMeCoffeeButton';
+import { SupportButton } from '@/components/ui/SupportButton';
 
 /**
  * Map the central tool registry to the ToolCardProps shape expected
@@ -164,7 +164,7 @@ export default function Home() {
         isOpen={isFavoritesOpen}
         onClose={() => setIsFavoritesOpen(false)}
       />
-      <BuyMeCoffeeButton mode="floating" />
+      <SupportButton mode="floating" />
     </div>
   );
 }
