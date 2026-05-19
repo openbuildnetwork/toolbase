@@ -7,7 +7,11 @@ import { ChevronDown, Cpu, Sparkles, Check, Loader2, Zap, X } from "lucide-react
 import { cn } from "@/lib/utils";
 import { m, AnimatePresence } from "framer-motion";
 
-export function ModelPicker() {
+interface ModelPickerProps {
+  alignSide?: "top" | "bottom";
+}
+
+export function ModelPicker({ alignSide = "top" }: ModelPickerProps) {
   const { activeModelId, loadModel, isLoading, isGenerating } = useAIChat();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -56,11 +60,14 @@ export function ModelPicker() {
               onClick={() => setIsOpen(false)} 
             />
             <m.div 
-              initial={{ opacity: 0, y: 10, scale: 0.95, filter: "blur(10px)" }}
-              animate={{ opacity: 1, y: -10, scale: 1, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: 10, scale: 0.95, filter: "blur(10px)" }}
+              initial={{ opacity: 0, y: alignSide === "top" ? 10 : -10, scale: 0.95, filter: "blur(10px)" }}
+              animate={{ opacity: 1, y: alignSide === "top" ? -10 : 10, scale: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: alignSide === "top" ? 10 : -10, scale: 0.95, filter: "blur(10px)" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="absolute bottom-full left-0 mb-3 w-[calc(100vw-32px)] sm:w-[360px] rounded-[24px] border border-(--border-subtle) bg-(--surface-elevated) p-2 shadow-2xl z-[130] overflow-hidden"
+              className={cn(
+                "absolute left-[-8px] sm:left-[-16px] w-[280px] sm:w-[320px] max-w-[calc(100vw-32px)] rounded-[24px] border border-(--border-subtle) bg-(--surface-elevated) p-2 shadow-2xl z-[130] overflow-hidden",
+                alignSide === "top" ? "bottom-full mb-3" : "top-full mt-2"
+              )}
             >
               <div className="px-4 py-3 border-b border-(--border-subtle) mb-1 bg-(--surface-elevated)/30 flex items-center justify-between">
                 <div className="text-xs font-bold uppercase tracking-[0.15em] text-(--text-faint) flex items-center gap-2">
@@ -75,7 +82,7 @@ export function ModelPicker() {
                 </button>
               </div>
               
-              <div className="space-y-1 overflow-y-auto max-h-[400px] p-1 scrollbar-none">
+              <div className="space-y-1 overflow-y-auto max-h-[220px] p-1 scrollbar-thin">
                 {SUPPORTED_MODELS.map((model, index) => {
                   const isActive = model.id === activeModelId;
                   return (
@@ -133,15 +140,6 @@ export function ModelPicker() {
                     </m.button>
                   );
                 })}
-              </div>
-              
-              <div className="mt-2 p-3 bg-blue-500/5 rounded-[18px] border border-blue-500/10 flex items-start gap-3">
-                 <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
-                    <Zap className="w-4 h-4 text-blue-500" />
-                 </div>
-                 <p className="text-[10px] text-(--text-muted) leading-relaxed">
-                    Models run 100% locally on your WebGPU. Choose based on your hardware capabilities.
-                 </p>
               </div>
             </m.div>
           </>

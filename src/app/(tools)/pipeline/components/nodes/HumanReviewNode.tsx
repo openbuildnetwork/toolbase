@@ -15,7 +15,7 @@ interface HumanReviewNodeData {
  * 
  * Distinctive shape and color to signal it's a control node, not a processing tool.
  */
-export function HumanReviewNode({ data }: { data: HumanReviewNodeData }) {
+export const HumanReviewNode = React.memo(function HumanReviewNode({ data }: { data: HumanReviewNodeData }) {
     const status = data.status || 'idle';
     const isPending = status === 'paused' || data.isWaitingForReview;
     const isComplete = status === 'complete';
@@ -147,4 +147,4 @@ export function HumanReviewNode({ data }: { data: HumanReviewNodeData }) {
             `}</style>
         </div>
     );
-}
+});

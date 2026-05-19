@@ -9,7 +9,7 @@ import { CommandPaletteProvider } from "../ui/CommandPaletteProvider";
 import { GlobalAIOverlay } from "@/components/ai/GlobalAIOverlay";
 import { WorkerPrewarmer } from "./WorkerPrewarmer";
 
-import { LazyMotion, domAnimation } from 'framer-motion';
+import { LazyMotion, domMax } from 'framer-motion';
 
 import { CapabilityProvider } from "./CapabilityProvider";
 
@@ -42,7 +42,7 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
       <DaylightManager />
       <CapabilityProvider>
         <WorkerPrewarmer />
-        <LazyMotion features={domAnimation} strict>
+        <LazyMotion features={domMax} strict>
           <AIChatProvider>
             <UIIntelligenceInitializer />
             {/* Global UI elements that need context */}
