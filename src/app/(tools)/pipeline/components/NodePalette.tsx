@@ -24,12 +24,12 @@ export type PaletteFilterContext =
 // ── Statics ────────────────────────────────────────────────────────────────────
 
 const TOOL_THUMBNAILS: Record<string, string> = {
-    'magic-pdf': '/assets/thumbnails/magic-pdf.png',
-    'pixels': '/assets/thumbnails/pixels.png',
-    'redact-secrets': '/assets/thumbnails/redact-secrets.png',
-    'base64': '/assets/thumbnails/b64EnDc.png',
-    'data-lens': '/assets/thumbnails/data-lens.png',
-    'json-to-interface': '/assets/thumbnails/json-to-interface.png',
+    'magic-pdf': '/assets/thumbnails/magic-pdf.webp',
+    'pixels': '/assets/thumbnails/pixels.webp',
+    'redact-secrets': '/assets/thumbnails/redact-secrets.webp',
+    'base64': '/assets/thumbnails/b64EnDc.webp',
+    'data-lens': '/assets/thumbnails/data-lens.webp',
+    'json-to-interface': '/assets/thumbnails/json-to-interface.webp',
 };
 
 const CATEGORY_META: Record<string, { label: string; color: string }> = {

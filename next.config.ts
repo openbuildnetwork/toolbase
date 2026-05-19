@@ -53,7 +53,7 @@ const withPWA = withPWAInit({
       },
       // Tool pages — network-first for fresh content, falls back to cache
       {
-        urlPattern: /^https?:\/\/.*\/(?:magic-pdf|pixel-axe|data-lens|redact-secrets|base64|json-to-interface|open-draw|ping-tester|speed-test|passwordx|bgremover)/,
+        urlPattern: /^https?:\/\/.*\/(?:magic-pdf|pixel-axe|data-lens|redact-secrets|base64|json-to-interface|open-draw|ping-tester|speed-test|passwordx)/,
         handler: "NetworkFirst",
         options: {
           cacheName: "tool-pages",
@@ -65,11 +65,13 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
+  output: "export",
   // Silence Next.js 16's "webpack config but no turbopack config" error.
   // @ducanh2912/next-pwa injects a webpack plugin; the app runs fine
   // under Turbopack with no additional Turbopack-specific config.
   turbopack: {},
   images: {
+    unoptimized: true,
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
@@ -80,19 +82,6 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
-      {
-        source: "/imgly/:path*",
-        headers: [
-          {
-            key: "Cross-Origin-Resource-Policy",
-            value: "cross-origin",
-          },
-          {
-            key: "Cross-Origin-Embedder-Policy",
-            value: "require-corp",
-          },
-        ],
-      },
       {
         source: "/(.*)",
         headers: [

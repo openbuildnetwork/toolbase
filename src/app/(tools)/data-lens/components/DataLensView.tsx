@@ -254,7 +254,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                 <div className="text-center space-y-6">
                     <div className="relative">
                         <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto shadow-xl shadow-primary/20">
-                            <Image className="w-full h-full object-contain" src="/assets/thumbnails/data-lens.png" alt="DataLens" width={40} height={40} />
+                            <Image className="w-full h-full object-contain" src="/assets/thumbnails/data-lens.webp" alt="DataLens" width={40} height={40} />
                         </div>
                     </div>
                     <div>

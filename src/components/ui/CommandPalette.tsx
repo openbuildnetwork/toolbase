@@ -176,7 +176,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             description: `Snippet (${n.format.toUpperCase()}) - Press Enter to copy to clipboard`,
             category: 'snippet' as unknown as ToolMeta['category'],
             route: `note-vault?id=${n.id}`,
-            thumbnail: '/assets/thumbnails/developer.png',
+            thumbnail: '/assets/thumbnails/developer.webp',
             tags: n.tags || [],
             isNew: false,
             isFeatured: false,

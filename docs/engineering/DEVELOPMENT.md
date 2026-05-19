@@ -2,15 +2,15 @@
 
 ## Prerequisites
 1. Node.js compatible with project lockfile and Next.js version.
-2. npm installed.
+2. pnpm installed.
 
 ## Local Setup
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
-`npm run dev` runs:
+`pnpm dev` runs:
 1. Next.js dev server
 2. Python bundle watcher
 3. Rust WASM watcher (when `rust/*` crates exist)
@@ -23,18 +23,18 @@ npm run dev
 
 ## Required Checks Before PR
 ```bash
-npm run lint
-npm run type-check
+pnpm lint
+pnpm type-check
 ```
 
 Optional full build check:
 ```bash
-npm run build
+pnpm build
 ```
 
 Strict Rust/WASM artifact check:
 ```bash
-npm run build:strict-wasm
+pnpm build:strict-wasm
 ```
 
 ## Working Rules

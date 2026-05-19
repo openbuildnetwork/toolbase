@@ -8,7 +8,7 @@ export const jsonToInterfaceConfig: ToolMeta = {
     'Paste any JSON and instantly get a typed TypeScript interface. Handles nested objects, arrays, optional fields, and complex structures. Saves developers hours of manual type writing. Runs entirely in the browser — paste sensitive API responses without worry.',
   category: 'developer',
   route: 'json-to-interface',
-  thumbnail: '/assets/thumbnails/json-to-interface.png',
+  thumbnail: '/assets/thumbnails/json-to-interface.webp',
   tags: ['json', 'typescript', 'interface', 'types', 'convert', 'developer'],
   isNew: false,
   isFeatured: false,

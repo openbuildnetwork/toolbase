@@ -8,7 +8,7 @@ export const pingTesterConfig: ToolMeta = {
     'Test network latency and check if hosts are reachable directly from your browser. Useful for quick network diagnostics without installing command-line tools.',
   category: 'network',
   route: 'ping-tester',
-  thumbnail: '/assets/thumbnails/ping-tester.png',
+  thumbnail: '/assets/thumbnails/ping-tester.webp',
   tags: ['ping', 'network', 'latency', 'connectivity', 'host', 'diagnostic'],
   isNew: false,
   isFeatured: false,

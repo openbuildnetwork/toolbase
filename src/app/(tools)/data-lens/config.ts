@@ -8,7 +8,7 @@ export const dataLensConfig: ToolMeta = {
     'Data Lens turns your browser into a data analysis workbench. Load CSV or JSON files, run SQL queries against them, execute Python (Pandas, NumPy) for deep analysis, visualize with charts, and filter with a visual query builder. Your data stays completely local.',
   category: 'data',
   route: 'data-lens',
-  thumbnail: '/assets/thumbnails/data-lens.png',
+  thumbnail: '/assets/thumbnails/data-lens.webp',
   tags: ['csv', 'json', 'sql', 'python', 'pandas', 'chart', 'data', 'analysis', 'filter'],
   isNew: false,
   isFeatured: true,

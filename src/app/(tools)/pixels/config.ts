@@ -8,7 +8,7 @@ export const pixelsConfig: ToolMeta = {
     'Pixels is a powerful image processing toolbase. Compress images without visible quality loss, resize to exact dimensions, upscale with AI-like algorithms, and even hide secret messages inside images using steganography — all processed locally in your browser.',
   category: 'image',
   route: 'pixels',
-  thumbnail: '/assets/thumbnails/pixels.png',
+  thumbnail: '/assets/thumbnails/pixels.webp',
   tags: ['image', 'compress', 'resize', 'upscale', 'steganography', 'png', 'jpg', 'webp'],
   isNew: false,
   isFeatured: true,

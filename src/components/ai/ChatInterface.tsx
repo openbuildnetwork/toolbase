@@ -418,6 +418,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
               width={40} 
               height={40} 
               className="object-contain"
+              style={{ width: "auto", height: "auto" }}
               priority
             />
           </div>
@@ -476,6 +477,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                   width={64} 
                   height={64} 
                   className="h-full w-full object-cover p-1"
+                  style={{ width: "auto", height: "auto" }}
                 />
               </div>
               <h2 className="text-2xl font-semibold tracking-tight text-(--text-primary)">What can Echo help with?</h2>
@@ -557,6 +559,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                             width={32} 
                             height={32} 
                             className="h-full w-full object-cover"
+                            style={{ width: "auto", height: "auto" }}
                           />
                         </div>
                       )}
@@ -618,6 +621,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                         width={32} 
                         height={32} 
                         className="h-full w-full object-cover"
+                        style={{ width: "auto", height: "auto" }}
                       />
                     </div>
                     <div className="max-w-[88%] flex flex-col gap-2">
@@ -665,6 +669,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                   width={32} 
                   height={32} 
                   className="object-contain"
+                  style={{ width: "auto", height: "auto" }}
                   priority
                 />
               </div>

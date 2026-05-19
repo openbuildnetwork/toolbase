@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { LayoutGrid, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
-import { BuyMeCoffeeButton } from "./BuyMeCoffeeButton";
+import { SupportButton } from "./SupportButton";
 
 /**
  * Slim nav button — returns user to the toolbase hub.
@@ -139,7 +139,7 @@ export function ReturnToToolsButton() {
           </span>
         </Link>
         
-        <BuyMeCoffeeButton mode="inline" />
+        <SupportButton mode="inline" />
 
         {/* Small Collapse Button */}
         <button

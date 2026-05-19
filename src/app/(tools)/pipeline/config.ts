@@ -9,7 +9,7 @@ export const pipelineConfig: ToolMeta = {
     'Pipeline Builder lets you chain Toolbase tools together into reusable automated workflows. Compress a PDF, extract images, then compress those — in one click. Powered by the Toolbase Interoperability Protocol (TIP). All processing stays in your browser.',
   category: 'developer',
   route: 'pipeline',
-  thumbnail: '/assets/thumbnails/pipeline.png',
+  thumbnail: '/assets/thumbnails/pipeline.webp',
   tags: ['pipeline', 'chain', 'workflow', 'automate', 'tip', 'batch', 'combine'],
   isNew: true,
   isFeatured: true,

@@ -8,7 +8,7 @@ export const formatStudioConfig: ToolMeta = {
     'Format Studio is a browser-native structured data toolbase for converting formats, validating payloads, formatting content, and generating markdown or graph documentation from JSON, XML, and YAML.',
   category: 'data',
   route: 'format-studio',
-  thumbnail: '/assets/thumbnails/format-studio.png',
+  thumbnail: '/assets/thumbnails/format-studio.webp',
   tags: ['data', 'json', 'xml', 'yaml', 'toml', 'convert', 'validate', 'formatter', 'schema', 'graph'],
   isNew: false,
   isFeatured: false,

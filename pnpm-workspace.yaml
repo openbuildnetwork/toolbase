@@ -1,0 +1,10 @@
+allowBuilds:
+  core-js: true
+  protobufjs: true
+  sharp: true
+  unrs-resolver: true
+
+overrides:
+  serialize-javascript: ^7.0.5
+  dompurify: ^3.4.0
+  postcss: ^8.5.10

@@ -28,7 +28,7 @@ def handle_request(action, data):
 Run the following command to convert your `.py` files into a TypeScript-friendly bundle:
 
 ```bash
-npm run build:python
+pnpm build:python
 ```
 This generates `src/python/bundles/<your-tool>.bundle.ts`.
 
@@ -41,7 +41,7 @@ import { PYTHON_FILES } from "@/python/bundles/<your-tool>.bundle";
 
 async function init() {
     const py = await loadPyodide({
-        indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.3/full/"
+        indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.4/full/"
     });
     
     // Install dependencies if needed

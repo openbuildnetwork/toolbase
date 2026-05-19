@@ -1,7 +1,7 @@
 import type { RedactRequest, RedactResponse } from "@/app/(tools)/redact-secrets/types/redact";
 
 type RedactSecretsRustApi = {
-  default: (wasmUrl?: string | URL | Request) => Promise<unknown>;
+  default: (options?: { module_or_path?: string | URL | Request } | string | URL | Request) => Promise<unknown>;
   redact_json: (requestJson: string) => string;
 };
 
@@ -20,7 +20,7 @@ async function initRustApi(): Promise<RedactSecretsRustApi> {
         const mod = (await import(/* webpackIgnore: true */ jsUrl)) as RedactSecretsRustApi;
         
         self.postMessage({ type: "INIT_PROGRESS", message: "Compiling WASM..." });
-        await mod.default(wasmUrl);
+        await mod.default({ module_or_path: wasmUrl });
         
         currentEngineLabel = "Rust WASM";
         self.postMessage({ type: "READY", engine: currentEngineLabel });

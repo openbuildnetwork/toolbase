@@ -8,7 +8,7 @@ export const openDrawConfig: ToolMeta = {
     'Open Draw is a privacy-first diagramming tool inspired by draw.io. Create system architecture diagrams, flowcharts, entity relationship diagrams, network diagrams and more. Export to SVG, PNG or XML. Everything stays in your browser — no cloud sync required.',
   category: 'drawing',
   route: 'open-draw',
-  thumbnail: '/assets/thumbnails/open-draw.png',
+  thumbnail: '/assets/thumbnails/open-draw.webp',
   tags: ['diagram', 'flowchart', 'draw', 'architecture', 'erd', 'svg', 'canvas', 'shapes'],
   isNew: false,
   isFeatured: true,

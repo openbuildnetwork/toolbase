@@ -8,7 +8,7 @@ export const passwordxConfig: ToolMeta = {
     'Generate secure passwords and test their strength. Get accurate results directly in your browser without installing any extensions or apps.',
   category: 'security',
   route: 'passwordx',
-  thumbnail: '/assets/thumbnails/passwordx.png',
+  thumbnail: '/assets/thumbnails/passwordx.webp',
   tags: ['password', 'security', 'generate', 'test', 'secure', 'passwordx'],
   isNew: false,
   isFeatured: false,

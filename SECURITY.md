@@ -67,7 +67,7 @@ We follow responsible disclosure principles. If you report a valid vulnerability
 
 ## Dependency Security
 
-We use `npm audit` in our CI pipeline to catch known vulnerabilities in dependencies. If you notice an outdated or vulnerable dependency, opening a regular GitHub issue or PR is appropriate.
+We use `pnpm audit` in our CI pipeline to catch known vulnerabilities in dependencies. If you notice an outdated or vulnerable dependency, opening a regular GitHub issue or PR is appropriate.
 
 ---
 

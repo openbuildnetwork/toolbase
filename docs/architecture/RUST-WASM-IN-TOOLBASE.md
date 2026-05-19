@@ -128,7 +128,7 @@ channel = "stable"
 
 This keeps local and CI builds aligned on the stable channel.
 
-### npm scripts
+### Package Manager Scripts (pnpm)
 The main build scripts are defined in:
 - [package.json](/Users/mantt/Documents/OBN/toolbase/package.json)
 
@@ -137,9 +137,9 @@ Relevant scripts:
 ```json
 {
   "build:wasm": "node scripts/build-wasm.mjs",
-  "watch:wasm": "nodemon --watch rust -e rs,toml --exec \"npm run build:wasm\"",
-  "build": "npm run build:python && npm run build:wasm && next build",
-  "dev": "concurrently \"npm run watch:python\" \"npm run watch:wasm\" \"next dev --turbo\""
+  "watch:wasm": "nodemon --watch rust -e rs,toml --exec \"pnpm build:wasm\"",
+  "build": "pnpm build:python && pnpm build:wasm && next build",
+  "dev": "concurrently \"pnpm watch:python\" \"pnpm watch:wasm\" \"next dev --turbo\""
 }
 ```
 
@@ -192,7 +192,7 @@ The build command:
 3. adds the `wasm32-unknown-unknown` target
 4. installs `wasm-pack`
 5. installs `wasm-bindgen-cli`
-6. runs `npm run build`
+6. runs `pnpm build`
 
 This is required because browser WASM artifacts are generated during the site build.
 
@@ -221,7 +221,7 @@ This file does four jobs:
 1. Defines the generated WASM module interface
 ```ts
 type ArchiveKitRustApi = {
-  default: (wasmUrl?: string | URL | Request) => Promise<unknown>;
+  default: (options?: { module_or_path?: string | URL | Request } | string | URL | Request) => Promise<unknown>;
   create_archive_json: ...
   list_archive_json: ...
   extract_archive_json: ...
@@ -534,8 +534,8 @@ The page should only consume the hook or feature module and render status.
 Run:
 
 ```bash
-npm run build:wasm
-npm run type-check
+pnpm build:wasm
+pnpm type-check
 ```
 
 If hosting on Netlify, also ensure the build environment can install Rust and `wasm-pack`.
@@ -544,7 +544,7 @@ If hosting on Netlify, also ensure the build environment can install Rust and `w
 
 ### 1. Engine shows unavailable locally
 Typical causes:
-- `npm run dev` was not used
+- `pnpm dev` was not used
 - `build:wasm` never ran
 - browser cache still serves stale worker/module code
 - generated artifacts are missing under `public/wasm/<tool>/pkg`

@@ -35,7 +35,7 @@ If your contribution violates any of these principles, it will not be merged —
 ### Prerequisites
 
 - Node.js 20+
-- npm 9+
+- pnpm 10+
 - Git
 
 ### Clone and Run
@@ -46,10 +46,10 @@ git clone https://github.com/YOUR_USERNAME/toolbase.git
 cd toolbase
 
 # 2. Install dependencies
-npm install
+pnpm install
 
 # 3. Start the dev server
-npm run dev
+pnpm dev
 
 # 4. Open http://localhost:3000
 ```
@@ -57,22 +57,22 @@ npm run dev
 ### Type Check
 
 ```bash
-npm run type-check
+pnpm type-check
 ```
 
 ### Lint
 
 ```bash
-npm run lint
+pnpm lint
 
 # Auto-fix lint issues
-npm run lint:fix
+pnpm lint:fix
 ```
 
 ### Build
 
 ```bash
-npm run build
+pnpm build
 ```
 
 ---
@@ -178,9 +178,9 @@ Before opening a PR, make sure:
 - [ ] I've written a `README.md` for my tool
 - [ ] I've added TypeScript types to `src/types/`
 - [ ] I've written tests for core logic
-- [ ] `npm run lint` passes
-- [ ] `npm run type-check` passes
-- [ ] `npm run build` succeeds
+- [ ] `pnpm lint` passes
+- [ ] `pnpm type-check` passes
+- [ ] `pnpm build` succeeds
 - [ ] My tool processes everything in the browser — no external API calls
 - [ ] No test data files (CSV, JSON, etc.) are committed to the repo
 

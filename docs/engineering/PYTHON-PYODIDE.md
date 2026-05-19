@@ -22,11 +22,11 @@ Python tools follow a "Worker Singleton" pattern to avoid blocking the UI thread
 ## The Build Pipeline
 Since browsers cannot natively read local `.py` files from the filesystem, we bundle them into TypeScript constants.
 
-### npm scripts
+### Package Manager Scripts (pnpm)
 ```json
 {
   "build:python": "node scripts/build-python-bundler.mjs",
-  "watch:python": "nodemon --watch src/python -e py --exec \"npm run build:python\""
+  "watch:python": "nodemon --watch src/python -e py --exec \"pnpm build:python\""
 }
 ```
 
@@ -47,7 +47,7 @@ A typical Python worker performs the following steps:
 
 ## Adding a New Python Tool
 1. Create your logic in `src/python/tools/my-tool/main.py`.
-2. Run `npm run build:python` to generate the bundle.
+2. Run `pnpm build:python` to generate the bundle.
 3. Create a worker in `src/workers/my-tool.worker.ts`.
 4. Use the `EngineLoader` component in your UI to show the loading state.
 

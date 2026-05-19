@@ -13,7 +13,7 @@ export type PyodideInterface = {
   toPy: (value: unknown) => { destroy?: () => void };
 };
 
-const PYODIDE_BASE_URL = "https://cdn.jsdelivr.net/pyodide/v0.29.3/full/";
+const PYODIDE_BASE_URL = "https://cdn.jsdelivr.net/pyodide/v0.29.4/full/";
 
 export async function loadPyodideRuntime(): Promise<PyodideInterface> {
   const pyodideModule = await import(
