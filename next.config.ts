@@ -83,19 +83,6 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/imgly/:path*",
-        headers: [
-          {
-            key: "Cross-Origin-Resource-Policy",
-            value: "cross-origin",
-          },
-          {
-            key: "Cross-Origin-Embedder-Policy",
-            value: "require-corp",
-          },
-        ],
-      },
-      {
         source: "/(.*)",
         headers: [
           {

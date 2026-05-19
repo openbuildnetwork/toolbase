@@ -18,10 +18,7 @@ variable "s3_domain_name" {
   type        = string
 }
 
-variable "api_invoke_url" {
-  description = "The HTTP invoke URL of the API Gateway proxy"
-  type        = string
-}
+
 
 variable "domain_name" {
   description = "The custom domain name (e.g. toolbase.yourdomain.com)"

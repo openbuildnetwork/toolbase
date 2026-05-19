@@ -10,10 +10,6 @@ output "cloudfront_distribution_id" {
 
 output "s3_bucket_name" {
   description = "The name of the S3 bucket hosting frontend assets"
-  value       = module.storage.bucket_name
+  value       = module.s3.bucket_name
 }
 
-output "api_endpoint" {
-  description = "The invoke URL of the API Gateway proxy endpoint"
-  value       = module.api.api_endpoint
-}

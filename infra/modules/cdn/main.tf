@@ -1,5 +1,5 @@
 resource "aws_cloudfront_origin_access_control" "oac" {
-  name                              = "toolbase-oac-${var.environment}"
+  name                              = "${var.environment}-toolbase-oac"
   description                       = "OAC for Toolbase static website bucket"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
@@ -8,7 +8,7 @@ resource "aws_cloudfront_origin_access_control" "oac" {
 
 # CloudFront response headers policy: Injects COOP/COEP headers required for Pyodide and Web Workers
 resource "aws_cloudfront_response_headers_policy" "security_headers" {
-  name    = "toolbase-security-headers-${var.environment}"
+  name    = "${var.environment}-toolbase-security-headers"
   comment = "Injects COOP/COEP headers for Pyodide and Web Workers"
 
   custom_headers_config {
@@ -61,18 +61,6 @@ resource "aws_cloudfront_distribution" "cdn" {
     origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
   }
 
-  # API Gateway Proxy Origin (strip https:// and trailing /)
-  origin {
-    domain_name = replace(var.api_invoke_url, "/^https?:\\/\\/|\\/$/", "")
-    origin_id   = "APIGateway"
-    custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = "https-only"
-      origin_ssl_protocols   = ["TLSv1.2"]
-    }
-  }
-
   # Default Cache Behavior (S3 frontend)
   default_cache_behavior {
     allowed_methods            = ["GET", "HEAD"]
@@ -91,29 +79,6 @@ resource "aws_cloudfront_distribution" "cdn" {
     min_ttl     = 0
     default_ttl = 3600
     max_ttl     = 86400
-  }
-
-  # Route API behaviors to API Gateway
-  ordered_cache_behavior {
-    path_pattern     = "/api/*"
-    allowed_methods  = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "APIGateway"
-
-    viewer_protocol_policy = "redirect-to-https"
-
-    forwarded_values {
-      query_string = true
-      cookies {
-        forward = "none"
-      }
-      headers = ["Accept", "Authorization", "Content-Type", "Origin"]
-    }
-
-    # API calls shouldn't cache heavily on CDN
-    min_ttl     = 0
-    default_ttl = 0
-    max_ttl     = 0
   }
 
   # Fallback error responses (standard for SPA / client-routed apps)
@@ -145,7 +110,7 @@ resource "aws_cloudfront_distribution" "cdn" {
   }
 
   tags = {
-    Name        = "toolbase-cdn-${var.environment}"
+    Name        = "${var.environment}-toolbase-cdn"
     Environment = var.environment
   }
 }

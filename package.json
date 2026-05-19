@@ -8,8 +8,6 @@
   "private": true,
   "scripts": {
     "start": "next start",
-    "prebuild": "node scripts/setup-bg-remover.js",
-    "predev": "node scripts/setup-bg-remover.js",
     "build:python": "node scripts/build-python-bundler.mjs",
     "build:archive-kit:wasm": "wasm-pack build rust/archive-kit --target web --out-dir ../../public/wasm/archive-kit/pkg",
     "build:wasm": "node scripts/build-wasm.mjs",
@@ -29,7 +27,6 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@iarna/toml": "^2.2.5",
-    "@imgly/background-removal": "^1.7.0",
     "@mlc-ai/web-llm": "^0.2.83",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-tabs": "^1.1.13",

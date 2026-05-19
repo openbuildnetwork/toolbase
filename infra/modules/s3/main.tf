@@ -1,10 +1,11 @@
 data "aws_caller_identity" "current" {}
 
 resource "aws_s3_bucket" "frontend" {
-  bucket = "toolbase-frontend-${var.environment}-${data.aws_caller_identity.current.account_id}"
+  bucket        = "${var.environment}-toolbase-frontend-${data.aws_caller_identity.current.account_id}"
+  force_destroy = true
 
   tags = {
-    Name        = "toolbase-frontend-${var.environment}"
+    Name        = "${var.environment}-toolbase-frontend"
     Environment = var.environment
   }
 }

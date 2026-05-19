@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
  *  - Fully draggable/moveable across the screen.
  *  - Remembers its custom coordinates in LocalStorage between reloads and pages.
  *  - Tactile grab indicators.
- *  - Faint 18% transparent idle state that brightens to 100% on hover.
+ *  - Premium 90% opacity idle state that brightens to 100% on hover.
  *  - Occasional glassmorphic tooltip reminders.
  */
 export function EchoFAB() {
@@ -188,7 +188,7 @@ export function EchoFAB() {
             style={{ x, y }}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ 
-              opacity: isHovered || showReminder ? 1 : 0.18, 
+              opacity: isHovered || showReminder ? 1 : 0.9, 
               scale: 1
             }}
             exit={{ opacity: 0, scale: 0.8 }}
@@ -200,13 +200,13 @@ export function EchoFAB() {
               toggleChat();
             }}
             className={cn(
-              "relative flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-colors duration-300 pointer-events-auto",
-              "bg-(--surface-overlay)/35 backdrop-blur-md border border-(--border-subtle)/35 text-(--text-muted)",
-              "hover:bg-(--surface-overlay)/80 hover:border-blue-500/50 hover:shadow-blue-500/20",
+              "relative flex h-14 w-14 items-center justify-center rounded-full shadow-xl transition-colors duration-300 pointer-events-auto",
+              "bg-(--surface-overlay)/90 backdrop-blur-md border border-(--border-subtle)/80 text-(--text-muted)",
+              "hover:bg-(--surface-overlay) hover:border-blue-500/50 hover:shadow-blue-500/30",
               "cursor-grab active:cursor-grabbing touch-none select-none",
               isLoaded 
-                ? "border-emerald-500/25 hover:border-emerald-500/50 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
-                : "border-(--border-subtle)/20",
+                ? "border-emerald-500/50 hover:border-emerald-500 hover:shadow-[0_0_15px_rgba(16,185,129,0.25)]" 
+                : "border-(--border-subtle)/40",
               "group"
             )}
             aria-label="Toggle Echo AI"

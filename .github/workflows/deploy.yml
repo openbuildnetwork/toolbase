@@ -59,10 +59,11 @@ jobs:
 
       - name: Deploy Terraform Infrastructure
         id: tf
-        working-directory: infra/terraform
+        working-directory: infra
         run: |
           terraform init
-          terraform apply -auto-approve -var="aws_region=${{ env.AWS_REGION }}" -var="environment=prod"
+          terraform workspace select -or-create=true prod
+          terraform apply -auto-approve -var="aws_region=${{ env.AWS_REGION }}"
           echo "s3_bucket_name=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
           echo "cloudfront_dist_id=$(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_OUTPUT
 

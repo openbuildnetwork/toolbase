@@ -4,11 +4,7 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "environment" {
-  description = "Target deployment environment (e.g. dev, staging, prod)"
-  type        = string
-  default     = "prod"
-}
+
 
 variable "domain_name" {
   description = "The custom domain name for the application (e.g., toolbase.yourdomain.com)"
