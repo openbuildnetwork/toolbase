@@ -170,7 +170,7 @@ export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MOD
                       <span>Engine Selector</span>
                     </div>
                     <div className="w-full">
-                      <ModelPicker />
+                      <ModelPicker alignSide="bottom" />
                     </div>
                   </div>
                 </div>

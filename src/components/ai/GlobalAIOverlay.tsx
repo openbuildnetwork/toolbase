@@ -106,8 +106,8 @@ export function GlobalAIOverlay() {
         <div className="flex-1 overflow-hidden">
           {hasOpened && (
             (!isLoaded && !isInstalled) ? (
-              <div className="flex h-full w-full items-center p-4 py-8">
-                <div className="w-full">
+              <div className="flex h-full w-full flex-col overflow-y-auto p-4 py-8 scrollbar-thin">
+                <div className="w-full my-auto">
                   <OllamaSetup targetModel={targetModel} onReady={() => {}} onClose={closeChat} />
                 </div>
               </div>

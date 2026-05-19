@@ -276,7 +276,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 20 }}
-        className="flex h-full w-full flex-col bg-(--background)"
+        className="flex h-full w-full flex-col bg-(--background) overflow-hidden"
       >
         <div className="flex items-center justify-between border-b border-(--border-subtle) bg-(--surface-overlay)/90 px-4 py-3 backdrop-blur-xl">
           <Button

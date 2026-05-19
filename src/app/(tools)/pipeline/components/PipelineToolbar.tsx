@@ -87,7 +87,13 @@ export function PipelineToolbar({
         </button>
     );
 
-    const isWarming = useAnyWorkerWarming();
+    const [mounted, setMounted] = React.useState(false);
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const isWarmingState = useAnyWorkerWarming();
+    const isWarming = mounted ? isWarmingState : false;
 
     return (
         <div style={{

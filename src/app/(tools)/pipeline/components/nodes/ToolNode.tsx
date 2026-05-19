@@ -45,7 +45,7 @@ interface ToolNodeData {
     interactionFiles?: unknown[];
 }
 
-export function ToolNode({ data }: { data: ToolNodeData }) {
+export const ToolNode = React.memo(function ToolNode({ data }: { data: ToolNodeData }) {
     // Phase 3: Subscribe to WASM warm-up state for this node's worker
     // Hooks MUST be called before any early returns
     const { readyState, warmMessage } = useWorkerState(data.toolId);
@@ -280,4 +280,4 @@ export function ToolNode({ data }: { data: ToolNodeData }) {
             />
         </div>
     );
-}
+});

@@ -16,48 +16,74 @@ function getTypeColor(type?: string): string {
 export function useGraphSerializer() {
     
     const graphToPipeline = useCallback((nodes: Node[], edges: Edge[]): PipelineStep[] | null => {
-        // 1. Find the File Input node
-        const fileNode = nodes.find(n => n.type === 'fileInput');
-        if (!fileNode) return null;
-
-        const steps: PipelineStep[] = [];
-        let currentNodeId: string | null = fileNode.id;
-
-        // 2. Follow edges left→right
+        // 1. Find all tool and humanReview nodes
+        const toolNodes = nodes.filter(n => n.type === 'tool' || n.type === 'humanReview');
+        
+        // 2. For each tool node, calculate its maximum distance to the output node
+        const nodeDistances = new Map<string, number>();
         const visited = new Set<string>();
 
-        while (currentNodeId) {
-            if (visited.has(currentNodeId)) {
-                // cycle detected
-                break;
+        const getDistanceToOutput = (nodeId: string): number => {
+            if (nodeDistances.has(nodeId)) {
+                return nodeDistances.get(nodeId)!;
             }
-            visited.add(currentNodeId);
+            if (visited.has(nodeId)) {
+                // Cycle detected, return -1 to avoid infinite recursion
+                return -1;
+            }
+            visited.add(nodeId);
 
-            const nextEdge = edges.find(e => e.source === currentNodeId);
-            if (!nextEdge) break;
+            const outgoingEdges = edges.filter(e => e.source === nodeId);
+            let maxDist = -1;
 
-            const nextNode = nodes.find(n => n.id === nextEdge.target);
-            if (!nextNode) break;
+            for (const edge of outgoingEdges) {
+                const targetNode = nodes.find(n => n.id === edge.target);
+                if (!targetNode) continue;
 
-            if (nextNode.type === 'output') {
-                break; // We're done
+                if (targetNode.type === 'output') {
+                    maxDist = Math.max(maxDist, 1);
+                } else if (targetNode.type === 'tool' || targetNode.type === 'humanReview') {
+                    const dist = getDistanceToOutput(targetNode.id);
+                    if (dist !== -1) {
+                        maxDist = Math.max(maxDist, dist + 1);
+                    }
+                }
             }
 
-            if (nextNode.type === 'tool' || nextNode.type === 'humanReview') {
-                steps.push({
-                    id: nextNode.id,
-                    toolId: nextNode.data.toolId as string,
-                    config: {
-                        ...(nextNode.data.config as Record<string, unknown> || {}),
-                        __nodeId: nextNode.id,
-                    },
-                });
-            }
+            visited.delete(nodeId);
+            nodeDistances.set(nodeId, maxDist);
+            return maxDist;
+        };
 
-            currentNodeId = nextNode.id;
-        }
+        // Populate distances for all tool nodes
+        toolNodes.forEach(node => {
+            getDistanceToOutput(node.id);
+        });
 
-        return steps;
+        // Filter out tool nodes that cannot reach the output node
+        const activeToolNodes = toolNodes.filter(node => {
+            const dist = nodeDistances.get(node.id);
+            return dist !== undefined && dist > 0;
+        });
+
+        // Sort tool nodes by distance to output descending (furthest/earliest first)
+        activeToolNodes.sort((a, b) => {
+            const distA = nodeDistances.get(a.id) || 0;
+            const distB = nodeDistances.get(b.id) || 0;
+            return distB - distA;
+        });
+
+        if (activeToolNodes.length === 0) return null;
+
+        // Convert to PipelineStep[]
+        return activeToolNodes.map(node => ({
+            id: node.id,
+            toolId: node.data.toolId as string,
+            config: {
+                ...(node.data.config as Record<string, unknown> || {}),
+                __nodeId: node.id,
+            },
+        }));
     }, []);
 
     const pipelineToGraph = useCallback((pipeline: PipelineDefinition): { nodes: Node[], edges: Edge[] } => {
