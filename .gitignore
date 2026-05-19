@@ -39,6 +39,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+package.tgz
+
 
 # env files (can opt-in for committing if needed)
 .env*
@@ -56,6 +58,7 @@ next-env.d.ts
 # others
 *.csv
 *test.json
+*.zip
 
 # modal
 .gemini/
@@ -71,6 +74,12 @@ next-env.d.ts
 /public/onnxruntime-web/
 .cache/
 
+
 # other
 mocks
 .claude/
+.terraform/
+.terraform.lock.hcl
+backend.tf.example
+terraform.tfstate
+terraform.tfstate.backup

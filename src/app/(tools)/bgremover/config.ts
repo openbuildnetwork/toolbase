@@ -14,7 +14,7 @@ export const bgremoverConfig: ToolMeta = {
   isFeatured: true,
   wasmPowered: true,
   pythonPowered: false,
-  status: 'stable',
+  status: 'experimental',
   addedAt: '2025-05-14',
   mobileOptimized: true,
   tip: [] // Handled by standalone page for now

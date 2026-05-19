@@ -1,0 +1,75 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main  # Deploy on merge to the main branch
+
+permissions:
+  id-token: write # Required for AWS OIDC authentication
+  contents: read
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1 # Change to your target AWS region
+      AWS_ROLE_ARN: arn:aws:iam::123456789012:role/github-actions-deploy-role # Replace with your AWS IAM OIDC Role ARN
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install Rust Toolchain & wasm-pack
+        run: |
+          rustup target add wasm32-unknown-unknown
+          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Install Node Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build WASM, Python, and Next.js Static Export
+        run: pnpm build
+
+      - name: Configure AWS Credentials (via OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          audience: sts.amazonaws.com
+
+      # Alternatively, if not using OIDC, configure via traditional secrets:
+      # - name: Configure AWS Credentials (via Access Keys)
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy Terraform Infrastructure
+        id: tf
+        working-directory: infra/terraform
+        run: |
+          terraform init
+          terraform apply -auto-approve -var="aws_region=${{ env.AWS_REGION }}" -var="environment=prod"
+          echo "s3_bucket_name=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
+          echo "cloudfront_dist_id=$(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_OUTPUT
+
+      - name: Sync Static Files to S3
+        run: |
+          aws s3 sync out/ s3://${{ steps.tf.outputs.s3_bucket_name }}/ --delete
+
+      - name: Invalidate CloudFront CDN Cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ steps.tf.outputs.cloudfront_dist_id }} --paths "/*"

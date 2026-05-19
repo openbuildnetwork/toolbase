@@ -31,10 +31,32 @@ async function downloadFile(url, dest) {
 async function setup() {
     console.log("Setting up Background Removal Assets (Node.js)...");
 
+    // Check if bgremover is enabled in tools.registry.ts
+    const registryPath = path.join(ROOT_DIR, 'src', 'config', 'tools.registry.ts');
+    if (fs.existsSync(registryPath)) {
+        const registryContent = fs.readFileSync(registryPath, 'utf8');
+        const toolsBlock = registryContent.match(/export const TOOLS: ToolMeta\[\] = \[[^\]]*\]/s);
+        if (toolsBlock) {
+            const isRegistryEnabled = toolsBlock[0]
+                .split('\n')
+                .some(line => !line.trim().startsWith('//') && line.includes('bgremoverConfig'));
+            if (!isRegistryEnabled) {
+                console.log("Background remover tool is currently disabled in tools.registry.ts. Skipping asset setup.");
+                return;
+            }
+        }
+    }
+
     const ONNX_DIR = path.join(ROOT_DIR, 'public', 'onnxruntime-web');
-    
+    if (!fs.existsSync(ONNX_DIR)) {
+        fs.mkdirSync(ONNX_DIR, { recursive: true });
+    }
+
     const isImglyReady = fs.existsSync(PUBLIC_DIR) && fs.existsSync(path.join(PUBLIC_DIR, 'resources.json')) && fs.readdirSync(PUBLIC_DIR).length > 5;
-    const isOnnxReady = fs.existsSync(ONNX_DIR) && fs.existsSync(path.join(ONNX_DIR, 'ort-wasm-simd-threaded.wasm')) && fs.readdirSync(ONNX_DIR).length >= 2;
+    const isOnnxReady = fs.existsSync(ONNX_DIR) && 
+                         fs.existsSync(path.join(ONNX_DIR, 'ort-wasm-simd-threaded.wasm')) && 
+                         fs.existsSync(path.join(ONNX_DIR, 'ort-wasm-simd-threaded.mjs')) &&
+                         fs.statSync(path.join(ONNX_DIR, 'ort-wasm-simd-threaded.mjs')).size === 26583;
 
     if (isImglyReady && isOnnxReady) {
         console.log("Assets appear to be already installed in public/imgly and public/onnxruntime-web.");
@@ -121,7 +143,29 @@ async function setup() {
     }
 
     // 4. Cleanup Zip
-    if (fs.existsSync(TEMP_TGZ)) fs.rmSync(TEMP_TGZ);
+    try {
+        if (fs.existsSync(TEMP_TGZ)) fs.rmSync(TEMP_TGZ);
+    } catch (e) {
+        console.warn("Could not delete temporary tgz file:", e.message);
+    }
+
+    // 5. Normalize line endings of text files to ensure correct size on all operating systems
+    console.log("Normalizing line endings of JS/MJS assets...");
+    const filesToNormalize = [
+        path.join(ONNX_DIR, 'ort-wasm-simd-threaded.mjs'),
+        path.join(ONNX_DIR, 'ort-wasm-simd-threaded.jsep.mjs'),
+        path.join(PUBLIC_DIR, 'aa485cf3fa61ca007b3e1ca7b65068328270f072b61cdda490b732211e1da5d9'),
+        path.join(PUBLIC_DIR, '2004e7fc76dd246901aaec08a7268cfb9832dcafa9e5a889b7f23f990ffe16ab')
+    ];
+
+    for (const file of filesToNormalize) {
+        if (fs.existsSync(file)) {
+            const content = fs.readFileSync(file, 'utf8');
+            const normalized = content.replace(/\r\n/g, '\n');
+            fs.writeFileSync(file, normalized, 'utf8');
+            console.log(`Normalized ${path.basename(file)}: ${fs.statSync(file).size} bytes`);
+        }
+    }
 
     console.log("Setup complete.");
 }
