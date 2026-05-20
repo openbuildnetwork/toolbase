@@ -34,6 +34,10 @@ This folder is the central documentation hub for the full Toolbase product.
 - [CI and Quality Gates](./engineering/CI-QUALITY-GATES.md)
 
 ## Delivery and Operations
+- [Deployment (AWS / CI)](./operations/DEPLOYMENT.md)
 - [Release Process](./operations/RELEASE-PROCESS.md)
 - [Support and Triage](./operations/SUPPORT-TRIAGE.md)
 - [Incident Response](./operations/INCIDENT-RESPONSE.md)
+
+## Infrastructure (separate repo)
+- [toolbase-infra README](https://github.com/openbuildnetwork/toolbase-infra/blob/main/README.md) — Terraform, S3, CloudFront, GitHub Actions
