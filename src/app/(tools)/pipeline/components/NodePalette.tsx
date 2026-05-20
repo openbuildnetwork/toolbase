@@ -27,7 +27,7 @@ const TOOL_THUMBNAILS: Record<string, string> = {
     'magic-pdf': '/assets/thumbnails/magic-pdf.webp',
     'pixels': '/assets/thumbnails/pixels.webp',
     'redact-secrets': '/assets/thumbnails/redact-secrets.webp',
-    'base64': '/assets/thumbnails/b64EnDc.webp',
+    'base64': '/assets/thumbnails/base-64.webp',
     'data-lens': '/assets/thumbnails/data-lens.webp',
     'json-to-interface': '/assets/thumbnails/json-to-interface.webp',
 };
