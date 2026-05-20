@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 import { cn } from "@/lib/utils";
 import { DEFAULT_WEBLLM_MODEL_ID } from "@/hooks/useWebLLM";
+import { Loader2 } from "lucide-react";
 
 const ChatInterface = dynamic(() => import("@/components/ai/ChatInterface").then(mod => mod.ChatInterface), {
   loading: () => <div className="flex h-full w-full items-center justify-center">Loading Chat...</div>
@@ -16,8 +17,13 @@ const OllamaSetup = dynamic(() => import("@/components/ai/OllamaSetup").then(mod
 });
 
 export function GlobalAIOverlay() {
-  const { isOpen, closeChat, isLoaded, isInstalled, isLoading, loadModel, activeModelId } = useAIChat();
+  const { isOpen, closeChat, isLoaded, isInstalled, isLoading, loadModel, error } = useAIChat();
   const [hasOpened, setHasOpened] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const targetModel = DEFAULT_WEBLLM_MODEL_ID;
   
   const [width, setWidth] = useState(450);
@@ -64,9 +70,9 @@ export function GlobalAIOverlay() {
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isOpen || !isInstalled || isLoaded || isLoading) return;
-    void loadModel(activeModelId || targetModel, false, true);
-  }, [activeModelId, isInstalled, isLoaded, isLoading, isOpen, loadModel, targetModel]);
+    if (!isOpen || !isInstalled || isLoaded || isLoading || error) return;
+    void loadModel(targetModel, false, true);
+  }, [isInstalled, isLoaded, isLoading, isOpen, loadModel, targetModel, error]);
 
   return (
     <>
@@ -104,7 +110,11 @@ export function GlobalAIOverlay() {
         </div>
 
         <div className="flex-1 overflow-hidden">
-          {hasOpened && (
+          {!mounted ? (
+            <div className="flex h-full w-full items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            </div>
+          ) : hasOpened && (
             (!isLoaded && !isInstalled) ? (
               <div className="flex h-full w-full flex-col overflow-y-auto p-4 py-8 scrollbar-thin">
                 <div className="w-full my-auto">

@@ -3,9 +3,8 @@ import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 import { DEFAULT_WEBLLM_MODEL_ID, LIGHTWEIGHT_WEBLLM_MODEL_ID } from "@/hooks/useWebLLM";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { RefreshCw, Cpu, ShieldCheck, Sparkles, X, AlertTriangle, RotateCcw, Zap } from "lucide-react";
+import { RefreshCw, Cpu, ShieldCheck, Sparkles, X, AlertTriangle, RotateCcw } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
-import { ModelPicker } from "./ModelPicker";
 
 interface OllamaSetupProps {
   onReady?: () => void;
@@ -93,18 +92,6 @@ export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MOD
                         <RotateCcw className="h-3.5 w-3.5" />
                         Retry Activation
                       </Button>
-                      
-                      {targetModel !== LIGHTWEIGHT_WEBLLM_MODEL_ID && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => loadModel(LIGHTWEIGHT_WEBLLM_MODEL_ID, true)}
-                          className="w-full gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400 h-10"
-                        >
-                          <Zap className="h-3.5 w-3.5" />
-                          Try Lightweight Model
-                        </Button>
-                      )}
                     </div>
                   </m.div>
                 )}
@@ -165,14 +152,7 @@ export function OllamaSetup({ onReady, onClose, targetModel = DEFAULT_WEBLLM_MOD
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2.5 pt-2">
-                    <div className="flex justify-between text-[10px] text-(--text-faint) uppercase tracking-widest font-black">
-                      <span>Engine Selector</span>
-                    </div>
-                    <div className="w-full">
-                      <ModelPicker alignSide="bottom" />
-                    </div>
-                  </div>
+
                 </div>
 
                 <div className="space-y-4 pt-4 border-t border-(--border-subtle)">
