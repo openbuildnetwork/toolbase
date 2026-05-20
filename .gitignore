@@ -1,0 +1,83 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+*.bundle.ts
+.venv
+__pycache__
+.env
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+Thumbs.db
+*.pem
+
+# more debug/temp
+.eslintcache
+.npm/
+.turbo/
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+package.tgz
+
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# agent
+.agent/
+
+# others
+*.csv
+*test.json
+*.zip
+
+# modal
+.gemini/
+.milestones/
+
+# rust / wasm
+/rust/**/target/
+/rust/target/
+/public/wasm/**/pkg/
+!/public/wasm/**/.gitkeep
+/public/wasm/pyodide/
+.cache/
+
+
+# other
+mocks
+.claude/
+.terraform/
+.terraform.lock.hcl
+backend.tf.example
+terraform.tfstate
+terraform.tfstate.backup
