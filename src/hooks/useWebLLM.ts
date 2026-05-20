@@ -339,11 +339,14 @@ function getOrCreateWorker(forceReload = false) {
 export function useWebLLM() {
     const [engine, setEngine] = useState<MLCEngineInterface | null>(sharedRuntime.engine);
     const [progress, setProgress] = useState<string>(sharedRuntime.engine && sharedRuntime.modelId ? "Ready" : "");
-    const [isLoaded, setIsLoaded] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(!!sharedRuntime.engine);
     const [isLoading, setIsLoading] = useState(false);
     const [progressPercentage, setProgressPercentage] = useState(0);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [isInstalled, setIsInstalled] = useState(false);
+    const [isInstalled, setIsInstalled] = useState(() => {
+        if (typeof window === "undefined") return false;
+        return !!sharedRuntime.engine || localStorage.getItem("obn_ai_installed") === "true";
+    });
     const [error, setError] = useState<string | null>(sharedRuntime.error);
     const [capabilities, setCapabilities] = useState<CapabilityReport | null>(null);
 
@@ -475,9 +478,7 @@ export function useWebLLM() {
 
         setIsLoading(true);
         setIsLoaded(false);
-        if (background) {
-            setIsInstalled(true);
-        }
+        setIsInstalled(true);
         setProgress(background ? "Restoring local AI from browser cache..." : "Initializing WebGPU...");
         setProgressPercentage(0);
 
@@ -570,7 +571,7 @@ export function useWebLLM() {
 
 
     useEffect(() => {
-        if (sharedRuntime.enginePromise) {
+        if (sharedRuntime.enginePromise && !sharedRuntime.error) {
             void loadModel(sharedRuntime.modelId || DEFAULT_WEBLLM_MODEL_ID, false, true);
             return;
         }

@@ -29,7 +29,6 @@ import { cn } from "@/lib/utils";
 import { m, AnimatePresence } from "framer-motion";
 import { Markdown } from "@/components/ui/Markdown";
 import Image from "next/image";
-import { ModelPicker } from "./ModelPicker";
 import { PipelineSuggestion } from "./PipelineSuggestion";
 
 
@@ -49,14 +48,14 @@ const PIPELINE_LOADING_MESSAGES = [
   "Almost there..."
 ];
 
-function ThinkingIndicator({ text, progress }: { text: string; progress?: number }) {
+function ThinkingIndicator({ text, progress, progressText }: { text: string; progress?: number; progressText?: string }) {
   return (
     <m.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-center gap-4 py-3 px-4 rounded-2xl rounded-tl-md border border-blue-500/20 bg-blue-500/[0.03] backdrop-blur-md shadow-sm"
+      className="flex items-center gap-4 py-3.5 px-5 rounded-2xl rounded-tl-md border border-blue-500/20 bg-blue-500/[0.03] backdrop-blur-md shadow-sm max-w-md"
     >
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5 shrink-0">
         {[0, 1, 2].map((i) => (
           <m.span 
             key={i}
@@ -75,7 +74,7 @@ function ThinkingIndicator({ text, progress }: { text: string; progress?: number
           />
         ))}
       </div>
-      <div className="flex flex-col gap-0.5">
+      <div className="flex flex-col gap-1.5 min-w-0 w-full">
         <m.span 
           animate={{ opacity: [0.6, 1, 0.6] }}
           transition={{ repeat: Infinity, duration: 2 }}
@@ -84,12 +83,19 @@ function ThinkingIndicator({ text, progress }: { text: string; progress?: number
           {text}
         </m.span>
         {progress !== undefined && (
-          <div className="h-1 w-32 overflow-hidden rounded-full bg-blue-500/10">
-            <m.div 
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              className="h-full bg-blue-500 transition-all duration-300"
-            />
+          <div className="flex flex-col gap-1.5 w-full mt-0.5">
+            <div className="h-1.5 w-48 max-w-full overflow-hidden rounded-full bg-blue-500/10 shrink-0">
+              <m.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                className="h-full bg-blue-500 transition-all duration-300"
+              />
+            </div>
+            {progressText && (
+              <span className="text-[11px] font-medium text-(--text-muted) truncate max-w-[280px]" title={progressText}>
+                {progressText}
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -117,10 +123,10 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
     uninstallModel, 
     isLoaded, 
     isLoading, 
+    progress,
     progressPercentage,
     error,
     loadModel,
-    activeModelId,
     toolState,
     runtimeSnapshot,
     recordRuntimeEvent
@@ -676,6 +682,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
               <ThinkingIndicator 
                 text={isLoading && !isLoaded ? "Warming Engine" : "Echo is thinking"} 
                 progress={isLoading && !isLoaded ? progressPercentage : undefined}
+                progressText={isLoading && !isLoaded ? progress : undefined}
               />
             </m.div>
           )}
@@ -700,24 +707,12 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                   <div className="flex flex-wrap gap-3">
                     <Button
                       size="sm"
-                      onClick={() => loadModel(activeModelId || DEFAULT_WEBLLM_MODEL_ID)}
+                      onClick={() => loadModel(DEFAULT_WEBLLM_MODEL_ID)}
                       className="gap-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
                     >
                       <RotateCcw className="h-4 w-4" />
                       Try Again
                     </Button>
-                    
-                    {activeModelId !== LIGHTWEIGHT_WEBLLM_MODEL_ID && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => loadModel(LIGHTWEIGHT_WEBLLM_MODEL_ID)}
-                        className="gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400"
-                      >
-                        <Zap className="h-4 w-4" />
-                        Switch to Lightweight
-                      </Button>
-                    )}
                   </div>
                 </div>
               </div>
@@ -744,7 +739,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
             
             <div className="flex items-center justify-between px-2 pt-1 pb-1">
               <div className="flex items-center gap-2">
-                <ModelPicker />
+                {/* Model selector removed */}
               </div>
 
               <div className="flex items-center gap-2">
