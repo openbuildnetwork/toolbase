@@ -1,146 +1,162 @@
-# Toolbase
+<p align="center">
+  <img src="./public/assets/images/toolbase_banner_logo.png" alt="Toolbase — privacy-first tools in your browser" width="100%" />
+</p>
 
-> Every tool you need. Zero data leaves your machine.
+<p align="center">
+  <strong>Every tool you need. Zero data leaves your machine.</strong>
+</p>
 
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Powered by WebAssembly](https://img.shields.io/badge/Powered%20by-WebAssembly-654ff0)](https://webassembly.org)
-[![Built with Pyodide](https://img.shields.io/badge/Python-Pyodide-3776ab)](https://pyodide.org)
+<p align="center">
+  <a href="https://toolbase.in"><strong>Use Toolbase online →</strong></a>
+  &nbsp;·&nbsp;
+  <a href="./CONTRIBUTING.md">Contribute</a>
+  &nbsp;·&nbsp;
+  <a href="./docs/README.md">Documentation</a>
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" /></a>
+  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" /></a>
+  <a href="https://webassembly.org"><img src="https://img.shields.io/badge/Powered%20by-WebAssembly-654ff0" alt="WebAssembly" /></a>
+  <a href="https://pyodide.org"><img src="https://img.shields.io/badge/Python-Pyodide-3776ab" alt="Pyodide" /></a>
+</p>
 
 ---
 
 ## What is Toolbase?
 
-Toolbase is a privacy-first, browser-native toolbase — a single platform where every tool you need lives in one place, and every operation happens entirely on your machine.
+**Toolbase** is a free, open-source collection of everyday tools—PDF, images, data, security, drawing, and more—in **one website**. Open a tool, drop in your file or paste your text, and get results **without uploading anything to a server**.
 
-No uploads. No servers. No subscriptions. No compromises.
+Your files stay on your computer. Processing runs inside your browser using WebAssembly and Web Workers, so heavy jobs do not freeze the page.
 
-Whether you're compressing a PDF, analyzing a dataset, redacting secrets from config files, or building a diagram — Toolbase processes everything locally using WebAssembly. Your files never leave your browser.
-
----
-
-## Why Toolbase?
-
-| Feature                   | Toolbase            | Typical Online Tools       |
-| ------------------------- | ------------------- | -------------------------- |
-| Files processed locally   | ✅ Always           | ❌ Uploaded to servers     |
-| Free to use               | ✅ Forever          | ⚠️ Freemium / paywalled    |
-| Works offline             | ✅ PWA support      | ❌ Requires internet       |
-| Open source               | ✅ MIT License      | ❌ Proprietary             |
-| No account required       | ✅ Never            | ⚠️ Often required          |
-| No data retention         | ✅ Nothing stored   | ❌ Files stored on servers |
-| Python-powered processing | ✅ Via Pyodide/WASM | N/A                        |
+**Good for:** developers, analysts, and anyone who cannot (or will not) send sensitive files to random online converters.
 
 ---
 
-## Tools
+## Try it now
 
-Full inventory: [`docs/product/TOOL-CATALOG.md`](./docs/product/TOOL-CATALOG.md) (source of truth: `src/config/tools.registry.ts`).
+No account. No install.
 
-| Tool | Category | Engine |
-| ---- | -------- | ------ |
-| NoteVault | Developer | Browser |
-| Magic PDF | PDF | Pyodide |
-| Pixels | Image | Pyodide |
-| Data Lens | Data | Pyodide |
-| Redact Secrets | Security | Rust WASM |
-| Base64 | Developer | Browser |
-| JSON to Interface | Developer | Browser |
-| Open Draw | Drawing | Pyodide |
-| Ping Tester | Network | Browser |
-| Speed Test | Network | Browser |
-| Pipeline Builder | Developer | Pyodide + WASM |
-| PasswordX | Security | Browser |
-| Format Studio | Data | Browser |
-| DataBuilder | Data | Browser |
-| Archive Kit | Developer | Rust WASM |
-| QR Forge | Developer | Browser |
+👉 **[toolbase.in](https://toolbase.in)** — works in Chrome, Firefox, Safari, and Edge. Install as a PWA for offline use.
 
 ---
 
-## Tech Stack
+## What you can do
 
-- **Framework:** [Next.js](https://nextjs.org) (TypeScript)
-- **Styling:** [Tailwind CSS](https://tailwindcss.com)
-- **WebAssembly:** [Pyodide](https://pyodide.org) — Python in the browser
-- **Processing:** Web Workers — heavy tasks never block the UI
-- **Architecture:** 100% client-side — zero backend
+### PDF — [Magic PDF](https://toolbase.in/magic-pdf)
+
+Compress, split, merge, rearrange, protect, unlock, redact, sign, and convert PDFs to images, Word, or back again.
+
+### Images — [Pixels](https://toolbase.in/pixels)
+
+Compress and resize PNG/JPEG/WebP, upscale with enhancement, strip EXIF, and hide or reveal secret messages with steganography.
+
+### Data — [Data Lens](https://toolbase.in/data-lens) · [Format Studio](https://toolbase.in/format-studio) · [DataBuilder](https://toolbase.in/data-builder)
+
+Explore CSV/JSON with SQL and Python, beautify or minify structured payloads, and generate realistic mock datasets for testing.
+
+### Security & privacy — [Redact Secrets](https://toolbase.in/redact-secrets) · [PasswordX](https://toolbase.in/passwordx)
+
+Find and redact API keys, tokens, and passwords in files; generate and check passwords locally.
+
+### Developer utilities
+
+| Tool | What it does |
+| ---- | ------------ |
+| [NoteVault](https://toolbase.in/note-vault) | Local notes for JSON, Markdown, code, and plain text—with search and export |
+| [Base64](https://toolbase.in/base64) | Encode or decode text and files |
+| [JSON to Interface](https://toolbase.in/json-to-interface) | Turn JSON into TypeScript interfaces |
+| [Archive Kit](https://toolbase.in/archive-kit) | Create and extract archives in the browser |
+| [QR Forge](https://toolbase.in/qr-forge) | Generate and decode QR codes |
+| [Pipeline Builder](https://toolbase.in/pipeline) | Chain tools into repeatable workflows (TIP) |
+
+### Drawing & network
+
+| Tool | What it does |
+| ---- | ------------ |
+| [Open Draw](https://toolbase.in/open-draw) | Diagrams, flowcharts, and architecture sketches |
+| [Ping Tester](https://toolbase.in/ping-tester) | Check if a host is reachable and measure latency |
+| [Speed Test](https://toolbase.in/speed-test) | Measure download and upload speed |
+
+Full list with routes and engines: [`docs/product/TOOL-CATALOG.md`](./docs/product/TOOL-CATALOG.md).
 
 ---
 
-## Getting Started
+## Why people choose Toolbase
 
-### Use it online
+| | Toolbase | Typical online tool sites |
+| --- | --- | --- |
+| **Your files** | Stay on your device | Uploaded to someone else's server |
+| **Cost** | Free, MIT open source | Freemium, ads, or subscriptions |
+| **Account** | Not required | Often required |
+| **Offline** | PWA support | Usually needs always-on internet |
+| **Data retention** | Nothing stored by us | Files may be kept or scanned |
 
-Visit **[toolbase.in](https://toolbase.in)** — no install needed.
+---
+
+## For developers
 
 ### Run locally
 
+**Requirements:** Node.js 20+, [pnpm](https://pnpm.io) 9+, Git. Rust + `wasm-pack` only if you change code under `rust/`.
+
 ```bash
-# Clone the repo
 git clone https://github.com/openbuildnetwork/toolbase.git
 cd toolbase
-
-# Install dependencies
 pnpm install
-
-# Start the development server
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000).
 
-### Other commands
+### Useful commands
 
 ```bash
-pnpm build              # Production build (Python bundle + WASM + Next export)
-pnpm build:strict-wasm  # Same as build, plus WASM artifact verification
-pnpm lint               # Run ESLint
-pnpm type-check         # TypeScript type checking
+pnpm dev                # Dev server + Python/WASM watchers
+pnpm build              # Production static export
+pnpm build:strict-wasm  # Build + verify WASM artifacts
+pnpm lint               # ESLint
+pnpm type-check         # TypeScript
 ```
 
-Deployments to AWS are handled by [toolbase-infra](https://github.com/openbuildnetwork/toolbase-infra); see [docs/operations/DEPLOYMENT.md](./docs/operations/DEPLOYMENT.md).
+Production hosting (S3 + CloudFront) lives in [toolbase-infra](https://github.com/openbuildnetwork/toolbase-infra). See [docs/operations/DEPLOYMENT.md](./docs/operations/DEPLOYMENT.md).
+
+### How it is built
+
+- **[Next.js](https://nextjs.org)** + TypeScript + Tailwind CSS
+- **[Pyodide](https://pyodide.org)** for Python in the browser (PDF, images, data tools)
+- **Rust → WASM** for performance-critical tools (e.g. archives, redaction)
+- **Web Workers** so the UI stays responsive
+- **No application backend** — static export only; privacy by architecture
+
+Deeper guides: [`docs/`](./docs/README.md) (architecture, adding tools, CI, release process).
 
 ---
 
 ## Contributing
 
-Toolbase is open source and we welcome contributions of all kinds — new tools, bug fixes, performance improvements, documentation, and more.
+We welcome bug fixes, new tools, docs, UI polish, and performance work.
 
-Read our [Contributing Guide](CONTRIBUTING.md) to get started. It covers:
+Start with [CONTRIBUTING.md](./CONTRIBUTING.md) — especially the privacy rules (local-only processing, no third-party APIs with user data).
 
-- Our philosophy and non-negotiables
-- How to add a new tool (with the exact folder structure)
-- Commit message conventions
-- PR checklist
-
-**Good first issues** are tagged with [`good first issue`](https://github.com/toolbase/toolbase/labels/good%20first%20issue) on GitHub.
-
----
-
-## Documentation
-
-Project docs are organized under [`docs/`](./docs/README.md):
-
-- Architecture and standards
-- Engineering workflow and quality gates
-- Product catalog and operational playbooks
-- Governance links (Code of Conduct, Contributing, Security, License)
+Looking for a first PR? See [good first issue](https://github.com/openbuildnetwork/toolbase/labels/good%20first%20issue) on GitHub.
 
 ---
 
 ## Security
 
-Toolbase's security model is simple: **nothing leaves the browser.** All processing happens in your browser's sandboxed environment using WebAssembly.
+If processing stays in the browser, your content never transits our servers—because there is no server-side processing layer for tool workloads.
 
-If you discover a security vulnerability, please use [GitHub's private Security Advisory](https://github.com/toolbase/toolbase/security/advisories/new) to report it. See our [Security Policy](SECURITY.md) for full details.
+Report vulnerabilities privately via [GitHub Security Advisories](https://github.com/openbuildnetwork/toolbase/security/advisories/new). Details: [SECURITY.md](./SECURITY.md).
 
 ---
 
 ## License
 
-[MIT](LICENSE) — free to use, modify, and distribute.
+[MIT](./LICENSE) — use, modify, and share freely.
 
 ---
 
-_Built with ❤️ for privacy, by people who believe powerful tools should be free._
+<p align="center">
+  <sub>Built for people who want powerful tools without giving up their data.</sub>
+</p>
