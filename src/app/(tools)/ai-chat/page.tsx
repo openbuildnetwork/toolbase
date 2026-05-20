@@ -1,16 +1,29 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { OllamaSetup } from "@/components/ai/OllamaSetup";
 import { ChatInterface } from "@/components/ai/ChatInterface";
-import { Cpu, LockKeyhole } from "lucide-react";
+import { Cpu, LockKeyhole, Loader2 } from "lucide-react";
 import { useAIChat } from "@/app/(tools)/ai-chat/hooks/useAIChat";
 import { DEFAULT_WEBLLM_MODEL_ID, SUPPORTED_MODELS } from "@/hooks/useWebLLM";
 
 export default function AiChatPage() {
-  const { isInstalled, isLoaded } = useAIChat();
+  const { isInstalled, isLoaded, isLoading, error, loadModel } = useAIChat();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const targetModel = DEFAULT_WEBLLM_MODEL_ID;
+
+  useEffect(() => {
+    if (mounted && isInstalled && !isLoaded && !isLoading && !error) {
+      void loadModel(targetModel, false, true);
+    }
+  }, [mounted, isInstalled, isLoaded, isLoading, error, loadModel, targetModel]);
+
   const modelLabel = SUPPORTED_MODELS.find((model) => model.id === targetModel)?.name || "Local WebLLM";
   const showSetup = !isInstalled && !isLoaded;
 
@@ -66,7 +79,11 @@ export default function AiChatPage() {
         </section>
 
         <section className="min-h-0 flex-1">
-          {showSetup ? (
+          {!mounted ? (
+            <div className="flex h-[400px] w-full items-center justify-center rounded-lg border border-(--border-subtle) bg-(--surface-overlay)/80">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            </div>
+          ) : showSetup ? (
             <div className="rounded-lg border border-(--border-subtle) bg-(--surface-overlay)/80 p-4 shadow-[0_16px_50px_var(--shadow-color)] backdrop-blur-xl md:p-8">
               <OllamaSetup targetModel={targetModel} />
             </div>
