@@ -1,28 +1,49 @@
 # Tool Catalog
 
-This is the product-level inventory of tools and owners.
+Product-level inventory of registered tools. Update this file whenever tools are added, renamed, or removed.
 
-## Current Tools
-1. Magic PDF
-2. Pixel Axe
-3. Data Lens
-4. Redact Secrets
-5. Open Draw
-6. Base64
-7. JSON to Interface
-8. Ping Tester
-9. Speed Test
-10. PasswordX
-11. OmniParse
-12. Data Forge
-13. Archive Kit
+## Current tools
 
-## Source of Truth
-- Runtime tool metadata and route registry:
-  - `src/config/tools.registry.ts`
+| ID | Name | Category | Route | Engine |
+|----|------|----------|-------|--------|
+| `note-vault` | NoteVault | developer | `/note-vault` | Browser |
+| `magic-pdf` | Magic PDF | pdf | `/magic-pdf` | Pyodide |
+| `pixels` | Pixels | image | `/pixels` | Pyodide |
+| `data-lens` | Data Lens | data | `/data-lens` | Pyodide |
+| `redact-secrets` | Redact Secrets | security | `/redact-secrets` | Rust WASM |
+| `base64` | Base64 | developer | `/base64` | Browser |
+| `json-to-interface` | JSON to Interface | developer | `/json-to-interface` | Browser |
+| `open-draw` | Open Draw | drawing | `/open-draw` | Pyodide |
+| `ping-tester` | Ping Tester | network | `/ping-tester` | Browser |
+| `speed-test` | Speed Test | network | `/speed-test` | Browser |
+| `pipeline` | Pipeline Builder | developer | `/pipeline` | Pyodide + WASM (TIP) |
+| `passwordx` | PasswordX | security | `/passwordx` | Browser |
+| `format-studio` | Format Studio | data | `/format-studio` | Browser |
+| `data-builder` | DataBuilder | data | `/data-builder` | Browser |
+| `archive-kit` | Archive Kit | developer | `/archive-kit` | Rust WASM |
+| `qr-forge` | QR Forge | developer | `/qr-forge` | Browser |
 
-## Governance Rule
+## Source of truth
+
+Runtime metadata and search:
+
+- `src/config/tools.registry.ts`
+- Per-tool config: `src/app/(tools)/<tool>/config.ts`
+
+## Governance rule
+
 Any tool addition, rename, or route change must update:
-1. `src/config/tools.registry.ts`
-2. Tool route under `src/app/(tools)/<tool>`
-3. This catalog and relevant product docs
+
+1. `src/config/tools.registry.ts` and the tool's `config.ts`
+2. Route under `src/app/(tools)/<tool>/`
+3. This catalog
+4. Root `README.md` tools table (summary)
+5. `docs/architecture/ARCHITECTURE.md` scope list when the product surface changes
+
+## Retired names
+
+These names are no longer in the registry:
+
+- **Pixel Axe** → **Pixels** (`pixels`)
+- **OmniParse** → removed (use **Format Studio** for JSON/XML formatting utilities)
+- **Data Forge** → removed (use **DataBuilder** for mock data generation)

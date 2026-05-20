@@ -11,8 +11,9 @@ Incidents include outages, major regressions, or privacy-impacting defects.
 
 ## Recovery Workflow
 1. Mitigate impact quickly (rollback or hotfix).
-2. Validate fix in impacted tools.
-3. Monitor for recurrence.
+2. For hosting/CDN issues, follow [DEPLOYMENT.md](./DEPLOYMENT.md) rollback (revert `main`/`dev` or re-run infra deploy).
+3. Validate fix in impacted tools.
+4. Monitor for recurrence.
 
 ## Postmortem
 1. Timeline of incident.
