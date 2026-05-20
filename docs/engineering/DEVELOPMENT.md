@@ -1,8 +1,9 @@
 # Development Workflow
 
 ## Prerequisites
-1. Node.js compatible with project lockfile and Next.js version.
-2. pnpm installed.
+1. Node.js 20+ (matches deploy workflow).
+2. pnpm 9+ (CI uses pnpm 9).
+3. Rust toolchain + `wasm-pack` when working on `rust/` crates (see [HOW-TO-RUST.md](./HOW-TO-RUST.md)).
 
 ## Local Setup
 ```bash

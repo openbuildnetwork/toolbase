@@ -35,17 +35,26 @@ Whether you're compressing a PDF, analyzing a dataset, redacting secrets from co
 
 ## Tools
 
-| Tool                 | Category  | Description                                    | Engine        |
-| -------------------- | --------- | ---------------------------------------------- | ------------- |
-| 🔮 Magic PDF         | PDF       | Compress, merge, split, protect, sign, convert | Python + WASM |
-| 🪓 Pixel Axe         | Image     | Compress, resize, upscale, steganography       | Python + WASM |
-| 🔍 Data Lens         | Data      | SQL + Python analysis on CSV/JSON              | Python + WASM |
-| 🔒 Redact Secrets    | Security  | Scan and redact API keys, passwords, tokens    | Python + WASM |
-| 🎨 Open Draw         | Drawing   | Diagrams, flowcharts, architecture charts      | Browser JS    |
-| 🔤 Base64            | Developer | Encode/decode text, files, images              | Browser JS    |
-| 📐 JSON to Interface | Developer | Convert JSON to TypeScript interfaces          | Browser JS    |
-| 📡 Ping Tester       | Network   | Test host latency and reachability             | Browser JS    |
-| ⚡ Speed Test        | Network   | Measure download/upload speed                  | Browser JS    |
+Full inventory: [`docs/product/TOOL-CATALOG.md`](./docs/product/TOOL-CATALOG.md) (source of truth: `src/config/tools.registry.ts`).
+
+| Tool | Category | Engine |
+| ---- | -------- | ------ |
+| NoteVault | Developer | Browser |
+| Magic PDF | PDF | Pyodide |
+| Pixels | Image | Pyodide |
+| Data Lens | Data | Pyodide |
+| Redact Secrets | Security | Rust WASM |
+| Base64 | Developer | Browser |
+| JSON to Interface | Developer | Browser |
+| Open Draw | Drawing | Pyodide |
+| Ping Tester | Network | Browser |
+| Speed Test | Network | Browser |
+| Pipeline Builder | Developer | Pyodide + WASM |
+| PasswordX | Security | Browser |
+| Format Studio | Data | Browser |
+| DataBuilder | Data | Browser |
+| Archive Kit | Developer | Rust WASM |
+| QR Forge | Developer | Browser |
 
 ---
 
@@ -69,7 +78,7 @@ Visit **[toolbase.in](https://toolbase.in)** — no install needed.
 
 ```bash
 # Clone the repo
-git clone https://github.com/toolbase/toolbase.git
+git clone https://github.com/openbuildnetwork/toolbase.git
 cd toolbase
 
 # Install dependencies
@@ -84,10 +93,13 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ### Other commands
 
 ```bash
-pnpm build        # Production build
-pnpm lint         # Run ESLint
-pnpm type-check   # TypeScript type checking
+pnpm build              # Production build (Python bundle + WASM + Next export)
+pnpm build:strict-wasm  # Same as build, plus WASM artifact verification
+pnpm lint               # Run ESLint
+pnpm type-check         # TypeScript type checking
 ```
+
+Deployments to AWS are handled by [toolbase-infra](https://github.com/openbuildnetwork/toolbase-infra); see [docs/operations/DEPLOYMENT.md](./docs/operations/DEPLOYMENT.md).
 
 ---
 

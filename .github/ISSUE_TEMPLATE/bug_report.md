@@ -25,7 +25,7 @@ assignees: ''
 ## Environment
 - Browser: [e.g. Chrome 120, Firefox 121]
 - OS: [e.g. Windows 11, macOS Sonoma]
-- Tool affected: [e.g. Magic PDF, Pixel Axe]
+- Tool affected: [e.g. Magic PDF, Pixels, Data Lens]
 
 ## Console Errors
 <!-- Open DevTools → Console and paste any errors here -->

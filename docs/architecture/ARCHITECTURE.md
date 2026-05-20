@@ -1,19 +1,9 @@
 # Toolbase Architecture
 
 ## Scope
-This architecture applies to the full product and all tools equally:
-- Magic PDF
-- Pixel Axe
-- Data Lens
-- Redact Secrets
-- Open Draw
-- Base64
-- JSON to Interface
-- Ping Tester
-- Speed Test
-- PasswordX
-- OmniParse
-- Data Forge
+This architecture applies to the full product and all registered tools (see [`docs/product/TOOL-CATALOG.md`](../product/TOOL-CATALOG.md)), including:
+
+NoteVault, Magic PDF, Pixels, Data Lens, Redact Secrets, Base64, JSON to Interface, Open Draw, Ping Tester, Speed Test, Pipeline Builder, PasswordX, Format Studio, DataBuilder, Archive Kit, and QR Forge.
 
 ## Principles
 1. Local-first processing (privacy by default).
