@@ -3,7 +3,6 @@
 > Every tool you need. Zero data leaves your machine.
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![CI](https://github.com/toolbase/toolbase/actions/workflows/ci.yml/badge.svg)](https://github.com/toolbase/toolbase/actions)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Powered by WebAssembly](https://img.shields.io/badge/Powered%20by-WebAssembly-654ff0)](https://webassembly.org)
 [![Built with Pyodide](https://img.shields.io/badge/Python-Pyodide-3776ab)](https://pyodide.org)
