@@ -27,6 +27,26 @@ def load_file(data):
             DATA_STORE[base_table_name] = df
             tables_created.append(base_table_name)
 
+        elif file_type == "tsv":
+            df = pd.read_csv(io.BytesIO(file_bytes), sep='\t')
+            DATA_STORE[base_table_name] = df
+            tables_created.append(base_table_name)
+
+        elif file_type == "parquet":
+            df = pd.read_parquet(io.BytesIO(file_bytes))
+            DATA_STORE[base_table_name] = df
+            tables_created.append(base_table_name)
+
+        elif file_type == "feather":
+            df = pd.read_feather(io.BytesIO(file_bytes))
+            DATA_STORE[base_table_name] = df
+            tables_created.append(base_table_name)
+
+        elif file_type == "xml":
+            df = pd.read_xml(io.BytesIO(file_bytes))
+            DATA_STORE[base_table_name] = df
+            tables_created.append(base_table_name)
+
         elif file_type == "json":
             # Parse JSON to handle nested structures
             json_data = json.loads(file_bytes.decode("utf-8"))

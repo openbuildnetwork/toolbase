@@ -24,7 +24,7 @@ async function loadPyodideAndPackages() {
         const micropip = pyodide.pyimport("micropip");
 
         // Pandas is large — this may take a few seconds
-        await pyodide.loadPackage(["pandas", "sqlite3"]);
+        await pyodide.loadPackage(["pandas", "sqlite3", "pyarrow", "lxml"]);
         await micropip.install(["openpyxl"]);
 
         postInitProgress("Preparing tool…");
