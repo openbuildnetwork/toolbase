@@ -425,7 +425,7 @@ result = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})`);
                             <input
                                 ref={fileInputRef}
                                 type="file"
-                                accept=".csv,.json,.xlsx"
+                                accept=".csv,.tsv,.json,.xlsx,.parquet,.pq,.feather,.ft,.xml"
                                 onChange={handleFileInputChange}
                                 multiple
                                 className="hidden"
