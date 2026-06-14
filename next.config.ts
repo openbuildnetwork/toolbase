@@ -11,7 +11,7 @@ const withPWA = withPWAInit({
   register: true,
   cacheOnFrontEndNav: true,
   aggressiveFrontEndNavCaching: true,
-  reloadOnOnline: true,
+  reloadOnOnline: false,
   // Cache Pyodide WASM files aggressively — they're large and rarely change
   workboxOptions: {
     runtimeCaching: [
