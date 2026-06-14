@@ -30,6 +30,8 @@ export default function NoteVaultPage() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>('default');
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const filteredNotes = useNoteSearch(notes, searchQuery, selectedCollectionId);
   const selectedNote = notes.find(n => n.id === selectedNoteId);
@@ -49,6 +51,111 @@ export default function NoteVaultPage() {
     };
     addNote(newNote);
     setSelectedNoteId(newNote.id);
+  };
+
+  const handleImportFileText = async (file: File) => {
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    const isTextMime = file.type.startsWith('text/');
+    const isSupportedExtension = [
+      'md', 'markdown', 'txt', 'text', 'json', 'xml', 'yaml', 'yml', 
+      'csv', 'html', 'htm', 'sql', 'env', 'diff', 'js', 'ts', 'tsx', 
+      'jsx', 'py', 'css', 'sh', 'bash', 'conf', 'ini', 'cfg'
+    ].includes(ext);
+
+    if (!isTextMime && !isSupportedExtension) {
+      alert(`Cannot import "${file.name}". Only text, markdown, configuration, or code files are supported.`);
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+
+      const extMap: Record<string, NoteFormat> = {
+        md: 'markdown', markdown: 'markdown',
+        txt: 'text', text: 'text',
+        json: 'json',
+        xml: 'xml',
+        yaml: 'yaml', yml: 'yaml',
+        csv: 'csv',
+        html: 'html', htm: 'html',
+        sql: 'sql',
+        env: 'env',
+        diff: 'diff'
+      };
+
+      let format = extMap[ext] || 'text';
+      if (format === 'text' && text.trim()) {
+        try {
+          const detected = await runTask('DETECT_FORMAT', text) as NoteFormat;
+          if (detected) format = detected;
+        } catch (err) {
+          console.error("Format detection failed:", err);
+        }
+      }
+
+      const newNote: Note = {
+        id: crypto.randomUUID(),
+        title: nameWithoutExt || 'Imported Note',
+        content: text,
+        format: format,
+        collectionId: selectedCollectionId,
+        isPinned: false,
+        tags: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        revisions: []
+      };
+
+      addNote(newNote);
+      setSelectedNoteId(newNote.id);
+    } catch (err) {
+      console.error("Failed to read file", err);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDraggingFile(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFile(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFile(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length === 0) return;
+
+    for (const file of files) {
+      await handleImportFileText(file);
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    for (const file of files) {
+      await handleImportFileText(file);
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   if (!isReady) {
@@ -90,7 +197,12 @@ export default function NoteVaultPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-(--background) text-(--text-primary) font-display overflow-hidden">
+    <div 
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className="flex flex-col h-screen bg-(--background) text-(--text-primary) font-display overflow-hidden relative"
+    >
       <header className="h-14 border-b border-(--border-subtle) bg-(--surface-overlay)/50 backdrop-blur-md flex items-center justify-between px-6 shrink-0">
          <div className="flex items-center text-sm text-(--text-muted) gap-2">
             <div className="w-8 h-8 rounded-lg bg-blue-600/10 flex items-center justify-center text-blue-600">
@@ -99,12 +211,27 @@ export default function NoteVaultPage() {
             <span className="font-semibold text-(--text-primary)">NoteVault</span>
          </div>
          <div className="flex items-center gap-2">
-             <button 
+              <button 
+                onClick={handleImportClick}
+                className="bg-(--surface-hover) border border-(--border-subtle) hover:bg-(--surface-active) text-(--text-primary) px-3 py-1.5 rounded-lg font-medium transition-colors text-sm flex items-center gap-1.5 cursor-pointer"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Import
+              </button>
+              <button 
                 onClick={handleCreateNote}
-                className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg font-medium transition-colors text-sm"
+                className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg font-medium transition-colors text-sm cursor-pointer"
               >
                 + New Note
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".md,.markdown,.txt,.text,.json,.xml,.yaml,.yml,.csv,.html,.htm,.sql,.env,.diff,.js,.ts,.tsx,.jsx,.py,.css,.sh,.bash,.conf,.ini,.cfg"
+                className="hidden"
+                onChange={handleFileChange}
+              />
              <ReturnToToolsButton />
          </div>
       </header>
@@ -184,6 +311,24 @@ export default function NoteVaultPage() {
             )}
         </div>
       </div>
+      {isDraggingFile && (
+        <div 
+          onDragOver={(e) => e.preventDefault()}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className="absolute inset-0 bg-blue-600/10 backdrop-blur-[2px] border-2 border-dashed border-blue-500/50 rounded-xl m-4 flex flex-col items-center justify-center z-50 transition-all duration-300 pointer-events-auto"
+        >
+          <div className="bg-(--surface-overlay) p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-4 border border-(--border-subtle) max-w-sm text-center">
+            <div className="w-16 h-16 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-500 shadow-inner">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-bounce"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg text-(--text-primary) mb-1">Import file as note</h3>
+              <p className="text-sm text-(--text-muted) px-4">Release to automatically parse and import markdown, code, configuration, or text files.</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
