@@ -46,6 +46,55 @@ export interface UseDataLensResult extends EtlState {
     selectTableData: (tableName: string) => Promise<unknown>;
 }
 
+async function readFirstNRows(file: File, maxRows: number): Promise<{ content: Uint8Array; isTruncated: boolean }> {
+    const stream = file.stream();
+    const reader = stream.getReader();
+    const decoder = new TextDecoder('utf-8');
+    const encoder = new TextEncoder();
+    
+    let rowCount = 0;
+    let accumulatedText = '';
+    let isTruncated = false;
+    
+    try {
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+                break;
+            }
+            
+            const text = decoder.decode(value, { stream: true });
+            accumulatedText += text;
+            
+            const newlines = accumulatedText.match(/\n/g);
+            rowCount = newlines ? newlines.length : 0;
+            
+            if (rowCount >= maxRows) {
+                isTruncated = true;
+                let pos = -1;
+                for (let i = 0; i < maxRows; i++) {
+                    pos = accumulatedText.indexOf('\n', pos + 1);
+                }
+                
+                if (pos !== -1) {
+                    accumulatedText = accumulatedText.substring(0, pos + 1);
+                }
+                await reader.cancel();
+                break;
+            }
+        }
+    } catch (e) {
+        console.error("Error streaming file:", e);
+    } finally {
+        reader.releaseLock();
+    }
+    
+    return {
+        content: encoder.encode(accumulatedText),
+        isTruncated
+    };
+}
+
 // Persistent Worker Singleton
 let workerInstance: Worker | null = null;
 let workerReadyPromise: Promise<boolean> | null = null;
@@ -141,18 +190,44 @@ export function useDataLens(): UseDataLensResult {
 
     const loadFile = useCallback(async (file: File) => {
         try {
-            const buffer = await file.arrayBuffer();
-            const content = new Uint8Array(buffer);
-            const type = file.name.endsWith('.csv') ? 'csv' :
-                file.name.endsWith('.json') ? 'json' :
-                    file.name.endsWith('.xlsx') ? 'xlsx' : 'unknown';
+            const filenameLower = file.name.toLowerCase();
+            const type = filenameLower.endsWith('.csv') ? 'csv' :
+                filenameLower.endsWith('.tsv') ? 'tsv' :
+                filenameLower.endsWith('.json') ? 'json' :
+                filenameLower.endsWith('.xlsx') ? 'xlsx' :
+                (filenameLower.endsWith('.parquet') || filenameLower.endsWith('.pq')) ? 'parquet' :
+                (filenameLower.endsWith('.feather') || filenameLower.endsWith('.ft')) ? 'feather' :
+                filenameLower.endsWith('.xml') ? 'xml' : 'unknown';
 
             if (type === 'unknown') {
                 throw new Error("Unsupported file type");
             }
 
+            const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB threshold for CSV/TSV preview
+            const MAX_BINARY_SIZE = 50 * 1024 * 1024; // 50MB limit
+            
+            let content: Uint8Array;
+            let filename = file.name;
+            let isPreview = false;
+
+            if ((type === 'csv' || type === 'tsv') && file.size > MAX_FILE_SIZE) {
+                isPreview = true;
+                const result = await readFirstNRows(file, 100000);
+                content = result.content;
+
+                // Append preview marker to filename
+                const parts = file.name.split('.');
+                const ext = parts.pop();
+                filename = `${parts.join('.')}_preview.${ext}`;
+            } else if (type !== 'csv' && type !== 'tsv' && file.size > MAX_BINARY_SIZE) {
+                throw new Error(`File is too large to load in-browser (limit: 50MB for JSON/Excel/Parquet/Feather/XML).`);
+            } else {
+                const buffer = await file.arrayBuffer();
+                content = new Uint8Array(buffer);
+            }
+
             const res = await sendMessage<WorkerResponse>('load_file', {
-                filename: file.name,
+                filename: filename,
                 content: content,
                 type
             });
@@ -161,6 +236,10 @@ export function useDataLens(): UseDataLensResult {
                 const schemaRes = await sendMessage<WorkerResponse>('get_schemas', {});
                 if (schemaRes.success && schemaRes.schemas) {
                     setSchemas(schemaRes.schemas);
+                }
+                
+                if (isPreview) {
+                    alert(`The file "${file.name}" is very large (${(file.size / (1024 * 1024)).toFixed(1)} MB). To ensure fast performance and prevent browser memory crashes, we loaded the first 100,000 rows as a preview named "${filename}".`);
                 }
                 return res;
             } else {

@@ -11,12 +11,12 @@ export default function NoteStats({ note }: { note: Note }) {
   const sizeFormatted = sizeBytes > 1024 ? `${(sizeBytes / 1024).toFixed(1)} KB` : `${sizeBytes} B`;
 
   return (
-    <div className="h-8 border-t border-gray-800 bg-gray-900 flex items-center px-4 text-xs text-gray-500 gap-4 select-none">
+    <div className="h-8 border-t border-(--border-subtle) bg-(--background) flex items-center px-4 text-xs text-(--text-muted) gap-4 select-none">
       <span>{charCount} chars</span>
       <span>{wordCount} words</span>
       <span>{lineCount} lines</span>
       <span>{sizeFormatted}</span>
-      <span className="flex-1 text-right text-blue-500/70">{note.format.toUpperCase()}</span>
+      <span className="flex-1 text-right text-blue-500 font-medium">{note.format.toUpperCase()}</span>
     </div>
   );
 }

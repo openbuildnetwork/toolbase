@@ -1,14 +1,17 @@
 # NoteVault
 
 ## Purpose
-A developer-centric local note-taking app that treats notes as typed, structured artifacts instead of rich text documents.
+A developer-centric local note-taking app that treats notes as typed, structured artifacts, featuring a premium Markdown editor with a live preview pane, formatting toolbar, and multi-file drag-and-drop import.
 
 ## Inputs
 - Raw text (Markdown, JSON, XML, Code, etc.)
 - Auto-detect formats when pasting or importing files
+- Drag and drop files (`.md`, `.txt`, `.json`, etc.) directly into the workspace
+- File import via manual picker
 
 ## Outputs
 - Download files in their raw formats (.json, .md, .txt)
+- Live Markdown preview modes (Write, Split, Preview)
 - View parsed content and metadata
 - Export collections to ZIP
 
