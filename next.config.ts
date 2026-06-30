@@ -80,6 +80,9 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion"],
   },
+  // Note: Disabled COOP/COEP headers because they block Google AdSense from loading.
+  // If your production host enforces these headers, AdSense will be blocked by browsers.
+  /*
   async headers() {
     return [
       {
@@ -97,6 +100,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  */
 };
 
 export default withPWA(nextConfig);
