@@ -43,6 +43,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="toolbase" />
+        <meta name="google-adsense-account" content="ca-pub-2338118273290804" />
 
         {/* Favicons */}
         <link rel="icon" type="image/x-icon" href="/icons/favicon/favicon.ico" />
